@@ -1,16 +1,5 @@
 {% extends 'mercurylab/base.html' %}
 {% block body_block %}
-    <div class="hero-unit">
-        {% if list %}
-        <ul>
-            {% for item in list %}
-		    <li><a href="{{ item.id }}">{{ item.id }}</a>: {{ item.name }}, {{ item.agency }} </li>
-            {% endfor %}
-        </ul>
-        {% else %}
-            <li>No items at present.</li>
-        {% endif %}
-    </div>
 
     <div class="hero-unit">
         <div class="container">
