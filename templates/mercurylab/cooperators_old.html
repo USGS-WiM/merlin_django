@@ -1,0 +1,17 @@
+{% extends 'mercurylab/base.html' %}
+{% block body_block %}
+    <div class="hero-unit">
+        {% if data %}
+        <ul>
+            {% for datum in data %}
+		    <li><a href="{{ datum.url }}">{{ datum.name }}</a></li>
+                <ul>
+                {% for project in datum.projects %}
+                    <li><a href="{{ project }}">{{ project }}</a></li>
+                {% endfor %}
+                </ul>
+            {% endfor %}
+        </ul>
+        {% endif %}
+    </div>
+{% endblock %}

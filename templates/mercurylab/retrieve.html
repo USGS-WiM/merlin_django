@@ -1,0 +1,12 @@
+{% extends 'mercurylab/base.html' %}
+{% block body_block %}
+    <div class="hero-unit">
+        {% if item %}
+        <ul>
+		    <li>{{ item.id }}: {{ item }}</li>
+        </ul>
+         {% else %}
+            <li>No items at present.</li>
+        {% endif %}
+    </div>
+{% endblock %}

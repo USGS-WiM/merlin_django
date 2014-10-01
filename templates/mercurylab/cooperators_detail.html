@@ -1,0 +1,22 @@
+{% extends 'mercurylab/base.html' %}
+{% block body_block %}
+    <div class="hero-unit">
+        {% if list %}
+		<h3>{{ list.id }}</h3
+        <ul>
+		    <li>{{ list.name }}</li>
+			<li>{{ list.agency }}</li>
+			<li>{{ list.email }}</li>
+			<li>{{ list.phone }}</li>
+			<li>{{ list.sec_phone }}</li>
+			<li>{{ list.address }}</li>
+			<li>{{ list.city }}</li>
+			<li>{{ list.state }}</li>
+			<li>{{ list.zipcode }}</li>
+			<li>{{ list.country }}</li>
+        </ul>
+         {% else %}
+            <li>No items at present.</li>
+        {% endif %}
+    </div>
+{% endblock %}
