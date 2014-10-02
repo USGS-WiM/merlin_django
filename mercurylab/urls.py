@@ -11,6 +11,7 @@ urlpatterns = patterns('',
     url(r'^logout/$', views.user_logout, name='logout'),
     url(r'^cooperators/$', views.cooperators_list, name='cooperators_list'),
     url(r'^cooperators/(?P<pk>\d+)/$', views.cooperators_detail, name='cooperators_detail'),
+    url(r'^cooperator_add/$', views.cooperator_add, name='cooperator_add'),
 )
 
 if settings.DEBUG:
