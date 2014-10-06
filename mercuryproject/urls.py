@@ -7,6 +7,6 @@ urlpatterns = patterns('',
     # url(r'^blog/', include('blog.urls')),
 
     url(r'^mercuryadmin/', include(admin.site.urls)),
-    url(r'^mercuryservices/', include('mercuryservices.urls')),
-    url(r'^mercurylab/', include('mercurylab.urls')),
+    url(r'^mercuryservices/', include('mercuryservices.urls')),# namespace="mercuryservices")),
+    url(r'^mercurylab/', include('mercurylab.urls', namespace="mercurylab")),
 )

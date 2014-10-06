@@ -1,3 +1,1 @@
-from django.db import models
-
-# Create your models here.
+# Otherwise Django do not consider this app for tests

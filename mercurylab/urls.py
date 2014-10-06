@@ -10,8 +10,9 @@ urlpatterns = patterns('',
     url(r'^restricted/$', views.restricted, name='restricted'),
     url(r'^logout/$', views.user_logout, name='logout'),
     url(r'^cooperators/$', views.cooperators_list, name='cooperators_list'),
-    url(r'^cooperators/(?P<pk>\d+)/$', views.cooperators_detail, name='cooperators_detail'),
+    url(r'^cooperators/(?P<pk>\d+)/$', views.cooperator_detail, name='cooperator_detail'),
     url(r'^cooperator_add/$', views.cooperator_add, name='cooperator_add'),
+    url(r'^cooperators/(?P<pk>\d+)/cooperator_edit/$', views.cooperator_edit, name='cooperator_edit'),
 )
 
 if settings.DEBUG:
