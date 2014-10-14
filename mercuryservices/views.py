@@ -119,12 +119,6 @@ class MediumTypeViewSet(viewsets.ModelViewSet):
 ######
 
 
-class AnalysisTypeViewSet(viewsets.ModelViewSet):
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    queryset = AnalysisType.objects.all()
-    serializer_class = AnalysisTypeSerializer
-
-
 class UnitTypeViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     queryset = UnitType.objects.all()
@@ -137,10 +131,10 @@ class MethodTypeViewSet(viewsets.ModelViewSet):
     serializer_class = MethodTypeSerializer
 
 
-class FieldSampleMethodViewSet(viewsets.ModelViewSet):
+class ResultViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    queryset = FieldSampleMethod.objects.all()
-    serializer_class = FieldSampleMethodSerializer
+    queryset = Result.objects.all()
+    serializer_class = Result
 
 
 ######

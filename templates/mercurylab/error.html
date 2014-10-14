@@ -1,0 +1,12 @@
+{% extends 'mercurylab/base.html' %}
+
+{% load static %}
+
+{% block body_block %}
+<div class="hero-unit">
+	<h1>Error {{ error_code }}</h1>
+    <p><pre>{{ error_message }}</pre></p>
+
+	<img src="{% static 'img/mercury_statue.jpg' %}" alt="Picture of Mercury" />
+</div>
+{% endblock %}

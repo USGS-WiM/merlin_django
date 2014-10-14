@@ -13,14 +13,15 @@ class ProjectSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Project
-        fields = ('url', 'id', 'name', 'description', 'cooperator', 'sites',)
+        fields = ('id', 'name', 'description', 'cooperator', 'sites',)
 
 
 class CooperatorSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Cooperator
-        fields = ('url', 'id', 'name', 'agency', 'email', 'phone', 'sec_phone', 'address', 'city', 'state', 'zipcode', 'country', 'projects',)
+        fields = ('id', 'name', 'agency', 'email', 'phone', 'sec_phone', 'address', 'city', 'state', 'zipcode',
+                  'country', 'projects',)
 
 
 class SiteSerializer(serializers.HyperlinkedModelSerializer):
@@ -42,7 +43,8 @@ class FieldSampleSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = FieldSample
-        fields = ('id', 'site', 'time_stamp', 'depth', 'length', 'comment', 'received_time_stamp', 'login_comment', 'replicate', 'medium_type',)
+        fields = ('id', 'site', 'time_stamp', 'depth', 'length', 'comment', 'received_time_stamp', 'login_comment',
+                  'replicate', 'medium_type',)
 
 
 class FieldSampleBottleSerializer(serializers.HyperlinkedModelSerializer):
@@ -54,7 +56,8 @@ class FieldSampleBottleSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = FieldSampleBottle
-        fields = ('id', 'field_sample', 'bottle', 'filter_type', 'tare_weight', 'volume_filtered', 'filter_weight', 'preservation_type', 'preservation_volume', 'preservation_acid', 'preservation_comment',)
+        fields = ('id', 'field_sample', 'bottle', 'filter_type', 'tare_weight', 'volume_filtered', 'filter_weight',
+                  'preservation_type', 'preservation_volume', 'preservation_acid', 'preservation_comment',)
 
 
 class BottleSerializer(serializers.HyperlinkedModelSerializer):
@@ -87,16 +90,9 @@ class MediumTypeSerializer(serializers.HyperlinkedModelSerializer):
 
 ######
 ##
-## Method Analysis
+## Method and Result
 ##
 ######
-
-
-class AnalysisTypeSerializer(serializers.HyperlinkedModelSerializer):
-
-    class Meta:
-        model = AnalysisType
-        fields = ('id', 'analysis', 'description',)
 
 
 class UnitTypeSerializer(serializers.HyperlinkedModelSerializer):
@@ -110,19 +106,22 @@ class MethodTypeSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = MethodType
-        fields = ('id', 'method', 'description',)
+        fields = ('id', 'method', 'preparation', 'description', 'raw_value_unit', 'final_value_unit',
+                  'method_detection_limit', 'decimal_places', 'significant_figures', 'standard_operating_procedure',
+                  'nwis_parameter_code', 'nwis_parameter_name', 'nwis_method_code')
 
 
-class FieldSampleMethodSerializer(serializers.HyperlinkedModelSerializer):
+class ResultSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
-        model = FieldSampleMethod
-        fields = ('id', 'field_sample', 'method_type', 'constituent_type', 'analysis_type', 'unit_type', 'raw_value', 'reported_value', 'daily_detection_limit', 'analyzed_date', 'analysis_comment', 'quality_assurance',)
+        model = Result
+        fields = ('id', 'field_sample_bottle', 'method', 'isotope_flag', 'detection_flag', 'raw_value', 'final_value',
+                  'daily_detection_limit', 'analyzed_date', 'analysis_comment', 'quality_assurances')
 
 
 ######
 ##
-## Constituent
+## Constituent (Analyte)
 ##
 ######
 
@@ -166,7 +165,7 @@ class DetectionLimitSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = DetectionLimit
-        fields = ('id', 'limit', 'description',)
+        fields = ('id', 'limit', 'limit_unit', 'description',)
 
 
 ######
@@ -194,7 +193,7 @@ class BrominationSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Bromination
-        fields = ('id', 'concentration', 'comment',)
+        fields = ('id', 'concentration', 'bromination_date', 'comment',)
 
 
 #######

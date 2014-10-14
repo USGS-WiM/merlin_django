@@ -1,24 +1,25 @@
 {% extends 'mercurylab/base.html' %}
 {% block body_block %}
     <div class="hero-unit">
-        <a class="btn" href="/mercurylab/cooperators/{{ list.id }}/cooperator_edit">Edit Cooperator</a><br /><br />
+        <a class="btn" href="/mercurylab/cooperators/{{ list.id }}/cooperator_edit">Edit Cooperator</a>
+        <a class="btn" href="/mercurylab/cooperators/{{ list.id }}/cooperator_delete">Delete Cooperator</a>
+        <br /><br />
 
         {% if list %}
-		<h3>{{ list.id }}</h3
-        <ul>
-		    <li>{{ list.name }}</li>
-			<li>{{ list.agency }}</li>
-			<li>{{ list.email }}</li>
-			<li>{{ list.phone }}</li>
-			<li>{{ list.sec_phone }}</li>
-			<li>{{ list.address }}</li>
-			<li>{{ list.city }}</li>
-			<li>{{ list.state }}</li>
-			<li>{{ list.zipcode }}</li>
-			<li>{{ list.country }}</li>
-        </ul>
+            <table>
+		    <tr><td>Name: </td><td>{{ list.name }}</td></tr>
+			<tr><td>Agency: </td><td>{{ list.agency }}</td></tr>
+			<tr><td>Email: </td><td>{{ list.email }}</td></tr>
+			<tr><td>Phone: </td><td>{{ list.phone }}</td></tr>
+			<tr><td>Sec Phone: </td><td>{{ list.sec_phone }}</td></tr>
+			<tr><td>Address: </td><td>{{ list.address }}</td></tr>
+			<tr><td>City: </td><td>{{ list.city }}</td></tr>
+			<tr><td>State: </td><td>{{ list.state }}</td></tr>
+			<tr><td>ZIP: </td><td>{{ list.zipcode }}</td></tr>
+			<tr><td>Country: </td><td>{{ list.country }}</td></tr>
+            </table>
          {% else %}
-            <li>No items at present.</li>
+            <p>No items at present.</p>
         {% endif %}
     </div>
 {% endblock %}
