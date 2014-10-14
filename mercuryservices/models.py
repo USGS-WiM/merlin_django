@@ -141,14 +141,14 @@ class FieldSampleBottle(models.Model):
     field_sample = models.ForeignKey('FieldSample')
     bottle = models.ForeignKey('Bottle')
     filter_type = models.ForeignKey('FilterType')
-    tare_weight = models.FloatField()
-    volume_filtered = models.FloatField()
-    filter_weight = models.FloatField()
+    tare_weight = models.FloatField(null=True, blank=True)
+    volume_filtered = models.FloatField(null=True, blank=True)
+    filter_weight = models.FloatField(null=True, blank=True)
     preservation_type = models.ForeignKey('PreservationType')
     preservation_volume = models.FloatField(null=True, blank=True)
     preservation_acid = models.ForeignKey('Acid')
     preservation_comment = models.TextField(blank=True)
-    description = models.TextField()
+    description = models.TextField(blank=True)
     #status = models.ForeignKey('Status')
 
     def __str__(self):
@@ -157,18 +157,9 @@ class FieldSampleBottle(models.Model):
 
 ######
 ##
-## Method Analysis
+## Methods and Results
 ##
 ######
-
-
-class AnalysisType(models.Model):
-    analysis = models.CharField(max_length=128)
-    description = models.TextField(blank=True)
-    #status = models.ForeignKey('Status')
-
-    def __str__(self):
-        return self.analysis
 
 
 class UnitType(models.Model):
@@ -182,27 +173,41 @@ class UnitType(models.Model):
 
 class MethodType(models.Model):
     method = models.CharField(max_length=128)
+    preparation = models.CharField(max_length=128, blank=True)
     description = models.TextField(blank=True)
+    #raw_unit = models.ForeignKey('UnitType')
+    #final_unit = models.ForeignKey('UnitType')
+    unit = models.ForeignKey('UnitType')
+    method_detection_limit = models.ForeignKey('DetectionLimit')
+    decimal_places = models.IntegerField(null=True, blank=True)
+    significant_figures = models.IntegerField(null=True, blank=True)
+    standard_operating_procedure = models.TextField(blank=True)
+    nwis_parameter_code = models.CharField(max_length=128, blank=True)
+    nwis_parameter_name = models.CharField(max_length=128, blank=True)
+    nwis_method_code = models.CharField(max_length=128, blank=True)
+
     #status = models.ForeignKey('Status')
 
     def __str__(self):
         return self.method
 
 
-class FieldSampleMethod(models.Model):
-    """Results of an analysis method on a sample bottle."""
+class Result(models.Model):
+    """Results of a method analysis on a sample bottle."""
 
-    field_sample = models.ForeignKey('FieldSample')
-    method_type = models.ForeignKey('MethodType')
-    constituent_type = models.ForeignKey('ConstituentType')
-    analysis_type = models.ForeignKey('AnalysisType')
-    unit_type = models.ForeignKey('UnitType')
+    field_sample_bottle = models.ForeignKey('FieldSampleBottle')
+    method = models.ForeignKey('MethodType')
+    isotope_flag = models.ForeignKey('IsotopeFlag')
+    detection_flag = models.ForeignKey('DetectionFlag')
     raw_value = models.FloatField()
-    reported_value = models.FloatField()
+    final_value = models.FloatField()
     daily_detection_limit = models.FloatField()
     analyzed_date = models.DateTimeField()
     analysis_comment = models.TextField(blank=True)
-    quality_assurance = models.ForeignKey('QualityAssurance')
+    # also, there will usually be three QAs for each result
+    ##
+    # ****placeholder for legacy data fields****
+    ##
     #status = models.ForeignKey('Status')
 
     def __str__(self):
@@ -211,7 +216,7 @@ class FieldSampleMethod(models.Model):
 
 ######
 ##
-## Constituent
+## Constituent (Analyte)
 ##
 ######
 
@@ -255,6 +260,7 @@ class ConstituentMethod(models.Model):
 class QualityAssurance(models.Model):
     quality_assurance = models.CharField(max_length=128)
     description = models.TextField(blank=True)
+    result = models.ForeignKey('Result', related_name='quality_assurances')  # usually three QAs per result
     #status = models.ForeignKey(Status)
 
     def __str__(self):
@@ -262,14 +268,33 @@ class QualityAssurance(models.Model):
 
 
 class DetectionLimit(models.Model):
-    """The detection limit for an analysis method (distinct from daily or batch detection limits)."""
+    """The detection limit for a method (distinct from daily or batch detection limits, which are result attributes)."""
 
     limit = models.CharField(max_length=128)
+    limit_unit = models.ForeignKey('UnitType')
     description = models.TextField(blank=True)
     #status = models.ForeignKey(Status)
 
     def __str__(self):
         return self.limit
+
+
+class DetectionFlag(models.Model):
+    detection_flag = models.CharField(max_length=128)  # <, E, L
+    description = models.TextField(blank=True)  # less than, estimated, lost
+    #status = models.ForeignKey(Status)
+
+    def __str__(self):
+        return str(self.detection_flag)
+
+
+class IsotopeFlag(models.Model):
+    isotope_flag = models.CharField(max_length=128)  # A, X-198, X-199, X-200, X-201, X-202, X-204
+    description = models.TextField(blank=True)
+    #status = models.ForeignKey(Status)
+
+    def __str__(self):
+        return str(self.isotope_flag)
 
 
 ######
@@ -301,6 +326,7 @@ class BlankWater(models.Model):
 
 class Bromination(models.Model):
     concentration = models.FloatField()
+    bromination_date = models.DateTimeField()
     comment = models.TextField(blank=True)
     #status = models.ForeignKey(Status)
 
@@ -392,7 +418,6 @@ class ProcedureType(models.Model):
         return self.procedure
 
 
-
 ######
 ##
 ## Admin
@@ -410,15 +435,16 @@ admin.site.register(Bottle)
 admin.site.register(FilterType)
 admin.site.register(PreservationType)
 admin.site.register(MediumType)
-admin.site.register(AnalysisType)
 admin.site.register(UnitType)
 admin.site.register(MethodType)
-admin.site.register(FieldSampleMethod)
+admin.site.register(Result)
 admin.site.register(ConstituentType)
 admin.site.register(ConstituentMedium)
 admin.site.register(ConstituentMethod)
 admin.site.register(QualityAssurance)
 admin.site.register(DetectionLimit)
+admin.site.register(DetectionFlag)
+admin.site.register(IsotopeFlag)
 admin.site.register(Acid)
 admin.site.register(BlankWater)
 admin.site.register(Bromination)

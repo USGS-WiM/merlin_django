@@ -7,6 +7,12 @@
 		<link href="{% static 'css/bootstrap-fluid-adj.css' %}" rel="stylesheet">
 		<link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet" media="screen">
 		<link href="{% static 'css/bootstrap-responsive.css' %}" rel="stylesheet">
+        <link href="{% static 'css/jquery.handsontable.full.css' %}" rel="stylesheet" media="screen">
+
+    	<script src="{% static 'js/jquery-2.1.1.min.js' %}"></script>
+		<script src="{% static 'js/bootstrap.min.js' %}"></script>
+        <script src="{% static 'js/jquery.handsontable.full.js' %}"></script>
+        <script src="{% static 'js/mercurylab-ajax.js' %}"></script>
 
 		<title>Mercury Lab - {% block title %} {% endblock %}</title>
 	</head>
@@ -46,7 +52,7 @@
 
 		<div class="container-fluid">
 			<div class="row-fluid">
-				<div class="span3">
+				<div class="span2">
 					<div class="well sidebar-nav">
 						{% block sidebar %}
    						{% endblock %}
@@ -58,7 +64,7 @@
 						</div>
 					</div>
 				</div>
-				<div class="span9">
+				<div class="span10">
 					{% block body_block %}
 					{% endblock %}
 				</div>
@@ -73,7 +79,5 @@
 			</div>
 		</footer>
 
-		<script src="{% static 'js/jquery-2.1.1.min.js' %}"></script>
-		<script src="{% static 'js/bootstrap.min.js' %}"></script>
 	</body>
 </html>

@@ -1,0 +1,8 @@
+{
+  "data": [
+    ["Name", "Agency", "Email", "Phone", "City"],
+    ["M. ALISA MAST", "USGS", "MAMAST@USGS.GOV", 3032364882, "DENVER"],
+    ["COLIN EAGLES-SMITH, SARAH NELSON", "USGS", "SARAH.J.NELSON@MAINE.EDU,CEAGLES-SMITH@USGS.GOV"],
+    ["DAVID HALL", "USGS", "DWHALL@USGS.GOV", 6088213875, "MIDDLETON"]
+  ]
+}

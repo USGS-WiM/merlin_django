@@ -22,19 +22,21 @@ class UserProfileForm(forms.ModelForm):
         fields = ('initials', 'phone')
 
 
-class CooperatorForm(forms.ModelForm):
+class CooperatorForm(forms.Form):
     #id = forms.IntegerField()
-    name = forms.CharField(help_text="name")
-    agency = forms.CharField(help_text="agency")
-    email = forms.CharField(help_text="email", required=False)
-    phone = forms.IntegerField(help_text="phone number", required=False)
-    sec_phone = forms.IntegerField(help_text="secondary phone number", required=False)
-    address = forms.CharField(help_text="address", required=False)
-    city = forms.CharField(help_text="city", required=False)
-    state = forms.CharField(help_text="state", required=False)
-    zipcode = forms.IntegerField(help_text="zipcode", required=False)
-    country = forms.CharField(help_text="country", required=False)
+    name = forms.CharField(help_text="Name")
+    agency = forms.CharField(help_text="Agency")
+    email = forms.CharField(help_text="Email", required=False)
+    phone = forms.IntegerField(help_text="Phone Number", required=False)
+    sec_phone = forms.IntegerField(help_text="Secondary Phone Number", required=False)
+    address = forms.CharField(help_text="Address", required=False)
+    city = forms.CharField(help_text="City", required=False)
+    state = forms.CharField(help_text="State", required=False)
+    zipcode = forms.IntegerField(help_text="Zipcode", required=False)
+    country = forms.CharField(help_text="Country", required=False)
 
-    class Meta:
-        model = Cooperator
-        fields = ('name', 'agency', 'email', 'phone', 'sec_phone', 'address', 'city', 'state', 'zipcode', 'country')
+    # class Meta:
+    #     model = Cooperator
+    #     fields = ('name', 'agency', 'email', 'phone', 'sec_phone', 'address', 'city', 'state', 'zipcode', 'country')
+
+
