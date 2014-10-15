@@ -1,16 +1,52 @@
 $(document).ready(function() {
-//    var data = [
-//        ["", "Kia", "Nissan", "Toyota", "Honda"],
-//        ["2008", 10, 11, 12, 13],
-//        ["2009", 20, 11, 14, 13],
-//        ["2010", 30, 15, 12, 13]
-//    ];
-//    $("#dataTable").handsontable({
-//        data: data,
-//        startRows: 6,
-//        startCols: 8
-//    });
 
+    $(document).ready(function() {
+        var $container = $('#grid');
+        $container.handsontable({
+            rowHeaders: true,
+            colHeaders: true,
+            minSpareRows: 1,
+            contextMenu: true,
+            columnSorting: true,
+            beforeRender: function() {
+                $container.hide();
+            },
+            afterChange: function (changes, source) {
+                if (source === 'loadData') {
+                    $container.show();
+                }
+            }
+        });
+        function getData(){
+            $.ajax({
+                url: '/mercurylab/cooperators',
+                dataType: 'json',
+                type: 'GET',
+                success: function (res) {
+                   $container.data('handsontable').loadData(res);
+                   $("#console").text('Data loaded');
+                   $container.show();  // this, combined with duplicate call in the grid's afterChange callback, is the only way I could get this to work without first rendering an empty 5x5 grid
+                }
+            });
+        }
+        getData();
+    });
+
+/*
+    var data = [
+        ["", "Kia", "Nissan", "Toyota", "Honda"],
+        ["2008", 10, 11, 12, 13],
+        ["2009", 20, 11, 14, 13],
+        ["2010", 30, 15, 12, 13]
+    ];
+    $("#dataTable").handsontable({
+        data: data,
+        startRows: 6,
+        startCols: 8
+    });
+*/
+
+/*
     var $container = $("#grid");
     var $console = $("#console");
     var $parent = $container.parent();
@@ -88,4 +124,6 @@ $(document).ready(function() {
             $console.text('Changes will not be autosaved');
         }
     });
+*/
+
 });
