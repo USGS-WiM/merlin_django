@@ -4,7 +4,6 @@
     <div class="hero-unit">
 {#        <a class="btn" href="{% url 'mercurylab:cooperator_add' %}">Create New Cooperator</a><br /><br />#}
 
-        {% if data %}
         <p>
             <button name="load">Load</button>
             <button name="save">Save</button>
@@ -12,9 +11,7 @@
         </p>
         <pre id="console" class="console">Click "Load" to load data from server</pre>
         <div id="grid"></div>
-        {% else %}
-        <p>No items at present.</p>
-        {% endif %}
+
     </div>
 
 {% endblock %}

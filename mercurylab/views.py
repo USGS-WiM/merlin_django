@@ -15,16 +15,7 @@ REST_SERVICES_URL = 'http://localhost:8000/mercuryservices/'
 
 
 def cooperators_grid(request):
-    if request.method == 'POST':
-        r = requests.request(method='GET', url=REST_SERVICES_URL+'cooperators/', auth=('admin', 'admin'))
-        data = r.json()
-
-    else:
-        r = requests.request(method='GET', url=REST_SERVICES_URL+'cooperators/', auth=('admin', 'admin'))
-        data = r.json()
-        #return HttpResponse("Here is the cooperator:<br />data:<br />" + data)
-
-    return render_to_response('mercurylab/cooperators_grid.html', {'data': data})
+    return render_to_response('mercurylab/cooperators_grid.html')
 
 
 def cooperators_manage(request):
@@ -56,8 +47,9 @@ def cooperators_list(request):
     #return HttpResponse("Here are the cooperators:<br />data:<br />" + data)
 
     context_dict = {'list': data}
+    return HttpResponse(r, content_type='application/json')
 
-    return render_to_response('mercurylab/cooperators_list.html', context_dict, context)
+    #return render_to_response('mercurylab/cooperators_list.html', context_dict, context)
 
 
 # Plain HTML list of a cooperator's fields
