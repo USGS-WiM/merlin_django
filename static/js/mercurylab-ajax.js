@@ -1,36 +1,39 @@
 $(document).ready(function() {
 
-    $(document).ready(function() {
-        var $container = $('#grid');
-        $container.handsontable({
-            rowHeaders: true,
-            colHeaders: true,
-            minSpareRows: 1,
-            contextMenu: true,
-            columnSorting: true,
-            beforeRender: function() {
-                $container.hide();
-            },
-            afterChange: function (changes, source) {
-                if (source === 'loadData') {
-                    $container.show();
-                }
+    var $container = $('#grid');
+    $container.handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        colWidths: [40,120,120,120,120,120,120,120,40,80,60,120],
+        minSpareRows: 1,
+        contextMenu: true,
+        columnSorting: { column: 0 }/*,
+        beforeRender: function () {
+            $container.hide();
+        },
+        afterChange: function (changes, source) {
+            $container.show();
+        }*/
+    });
+
+    function getCooperator(){
+        var pk = $container.attr("data-pk");
+        $.ajax({
+            url: '/mercurylab/cooperators/'+pk,
+            dataType: 'json',
+            type: 'GET',
+            success: function (res) {
+               $container.data('handsontable').loadData(res);
+               $("#console").text('Data loaded');
+               //$container.show();  // this, combined with duplicate call in the grid's afterChange callback, is the only way I could get this to work without first rendering an empty 5x5 grid
             }
         });
-        function getData(){
-            $.ajax({
-                url: '/mercurylab/cooperators',
-                dataType: 'json',
-                type: 'GET',
-                success: function (res) {
-                   $container.data('handsontable').loadData(res);
-                   $("#console").text('Data loaded');
-                   $container.show();  // this, combined with duplicate call in the grid's afterChange callback, is the only way I could get this to work without first rendering an empty 5x5 grid
-                }
-            });
-        }
-        getData();
-    });
+    }
+
+    getCooperator();
+
+});
+
 
 /*
     var data = [
@@ -125,5 +128,3 @@ $(document).ready(function() {
         }
     });
 */
-
-});

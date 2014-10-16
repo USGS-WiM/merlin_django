@@ -1,0 +1,57 @@
+{% extends 'mercurylab/base.html' %}
+{% block body_block %}
+
+    <div class="hero-unit">
+{#        <a class="btn" href="{% url 'mercurylab:cooperator_add' %}">Create New Cooperator</a><br /><br />#}
+
+        <p>
+            <button name="load">Load</button>
+            <button name="save">Save</button>
+            <label><input type="checkbox" name="autosave" checked="checked" autocomplete="off"> Autosave</label>
+        </p>
+        <pre id="console" class="console">Click "Load" to load data from server</pre>
+        <div id="grid" data-id="{{ id }}" data-data="{{ data }}"></div>
+
+        <script>
+            $(document).ready(function() {
+
+                var grid = $('#grid');
+                var data_id = grid.attr("data-id");
+                var data_data = JSON.parse(grid.attr("data-data"));
+                var console = $("#console");
+                console.text('Loading data.');
+                grid.handsontable({
+                    colWidths: [40,120,120,120,120,120,120,120,40,80,60,120],
+                    data: data_data,
+                    columns: [{data: "id"},{data: "name"},{data: "agency"},{data: "email"},{data: "phone"},{data: "sec_phone"},{data: "address"},{data: "city"},{data: "state"},{data: "zipcode"},{data: "country"},{data: "projects"}]
+                });
+                console.text('Data loaded.');
+
+                grid.parent().find('button[name=save]').click(function () {
+                    var thisdata = JSON.stringify(grid.data('handsontable').getData());
+                    $.ajax({
+{#                        url: "{% url 'mercurylab:cooperator_grid_save' pk=data_id %}",#}
+                        url: '/mercurylab/cooperators_grid/'+data_id+'/save',
+                        data: thisdata,
+                        dataType: 'json',
+                        contentType: "application/json",
+                        type: 'POST',
+                        success: function (data, outcome, response) {
+                            if (response.status === 200) {
+                                console.text(outcome+': Data saved.');
+                              }
+                              else {
+                                console.text(outcome+': Save error: '+response.statusText+', code: '+response.status+'.');
+                              }
+                        },
+                        error: function () {
+                            console.text('403: Save error. POST method is not allowed.');
+                        }
+                    });
+                });
+            });
+        </script>
+
+    </div>
+
+{% endblock %}
