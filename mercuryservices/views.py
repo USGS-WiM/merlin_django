@@ -134,7 +134,7 @@ class MethodTypeViewSet(viewsets.ModelViewSet):
 class ResultViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     queryset = Result.objects.all()
-    serializer_class = Result
+    serializer_class = ResultSerializer
 
 
 ######

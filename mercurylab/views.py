@@ -1,5 +1,5 @@
 from datetime import datetime
-from simplejson import dumps
+import json
 from django.http import HttpResponse, HttpResponseRedirect
 from django.views.generic import *
 from django.template import RequestContext
@@ -8,17 +8,41 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from mercurylab.forms import UserForm, UserProfileForm, CooperatorForm
 from django.forms.formsets import formset_factory
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 import requests
 
 
 REST_SERVICES_URL = 'http://localhost:8000/mercuryservices/'
 
-
+@csrf_exempt
 def cooperators_grid(request):
-    return render_to_response('mercurylab/cooperators_grid.html')
+    context = RequestContext(request)
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'cooperators/', auth=('admin', 'admin'))
+    data = json.dumps(r.json())
+    context_dict = {'data': data}
+    return render_to_response('mercurylab/cooperators_grid.html', context_dict, context)
 
 
-def cooperators_manage(request):
+@csrf_exempt
+def cooperator_grid(request, pk):
+    context = RequestContext(request)
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'cooperators/'+pk+'/', auth=('admin', 'admin'))
+    data = json.dumps(r.json())
+    context_dict = {'data': data, 'id': pk}
+    return render_to_response('mercurylab/cooperator_grid.html', context_dict, context)
+
+
+@csrf_exempt
+def cooperator_grid_save(request, pk):
+    #context = RequestContext(request)
+    data = json.loads(request.body.decode('latin-1'))
+    auth = ('admin', 'admin')
+    r = requests.request(method='PUT', url=REST_SERVICES_URL+'cooperators/'+pk+'/', data=data[0], auth=auth)
+    #data = r.json()
+    return HttpResponse(r, content_type='application/json')
+
+
+def cooperators_formset(request):
     CooperatorFormSet = formset_factory(CooperatorForm)
     if request.method == 'POST':
         r = requests.request(method='GET', url=REST_SERVICES_URL+'cooperators/', auth=('admin', 'admin'))
@@ -33,7 +57,7 @@ def cooperators_manage(request):
         #return HttpResponse("Here is the cooperator:<br />data:<br />" + data)
         formset = CooperatorFormSet(initial=data)
 
-    return render_to_response('mercurylab/cooperators_manage.html', {'formset': formset})
+    return render_to_response('mercurylab/cooperators_formset.html', {'formset': formset})
 
 
 # Plain HTML list of cooperators
@@ -43,13 +67,11 @@ def cooperators_list(request):
 
     r = requests.request(method='GET', url=REST_SERVICES_URL+'cooperators/', auth=('admin', 'admin'))
     data = r.json()
-    #print(data)
     #return HttpResponse("Here are the cooperators:<br />data:<br />" + data)
 
     context_dict = {'list': data}
-    return HttpResponse(r, content_type='application/json')
 
-    #return render_to_response('mercurylab/cooperators_list.html', context_dict, context)
+    return render_to_response('mercurylab/cooperators_list.html', context_dict, context)
 
 
 # Plain HTML list of a cooperator's fields
@@ -63,6 +85,7 @@ def cooperator_detail(request, pk):
 
     form = CooperatorForm(initial=data)
     context_dict = {'form': form, 'list': data}
+    #return HttpResponse(r, content_type='application/json')
 
     return render_to_response('mercurylab/cooperator_detail.html', context_dict, context)
 
@@ -96,13 +119,11 @@ class CooperatorEdit(FormView):
 
 
 # def cooperator_edit(request, pk):
-#     #return HttpResponse("Hello World!")
 #     context = RequestContext(request)
 #     context_dict = {}
 #
 #     if request.method == 'POST':
 #         form = CooperatorForm(request.POST)
-#
 #         if form.is_valid():
 #             data = form.cleaned_data
 #             auth = ('admin', 'admin')
@@ -115,8 +136,6 @@ class CooperatorEdit(FormView):
 #     else:
 #         r = requests.request(method='GET', url=REST_SERVICES_URL+'cooperators/'+pk, auth=('admin', 'admin'))
 #         data = r.json()
-#         #return HttpResponse("Here is the cooperator:<br />data:<br />" + data)
-#
 #         form = CooperatorForm(initial=data)
 #         context_dict = {'form': form, 'list': data}
 #
