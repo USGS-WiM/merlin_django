@@ -1,9 +1,12 @@
 from django.conf.urls import patterns, url, include
 from mercuryservices import views
 from rest_framework.routers import DefaultRouter
+from rest_framework_bulk.routes import BulkRouter
 
 
-router = DefaultRouter()
+#router = DefaultRouter()
+router = BulkRouter()
+router.register(r'bulkcooperators', views.CooperatorBulkUpdateViewSet)
 router.register(r'cooperators', views.CooperatorViewSet)
 router.register(r'projects', views.ProjectViewSet)
 router.register(r'sites', views.SiteViewSet)

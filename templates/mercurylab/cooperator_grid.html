@@ -15,6 +15,7 @@
         <script>
             $(document).ready(function() {
 
+                var objectFields = ["id", "name", "agency", "email", "phone", "sec_phone", "address", "city", "state", "zipcode", "country", "projects"];
                 var grid = $('#grid');
                 var data_id = grid.attr("data-id");
                 var data_data = JSON.parse(grid.attr("data-data"));
@@ -22,17 +23,23 @@
                 console.text('Loading data.');
                 grid.handsontable({
                     colWidths: [40,120,120,120,120,120,120,120,40,80,60,120],
+                    colHeaders: objectFields,
                     data: data_data,
-                    columns: [{data: "id"},{data: "name"},{data: "agency"},{data: "email"},{data: "phone"},{data: "sec_phone"},{data: "address"},{data: "city"},{data: "state"},{data: "zipcode"},{data: "country"},{data: "projects"}]
+                    columns: [{data: "id", readOnly: true},{data: "name"},{data: "agency"},{data: "email"},{data: "phone"},{data: "sec_phone"},{data: "address"},{data: "city"},{data: "state"},{data: "zipcode"},{data: "country"},{data: "projects"}]
                 });
                 console.text('Data loaded.');
 
                 grid.parent().find('button[name=save]').click(function () {
-                    var thisdata = JSON.stringify(grid.data('handsontable').getData());
+                    var thisDataRow = grid.data('handsontable').getDataAtRow(0);
+                    var thisDataObject = {};
+                    for (var i = 0; i < thisDataRow.length; i++) {
+                        thisDataObject[objectFields[i]] = thisDataRow[i];
+                    }
+                    var changedDataJSON = JSON.stringify(thisDataObject);
                     $.ajax({
 {#                        url: "{% url 'mercurylab:cooperator_grid_save' pk=data_id %}",#}
                         url: '/mercurylab/cooperators_grid/'+data_id+'/save',
-                        data: thisdata,
+                        data: changedDataJSON,
                         dataType: 'json',
                         contentType: "application/json",
                         type: 'POST',

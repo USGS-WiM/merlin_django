@@ -8,6 +8,7 @@ from mercuryservices.serializers import *
 from mercuryservices.models import *
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from rest_framework_bulk import ListBulkCreateUpdateDestroyAPIView, BulkUpdateModelMixin
 
 
 #The following lines were a test to see if Django Rest Framework could return responses to HTML instead of JSON.
@@ -36,6 +37,10 @@ from django.contrib.auth.decorators import login_required
 ## Project and Site
 ##
 ######
+
+
+class CooperatorBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
+    model = Cooperator
 
 
 class CooperatorViewSet(viewsets.ModelViewSet):

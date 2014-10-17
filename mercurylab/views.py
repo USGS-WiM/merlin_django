@@ -13,20 +13,32 @@ import requests
 
 
 REST_SERVICES_URL = 'http://localhost:8000/mercuryservices/'
+#REST_SERVICES_URL = 'http://130.11.161.159/mercuryservices/'
+
+TEMP_AUTH = ('admin', 'admin')
+JSON_HEADERS = {'content-type': 'application/json'}
+
 
 @csrf_exempt
 def cooperators_grid(request):
     context = RequestContext(request)
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'cooperators/', auth=('admin', 'admin'))
-    data = json.dumps(r.json())
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'cooperators/', auth=TEMP_AUTH)
+    data = json.dumps(r.json(), sort_keys=True)
     context_dict = {'data': data}
     return render_to_response('mercurylab/cooperators_grid.html', context_dict, context)
 
 
 @csrf_exempt
+def cooperators_grid_save(request):
+    data = request.body
+    r = requests.request(method='PUT', url=REST_SERVICES_URL+'bulkcooperators/', data=data, auth=TEMP_AUTH, headers=JSON_HEADERS)
+    return HttpResponse(r, content_type='application/json')
+
+
+@csrf_exempt
 def cooperator_grid(request, pk):
     context = RequestContext(request)
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'cooperators/'+pk+'/', auth=('admin', 'admin'))
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'cooperators/'+pk+'/', auth=TEMP_AUTH)
     data = json.dumps(r.json())
     context_dict = {'data': data, 'id': pk}
     return render_to_response('mercurylab/cooperator_grid.html', context_dict, context)
@@ -34,25 +46,22 @@ def cooperator_grid(request, pk):
 
 @csrf_exempt
 def cooperator_grid_save(request, pk):
-    #context = RequestContext(request)
-    data = json.loads(request.body.decode('latin-1'))
-    auth = ('admin', 'admin')
-    r = requests.request(method='PUT', url=REST_SERVICES_URL+'cooperators/'+pk+'/', data=data[0], auth=auth)
-    #data = r.json()
+    data = request.body
+    r = requests.request(method='PUT', url=REST_SERVICES_URL+'cooperators/'+pk+'/', data=data, auth=TEMP_AUTH, headers=JSON_HEADERS)
     return HttpResponse(r, content_type='application/json')
 
 
 def cooperators_formset(request):
     CooperatorFormSet = formset_factory(CooperatorForm)
     if request.method == 'POST':
-        r = requests.request(method='GET', url=REST_SERVICES_URL+'cooperators/', auth=('admin', 'admin'))
+        r = requests.request(method='GET', url=REST_SERVICES_URL+'cooperators/', auth=TEMP_AUTH)
         data = r.json()
         formset = CooperatorFormSet(initial=data)
         if formset.is_valid():
             # do something with the formset.cleaned_data
             pass
     else:
-        r = requests.request(method='GET', url=REST_SERVICES_URL+'cooperators/', auth=('admin', 'admin'))
+        r = requests.request(method='GET', url=REST_SERVICES_URL+'cooperators/', auth=TEMP_AUTH)
         data = r.json()
         #return HttpResponse("Here is the cooperator:<br />data:<br />" + data)
         formset = CooperatorFormSet(initial=data)
@@ -65,7 +74,7 @@ def cooperators_list(request):
     #return HttpResponse("Hello World!")
     context = RequestContext(request)
 
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'cooperators/', auth=('admin', 'admin'))
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'cooperators/', auth=TEMP_AUTH)
     data = r.json()
     #return HttpResponse("Here are the cooperators:<br />data:<br />" + data)
 
@@ -79,7 +88,7 @@ def cooperator_detail(request, pk):
     #return HttpResponse("Hello World!")
     context = RequestContext(request)
 
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'cooperators/'+pk, auth=('admin', 'admin'))
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'cooperators/'+pk, auth=TEMP_AUTH)
     data = r.json()
     #return HttpResponse("Here is the cooperator:<br />data:<br />" + data)
 
@@ -97,9 +106,8 @@ class CooperatorEdit(FormView):
 
     def get(self, request, *args, **kwargs):
         pk = self.kwargs['pk']
-        auth = ('admin', 'admin')
         url = REST_SERVICES_URL+'cooperators/'+pk+'/'
-        r = requests.request(method='GET', url=url, auth=auth)
+        r = requests.request(method='GET', url=url, auth=TEMP_AUTH)
         data = r.json()
         form = self.form_class(initial=data)
         return render(request, self.template_name, {'form': form})
@@ -109,9 +117,8 @@ class CooperatorEdit(FormView):
         if form.is_valid():
             pk = self.kwargs['pk']
             data = form.cleaned_data
-            auth = ('admin', 'admin')
             url = REST_SERVICES_URL+'cooperators/'+pk+'/'
-            r = requests.request(method='PUT', url=url, data=data, auth=auth)
+            r = requests.request(method='PUT', url=url, data=data, auth=TEMP_AUTH)
             rid = str(r.json()['id'])
             return HttpResponseRedirect('/mercurylab/cooperators/'+rid+'/')
 
@@ -127,14 +134,14 @@ class CooperatorEdit(FormView):
 #         if form.is_valid():
 #             data = form.cleaned_data
 #             auth = ('admin', 'admin')
-#             r = requests.request(method='PUT', url=REST_SERVICES_URL+'cooperators/'+pk+'/', data=data, auth=auth)
+#             r = requests.request(method='PUT', url=REST_SERVICES_URL+'cooperators/'+pk+'/', data=data, auth=TEMP_AUTH)
 #             data = r.json()
 #             return cooperator_detail(request, str(data['id']))
 #         else:
 #             print(form.errors)
 #
 #     else:
-#         r = requests.request(method='GET', url=REST_SERVICES_URL+'cooperators/'+pk, auth=('admin', 'admin'))
+#         r = requests.request(method='GET', url=REST_SERVICES_URL+'cooperators/'+pk, auth=TEMP_AUTH)
 #         data = r.json()
 #         form = CooperatorForm(initial=data)
 #         context_dict = {'form': form, 'list': data}
@@ -151,7 +158,7 @@ def cooperator_add(request):
         form = CooperatorForm(request.POST)
 
         if form.is_valid():
-            r = requests.request(method='POST', url=REST_SERVICES_URL+'cooperators/', data=form.cleaned_data, auth=('admin', 'admin'))
+            r = requests.request(method='POST', url=REST_SERVICES_URL+'cooperators/', data=form.cleaned_data, auth=TEMP_AUTH)
             data = r.json()
             return cooperator_detail(request, str(data['id']))
         else:
@@ -169,7 +176,7 @@ def cooperator_delete(request, pk):
     context = RequestContext(request)
 
     if request.method == 'GET':
-        r = requests.request(method='DELETE', url=REST_SERVICES_URL+'cooperators/'+pk+'/', auth=('admin', 'admin'))
+        r = requests.request(method='DELETE', url=REST_SERVICES_URL+'cooperators/'+pk+'/', auth=TEMP_AUTH)
 
         if r.status_code == 204:
             return cooperators_list(request)
