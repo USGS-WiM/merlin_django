@@ -38,20 +38,11 @@ from rest_framework import filters
 ## Project and Site
 ##
 ######
-class BottlesBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
-    model = Bottle
 
-class BrominationsBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
-    model = Bromination
-
-class BlankWatersBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
-    model = BlankWater
-
-class AcidsBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
-    model = Acid
 
 class CooperatorBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
     model = Cooperator
+
 
 class CooperatorViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
@@ -66,16 +57,38 @@ class CooperatorViewSet(viewsets.ModelViewSet):
         return queryset
 
 
+class ProjectBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
+    model = Project
+
+
 class ProjectViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    queryset = Project.objects.all()
+    #queryset = Project.objects.all()
     serializer_class = ProjectSerializer
+
+    def get_queryset(self):
+        queryset = Project.objects.all()
+        name = self.request.QUERY_PARAMS.get('name', None)
+        if name is not None:
+            queryset = queryset.filter(name__icontains=name)
+        return queryset
+
+
+class SiteBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
+    model = Site
 
 
 class SiteViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    queryset = Site.objects.all()
+    #queryset = Site.objects.all()
     serializer_class = SiteSerializer
+
+    def get_queryset(self):
+        queryset = Site.objects.all()
+        name = self.request.QUERY_PARAMS.get('name', None)
+        if name is not None:
+            queryset = queryset.filter(name__icontains=name)
+        return queryset
 
 
 ######
@@ -97,10 +110,21 @@ class FieldSampleBottleViewSet(viewsets.ModelViewSet):
     serializer_class = FieldSampleBottleSerializer
 
 
+class BottlesBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
+    model = Bottle
+
+
 class BottleViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    queryset = Bottle.objects.all()
+    #queryset = Bottle.objects.all()
     serializer_class = BottleSerializer
+
+    def get_queryset(self):
+        queryset = Bottle.objects.all()
+        name = self.request.QUERY_PARAMS.get('name', None)
+        if name is not None:
+            queryset = queryset.filter(bottle_unique_name__icontains=name)
+        return queryset
 
 
 class FilterTypeViewSet(viewsets.ModelViewSet):
@@ -210,22 +234,55 @@ class DetectionLimitViewSet(viewsets.ModelViewSet):
 ######
 
 
+class AcidsBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
+    model = Acid
+
+
 class AcidViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    queryset = Acid.objects.all()
+    #queryset = Acid.objects.all()
     serializer_class = AcidSerializer
+
+    def get_queryset(self):
+        queryset = Acid.objects.all()
+        id = self.request.QUERY_PARAMS.get('id', None)
+        if id is not None:
+            queryset = queryset.filter(id__icontains=id)
+        return queryset
+
+
+class BlankWatersBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
+    model = BlankWater
 
 
 class BlankWaterViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    queryset = BlankWater.objects.all()
+    #queryset = BlankWater.objects.all()
     serializer_class = BlankWaterSerializer
+
+    def get_queryset(self):
+        queryset = BlankWater.objects.all()
+        id = self.request.QUERY_PARAMS.get('id', None)
+        if id is not None:
+            queryset = queryset.filter(id__icontains=id)
+        return queryset
+
+
+class BrominationsBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
+    model = Bromination
 
 
 class BrominationViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    queryset = Bromination.objects.all()
+    #queryset = Bromination.objects.all()
     serializer_class = BrominationSerializer
+
+    def get_queryset(self):
+        queryset = Bromination.objects.all()
+        id = self.request.QUERY_PARAMS.get('id', None)
+        if id is not None:
+            queryset = queryset.filter(id__icontains=id)
+        return queryset
 
 
 #######

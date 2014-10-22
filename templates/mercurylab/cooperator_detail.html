@@ -1,8 +1,8 @@
 {% extends 'mercurylab/base.html' %}
 {% block body_block %}
     <div class="hero-unit">
-        <a class="btn" href="/mercurylab/cooperators/{{ list.id }}/cooperator_edit">Edit Cooperator</a>
-        <a class="btn" href="/mercurylab/cooperators/{{ list.id }}/cooperator_delete">Delete Cooperator</a>
+        <a class="btn" href="/mercurylab/cooperators_list/{{ list.id }}/edit">Edit Cooperator</a>
+        <a class="btn" href="/mercurylab/cooperators_list/{{ list.id }}/delete">Delete Cooperator</a>
         <br /><br />
 
         {% if list %}
