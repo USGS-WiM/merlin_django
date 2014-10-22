@@ -35,6 +35,12 @@ class CooperatorForm(forms.Form):
     zipcode = forms.IntegerField(help_text="Zipcode", required=False)
     country = forms.CharField(help_text="Country", required=False)
 
+
+class AcidForm(forms.Form):
+    code = forms.CharField(help_text="Code")
+    concentration = forms.IntegerField(help_text="Concentration")
+    comment = forms.CharField(help_text="Comment", required=False)
+
     # class Meta:
     #     model = Cooperator
     #     fields = ('name', 'agency', 'email', 'phone', 'sec_phone', 'address', 'city', 'state', 'zipcode', 'country')
