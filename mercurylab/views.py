@@ -19,7 +19,6 @@ TEMP_AUTH = ('admin', 'admin')
 JSON_HEADERS = {'content-type': 'application/json'}
 
 
-@csrf_exempt
 def bottles(request):
     context = RequestContext(request)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'bottles/', auth=TEMP_AUTH)
@@ -27,13 +26,14 @@ def bottles(request):
     context_dict = {'data': data}
     return render_to_response('mercurylab/bottles.html', context_dict, context)
 
+
 @csrf_exempt
 def bottles_save(request):
     data = request.body
     r = requests.request(method='PUT', url=REST_SERVICES_URL+'bulkbottles/', data=data, auth=TEMP_AUTH, headers=JSON_HEADERS)
     return HttpResponse(r, content_type='application/json')
 
-@csrf_exempt
+
 def brominations(request):
     context = RequestContext(request)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'brominations/', auth=TEMP_AUTH)
@@ -41,13 +41,14 @@ def brominations(request):
     context_dict = {'data': data}
     return render_to_response('mercurylab/brominations.html', context_dict, context)
 
+
 @csrf_exempt
 def brominations_save(request):
     data = request.body
     r = requests.request(method='PUT', url=REST_SERVICES_URL+'bulkbrominations/', data=data, auth=TEMP_AUTH, headers=JSON_HEADERS)
     return HttpResponse(r, content_type='application/json')
 
-@csrf_exempt
+
 def blankwaters(request):
     context = RequestContext(request)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'blankwaters/', auth=TEMP_AUTH)
@@ -55,13 +56,14 @@ def blankwaters(request):
     context_dict = {'data': data}
     return render_to_response('mercurylab/blankwaters.html', context_dict, context)
 
+
 @csrf_exempt
 def blankwaters_save(request):
     data = request.body
     r = requests.request(method='PUT', url=REST_SERVICES_URL+'bulkblankwaters/', data=data, auth=TEMP_AUTH, headers=JSON_HEADERS)
     return HttpResponse(r, content_type='application/json')
 
-@csrf_exempt
+
 def acids(request):
     context = RequestContext(request)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'acids/', auth=TEMP_AUTH)
@@ -75,13 +77,20 @@ def acids_save(request):
     r = requests.request(method='PUT', url=REST_SERVICES_URL+'bulkacids/', data=data, auth=TEMP_AUTH, headers=JSON_HEADERS)
     return HttpResponse(r, content_type='application/json')
 
-@csrf_exempt
+
 def cooperators_grid(request):
     context = RequestContext(request)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'cooperators/', auth=TEMP_AUTH)
     data = json.dumps(r.json(), sort_keys=True)
     context_dict = {'data': data}
     return render_to_response('mercurylab/cooperators_grid.html', context_dict, context)
+
+
+def cooperators_grid_load(request):
+    data = request.body
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'cooperators?name='+data, auth=TEMP_AUTH)
+    return HttpResponse(r, content_type='application/json')
+
 
 @csrf_exempt
 def cooperators_grid_save(request):
@@ -90,7 +99,6 @@ def cooperators_grid_save(request):
     return HttpResponse(r, content_type='application/json')
 
 
-@csrf_exempt
 def cooperator_grid(request, pk):
     context = RequestContext(request)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'cooperators/'+pk+'/', auth=TEMP_AUTH)

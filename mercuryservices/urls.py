@@ -7,7 +7,7 @@ from rest_framework_bulk.routes import BulkRouter
 #router = DefaultRouter()
 router = BulkRouter()
 router.register(r'bulkcooperators', views.CooperatorBulkUpdateViewSet)
-router.register(r'cooperators', views.CooperatorViewSet)
+router.register(r'cooperators', views.CooperatorViewSet, 'cooperators')
 router.register(r'projects', views.ProjectViewSet)
 router.register(r'sites', views.SiteViewSet)
 router.register(r'samples', views.FieldSampleViewSet)
