@@ -6,7 +6,7 @@ from django.template import RequestContext
 from django.shortcuts import render, render_to_response
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from mercurylab.forms import UserForm, UserProfileForm, CooperatorForm
+from mercurylab.forms import UserForm, UserProfileForm, CooperatorForm, AcidForm
 from django.forms.formsets import formset_factory
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 import requests
@@ -17,6 +17,65 @@ REST_SERVICES_URL = 'http://localhost:8000/mercuryservices/'
 
 TEMP_AUTH = ('admin', 'admin')
 JSON_HEADERS = {'content-type': 'application/json'}
+
+
+def bottles(request):
+    context = RequestContext(request)
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'bottles/', auth=TEMP_AUTH)
+    data = json.dumps(r.json(), sort_keys=True)
+    context_dict = {'data': data}
+    return render_to_response('mercurylab/bottles.html', context_dict, context)
+
+
+@csrf_exempt
+def bottles_save(request):
+    data = request.body
+    r = requests.request(method='PUT', url=REST_SERVICES_URL+'bulkbottles/', data=data, auth=TEMP_AUTH, headers=JSON_HEADERS)
+    return HttpResponse(r, content_type='application/json')
+
+
+def brominations(request):
+    context = RequestContext(request)
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'brominations/', auth=TEMP_AUTH)
+    data = json.dumps(r.json(), sort_keys=True)
+    context_dict = {'data': data}
+    return render_to_response('mercurylab/brominations.html', context_dict, context)
+
+
+@csrf_exempt
+def brominations_save(request):
+    data = request.body
+    r = requests.request(method='PUT', url=REST_SERVICES_URL+'bulkbrominations/', data=data, auth=TEMP_AUTH, headers=JSON_HEADERS)
+    return HttpResponse(r, content_type='application/json')
+
+
+def blankwaters(request):
+    context = RequestContext(request)
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'blankwaters/', auth=TEMP_AUTH)
+    data = json.dumps(r.json(), sort_keys=True)
+    context_dict = {'data': data}
+    return render_to_response('mercurylab/blankwaters.html', context_dict, context)
+
+
+@csrf_exempt
+def blankwaters_save(request):
+    data = request.body
+    r = requests.request(method='PUT', url=REST_SERVICES_URL+'bulkblankwaters/', data=data, auth=TEMP_AUTH, headers=JSON_HEADERS)
+    return HttpResponse(r, content_type='application/json')
+
+
+def acids(request):
+    context = RequestContext(request)
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'acids/', auth=TEMP_AUTH)
+    data = json.dumps(r.json(), sort_keys=True)
+    context_dict = {'data': data}
+    return render_to_response('mercurylab/acids.html', context_dict, context)
+
+@csrf_exempt
+def acids_save(request):
+    data = request.body
+    r = requests.request(method='PUT', url=REST_SERVICES_URL+'bulkacids/', data=data, auth=TEMP_AUTH, headers=JSON_HEADERS)
+    return HttpResponse(r, content_type='application/json')
 
 
 def cooperators_grid(request):
@@ -40,7 +99,6 @@ def cooperators_grid_save(request):
     return HttpResponse(r, content_type='application/json')
 
 
-@csrf_exempt
 def cooperator_grid(request, pk):
     context = RequestContext(request)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'cooperators/'+pk+'/', auth=TEMP_AUTH)

@@ -38,11 +38,20 @@ from rest_framework import filters
 ## Project and Site
 ##
 ######
+class BottlesBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
+    model = Bottle
 
+class BrominationsBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
+    model = Bromination
+
+class BlankWatersBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
+    model = BlankWater
+
+class AcidsBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
+    model = Acid
 
 class CooperatorBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
     model = Cooperator
-
 
 class CooperatorViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)

@@ -1,0 +1,76 @@
+{% extends 'mercurylab/base.html' %}
+{% block body_block %}
+
+    <div class="hero-unit">
+
+        <p>
+            <button name="load">Load</button>
+            <button name="save">Save</button>
+            <label><input type="checkbox" name="autosave" checked="checked" autocomplete="off"> Autosave</label>
+        </p>
+        <pre id="console" class="console">Click "Load" to load data from server</pre>
+        <div id="grid" data-data="{{ data }}"></div>
+
+        <script>
+            $(document).ready(function() {
+
+                var objectFields = ["ID", "Lot Number", "Concentration", "Comment"];
+                var grid = $('#grid');
+                var data_data = JSON.parse(grid.attr("data-data"));
+                var console = $("#console");
+                var changesRowIndices = [];
+                console.text('Loading data.');
+                grid.handsontable({
+                    colWidths: [40,120,120,300],
+                    colHeaders: objectFields,
+                    contextMenu: true,
+                    //minSpareRows: 1,
+                    data: data_data,
+                    columns: [{data: "id", readOnly: true},{data: "lot_number"},{data: "concentration"},{data: "comment"}],
+                    columnSorting: { column: 0 },
+                    afterChange: function(changes, source) {
+                        if (source != 'loadData') {
+                            changesRowIndices.push(changes[0][0]);
+                        }
+                    }
+                });
+                grid.data('handsontable').sort(0);
+                console.text('Data loaded.');
+
+                grid.parent().find('button[name=save]').click(function () {
+                    var changedDataArray = [];
+                    $.each(changesRowIndices, function(index, value) {
+                        var thisDataRow = grid.data('handsontable').getDataAtRow(value);
+                        var thisDataObject = {};
+                        for (var i = 0; i < thisDataRow.length; i++) {
+                            thisDataObject[objectFields[i]] = thisDataRow[i];
+                        }
+                        changedDataArray.push(thisDataObject);
+                    });
+                    var changedDataJSON = JSON.stringify(changedDataArray);
+                    $.ajax({
+                        url: '/mercurylab/blankwaters/save',
+                        data: changedDataJSON,
+                        dataType: 'json',
+                        contentType: "application/json",
+                        type: 'POST',
+                        success: function (data, outcome, response) {
+                            if (response.status === 200) {
+                                console.text(outcome+': Data saved.');
+                              }
+                              else {
+                                console.text(outcome+': Save error: '+response.statusText+', code: '+response.status+'.');
+                              }
+                        },
+                        error: function () {
+                            console.text('403: Save error. POST method is not allowed.');
+                        }
+                    });
+                });
+
+            });
+        </script>
+
+    </div>
+
+{% endblock %}

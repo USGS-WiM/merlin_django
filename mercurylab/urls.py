@@ -20,6 +20,15 @@ urlpatterns = patterns('',
     url(r'^cooperator_add/$', views.cooperator_add, name='cooperator_add'),
     url(r'^cooperators/(?P<pk>\d+)/cooperator_edit/$', views.CooperatorEdit.as_view(), name='cooperator_edit'),
     url(r'^cooperators/(?P<pk>\d+)/cooperator_delete/$', views.cooperator_delete, name='cooperator_delete'),
+    url(r'^acids/$', views.acids, name='acids'),
+    url(r'^acids/save$', views.acids_save, name='acids_save'),
+    url(r'^blankwaters/$', views.blankwaters, name='blankwaters'),
+    url(r'^blankwaters/save$', views.blankwaters_save, name='blankwaters_save'),
+    url(r'^brominations/$', views. brominations, name='brominations'),
+    url(r'^brominations/save$', views.brominations_save, name='brominations_save'),
+    url(r'^bottles/$', views.bottles, name='bottles'),
+    url(r'^bottles/save$', views.bottles_save, name='bottles_save')
+
 )
 
 if settings.DEBUG:
