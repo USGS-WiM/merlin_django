@@ -19,13 +19,18 @@ TEMP_AUTH = ('admin', 'admin')
 JSON_HEADERS = {'content-type': 'application/json'}
 
 
-@csrf_exempt
 def cooperators_grid(request):
     context = RequestContext(request)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'cooperators/', auth=TEMP_AUTH)
     data = json.dumps(r.json(), sort_keys=True)
     context_dict = {'data': data}
     return render_to_response('mercurylab/cooperators_grid.html', context_dict, context)
+
+
+def cooperators_grid_load(request):
+    data = request.body
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'cooperators?name='+data, auth=TEMP_AUTH)
+    return HttpResponse(r, content_type='application/json')
 
 
 @csrf_exempt
