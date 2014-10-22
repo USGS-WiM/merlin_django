@@ -78,7 +78,6 @@
                     console.text('Data reloaded.');
                 });
 
-
                 grid.parent().find('button[name=save]').click(function () {
                     var changedDataArray = [];
                     $.each(changesRowIndices, function(index, value) {
@@ -92,7 +91,7 @@
                     var changedDataJSON = JSON.stringify(changedDataArray);
                     $.ajax({
 {#                        url: "{% url 'mercurylab:cooperator_grid_save' pk=data_id %}",#}
-                        url: '/mercurylab/cooperators_grid/save',
+                        url: '/mercurylab/cooperators/save',
                         data: changedDataJSON,
                         dataType: 'json',
                         contentType: "application/json",

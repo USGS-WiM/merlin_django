@@ -4,12 +4,13 @@
     <div class="hero-unit">
 
         <p>
-            <button name="load">Load</button>
+            <button name="load">Reload</button>
             <button name="save">Save</button>
-            <label><input type="checkbox" name="autosave" checked="checked" autocomplete="off"> Autosave</label>
         </p>
         <pre id="console" class="console">Click "Load" to load data from server</pre>
-        <div id="grid" data-data="{{ data }}"></div>
+        <input id="select_field" type="hidden" placeholder="Select for acid ID." style="width:600px"/><br />
+        <input id="search_field" type="search" placeholder="Find in table." />
+        <div id="grid" data-data="{{ data }}" class="table table-hover table-condensed table-bordered"></div>
 
         <script>
             $(document).ready(function() {
@@ -36,6 +37,45 @@
                 });
                 grid.data('handsontable').sort(0);
                 console.text('Data loaded.');
+
+                $('#search_field').on('keyup', function (event) {
+                    grid.handsontable('getInstance').search.query(this.value);
+                    grid.handsontable('getInstance').render();
+                });
+
+                $("#select_field").select2({
+                    allowClear: true,
+                    minimumInputLength: 1,
+                    ajax: {
+                        url: '/mercuryservices/acids/',
+                        dataType: 'json',
+                        data: function (term, page) {
+                            return {
+                                name: term
+                            };
+                        },
+                        results: function (data, page) {
+                            grid.data('handsontable').loadData(data);
+                            console.text('Searched data loaded.');
+                            return {results: data};
+                        }
+                    },
+                    sortResults: function(results, container, query) {
+                        return results.sort(function(a,b) { return a - b; }); //sort by ID, numerically ascending
+                    },
+                    formatResult: format,
+                    formatSelection: format
+                });
+
+                function format(data) {
+                    return data.name;
+                }
+
+                grid.parent().find('button[name=load]').click(function () {
+                    grid.data('handsontable').loadData(data_data);
+                    grid.data('handsontable').sort(0);
+                    console.text('Data reloaded.');
+                });
 
                 grid.parent().find('button[name=save]').click(function () {
                     var changedDataArray = [];
