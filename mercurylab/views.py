@@ -19,6 +19,20 @@ TEMP_AUTH = ('admin', 'admin')
 JSON_HEADERS = {'content-type': 'application/json'}
 
 
+def samples(request):
+    context = RequestContext(request)
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'mediums/', auth=TEMP_AUTH)
+    mediums = json.dumps(r.json(), sort_keys=True)
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'filters/', auth=TEMP_AUTH)
+    filters = json.dumps(r.json(), sort_keys=True)
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'preservations/', auth=TEMP_AUTH)
+    preservations = json.dumps(r.json(), sort_keys=True)
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'acids/', auth=TEMP_AUTH)
+    acids = json.dumps(r.json(), sort_keys=True)
+    context_dict = {'mediums': mediums, 'filters': filters, 'preservations': preservations, 'acids': acids}
+    return render_to_response('mercurylab/samples.html', context_dict, context)
+
+
 def bottles(request):
     context = RequestContext(request)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'bottles/', auth=TEMP_AUTH)
@@ -85,9 +99,7 @@ def blankwaters_save(request):
 def acids(request):
     context = RequestContext(request)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'acids/', auth=TEMP_AUTH)
-    print(r)
     data = json.dumps(r.json(), sort_keys=True)
-    print(data)
     context_dict = {'data': data}
     return render_to_response('mercurylab/acids.html', context_dict, context)
 
@@ -184,6 +196,7 @@ def cooperator_save(request, pk):
 
 
 def cooperators_formset(request):
+    context = RequestContext(request)
     CooperatorFormSet = formset_factory(CooperatorForm)
     if request.method == 'POST':
         r = requests.request(method='GET', url=REST_SERVICES_URL+'cooperators/', auth=TEMP_AUTH)
@@ -198,7 +211,7 @@ def cooperators_formset(request):
         #return HttpResponse("Here is the cooperator:<br />data:<br />" + data)
         formset = CooperatorFormSet(initial=data)
 
-    return render_to_response('mercurylab/cooperators_formset.html', {'formset': formset})
+    return render_to_response('mercurylab/cooperators_formset.html', {'formset': formset}, context)
 
 
 # Plain HTML list of cooperators
@@ -213,6 +226,16 @@ def cooperators_list(request):
     context_dict = {'list': data}
 
     return render_to_response('mercurylab/cooperators_list.html', context_dict, context)
+
+
+def cooperator_detail_formset(request, pk):
+    context = RequestContext(request)
+    CooperatorFormSet = formset_factory(CooperatorForm)
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'cooperators/'+pk, auth=TEMP_AUTH)
+    data = r.json()
+    formset = CooperatorFormSet(initial=data)
+
+    return render_to_response('mercurylab/cooperators_formset.html', {'formset': formset}, context)
 
 
 # Plain HTML list of a cooperator's fields
@@ -281,6 +304,24 @@ class CooperatorEdit(FormView):
 #     return render_to_response('mercurylab/cooperator_edit.html', context_dict, context)
 
 
+def cooperator_add_formset(request):
+    context = RequestContext(request)
+    CooperatorFormSet = formset_factory(CooperatorForm)
+    if request.method == 'POST':
+        formset = CooperatorFormSet(request.POST, request.FILES)
+        if formset.is_valid():
+            print(formset.cleaned_data)
+            r = requests.request(method='POST', url=REST_SERVICES_URL+'cooperators/', data=formset.cleaned_data[0], auth=TEMP_AUTH)
+            data = r.json()
+            return cooperator_detail(request, str(data['id']))
+        else:
+            print(formset.errors)
+    else:
+        formset = CooperatorFormSet()
+
+    return render_to_response('mercurylab/cooperators_formset.html', {'formset': formset}, context)
+
+
 # Blank editable form to add a cooperator
 def cooperator_add(request):
     context = RequestContext(request)
@@ -311,7 +352,7 @@ def cooperator_delete(request, pk):
         r = requests.request(method='DELETE', url=REST_SERVICES_URL+'cooperators/'+pk+'/', auth=TEMP_AUTH)
 
         if r.status_code == 204:
-            return cooperators_list(request)
+            return cooperators(request)
 
         else:
             message = 'There was an error deleting this cooperator (id='+pk+').\r\n' \
@@ -319,7 +360,6 @@ def cooperator_delete(request, pk):
                 'Please contact your administrator.'
             context_dict = {'error_code': str(r.status_code), 'error_message': message}
             return render_to_response('mercurylab/error.html', context_dict, context)
-
 
 
 def register(request):

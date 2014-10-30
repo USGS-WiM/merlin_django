@@ -1,0 +1,366 @@
+{% extends 'mercurylab/base.html' %}
+{% block body_block %}
+
+    <div class="hero-unit">
+        <p>
+            <a class="btn" href="{% url 'mercurylab:cooperator_add' %}">Add</a>
+            <button class="btn" name="delete">Delete</button>
+            <button class="btn" name="edit">Edit</button>
+            <button class="btn" name="load">Reload</button>
+            <button class="btn" name="save">Save</button>
+        </p>
+        <pre id="console" class="console">Click "Load" to load data from server</pre>
+       <!--  <p><input class="form-control" id="select_field" type="hidden" placeholder="Select for sample name." style="width:600px"/></p> -->
+        <p><input class="form-control" id="search_field" type="search" placeholder="Find in table." /></p>
+        <div id="grid" data-mediums="{{ mediums }}" data-filters="{{ filters }}" data-preservations="{{ preservations }}" data-acids="{{ acids }}" class="table table-hover table-condensed table-bordered"></div>
+
+        <script>
+            $(document).ready(function() {
+
+                var objectFields = ["project_name", "project_id", "site_name", "site_id", "date", "hour", "minute", "depth", "length", "replicate", "comments", "received_time_stamp", "lab_processing", "container_id", "sample_medium", "analysis_type", "isotopic_analysis", "filter_type", "vol_filtered", "preservation_type", "preservation_acid", "preservation_comment"];
+                function getHours() {
+                    var hours = [];
+                    for (var i = 0; i < 24; i++){
+                        if (i < 10) {
+                            hours.push("0"+String(i));
+                        }
+                        else {
+                            hours.push(String(i));
+                        }
+                    }
+                    return hours;
+                }
+                function getMinutes() {
+                    var minutes = [];
+                    for (var i = 0; i < 60; i++){
+                        if (i < 10) {
+                            minutes.push("0"+String(i));
+                        }
+                        else {
+                            minutes.push(String(i));
+                        }
+                    }
+                    return minutes;
+                }
+                var grid = $('#grid');
+                var data_mediums = JSON.parse(grid.attr("data-mediums"));
+                var data_filters = JSON.parse(grid.attr("data-filters"));
+                var data_preservations = JSON.parse(grid.attr("data-preservations"));
+                var data_acids = JSON.parse(grid.attr("data-acids"));
+                var console = $("#console");
+                var changesRowIndices = [];
+                var selectionRowIndices = [];
+                console.text('Loading data.');
+                grid.handsontable({
+                    colWidths: [70,70,70,70,70,70,70,70,70,70,70,70,70,70,70,70,70],
+                    //colWidths: [200,200,200,200],
+                    colHeaders: objectFields,
+                    contextMenu: true,
+                    search: true,
+                    startRows: 8,
+                    columns: [
+                        {
+                            type: 'autocomplete',
+                            source: function (query, process) {
+                                $.ajax({
+                                    url: '/mercuryservices/projects/',
+                                    dataType: 'json',
+                                    data: {
+                                    name: query
+                                    },
+                                    success: function (response) {
+                                        console.text("success");
+                                        var names = [];
+                                        for (var i = 0; i < response.length; i++) {
+                                            names.push(response[i]['name']);
+                                        }
+                                        process(names);
+                                    },
+                                    error: function (response) {
+                                        console.text("error");
+                                    }
+                                });
+                            }
+                        },
+                        {
+                            type: 'autocomplete',
+                            source: function (query, process) {
+                                $.ajax({
+                                    url: '/mercuryservices/projects/',
+                                    dataType: 'json',
+                                    data: {
+                                        id: query
+                                    },
+                                    success: function (response) {
+                                        console.text("success");
+                                        var ids = [];
+                                        for (var i = 0; i < response.length; i++) {
+                                            ids.push(String(response[i]['id']));
+                                        }
+                                        process(ids);
+                                    },
+                                    error: function (response) {
+                                        console.text("error");
+                                    }
+                                });
+                            }
+                        },
+                         {
+                            type: 'autocomplete',
+                            source: function (query, process) {
+                                $.ajax({
+                                    url: '/mercuryservices/sites/',
+                                    dataType: 'json',
+                                    data: {
+                                    name: query
+                                    },
+                                    success: function (response) {
+                                        console.text("success");
+                                        var names = [];
+                                        for (var i = 0; i < response.length; i++) {
+                                            names.push(response[i]['name']);
+                                        }
+                                        process(names);
+                                    },
+                                    error: function (response) {
+                                        console.text("error");
+                                    }
+                                });
+                            }
+                        },
+                        {
+                            type: 'autocomplete',
+                            source: function (query, process) {
+                                $.ajax({
+                                    url: '/mercuryservices/sites/',
+                                    dataType: 'json',
+                                    data: {
+                                        id: query
+                                    },
+                                    success: function (response) {
+                                        console.text("success");
+                                        var ids = [];
+                                        for (var i = 0; i < response.length; i++) {
+                                            ids.push(String(response[i]['id']));
+                                        }
+                                        process(ids);
+                                    },
+                                    error: function (response) {
+                                        console.text("error");
+                                    }
+                                });
+                            }
+                        },
+                        {type: 'date'},  //sampling date
+                        {
+                            type: 'dropdown',  //sampling hour
+                            source: getHours()
+                        },
+                        {
+                            type: 'dropdown',  //sampling minute
+                            source: getMinutes()
+                        },
+                        {type: 'numeric'},  //depth
+                        {type: 'numeric'},  //length
+                        {type: 'numeric'},  //replicate
+                        {type: 'text'},  //comments
+                        {type: 'date'},  //received timestamp
+                        {type: 'text'},  //lab processing
+                        {type: 'numeric'},  //bottle ID
+                        {type: 'numeric'},  //medium
+                        {type: 'numeric'},  //analyte
+                        {type: 'numeric'},  //filter
+                        {type: 'numeric'},  //filter volume
+                        {type: 'numeric'},  //preservation
+                        {type: 'numeric'},  //acid
+                        {type: 'numeric'},  //acid volume
+                        {type: 'text'},  //comments
+                    ],
+                    beforeChange: function(changes, source) {
+                        // changes is a 2D array containing information about each of the edited cells [ [row, col, oldVal, newVal], [row, col, oldVal, newVal], ... ].
+                        // source is one of the strings: "alter", "empty", "edit", "populateFromArray", "loadData", "autofill", "paste".
+                        if (source != 'loadData') {
+                            changesRowIndices.push(changes[0][0]);
+                        }
+                        if (source == 'edit') {
+                            if (changes[0][1] == 0) {
+                                $.ajax({
+                                    url: '/mercuryservices/projects/',
+                                    dataType: 'json',
+                                    data: {
+                                        name: changes[0][3]
+                                    },
+                                    success: function (response) {
+                                        console.text("success");
+                                        var changedRow = changes[0][0];
+                                        var colToChange = 1;
+                                        var newValue = response[0]['id'];
+                                        grid.handsontable('setDataAtCell',changedRow, colToChange, newValue);
+                                    },
+                                    error: function (response) {
+                                        console.text("error");
+                                    }
+                                });
+                            }
+                            if (changes[0][1] == 1) {
+                                $.ajax({
+                                    url: '/mercuryservices/projects/',
+                                    dataType: 'json',
+                                    data: {
+                                        id: changes[0][3]
+                                    },
+                                    success: function (response) {
+                                        console.text("success");
+                                        var changedRow = changes[0][0];
+                                        var colToChange = 0;
+                                        var newValue = response[0]['name'];
+                                        grid.handsontable('setDataAtCell', changedRow, colToChange, newValue);
+                                    },
+                                    error: function (response) {
+                                        console.text("error");
+                                    }
+                                });
+                            }
+                            if (changes[0][1] == 2) {
+                                $.ajax({
+                                    url: '/mercuryservices/sites/',
+                                    dataType: 'json',
+                                    data: {
+                                        name: changes[0][3]
+                                    },
+                                    success: function (response) {
+                                        console.text("success");
+                                        var changedRow = changes[0][0];
+                                        var colToChange = 3;
+                                        var newValue = response[0]['id'];
+                                        grid.handsontable('setDataAtCell',changedRow, colToChange, newValue);
+                                    },
+                                    error: function (response) {
+                                        console.text("error");
+                                    }
+                                });
+                            }
+                            if (changes[0][1] == 3) {
+                                $.ajax({
+                                    url: '/mercuryservices/sites/',
+                                    dataType: 'json',
+                                    data: {
+                                        id: changes[0][3]
+                                    },
+                                    success: function (response) {
+                                        console.text("success");
+                                        var changedRow = changes[0][0];
+                                        var colToChange = 2;
+                                        var newValue = response[0]['name'];
+                                        grid.handsontable('setDataAtCell', changedRow, colToChange, newValue);
+                                    },
+                                    error: function (response) {
+                                        console.text("error");
+                                    }
+                                });
+                            }
+                        }
+                    },
+                    afterSelectionEnd: function(r, c, r2, c2) {
+                        //for (var i = r; i < (r2+1); i++){
+                            selectionRowIndices.push(r);
+                        //}
+
+                    }
+                });
+                //grid.data('handsontable').sort(0);
+                console.text('Data loaded.');
+
+                $('#search_field').on('keyup', function (event) {
+                    grid.handsontable('getInstance').search.query(this.value);
+                    grid.handsontable('getInstance').render();
+                });
+
+                $("#select_field").select2({
+                    allowClear: true,
+                    minimumInputLength: 1,
+                    ajax: {
+                        url: '/mercuryservices/samples/',
+                        dataType: 'json',
+                        data: function (term, page) {
+                            return {
+                                name: term
+                            };
+                        },
+                        results: function (data, page) {
+                            grid.data('handsontable').loadData(data);
+                            console.text('Searched data loaded.');
+                            return {results: data};
+                        }
+                    },
+                    sortResults: function(results, container, query) {
+                        return results.sort(function(a,b) { return a - b; }); //sort by ID, numerically ascending
+                    },
+                    formatResult: formatName,
+                    formatSelection: formatName
+                });
+
+                function formatName(data) {
+                    return data.name;
+                }
+
+                function formatID(data) {
+                    return data.id;
+                }
+
+                grid.parent().find('button[name=load]').click(function () {
+                    grid.data('handsontable').loadData(data_data);
+                    grid.data('handsontable').sort(0);
+                    console.text('Data reloaded.');
+                });
+
+                grid.parent().find('button[name=save]').click(function () {
+                    var changedDataArray = [];
+                    $.each(changesRowIndices, function(index, value) {
+                        var thisDataRow = grid.data('handsontable').getDataAtRow(value);
+                        var thisDataObject = {};
+                        for (var i = 0; i < thisDataRow.length; i++) {
+                            thisDataObject[objectFields[i]] = thisDataRow[i];
+                        }
+                        changedDataArray.push(thisDataObject);
+                    });
+                    var changedDataJSON = JSON.stringify(changedDataArray);
+                    $.ajax({
+{#                        url: "{% url 'mercurylab:cooperator_grid_save' pk=data_id %}",#}
+                        url: '/mercurylab/samples/save',
+                        data: changedDataJSON,
+                        dataType: 'json',
+                        contentType: "application/json",
+                        type: 'POST',
+                        success: function (data, outcome, response) {
+                            if (response.status === 200) {
+                                console.text(outcome+': Data saved.');
+                            }
+                            else {
+                                console.text(outcome+': Save error: '+response.statusText+', code: '+response.status+'.');
+                            }
+                        },
+                        error: function () {
+                            console.text('403: Save error. POST method is not allowed.');
+                        }
+                    });
+                });
+
+                grid.parent().find('button[name=delete]').click(function () {
+                    var thisDataRow = grid.data('handsontable').getDataAtRow(selectionRowIndices[0]);
+                    var thisDataRowID = thisDataRow[0];
+                    window.location = '/mercurylab/samples/'+thisDataRowID+'/delete';
+                });
+
+                grid.parent().find('button[name=edit]').click(function () {
+                    var thisDataRow = grid.data('handsontable').getDataAtRow(selectionRowIndices[0]);
+                    var thisDataRowID = thisDataRow[0];
+                    window.location = '/mercurylab/samples/'+thisDataRowID+'/edit';
+                });
+
+            });
+        </script>
+
+    </div>
+
+{% endblock %}

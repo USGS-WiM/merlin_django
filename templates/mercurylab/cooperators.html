@@ -2,38 +2,62 @@
 {% block body_block %}
 
     <div class="hero-unit">
-{#        <a class="btn" href="{% url 'mercurylab:cooperator_add' %}">Create New Cooperator</a><br /><br />#}
         <p>
-            <button name="load">Reload</button>
-            <button name="save">Save</button>
+            <a class="btn" href="{% url 'mercurylab:cooperator_add' %}">Add</a>
+            <button class="btn" name="delete">Delete</button>
+            <button class="btn" name="edit">Edit</button>
+            <button class="btn" name="load">Reload</button>
+            <button class="btn" name="save">Save</button>
         </p>
         <pre id="console" class="console">Click "Load" to load data from server</pre>
-        <input id="select_field" type="hidden" placeholder="Select for cooperator name." style="width:600px"/><br />
-        <input id="search_field" type="search" placeholder="Find in table." />
+        <p><input class="form-control" id="select_field" type="hidden" placeholder="Select for cooperator name." style="width:600px"/></p>
+        <p><input class="form-control" id="search_field" type="search" placeholder="Find in table." /></p>
         <div id="grid" data-data="{{ data }}" class="table table-hover table-condensed table-bordered"></div>
 
         <script>
             $(document).ready(function() {
 
                 var objectFields = ["id", "name", "agency", "email", "phone", "sec_phone", "address", "city", "state", "zipcode", "country", "projects"];
+                function getColumns() {
+                    var cols = [];
+                    var col = {};
+                    for (var i = 0; i < objectFields.length; i++){
+                        if (objectFields[i] == 'id') {
+                            col = {data: objectFields[i], readOnly: true};
+                        }
+                        else {
+                            col = {data: objectFields[i]};
+                        }
+                        cols.push(col);
+                    }
+                    return cols;
+                }
                 var grid = $('#grid');
                 var data_data = JSON.parse(grid.attr("data-data"));
                 var console = $("#console");
                 var changesRowIndices = [];
+                var selectionRowIndices = [];
                 console.text('Loading data.');
                 grid.handsontable({
-                    colWidths: [40,120,120,120,120,120,120,120,40,80,60,120],
+                    colWidths: [40,160,120,160,120,120,160,120,80,80,80,120],
                     colHeaders: objectFields,
                     contextMenu: true,
                     search: true,
                     //minSpareRows: 1,
                     data: data_data,
-                    columns: [{data: "id", readOnly: true},{data: "name"},{data: "agency"},{data: "email"},{data: "phone"},{data: "sec_phone"},{data: "address"},{data: "city"},{data: "state"},{data: "zipcode"},{data: "country"},{data: "projects"}],
+                    columns: getColumns(),
+                    //columns: [{data: "id", readOnly: true},{data: "name"},{data: "agency"},{data: "email"},{data: "phone"},{data: "sec_phone"},{data: "address"},{data: "city"},{data: "state"},{data: "zipcode"},{data: "country"},{data: "projects"}],
                     columnSorting: { column: 0 },
                     afterChange: function(changes, source) {
                         if (source != 'loadData') {
                             changesRowIndices.push(changes[0][0]);
                         }
+                    },
+                    afterSelectionEnd: function(r, c, r2, c2) {
+                        //for (var i = r; i < (r2+1); i++){
+                            selectionRowIndices.push(r);
+                        //}
+
                     }
                 });
                 grid.data('handsontable').sort(0);
@@ -99,16 +123,51 @@
                         success: function (data, outcome, response) {
                             if (response.status === 200) {
                                 console.text(outcome+': Data saved.');
-                              }
-                              else {
+                            }
+                            else {
                                 console.text(outcome+': Save error: '+response.statusText+', code: '+response.status+'.');
-                              }
+                            }
                         },
                         error: function () {
                             console.text('403: Save error. POST method is not allowed.');
                         }
                     });
                 });
+
+                grid.parent().find('button[name=delete]').click(function () {
+                    var thisDataRow = grid.data('handsontable').getDataAtRow(selectionRowIndices[0]);
+                    var thisDataRowID = thisDataRow[0];
+                    window.location = '/mercurylab/cooperators_list/'+thisDataRowID+'/delete';
+                });
+
+                grid.parent().find('button[name=edit]').click(function () {
+                    var thisDataRow = grid.data('handsontable').getDataAtRow(selectionRowIndices[0]);
+                    var thisDataRowID = thisDataRow[0];
+                    window.location = '/mercurylab/cooperators_list/'+thisDataRowID+'/edit';
+                });
+
+                /*grid.parent().find('button[name=delete]').click(function () {
+                    $.each(selectionRowIndices, function(index, value) {
+                        var thisDataRow = grid.data('handsontable').getDataAtRow(value);
+                        var thisDataRowID = thisDataRow[0];
+                        $.ajax({
+                            url: '/mercurylab/cooperators_list/'+thisDataRowID+'/delete',
+                            dataType: 'json',
+                            type: 'GET',
+                            success: function (data, outcome, response) {
+                                if (response.status === 200) {
+                                    console.text(outcome+': Data deleted.');
+                                  }
+                                  else {
+                                    console.text(outcome+': Delete error: '+response.statusText+', code: '+response.status+'.');
+                                  }
+                            },
+                            error: function () {
+                                console.text('Delete error. DELETE method is not allowed.');
+                            }
+                        });
+                    });
+                });*/
 
             });
         </script>
