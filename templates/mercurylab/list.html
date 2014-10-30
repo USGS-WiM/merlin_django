@@ -1,6 +1,6 @@
 {% extends 'mercurylab/base.html' %}
 {% block body_block %}
-    <div class="hero-unit">
+    <div class="jumbotron">
         {% if list %}
         <ul>
             {% for item in list %}
@@ -12,7 +12,7 @@
         {% endif %}
     </div>
 
-    <div class="hero-unit">
+    <div class="jumbotron">
         <div class="container">
             <form class="form-signin span8" id="item_form" method="post" action="/mercurylab/cooperators/" enctype="multipart/form-data">
                 {% csrf_token %}

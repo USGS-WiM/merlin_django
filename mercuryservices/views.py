@@ -71,6 +71,9 @@ class ProjectViewSet(viewsets.ModelViewSet):
         name = self.request.QUERY_PARAMS.get('name', None)
         if name is not None:
             queryset = queryset.filter(name__icontains=name)
+        id = self.request.QUERY_PARAMS.get('id', None)
+        if id is not None:
+            queryset = queryset.filter(id__icontains=id)
         return queryset
 
 
@@ -88,6 +91,9 @@ class SiteViewSet(viewsets.ModelViewSet):
         name = self.request.QUERY_PARAMS.get('name', None)
         if name is not None:
             queryset = queryset.filter(name__icontains=name)
+        id = self.request.QUERY_PARAMS.get('id', None)
+        if id is not None:
+            queryset = queryset.filter(id__icontains=id)
         return queryset
 
 
@@ -221,10 +227,22 @@ class QualityAssuranceViewSet(viewsets.ModelViewSet):
     serializer_class = QualityAssuranceSerializer
 
 
-class DetectionLimitViewSet(viewsets.ModelViewSet):
+class QualityAssuranceTypeViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    queryset = DetectionLimit.objects.all()
-    serializer_class = DetectionLimitSerializer
+    queryset = QualityAssuranceType.objects.all()
+    serializer_class = QualityAssuranceTypeSerializer
+
+
+class DetectionFlagViewSet(viewsets.ModelViewSet):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    queryset = DetectionFlag.objects.all()
+    serializer_class = DetectionFlagSerializer
+
+
+class IsotopeFlagViewSet(viewsets.ModelViewSet):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    queryset = IsotopeFlag.objects.all()
+    serializer_class = IsotopeFlagSerializer
 
 
 ######

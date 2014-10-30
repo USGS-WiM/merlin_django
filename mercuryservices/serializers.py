@@ -9,14 +9,14 @@ from mercuryservices.models import *
 ######
 
 
-class ProjectSerializer(serializers.HyperlinkedModelSerializer):
+class ProjectSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Project
         fields = ('id', 'name', 'description', 'cooperator', 'sites',)
 
 
-class CooperatorSerializer(serializers.HyperlinkedModelSerializer):
+class CooperatorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Cooperator
@@ -24,7 +24,7 @@ class CooperatorSerializer(serializers.HyperlinkedModelSerializer):
                   'country', 'projects',)
 
 
-class SiteSerializer(serializers.HyperlinkedModelSerializer):
+class SiteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Site
@@ -38,8 +38,8 @@ class SiteSerializer(serializers.HyperlinkedModelSerializer):
 ######
 
 
-class FieldSampleSerializer(serializers.HyperlinkedModelSerializer):
-    medium_type = serializers.Field(source='medium_type')
+class FieldSampleSerializer(serializers.ModelSerializer):
+    medium_type = serializers.PrimaryKeyRelatedField(source='medium_type')
 
     class Meta:
         model = FieldSample
@@ -47,45 +47,45 @@ class FieldSampleSerializer(serializers.HyperlinkedModelSerializer):
                   'replicate', 'medium_type',)
 
 
-class FieldSampleBottleSerializer(serializers.HyperlinkedModelSerializer):
-    field_sample = serializers.Field(source='field_sample')
-    bottle = serializers.Field(source='bottle')
-    filter_type = serializers.Field(source='filter_type')
-    preservation_type = serializers.Field(source='preservation_type')
-    preservation_acid = serializers.Field(source='preservation_acid')
+class FieldSampleBottleSerializer(serializers.ModelSerializer):
+    field_sample = serializers.PrimaryKeyRelatedField(source='field_sample')
+    bottle = serializers.PrimaryKeyRelatedField(source='bottle')
+    filter_type = serializers.PrimaryKeyRelatedField(source='filter_type')
+    preservation_type = serializers.PrimaryKeyRelatedField(source='preservation_type')
+    preservation_acid = serializers.PrimaryKeyRelatedField(source='preservation_acid')
 
     class Meta:
         model = FieldSampleBottle
-        fields = ('id', 'field_sample', 'bottle', 'filter_type', 'tare_weight', 'volume_filtered', 'filter_weight',
+        fields = ('id', 'field_sample', 'bottle', 'filter_type', 'volume_filtered',
                   'preservation_type', 'preservation_volume', 'preservation_acid', 'preservation_comment',)
 
 
-class BottleSerializer(serializers.HyperlinkedModelSerializer):
+class BottleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Bottle
-        fields = ('id', 'bottle_unique_name', 'description',)
+        fields = ('id', 'bottle_unique_name', 'description', 'tare_weight', 'bottle_type',)
 
 
-class FilterTypeSerializer(serializers.HyperlinkedModelSerializer):
+class FilterTypeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FilterType
         fields = ('id', 'filter', 'description',)
 
 
-class PreservationTypeSerializer(serializers.HyperlinkedModelSerializer):
+class PreservationTypeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PreservationType
         fields = ('id', 'preservation', 'description',)
 
 
-class MediumTypeSerializer(serializers.HyperlinkedModelSerializer):
+class MediumTypeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = MediumType
-        fields = ('url', 'id', 'nwis_code', 'medium', 'description', 'comment',)
+        fields = ('id', 'nwis_code', 'medium', 'description', 'comment',)
 
 
 ######
@@ -95,23 +95,24 @@ class MediumTypeSerializer(serializers.HyperlinkedModelSerializer):
 ######
 
 
-class UnitTypeSerializer(serializers.HyperlinkedModelSerializer):
+class UnitTypeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UnitType
         fields = ('id', 'unit', 'description',)
 
 
-class MethodTypeSerializer(serializers.HyperlinkedModelSerializer):
+class MethodTypeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = MethodType
-        fields = ('id', 'method', 'preparation', 'description', 'raw_value_unit', 'final_value_unit',
-                  'method_detection_limit', 'decimal_places', 'significant_figures', 'standard_operating_procedure',
+        fields = ('id', 'method', 'preparation', 'description', 'method_detection_limit',
+                  'method_detection_limit_unit', 'raw_value_unit', 'final_value_unit',
+                  'decimal_places', 'significant_figures', 'standard_operating_procedure',
                   'nwis_parameter_code', 'nwis_parameter_name', 'nwis_method_code')
 
 
-class ResultSerializer(serializers.HyperlinkedModelSerializer):
+class ResultSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Result
@@ -126,21 +127,21 @@ class ResultSerializer(serializers.HyperlinkedModelSerializer):
 ######
 
 
-class ConstituentTypeSerializer(serializers.HyperlinkedModelSerializer):
+class ConstituentTypeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ConstituentType
         fields = ('id', 'constituent', 'description',)
 
 
-class ConstituentMediumSerializer(serializers.HyperlinkedModelSerializer):
+class ConstituentMediumSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ConstituentMedium
         fields = ('id', 'constituent_type', 'medium_type',)
 
 
-class ConstituentMethodSerializer(serializers.HyperlinkedModelSerializer):
+class ConstituentMethodSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ConstituentMethod
@@ -154,19 +155,32 @@ class ConstituentMethodSerializer(serializers.HyperlinkedModelSerializer):
 ######
 
 
-class QualityAssuranceSerializer(serializers.HyperlinkedModelSerializer):
+class QualityAssuranceSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = QualityAssurance
+        fields = ('id', 'quality_assurance', 'result',)
+
+
+class QualityAssuranceTypeSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = QualityAssuranceType
         fields = ('id', 'quality_assurance', 'description',)
 
 
-class DetectionLimitSerializer(serializers.HyperlinkedModelSerializer):
+class DetectionFlagSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = DetectionLimit
-        fields = ('id', 'limit', 'limit_unit', 'description',)
+        model = DetectionFlag
+        fields = ('id', 'detection_flag', 'description',)
 
+
+class IsotopeFlagSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = IsotopeFlag
+        fields = ('id', 'isotope_flag', 'description',)
 
 ######
 ##
@@ -175,21 +189,21 @@ class DetectionLimitSerializer(serializers.HyperlinkedModelSerializer):
 ######
 
 
-class AcidSerializer(serializers.HyperlinkedModelSerializer):
+class AcidSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Acid
         fields = ('id', 'code', 'concentration', 'comment',)
 
 
-class BlankWaterSerializer(serializers.HyperlinkedModelSerializer):
+class BlankWaterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BlankWater
         fields = ('id', 'lot_number', 'concentration', 'comment',)
 
 
-class BrominationSerializer(serializers.HyperlinkedModelSerializer):
+class BrominationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Bromination
@@ -203,14 +217,14 @@ class BrominationSerializer(serializers.HyperlinkedModelSerializer):
 ######
 
 
-# class RoleSerializer(serializers.HyperlinkedModelSerializer):
+# class RoleSerializer(serializers.ModelSerializer):
 #
 #     class Meta:
 #         model = Role
 #         fields = ('id', 'role', 'description', 'users',)
 #
 #
-# class UserSerializer(serializers.HyperlinkedModelSerializer):
+# class UserSerializer(serializers.ModelSerializer):
 #
 #     class Meta:
 #         model = User
@@ -224,28 +238,28 @@ class BrominationSerializer(serializers.HyperlinkedModelSerializer):
 ######
 
 
-class StatusSerializer(serializers.HyperlinkedModelSerializer):
+class StatusSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Status
         fields = ('id', 'status_id', 'status_type', 'procedure_type', 'user', 'time_stamp', 'note',)
 
 
-class ProcedureStatusTypeSerializer(serializers.HyperlinkedModelSerializer):
+class ProcedureStatusTypeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProcedureStatusType
         fields = ('id','procedure_type', 'status_type',)
 
 
-class StatusTypeSerializer(serializers.HyperlinkedModelSerializer):
+class StatusTypeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StatusType
         fields = ('id', 'status_type',)
 
 
-class ProcedureTypeSerializer(serializers.HyperlinkedModelSerializer):
+class ProcedureTypeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProcedureType

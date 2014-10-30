@@ -78,10 +78,21 @@ class Bottle(models.Model):
 
     bottle_unique_name = models.CharField(max_length=128)
     description = models.TextField(blank=True)
+    tare_weight = models.DecimalField(max_digits=8, decimal_places=4, null=True, blank=True)
+    bottle_type = models.ForeignKey('BottleType')
     #status = models.ForeignKey('Status')
 
     def __str__(self):
         return self.bottle_unique_name
+
+
+class BottleType(models.Model):
+    bottle_type = models.CharField(max_length=128)
+    description = models.TextField(blank=True)
+    #status = models.ForeignKey('Status')
+
+    def __str__(self):
+        return self.bottle_type
 
 
 class FilterType(models.Model):
@@ -141,9 +152,7 @@ class FieldSampleBottle(models.Model):
     field_sample = models.ForeignKey('FieldSample')
     bottle = models.ForeignKey('Bottle')
     filter_type = models.ForeignKey('FilterType')
-    tare_weight = models.FloatField(null=True, blank=True)
     volume_filtered = models.FloatField(null=True, blank=True)
-    filter_weight = models.FloatField(null=True, blank=True)
     preservation_type = models.ForeignKey('PreservationType')
     preservation_volume = models.FloatField(null=True, blank=True)
     preservation_acid = models.ForeignKey('Acid')
@@ -175,10 +184,11 @@ class MethodType(models.Model):
     method = models.CharField(max_length=128)
     preparation = models.CharField(max_length=128, blank=True)
     description = models.TextField(blank=True)
-    #raw_unit = models.ForeignKey('UnitType')
-    #final_unit = models.ForeignKey('UnitType')
-    unit = models.ForeignKey('UnitType')
-    method_detection_limit = models.ForeignKey('DetectionLimit')
+    method_detection_limit = models.CharField(max_length=128)
+    method_detection_limit_unit = models.ForeignKey('UnitType', null=True, related_name='mdl_unit')
+    raw_value_unit = models.ForeignKey('UnitType', null=True, related_name='raw_unit')
+    final_value_unit = models.ForeignKey('UnitType', null=True, related_name='final_unit')
+    #unit = models.ForeignKey('UnitType')
     decimal_places = models.IntegerField(null=True, blank=True)
     significant_figures = models.IntegerField(null=True, blank=True)
     standard_operating_procedure = models.TextField(blank=True)
@@ -204,7 +214,6 @@ class Result(models.Model):
     daily_detection_limit = models.FloatField()
     analyzed_date = models.DateTimeField()
     analysis_comment = models.TextField(blank=True)
-    # also, there will usually be three QAs for each result
     ##
     # ****placeholder for legacy data fields****
     ##
@@ -258,29 +267,25 @@ class ConstituentMethod(models.Model):
 
 
 class QualityAssurance(models.Model):
+    quality_assurance = models.ForeignKey('QualityAssuranceType')
+    result = models.ForeignKey('Result', related_name='quality_assurances')  # usually three QAs per one result
+    #status = models.ForeignKey(Status)
+
+    def __str__(self):
+        return str(self.id)
+
+
+class QualityAssuranceType(models.Model):
     quality_assurance = models.CharField(max_length=128)
     description = models.TextField(blank=True)
-    result = models.ForeignKey('Result', related_name='quality_assurances')  # usually three QAs per result
     #status = models.ForeignKey(Status)
 
     def __str__(self):
         return self.quality_assurance
 
 
-class DetectionLimit(models.Model):
-    """The detection limit for a method (distinct from daily or batch detection limits, which are result attributes)."""
-
-    limit = models.CharField(max_length=128)
-    limit_unit = models.ForeignKey('UnitType')
-    description = models.TextField(blank=True)
-    #status = models.ForeignKey(Status)
-
-    def __str__(self):
-        return self.limit
-
-
 class DetectionFlag(models.Model):
-    detection_flag = models.CharField(max_length=128)  # <, E, L
+    detection_flag = models.CharField(max_length=128)  # A, <, E, L
     description = models.TextField(blank=True)  # less than, estimated, lost
     #status = models.ForeignKey(Status)
 
@@ -442,7 +447,7 @@ admin.site.register(ConstituentType)
 admin.site.register(ConstituentMedium)
 admin.site.register(ConstituentMethod)
 admin.site.register(QualityAssurance)
-admin.site.register(DetectionLimit)
+admin.site.register(QualityAssuranceType)
 admin.site.register(DetectionFlag)
 admin.site.register(IsotopeFlag)
 admin.site.register(Acid)
