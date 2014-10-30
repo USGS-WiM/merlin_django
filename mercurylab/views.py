@@ -12,8 +12,8 @@ from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 import requests
 
 
-REST_SERVICES_URL = 'http://localhost:8000/mercuryservices/'
-#REST_SERVICES_URL = 'http://130.11.161.159/mercuryservices/'
+# REST_SERVICES_URL = 'http://localhost:8000/mercuryservices/'
+REST_SERVICES_URL = 'http://130.11.161.159/mercuryservices/'
 
 TEMP_AUTH = ('admin', 'admin')
 JSON_HEADERS = {'content-type': 'application/json'}

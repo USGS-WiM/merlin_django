@@ -1,7 +1,7 @@
 {% extends 'mercurylab/base.html' %}
 {% block body_block %}
 
-    <div class="hero-unit">
+    <div class="jumbotron">
         <p>
             <a class="btn" href="{% url 'mercurylab:cooperator_add' %}">Add</a>
             <button class="btn" name="delete">Delete</button>
@@ -174,7 +174,7 @@
                         {type: 'numeric'},  //preservation
                         {type: 'numeric'},  //acid
                         {type: 'numeric'},  //acid volume
-                        {type: 'text'},  //comments
+                        {type: 'text'}  //comments
                     ],
                     beforeChange: function(changes, source) {
                         // changes is a 2D array containing information about each of the edited cells [ [row, col, oldVal, newVal], [row, col, oldVal, newVal], ... ].

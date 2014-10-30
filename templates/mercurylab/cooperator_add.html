@@ -1,7 +1,7 @@
 {% extends 'mercurylab/base.html' %}
 {% block body_block %}
 
-    <div class="hero-unit">
+    <div class="jumbotron">
         <div class="container">
             <form class="form-signin span8" id="item_form" method="post" action="{% url 'mercurylab:cooperator_add' %}" enctype="multipart/form-data">
                 {% csrf_token %}

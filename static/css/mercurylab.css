@@ -1,0 +1,23 @@
+#expander {
+    height: 150%;
+    background-color: #333333;
+    position: absolute;
+    width:2em;
+    float: left;
+    left: auto;
+    z-index: 1000;
+}
+
+.navbar {
+    background-color: #333;
+    background-image: none;
+}
+
+.glyphicon {
+    color: #999999;
+}
+
+#expander:hover {
+  box-shadow: 3px 3px 15px #666;
+  cursor: pointer;
+}
