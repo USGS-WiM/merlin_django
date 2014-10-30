@@ -1,11 +1,11 @@
 {% extends 'mercurylab/base.html' %}
 
 {% block body_block %}
-<div class="hero-unit">
+<div class="jumbotron">
 	<h1>Login to Mercury Lab</h1>
 
 	<div class="container">
-	<form class="form-signin span4" id="login_form" method="post" action="/mercurylab/login/">
+	<form class="form-horizontal col-lg-4" id="login_form" method="post" action="/mercurylab/login/">
 		<h2 class="form-signin-heading">Please sign in</h2>
 		{% csrf_token %}
 
@@ -15,8 +15,8 @@
 		<p><strong>Your Mercury Lab account is currently disabled; we can't log you in!</strong></p>
 		{% endif %}
 
-		Username: <input type="text" class="input-block-level" placeholder="Username" name="username" value="" size="50" /><br />
-		Password: <input type="password" class="input-block-level" placeholder="Password" name="password" value="" size="50" /><br />
+		Username: <input class="form-control" type="text" class="input-block-level" placeholder="Username" name="username" value="" size="50" /><br />
+		Password: <input  class="form-control" type="password" class="input-block-level" placeholder="Password" name="password" value="" size="50" /><br />
 
 		<button class="btn btn-primary" type="submit">Sign in</button>
 	</form>

@@ -1,7 +1,7 @@
 {% extends 'mercurylab/base.html' %}
 
 {% block body_block %}
-<div class="hero-unit">
+<div class="jumbotron">
 	<h1>Register with Mercury Lab</h1>
 
 	<div class="container">
@@ -10,7 +10,7 @@
 
 		<p><a href="/mercury/login/">Login</a> when you are ready to science.</p>
 		{% else %}
-		<form class="form-signin span8" id="user_form" method="post" action="/mercurylab/register/" enctype="multipart/form-data">
+		<form  class="form-horizontal" role="form"  id="user_form" method="post" action="/mercurylab/register/" enctype="multipart/form-data">
 			{% csrf_token %}
 			<h2 class="form-signin-heading">Sign up Here</h2>
 
@@ -27,6 +27,7 @@
 			{% endfor %}			
 
 			<input class="btn btn-primary" type="submit" name="submit" value="Register" />
+
 		</form>
 		{% endif %}
 	</div>
