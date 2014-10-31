@@ -4,15 +4,15 @@
     <div class="jumbotron">
 {#        <a class="btn" href="{% url 'mercurylab:cooperator_add' %}">Create New Cooperator</a><br /><br />#}
         <p>
-            <a class="btn" href="{% url 'mercurylab:cooperator_add' %}">Add</a>
-            <button class="btn" name="delete">Delete</button>
-            <button class="btn" name="edit">Edit</button>
-            <button class="btn" name="load">Reload</button>
-            <button class="btn" name="save">Save</button>
+            <button type="button" class="btn btn-default" name="add">Add</button>
+            <button type="button" class="btn btn-default" name="delete">Delete</button>
+            <button type="button" class="btn btn-default" name="edit">Edit</button>
+            <button type="button" class="btn btn-default" name="load">Reload</button>
+            <button type="button" class="btn btn-default" name="save">Save</button>
         </p>
         <pre id="console" class="console">Click "Load" to load data from server</pre>
         <p><input class="form-control" id="select_field" type="hidden" placeholder="Select for cooperator name." style="width:600px"/></p>
-        <p><input class="form-control" id="search_field" type="search" placeholder="Find in table." /></p>
+        <p><input class="form-control" id="search_field" type="search" placeholder="Find in table." style="width:600px"/></p>
         <div id="grid" data-data="{{ data }}" class="table table-hover table-condensed table-bordered"></div>
 
         <script>
@@ -36,7 +36,7 @@
                 var grid = $('#grid');
                 var data_data = JSON.parse(grid.attr("data-data"));
                 var console = $("#console");
-                var changesRowIndices = [];
+                var changedRowIndices = [];
                 var selectionRowIndices = [];
                 console.text('Loading data.');
                 grid.handsontable({
@@ -51,7 +51,7 @@
                     columnSorting: { column: 0 },
                     afterChange: function(changes, source) {
                         if (source != 'loadData') {
-                            changesRowIndices.push(changes[0][0]);
+                            changedRowIndices.push(changes[0][0]);
                         }
                     },
                     afterSelectionEnd: function(r, c, r2, c2) {
@@ -105,7 +105,7 @@
 
                 grid.parent().find('button[name=save]').click(function () {
                     var changedDataArray = [];
-                    $.each(changesRowIndices, function(index, value) {
+                    $.each(changedRowIndices, function(index, value) {
                         var thisDataRow = grid.data('handsontable').getDataAtRow(value);
                         var thisDataObject = {};
                         for (var i = 0; i < thisDataRow.length; i++) {
@@ -133,6 +133,10 @@
                             console.text('403: Save error. POST method is not allowed.');
                         }
                     });
+                });
+
+                grid.parent().find('button[name=add]').click(function () {
+                    window.location = "{% url 'mercurylab:cooperator_add' %}";
                 });
 
                 grid.parent().find('button[name=delete]').click(function () {

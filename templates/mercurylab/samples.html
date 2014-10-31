@@ -3,184 +3,112 @@
 
     <div class="jumbotron">
         <p>
-            <a class="btn" href="{% url 'mercurylab:cooperator_add' %}">Add</a>
-            <button class="btn" name="delete">Delete</button>
-            <button class="btn" name="edit">Edit</button>
-            <button class="btn" name="load">Reload</button>
-            <button class="btn" name="save">Save</button>
+            <button type="button" class="btn btn-default" name="save">Save</button>
         </p>
         <pre id="console" class="console">Click "Load" to load data from server</pre>
        <!--  <p><input class="form-control" id="select_field" type="hidden" placeholder="Select for sample name." style="width:600px"/></p> -->
-        <p><input class="form-control" id="search_field" type="search" placeholder="Find in table." /></p>
+        <p><input class="form-control" id="search_field" type="search" placeholder="Find in table." style="width:600px"/></p>
         <div id="grid" data-mediums="{{ mediums }}" data-filters="{{ filters }}" data-preservations="{{ preservations }}" data-acids="{{ acids }}" class="table table-hover table-condensed table-bordered"></div>
 
         <script>
             $(document).ready(function() {
 
-                var objectFields = ["project_name", "project_id", "site_name", "site_id", "date", "hour", "minute", "depth", "length", "replicate", "comments", "received_time_stamp", "lab_processing", "container_id", "sample_medium", "analysis_type", "isotopic_analysis", "filter_type", "vol_filtered", "preservation_type", "preservation_acid", "preservation_comment"];
-                function getHours() {
-                    var hours = [];
-                    for (var i = 0; i < 24; i++){
-                        if (i < 10) {
-                            hours.push("0"+String(i));
-                        }
-                        else {
-                            hours.push(String(i));
-                        }
-                    }
-                    return hours;
-                }
-                function getMinutes() {
-                    var minutes = [];
-                    for (var i = 0; i < 60; i++){
-                        if (i < 10) {
-                            minutes.push("0"+String(i));
-                        }
-                        else {
-                            minutes.push(String(i));
-                        }
-                    }
-                    return minutes;
-                }
                 var grid = $('#grid');
-                var data_mediums = JSON.parse(grid.attr("data-mediums"));
-                var data_filters = JSON.parse(grid.attr("data-filters"));
-                var data_preservations = JSON.parse(grid.attr("data-preservations"));
-                var data_acids = JSON.parse(grid.attr("data-acids"));
+                var objectFields = ["skip_project_name", "project", "skip_site_name", "site", "skip_date", "skip_hour", "time_stamp", "depth", "length", "replicate", "login_comment", "received_time_stamp", "lab_processing", "bottle", "medium_type", "constituent_type", /*"isotopic_analysis",*/ "skip_isotope", "filter_type", "volume_filtered", "preservation_type", "preservation_acid", "preservation_volume", "preservation_comment"];
+                function getRange(limit) {
+                    var values = [];
+                    for (var i = 0; i < limit; i++){
+                        if (i < 10) {
+                            values.push("0"+String(i));
+                        }
+                        else {
+                            values.push(String(i));
+                        }
+                    }
+                    return values;
+                }
+                function getValuesDom(domDataObject,attribute) {
+                    var values = [];
+                    var dom_data_object = JSON.parse(grid.attr(domDataObject));
+                    for (var i = 0; i < dom_data_object.length; i++){
+                        values.push(dom_data_object[i][attribute])
+                    }
+                    return values;
+                }
+                function getValuesAjax(url, param, query, process) {
+                    $.ajax({
+                        url: url,
+                        dataType: 'json',
+                        data: param+"="+query,
+                        success: function (response) {
+                            console.text("success");
+                            var values = [];
+                            for (var i = 0; i < response.length; i++) {
+                                values.push(response[i][param]);
+                            }
+                            process(values);
+                        },
+                        error: function (response) {
+                            console.text("error");
+                        }
+                    });
+                }
                 var console = $("#console");
-                var changesRowIndices = [];
+                var changedRowIndices = [];
                 var selectionRowIndices = [];
                 console.text('Loading data.');
                 grid.handsontable({
-                    colWidths: [70,70,70,70,70,70,70,70,70,70,70,70,70,70,70,70,70],
-                    //colWidths: [200,200,200,200],
-                    colHeaders: objectFields,
+                    //colWidths: [100,70,70,70,100,50,50,70,70,70,70,100,70,70,70,70,70,70,70,70,70],
+                    //colHeaders: objectFields,
                     contextMenu: true,
                     search: true,
                     startRows: 8,
                     columns: [
-                        {
-                            type: 'autocomplete',
-                            source: function (query, process) {
-                                $.ajax({
-                                    url: '/mercuryservices/projects/',
-                                    dataType: 'json',
-                                    data: {
-                                    name: query
-                                    },
-                                    success: function (response) {
-                                        console.text("success");
-                                        var names = [];
-                                        for (var i = 0; i < response.length; i++) {
-                                            names.push(response[i]['name']);
-                                        }
-                                        process(names);
-                                    },
-                                    error: function (response) {
-                                        console.text("error");
-                                    }
-                                });
-                            }
+                        {title: 'Project Name', width: 100, type: 'autocomplete', source: function (query, process) {
+                            getValuesAjax('/mercuryservices/projects', 'name', query, process)}
                         },
-                        {
-                            type: 'autocomplete',
-                            source: function (query, process) {
-                                $.ajax({
-                                    url: '/mercuryservices/projects/',
-                                    dataType: 'json',
-                                    data: {
-                                        id: query
-                                    },
-                                    success: function (response) {
-                                        console.text("success");
-                                        var ids = [];
-                                        for (var i = 0; i < response.length; i++) {
-                                            ids.push(String(response[i]['id']));
-                                        }
-                                        process(ids);
-                                    },
-                                    error: function (response) {
-                                        console.text("error");
-                                    }
-                                });
-                            }
+                        {title: 'Project ID', width: 70,type: 'autocomplete', source: function (query, process) {
+                            getValuesAjax('/mercuryservices/projects', 'id', query, process)}
                         },
-                         {
-                            type: 'autocomplete',
-                            source: function (query, process) {
-                                $.ajax({
-                                    url: '/mercuryservices/sites/',
-                                    dataType: 'json',
-                                    data: {
-                                    name: query
-                                    },
-                                    success: function (response) {
-                                        console.text("success");
-                                        var names = [];
-                                        for (var i = 0; i < response.length; i++) {
-                                            names.push(response[i]['name']);
-                                        }
-                                        process(names);
-                                    },
-                                    error: function (response) {
-                                        console.text("error");
-                                    }
-                                });
-                            }
+                        {title: 'Site Name', width: 70, type: 'autocomplete', source: function (query, process) {
+                            getValuesAjax('/mercuryservices/sites', 'name', query, process)}
                         },
-                        {
-                            type: 'autocomplete',
-                            source: function (query, process) {
-                                $.ajax({
-                                    url: '/mercuryservices/sites/',
-                                    dataType: 'json',
-                                    data: {
-                                        id: query
-                                    },
-                                    success: function (response) {
-                                        console.text("success");
-                                        var ids = [];
-                                        for (var i = 0; i < response.length; i++) {
-                                            ids.push(String(response[i]['id']));
-                                        }
-                                        process(ids);
-                                    },
-                                    error: function (response) {
-                                        console.text("error");
-                                    }
-                                });
-                            }
+                        {title: 'Site ID', width: 70, type: 'autocomplete', source: function (query, process) {
+                            getValuesAjax('/mercuryservices/sites', 'id', query, process)}
                         },
-                        {type: 'date'},  //sampling date
-                        {
-                            type: 'dropdown',  //sampling hour
-                            source: getHours()
-                        },
-                        {
-                            type: 'dropdown',  //sampling minute
-                            source: getMinutes()
-                        },
-                        {type: 'numeric'},  //depth
-                        {type: 'numeric'},  //length
-                        {type: 'numeric'},  //replicate
-                        {type: 'text'},  //comments
-                        {type: 'date'},  //received timestamp
-                        {type: 'text'},  //lab processing
-                        {type: 'numeric'},  //bottle ID
-                        {type: 'numeric'},  //medium
-                        {type: 'numeric'},  //analyte
-                        {type: 'numeric'},  //filter
-                        {type: 'numeric'},  //filter volume
-                        {type: 'numeric'},  //preservation
-                        {type: 'numeric'},  //acid
-                        {type: 'numeric'},  //acid volume
-                        {type: 'text'}  //comments
+                        {title: 'Date', width: 100, type: 'date'},
+                        {title: 'Hour', width: 50, type: 'dropdown', source: getRange(24)},
+                        {title: 'Minute', width: 50, type: 'dropdown', source: getRange(60)},
+                        {title: 'Depth', width: 50, type: 'numeric'},
+                        {title: 'Length', width: 50, type: 'numeric'},
+                        {title: 'Rep', width: 50, type: 'numeric'},
+                        {title: 'Sample Comments', width: 100, type: 'text'},
+                        {title: 'Received', width: 100, type: 'date'},
+                        {title: 'Lab Processing', width: 60, type: 'text'},
+                        {title: 'Container ID', width: 100, type: 'text'},
+                        {title: 'Medium', width: 100, type: 'dropdown', source: getValuesDom("data-mediums","medium")},
+                        {title: 'Analysis', width: 100, type: 'numeric'},
+                        {title: 'Isotope', width: 50, type: 'text'},
+                        {title: 'Filter', width: 100, type: 'dropdown', source: getValuesDom("data-filters","filter")},
+                        {title: 'Filter Volume', width: 50, type: 'numeric'},
+                        {title: 'Preservation', width: 100, type: 'dropdown', source: getValuesDom("data-preservations", "preservation")},
+                        {title: 'Acid', width: 100, type: 'dropdown',  source: getValuesDom("data-acids", "code")},
+                        {title: 'Acid Volume', width: 50, type: 'numeric'},
+                        {title: 'Preservation Comments', width: 100, type: 'text'}
                     ],
+                    // define event handlers
                     beforeChange: function(changes, source) {
-                        // changes is a 2D array containing information about each of the edited cells [ [row, col, oldVal, newVal], [row, col, oldVal, newVal], ... ].
-                        // source is one of the strings: "alter", "empty", "edit", "populateFromArray", "loadData", "autofill", "paste".
+                        // "changes" is a 2D array containing information about each of the edited cells [ [row, col, oldVal, newVal], [row, col, oldVal, newVal], ... ].
+                        // "source" is one of the strings: "alter", "empty", "edit", "populateFromArray", "loadData", "autofill", "paste".
                         if (source != 'loadData') {
-                            changesRowIndices.push(changes[0][0]);
+                            // get index of changed row
+                            var changedRow = changes[0][0];
+                            // find index of this row in the changed rows array
+                            var changedRowIndex = changedRowIndices.indexOf(changedRow);
+                            // if not in the array (index == -1), add it to the array, otherwise ignore
+                            if (changedRowIndex == -1){
+                                changedRowIndices.push(changedRow);
+                            }
                         }
                         if (source == 'edit') {
                             if (changes[0][1] == 0) {
@@ -308,25 +236,49 @@
                     return data.id;
                 }
 
-                grid.parent().find('button[name=load]').click(function () {
-                    grid.data('handsontable').loadData(data_data);
-                    grid.data('handsontable').sort(0);
-                    console.text('Data reloaded.');
-                });
-
+                // when the save button is clicked, loop through the list of changed rows and build a JSON object containing the changed rows
                 grid.parent().find('button[name=save]').click(function () {
+                    // an array container for storing the changed data rows to send to the database
                     var changedDataArray = [];
-                    $.each(changesRowIndices, function(index, value) {
+                    // loop through the list of changed rows
+                    $.each(changedRowIndices, function(index, value) {
+                        // grab all the data for this row
                         var thisDataRow = grid.data('handsontable').getDataAtRow(value);
-                        var thisDataObject = {};
-                        for (var i = 0; i < thisDataRow.length; i++) {
-                            thisDataObject[objectFields[i]] = thisDataRow[i];
+                        // check if this row still has data; it's possible the user cleared the row after entering data, in which case we no longer want it
+                        if (thisDataRow[0] !== null && thisDataRow[0] !== ""){
+                            // an object container for the data in this row
+                            var thisDataObject = {};
+                            // convert each cell in this row into an object property
+                            for (var i = 0; i < thisDataRow.length; i++) {
+                                switch(i){
+                                    case 0: // project name
+                                        break;
+                                    case 2: // site name
+                                        break;
+                                    case 4: // date
+                                        break;
+                                    case 5: // hour
+                                        break;
+                                    case 6: // minute
+                                        var time_stamp = thisDataRow[i-2]+" "+thisDataRow[i-1]+":"+thisDataRow[i]+":00";
+                                        thisDataObject[objectFields[i]] = time_stamp;
+                                        break;
+                                    case 16: // isotope
+                                        break;
+                                    default: // all the rest
+                                        thisDataObject[objectFields[i]] = thisDataRow[i];
+                                        break;
+                                }
+                            }
+                            // add the new row object to the array
+                            changedDataArray.push(thisDataObject);
                         }
-                        changedDataArray.push(thisDataObject);
                     });
+                    // convert the array to a true JSON object
                     var changedDataJSON = JSON.stringify(changedDataArray);
-                    $.ajax({
-{#                        url: "{% url 'mercurylab:cooperator_grid_save' pk=data_id %}",#}
+                    // send the entire changed data object to the server via ajax
+                    console.text("Data saved.");
+                    /*$.ajax({
                         url: '/mercurylab/samples/save',
                         data: changedDataJSON,
                         dataType: 'json',
@@ -343,19 +295,7 @@
                         error: function () {
                             console.text('403: Save error. POST method is not allowed.');
                         }
-                    });
-                });
-
-                grid.parent().find('button[name=delete]').click(function () {
-                    var thisDataRow = grid.data('handsontable').getDataAtRow(selectionRowIndices[0]);
-                    var thisDataRowID = thisDataRow[0];
-                    window.location = '/mercurylab/samples/'+thisDataRowID+'/delete';
-                });
-
-                grid.parent().find('button[name=edit]').click(function () {
-                    var thisDataRow = grid.data('handsontable').getDataAtRow(selectionRowIndices[0]);
-                    var thisDataRowID = thisDataRow[0];
-                    window.location = '/mercurylab/samples/'+thisDataRowID+'/edit';
+                    });*/
                 });
 
             });

@@ -8,7 +8,7 @@
 	<p>
 		<b id="like_count">{{ category.likes }}</b> people like this category.
 		{% if user.is_authenticated %}
-			<button class="btn btn-mini btn-primary" type="button" id="likes" data-catid="{{ category.id }}">Like</button>
+			<button type="button" class="btn btn-default" class="btn btn-mini btn-primary" type="button" id="likes" data-catid="{{ category.id }}">Like</button>
 		{% endif %}
 	</p>
 	{% if pages %}
@@ -25,7 +25,7 @@
 	<form class="form-search span8" id="search_form" method="post" action="/mercurylab/category/{{ category_name_url }}/">
 		{% csrf_token %}
 		<input type="text" class="input-long search-query" name="query" value="{{ category_name }}" id="query" />
-		<button class="btn btn-success" type="submit" name="submit" value="Search">Search</button>
+		<button type="button" class="btn btn-default" class="btn btn-success" type="submit" name="submit" value="Search">Search</button>
 		<br />
 	</form>
 

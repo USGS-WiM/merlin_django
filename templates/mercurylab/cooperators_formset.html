@@ -36,8 +36,8 @@
             <p>
                 {{ formset.management_form }}
                 {% csrf_token %}
-                <button type="submit" name="action" value="save">save</button>
-                <button type="submit" name="action" value="delete">delete</button>
+                <button type="button" class="btn btn-default" type="submit" name="action" value="save">save</button>
+                <button type="button" class="btn btn-default" type="submit" name="action" value="delete">delete</button>
             </p>
         </form>
         {% else %}
