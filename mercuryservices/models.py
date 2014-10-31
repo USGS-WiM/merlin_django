@@ -11,6 +11,8 @@ from django.contrib import admin
 
 
 class Cooperator(models.Model):
+    """A person or organization submitting data to the Mercury Lab."""
+
     name = models.CharField(max_length=128)
     agency = models.CharField(max_length=128)
     email = models.EmailField(blank=True)
@@ -28,6 +30,8 @@ class Cooperator(models.Model):
 
 
 class Project(models.Model):
+    """A structure to organize a cooperator's sampling events for a particular purpose or goal."""
+
     name = models.CharField(max_length=128)
     description = models.CharField(max_length=128, blank=True)
     accounting_code = models.CharField(max_length=128, blank=True)
@@ -39,7 +43,7 @@ class Project(models.Model):
 
 
 class Site(models.Model):
-    """A sampling location, usually an official USGS site."""
+    """A sampling location, usually an official USGS site. Can be used by more than one project."""
 
     name = models.CharField(max_length=128)
     usgs_sid = models.CharField(max_length=128, blank=True)
@@ -59,6 +63,8 @@ class Site(models.Model):
 
 
 class ProjectSite(models.Model):
+    """Table to allow many-to-many relationship between Projects and Sites."""
+
     project = models.ForeignKey('Project')
     site = models.ForeignKey('Site')
 
@@ -74,7 +80,7 @@ class ProjectSite(models.Model):
 
 
 class Bottle(models.Model):
-    """Reusable bottles with permanently etched IDs."""
+    """Reusable bottles with permanently etched IDs (MLO751AA, WIP010BSH, etc.)."""
 
     bottle_unique_name = models.CharField(max_length=128)
     description = models.TextField(blank=True)
@@ -87,6 +93,8 @@ class Bottle(models.Model):
 
 
 class BottleType(models.Model):
+    """Type of bottle (1L Teflon, 250mL Teflon, Glass Jar, etc.)."""
+
     bottle_type = models.CharField(max_length=128)
     description = models.TextField(blank=True)
     #status = models.ForeignKey('Status')
@@ -96,6 +104,8 @@ class BottleType(models.Model):
 
 
 class FilterType(models.Model):
+    """Type of filtration used to filter bottle (Calyx, Centrifugal, Quartz Fiber, etc.)."""
+
     filter = models.CharField(max_length=128)
     description = models.TextField(blank=True)
     #status = models.ForeignKey('Status')
@@ -105,7 +115,7 @@ class FilterType(models.Model):
 
 
 class PreservationType(models.Model):
-    """How sample is preserved; usually an acid, but occasionally freezing or freeze drying."""
+    """Type of preservation of bottle (Freezing, Acidification, None)."""
 
     preservation = models.CharField(max_length=128)
     description = models.TextField(blank=True)
@@ -113,6 +123,20 @@ class PreservationType(models.Model):
 
     def __str__(self):
         return self.preservation
+
+
+class ProcessingType(models.Model):
+    """Description of lab processing (None, In-Lab Filtration, Homogenization and Freeze Dry).
+    Indicating what type of processing of the sample may have occurred at the lab.
+    This information may be used to document procession charges that should be assessed to the cooperator.
+    """
+
+    processing = models.CharField(max_length=128)
+    description = models.TextField(blank=True)
+    #status = models.ForeignKey('Status')
+
+    def __str__(self):
+        return self.processing
 
 
 class MediumType(models.Model):
@@ -139,7 +163,9 @@ class FieldSample(models.Model):
     received_time_stamp = models.DateTimeField()
     login_comment = models.TextField(blank=True)
     replicate = models.IntegerField(null=True, blank=True)
+    lab_processing = models.ForeignKey('ProcessingType')
     medium_type = models.ForeignKey('MediumType')
+    constituent_type = models.ForeignKey('ConstituentType')
     #status = models.ForeignKey('Status')
 
     def __str__(self):
@@ -172,6 +198,8 @@ class FieldSampleBottle(models.Model):
 
 
 class UnitType(models.Model):
+    """Defined units of measurement for data values."""
+
     unit = models.CharField(max_length=128)
     description = models.TextField(blank=True)
     #status = models.ForeignKey('Status')
@@ -181,6 +209,8 @@ class UnitType(models.Model):
 
 
 class MethodType(models.Model):
+    """Established protocols for analyzing samples."""
+
     method = models.CharField(max_length=128)
     preparation = models.CharField(max_length=128, blank=True)
     description = models.TextField(blank=True)
@@ -242,6 +272,8 @@ class ConstituentType(models.Model):
 
 
 class ConstituentMedium(models.Model):
+    """Table to allow many-to-many relationship between Constituents and Mediums."""
+
     constituent_type = models.ForeignKey('ConstituentType')
     medium_type = models.ForeignKey('MediumType')
     #status = models.ForeignKey(Status)
@@ -251,6 +283,8 @@ class ConstituentMedium(models.Model):
 
 
 class ConstituentMethod(models.Model):
+    """Table to allow many-to-many relationship between Constituents and Methods."""
+
     constituent_type = models.ForeignKey('ConstituentType')
     method_type = models.ForeignKey('MethodType')
     #status = models.ForeignKey(Status)
@@ -267,6 +301,8 @@ class ConstituentMethod(models.Model):
 
 
 class QualityAssurance(models.Model):
+    """Table to allow one-to-many relationship between Results and QualityAssuranceType."""
+
     quality_assurance = models.ForeignKey('QualityAssuranceType')
     result = models.ForeignKey('Result', related_name='quality_assurances')  # usually three QAs per one result
     #status = models.ForeignKey(Status)
@@ -276,6 +312,8 @@ class QualityAssurance(models.Model):
 
 
 class QualityAssuranceType(models.Model):
+    """Activities performed to prevent mistakes or contamination of samples."""
+
     quality_assurance = models.CharField(max_length=128)
     description = models.TextField(blank=True)
     #status = models.ForeignKey(Status)
@@ -285,6 +323,10 @@ class QualityAssuranceType(models.Model):
 
 
 class DetectionFlag(models.Model):
+    """Flag indicating if value needs to be qualified because of proximity to a detection limit (method, daily).
+    Also, may indicate if sample was "lost" (will never have a reportable value),
+    or "archived" (no analysis has been done but may occur in the future, avoiding a "hole")."""
+
     detection_flag = models.CharField(max_length=128)  # A, <, E, L
     description = models.TextField(blank=True)  # less than, estimated, lost
     #status = models.ForeignKey(Status)
@@ -294,8 +336,10 @@ class DetectionFlag(models.Model):
 
 
 class IsotopeFlag(models.Model):
+    """Flag indicating whether isotope parameters are Ambient (A) or Excess (X-198, X-199, X-200, X-201, X-202)."""
+
     isotope_flag = models.CharField(max_length=128)  # A, X-198, X-199, X-200, X-201, X-202, X-204
-    description = models.TextField(blank=True)
+    description = models.TextField(blank=True)  # Ambient, Excess of 199, Excess of 200, etc
     #status = models.ForeignKey(Status)
 
     def __str__(self):
@@ -310,6 +354,8 @@ class IsotopeFlag(models.Model):
 
 
 class Acid(models.Model):
+    """A particular concentration of an acid used for sample preservation."""
+
     code = models.CharField(max_length=128)
     concentration = models.FloatField(default=-999)
     comment = models.TextField(blank=True)
@@ -320,6 +366,8 @@ class Acid(models.Model):
 
 
 class BlankWater(models.Model):
+    """Water that has none of the chemicals being analyzed."""
+
     lot_number = models.CharField(max_length=128)
     concentration = models.FloatField(default=-999)
     comment = models.TextField(blank=True)
@@ -330,6 +378,8 @@ class BlankWater(models.Model):
 
 
 class Bromination(models.Model):
+    """***A work in progress...***"""
+
     concentration = models.FloatField()
     bromination_date = models.DateTimeField()
     comment = models.TextField(blank=True)

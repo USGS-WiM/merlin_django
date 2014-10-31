@@ -66,18 +66,18 @@ WSGI_APPLICATION = 'mercuryproject.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/dev/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-#         'NAME': 'mercurydev',
-#         'USER': 'mercury_admin',
-#         'PASSWORD': 'm3rcury@dm1n',
-#         #'HOST': 'IGSARMEWVSWIM5.gs.doi.net',
-#         #'HOST': '130.11.161.159',
-#         'HOST': 'localhost',
-#         'PORT': '5432',
-#     }
-# }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'mercurydev',
+        'USER': 'mercury_admin',
+        'PASSWORD': 'm3rcury@dm1n',
+        #'HOST': 'IGSARMEWVSWIM5.gs.doi.net',
+        #'HOST': '130.11.161.159',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    }
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/dev/topics/i18n/

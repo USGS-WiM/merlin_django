@@ -4,12 +4,12 @@
     <div class="jumbotron">
 
         <p>
-            <button name="load">Reload</button>
-            <button name="save">Save</button>
+            <button type="button" class="btn btn-default" name="load">Reload</button>
+            <button type="button" class="btn btn-default" name="save">Save</button>
         </p>
         <pre id="console" class="console">Click "Load" to load data from server</pre>
         <input id="select_field" type="hidden" placeholder="Select for site name." style="width:600px"/><br />
-        <input id="search_field" type="search" placeholder="Find in table." />
+        <input id="search_field" type="search" placeholder="Find in table." style="width:600px"/>
         <div id="grid" data-data="{{ data }}" class="table table-hover table-condensed table-bordered"></div>
 
         <script>
