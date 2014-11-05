@@ -7,26 +7,31 @@
             <button type="button" class="btn btn-default" name="load">Reload</button>
             <button type="button" class="btn btn-default" name="save">Save</button>
         </p>
-        <pre id="console" class="console">Click "Load" to load data from server</pre>
+        <pre id="grid_console" class="console">Click "Load" to load data from server</pre>
         <input id="select_field" type="hidden" placeholder="Select for bottle unique name." style="width:600px"/><br />
         <input id="search_field" type="search" placeholder="Find in table." style="width:600px"/>
+        <p>
+            <button type="button" class="btn btn-default" name="prev">Previous Page</button>
+            <button type="button" class="btn btn-default" name="next">Next Page</button>
+        </p>
         <div id="grid" data-data="{{ data }}" class="table table-hover table-condensed table-bordered"></div>
 
         <script>
             $(document).ready(function() {
 
                 var objectFields = ["ID", "Unique Bottle Name", "Description", "Tare Weight", "Bottle Type"];
+                var currentPage = 1;
                 var grid = $('#grid');
                 var data_data = JSON.parse(grid.attr("data-data"));
-                var console = $("#console");
+                var grid_console = $("#grid_console");
                 var changesRowIndices = [];
-                console.text('Loading data.');
+                grid_console.text('Loading data.');
                 grid.handsontable({
-                    colWidths: [40,200,500,100,200],
+                    colWidths: [100,200,500,100,200],
                     colHeaders: objectFields,
                     contextMenu: true,
                     //minSpareRows: 1,
-                    data: data_data,
+                    data: data_data.results,
                     columns: [{data: "id", readOnly: true},{data: "bottle_unique_name"},{data: "description"},{data: "tare_weight"},{data: "bottle_type'"}],
                     columnSorting: { column: 0 },
                     afterChange: function(changes, source) {
@@ -36,7 +41,7 @@
                     }
                 });
                 grid.data('handsontable').sort(0);
-                console.text('Data loaded.');
+                grid_console.text('Data loaded.');
 
                 $('#search_field').on('keyup', function (event) {
                     grid.handsontable('getInstance').search.query(this.value);
@@ -56,7 +61,7 @@
                         },
                         results: function (data, page) {
                             grid.data('handsontable').loadData(data);
-                            console.text('Searched data loaded.');
+                            grid_console.text('Searched data loaded.');
                             return {results: data};
                         }
                     },
@@ -72,9 +77,45 @@
                 }
 
                 grid.parent().find('button[name=load]').click(function () {
-                    grid.data('handsontable').loadData(data_data);
+                    grid.data('handsontable').loadData(data_data.results);
                     grid.data('handsontable').sort(0);
-                    console.text('Data reloaded.');
+                    grid_console.text('Data reloaded.');
+                });
+
+                grid.parent().find('button[name=next]').click(function () {
+                    $.ajax({
+                        url: data_data.next,
+                        dataType: 'json',
+                        success: function (response) {
+                            grid_console.text("success");
+                            data_data = response;
+                            grid.data('handsontable').loadData(data_data.results);
+                            grid.data('handsontable').sort(0);
+                            currentPage++;
+                            grid_console.text('Page '+ currentPage +' data loaded.');
+                        },
+                        error: function (response) {
+                            grid_console.log("error");
+                        }
+                    });
+                });
+
+                grid.parent().find('button[name=prev]').click(function () {
+                    $.ajax({
+                        url: data_data.previous,
+                        dataType: 'json',
+                        success: function (response) {
+                            grid_console.text("success");
+                            data_data = response;
+                            grid.data('handsontable').loadData(data_data.results);
+                            grid.data('handsontable').sort(0);
+                            currentPage--;
+                            grid_console.text('Page '+ currentPage +' data loaded.');
+                        },
+                        error: function (response) {
+                            grid_console.log("error");
+                        }
+                    });
                 });
 
                 grid.parent().find('button[name=save]').click(function () {
@@ -96,14 +137,14 @@
                         type: 'POST',
                         success: function (data, outcome, response) {
                             if (response.status === 200) {
-                                console.text(outcome+': Data saved.');
+                                grid_console.text(outcome+': Data saved.');
                               }
                               else {
-                                console.text(outcome+': Save error: '+response.statusText+', code: '+response.status+'.');
+                                grid_console.text(outcome+': Save error: '+response.statusText+', code: '+response.status+'.');
                               }
                         },
                         error: function () {
-                            console.text('403: Save error. POST method is not allowed.');
+                            grid_console.text('403: Save error. POST method is not allowed.');
                         }
                     });
                 });
