@@ -8,7 +8,7 @@ from mercuryservices.serializers import *
 from mercuryservices.models import *
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from rest_framework_bulk import ListBulkCreateUpdateDestroyAPIView, BulkUpdateModelMixin
+from rest_framework_bulk import ListBulkCreateUpdateDestroyAPIView, BulkCreateModelMixin, BulkUpdateModelMixin
 from rest_framework import filters
 
 
@@ -49,6 +49,7 @@ class CooperatorViewSet(viewsets.ModelViewSet):
     #queryset = Cooperator.objects.all()
     serializer_class = CooperatorSerializer
 
+    # override the default queryset to allow filtering by URL arguments
     def get_queryset(self):
         queryset = Cooperator.objects.all()
         name = self.request.QUERY_PARAMS.get('name', None)
@@ -66,6 +67,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
     #queryset = Project.objects.all()
     serializer_class = ProjectSerializer
 
+    # override the default queryset to allow filtering by URL arguments
     def get_queryset(self):
         queryset = Project.objects.all()
         name = self.request.QUERY_PARAMS.get('name', None)
@@ -86,14 +88,30 @@ class SiteViewSet(viewsets.ModelViewSet):
     #queryset = Site.objects.all()
     serializer_class = SiteSerializer
 
+    # override the default queryset to allow filtering by URL arguments
     def get_queryset(self):
         queryset = Site.objects.all()
+        # filter by site name
         name = self.request.QUERY_PARAMS.get('name', None)
         if name is not None:
             queryset = queryset.filter(name__icontains=name)
+        # filter by site ID
         id = self.request.QUERY_PARAMS.get('id', None)
         if id is not None:
             queryset = queryset.filter(id__icontains=id)
+        # filter by project name or ID
+        project = self.request.QUERY_PARAMS.get('project', None)
+        if project is not None:
+            # if query value is a Project ID
+            if project.isdigit():
+                # get the Sites related to this Project ID
+                queryset = queryset.filter(projects__exact=project)
+            # if query value is a Site name
+            else:
+                # lookup the Project ID that matches this Project name
+                id = Project.objects.get(name__exact=project)
+                # get the Sites related to this Project ID
+                queryset = queryset.filter(projects__exact=id)
         return queryset
 
 
@@ -104,10 +122,17 @@ class SiteViewSet(viewsets.ModelViewSet):
 ######
 
 
+class FieldSampleBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkUpdateModelMixin, viewsets.ModelViewSet):
+    model = FieldSample
+
 class FieldSampleViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     queryset = FieldSample.objects.all()
     serializer_class = FieldSampleSerializer
+
+
+class FieldSampleBottleBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkUpdateModelMixin, viewsets.ModelViewSet):
+    model = FieldSampleBottle
 
 
 class FieldSampleBottleViewSet(viewsets.ModelViewSet):
@@ -116,7 +141,7 @@ class FieldSampleBottleViewSet(viewsets.ModelViewSet):
     serializer_class = FieldSampleBottleSerializer
 
 
-class BottlesBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
+class BottleBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
     model = Bottle
 
 
@@ -143,6 +168,12 @@ class PreservationTypeViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     queryset = PreservationType.objects.all()
     serializer_class = PreservationTypeSerializer
+
+
+class ProcessingTypeViewSet(viewsets.ModelViewSet):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    queryset = ProcessingType.objects.all()
+    serializer_class = ProcessingTypeSerializer
 
 
 class MediumTypeViewSet(viewsets.ModelViewSet):
@@ -198,8 +229,25 @@ class ResultViewSet(viewsets.ModelViewSet):
 
 class ConstituentTypeViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    queryset = ConstituentType.objects.all()
+    #queryset = ConstituentType.objects.all()
     serializer_class = ConstituentTypeSerializer
+
+    # override the default queryset to allow filtering by URL arguments
+    def get_queryset(self):
+        queryset = ConstituentType.objects.all()
+        medium = self.request.QUERY_PARAMS.get('medium', None)
+        if medium is not None:
+            # if query value is a Medium ID
+            if medium.isdigit():
+                # get the Constituents related to this Medium ID
+                queryset = queryset.filter(mediums__exact=medium)
+            # if query value is a Medium name
+            else:
+                # lookup the Medium ID that matches this Medium name
+                id = MediumType.objects.get(medium__exact=medium)
+                # get the Constituents related to this Medium ID
+                queryset = queryset.filter(mediums__exact=id)
+        return queryset
 
 
 class ConstituentMediumViewSet(viewsets.ModelViewSet):
@@ -252,7 +300,7 @@ class IsotopeFlagViewSet(viewsets.ModelViewSet):
 ######
 
 
-class AcidsBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
+class AcidBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
     model = Acid
 
 
@@ -261,6 +309,7 @@ class AcidViewSet(viewsets.ModelViewSet):
     #queryset = Acid.objects.all()
     serializer_class = AcidSerializer
 
+    # override the default queryset to allow filtering by URL arguments
     def get_queryset(self):
         queryset = Acid.objects.all()
         id = self.request.QUERY_PARAMS.get('id', None)
@@ -269,7 +318,7 @@ class AcidViewSet(viewsets.ModelViewSet):
         return queryset
 
 
-class BlankWatersBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
+class BlankWaterBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
     model = BlankWater
 
 
@@ -278,6 +327,7 @@ class BlankWaterViewSet(viewsets.ModelViewSet):
     #queryset = BlankWater.objects.all()
     serializer_class = BlankWaterSerializer
 
+    # override the default queryset to allow filtering by URL arguments
     def get_queryset(self):
         queryset = BlankWater.objects.all()
         id = self.request.QUERY_PARAMS.get('id', None)
@@ -286,7 +336,7 @@ class BlankWaterViewSet(viewsets.ModelViewSet):
         return queryset
 
 
-class BrominationsBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
+class BrominationBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
     model = Bromination
 
 
@@ -295,6 +345,7 @@ class BrominationViewSet(viewsets.ModelViewSet):
     #queryset = Bromination.objects.all()
     serializer_class = BrominationSerializer
 
+    # override the default queryset to allow filtering by URL arguments
     def get_queryset(self):
         queryset = Bromination.objects.all()
         id = self.request.QUERY_PARAMS.get('id', None)

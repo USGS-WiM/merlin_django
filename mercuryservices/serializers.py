@@ -43,8 +43,8 @@ class FieldSampleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FieldSample
-        fields = ('id', 'site', 'time_stamp', 'depth', 'length', 'comment', 'received_time_stamp', 'login_comment',
-                  'replicate', 'medium_type',)
+        fields = ('id', 'project', 'site', 'time_stamp', 'depth', 'length', 'comment', 'received_time_stamp',
+                  'login_comment', 'replicate', 'medium_type', 'lab_processing', 'field_sample_bottles')
 
 
 class FieldSampleBottleSerializer(serializers.ModelSerializer):
@@ -56,7 +56,7 @@ class FieldSampleBottleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FieldSampleBottle
-        fields = ('id', 'field_sample', 'bottle', 'filter_type', 'volume_filtered',
+        fields = ('id', 'field_sample', 'bottle', 'constituent_type', 'filter_type', 'volume_filtered',
                   'preservation_type', 'preservation_volume', 'preservation_acid', 'preservation_comment',)
 
 
@@ -79,6 +79,13 @@ class PreservationTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = PreservationType
         fields = ('id', 'preservation', 'description',)
+
+
+class ProcessingTypeSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ProcessingType
+        fields = ('id', 'processing', 'description',)
 
 
 class MediumTypeSerializer(serializers.ModelSerializer):

@@ -15,19 +15,19 @@
         <script>
             $(document).ready(function() {
 
-                var objectFields = ["ID", "Unique Bottle Name", "Description"];
+                var objectFields = ["ID", "Unique Bottle Name", "Description", "Tare Weight", "Bottle Type"];
                 var grid = $('#grid');
                 var data_data = JSON.parse(grid.attr("data-data"));
                 var console = $("#console");
                 var changesRowIndices = [];
                 console.text('Loading data.');
                 grid.handsontable({
-                    colWidths: [40,200,500],
+                    colWidths: [40,200,500,100,200],
                     colHeaders: objectFields,
                     contextMenu: true,
                     //minSpareRows: 1,
                     data: data_data,
-                    columns: [{data: "id", readOnly: true},{data: "bottle_unique_name"},{data: "description"}],
+                    columns: [{data: "id", readOnly: true},{data: "bottle_unique_name"},{data: "description"},{data: "tare_weight"},{data: "bottle_type'"}],
                     columnSorting: { column: 0 },
                     afterChange: function(changes, source) {
                         if (source != 'loadData') {

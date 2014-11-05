@@ -155,17 +155,17 @@ class MediumType(models.Model):
 class FieldSample(models.Model):
     """A sample of a medium at a site, taken at a unique depth and time. Can be stored in one or more bottles."""
 
+    project = models.ForeignKey('Project')
     site = models.ForeignKey('Site')
     time_stamp = models.DateTimeField()
     depth = models.FloatField()
     length = models.FloatField(null=True, blank=True)
     comment = models.TextField(blank=True)
-    received_time_stamp = models.DateTimeField()
+    received_time_stamp = models.DateField()
     login_comment = models.TextField(blank=True)
     replicate = models.IntegerField(null=True, blank=True)
     lab_processing = models.ForeignKey('ProcessingType')
     medium_type = models.ForeignKey('MediumType')
-    constituent_type = models.ForeignKey('ConstituentType')
     #status = models.ForeignKey('Status')
 
     def __str__(self):
@@ -175,8 +175,9 @@ class FieldSample(models.Model):
 class FieldSampleBottle(models.Model):
     """A bottle (reusable or disposable) containing a (portion of a) sample. Used for analysis methods."""
 
-    field_sample = models.ForeignKey('FieldSample')
+    field_sample = models.ForeignKey('FieldSample', related_name='field_sample_bottles')
     bottle = models.ForeignKey('Bottle')
+    constituent_type = models.ForeignKey('ConstituentType')
     filter_type = models.ForeignKey('FilterType')
     volume_filtered = models.FloatField(null=True, blank=True)
     preservation_type = models.ForeignKey('PreservationType')
@@ -265,6 +266,8 @@ class ConstituentType(models.Model):
 
     constituent = models.CharField(max_length=128)
     description = models.TextField(blank=True)
+    mediums = models.ManyToManyField('MediumType', through='ConstituentMedium', related_name='constituents')
+    methods = models.ManyToManyField('MethodType', through='ConstituentMethod', related_name='constituents')
     #status = models.ForeignKey(Status)
 
     def __str__(self):

@@ -18,9 +18,15 @@ REST_SERVICES_URL = 'http://localhost:8000/mercuryservices/'
 TEMP_AUTH = ('admin', 'admin')
 JSON_HEADERS = {'content-type': 'application/json'}
 
+SAMPLE_KEYS = ["project", "site", "time_stamp", "depth", "length", "received_time_stamp", "login_comment",
+                 "replicate", "medium_type", "lab_processing", "field_sample_bottles"]
+SAMPLE_BOTTLE_KEYS = ["field_sample", "bottle", "constituent_type", "filter_type", "volume_filtered",
+                        "preservation_type", "preservation_volume", "preservation_acid", "preservation_comment"]
 
-def samples(request):
+def sample_login(request):
     context = RequestContext(request)
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'processings/', auth=TEMP_AUTH)
+    processings = json.dumps(r.json(), sort_keys=True)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'mediums/', auth=TEMP_AUTH)
     mediums = json.dumps(r.json(), sort_keys=True)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'filters/', auth=TEMP_AUTH)
@@ -29,15 +35,54 @@ def samples(request):
     preservations = json.dumps(r.json(), sort_keys=True)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'acids/', auth=TEMP_AUTH)
     acids = json.dumps(r.json(), sort_keys=True)
-    context_dict = {'mediums': mediums, 'filters': filters, 'preservations': preservations, 'acids': acids}
-    return render_to_response('mercurylab/samples.html', context_dict, context)
+    context_dict = {'processings': processings, 'mediums': mediums, 'filters': filters, 'preservations': preservations, 'acids': acids}
+    return render_to_response('mercurylab/sample_login.html', context_dict, context)
 
 
 @csrf_exempt
-def samples_save(request):
-    data = request.body
+def sample_login_save(request):
+    data = json.loads(request.body.decode('utf-8'))
+    unique_sample_ids = []
+    sample_data = []
+    sample_bottle_data = []
 
-    r = requests.request(method='PUT', url=REST_SERVICES_URL+'bulksamplebottles/', data=data, auth=TEMP_AUTH, headers=JSON_HEADERS)
+    # analyze each submitted row, parsing sample data and sample bottle data
+    for item in data:
+        # grab the data that uniquely identifies each sample
+        this_sample_id = str(item['project'])+"|"+str(item['site'])+"|"+str(item['time_stamp'])+"|"+str(item['depth'])+"|"+str(item['replicate'])
+        # if this sample ID is not already in the unique list, add it, otherwise skip the sample data for this row
+        if this_sample_id not in unique_sample_ids:
+            unique_sample_ids.append(this_sample_id)
+            # create a sample object using the sample data within this row
+            sample_values = [item['project'], item['site'], item['time_stamp'], item['depth'], item['length'], (item['received_time_stamp']), item['login_comment'], item['replicate'], 47, 2] #item['medium_type'], item['lab_processing']]
+            this_sample = dict(zip(SAMPLE_KEYS, sample_values))
+            sample_data.append(this_sample)
+        # create a sample bottle object using the sample bottle data within this row
+        #sample_bottle_values = [this_sample_id, item['bottle'], item['constituent_type'], item['filter_type'], item['volume_filtered'], item['preservation_type'], item['preservation_volume'], item['preservation_acid'], item['preservation_comment']]
+        sample_bottle_values = [this_sample_id, 436321, 22, 21, item['volume_filtered'], 13, item['preservation_volume'], 7817, item['preservation_comment']]
+        this_sample_bottle = dict(zip(SAMPLE_BOTTLE_KEYS, sample_bottle_values))
+        #this_samplebottle = {'field_sample': this_sample_id, 'bottle': item['bottle'], 'constituent_type': item['constituent_type'], 'filter_type': item['filter_type'], 'volume_filtered': item['volume_filtered'], 'preservation_type': item['preservation_type'], 'preservation_acid': item['preservation_acid'], 'preservation_volume': item['preservation_volume'], 'preservation_comment': item['preservation_comment']}
+        # add this new sample bottle object to the list
+        sample_bottle_data.append(this_sample_bottle)
+
+    # save samples first and then get their database IDs, which are required for later saving the sample bottles
+    sample_data = json.dumps(sample_data)
+    r = requests.request(method='POST', url=REST_SERVICES_URL+'bulksamples/', data=sample_data, auth=TEMP_AUTH, headers=JSON_HEADERS)
+    response_data = r.json()
+    # store the IDs as an array of dictionaries, where the keys are the combo IDs and the values are the database IDs
+    sample_ids = []
+    for item in response_data:
+        # using a hacky workaround to handle the "T" in the time_stamp; there's probably a better way to handle this
+        sample_id = {'combo_id': str(item['project'])+"|"+str(item['site'])+"|"+str(item['time_stamp']).replace("T", " ")+"|"+str(int(item['depth']))+"|"+str(item['replicate']), 'db_id': item['id']}
+        sample_ids.append(sample_id)
+
+    # update the sample bottles with the database IDs, rather than the combo IDs
+    for sample_id in sample_ids:
+        for sample_bottle in sample_bottle_data:
+            if sample_bottle['field_sample'] == sample_id['combo_id']:
+                sample_bottle['field_sample'] = sample_id['db_id']
+    sample_bottle_data = json.dumps(sample_bottle_data)
+    r = requests.request(method='POST', url=REST_SERVICES_URL+'bulksamplebottles/', data=sample_bottle_data, auth=TEMP_AUTH, headers=JSON_HEADERS)
     return HttpResponse(r, content_type='application/json')
 
 
