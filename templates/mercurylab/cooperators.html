@@ -10,7 +10,7 @@
             <button type="button" class="btn btn-default" name="load">Reload</button>
             <button type="button" class="btn btn-default" name="save">Save</button>
         </p>
-        <pre id="console" class="console">Click "Load" to load data from server</pre>
+        <pre id="grid_console" class="console">Click "Load" to load data from server</pre>
         <p><input class="form-control" id="select_field" type="hidden" placeholder="Select for cooperator name." style="width:600px"/></p>
         <p><input class="form-control" id="search_field" type="search" placeholder="Find in table." style="width:600px"/></p>
         <div id="grid" data-data="{{ data }}" class="table table-hover table-condensed table-bordered"></div>
@@ -35,10 +35,10 @@
                 }
                 var grid = $('#grid');
                 var data_data = JSON.parse(grid.attr("data-data"));
-                var console = $("#console");
+                var grid_console = $("#grid_console");
                 var changedRowIndices = [];
                 var selectionRowIndices = [];
-                console.text('Loading data.');
+                grid_console.text('Loading data.');
                 grid.handsontable({
                     colWidths: [40,160,120,160,120,120,160,120,80,80,80,120],
                     colHeaders: objectFields,
@@ -50,10 +50,12 @@
                     //columns: [{data: "id", readOnly: true},{data: "name"},{data: "agency"},{data: "email"},{data: "phone"},{data: "sec_phone"},{data: "address"},{data: "city"},{data: "state"},{data: "zipcode"},{data: "country"},{data: "projects"}],
                     columnSorting: { column: 0 },
                     afterChange: function(changes, source) {
+                        // get list of changed rows
                         if (source != 'loadData') {
                             changedRowIndices.push(changes[0][0]);
                         }
                     },
+                    // get list of selected rows
                     afterSelectionEnd: function(r, c, r2, c2) {
                         //for (var i = r; i < (r2+1); i++){
                             selectionRowIndices.push(r);
@@ -62,7 +64,7 @@
                     }
                 });
                 grid.data('handsontable').sort(0);
-                console.text('Data loaded.');
+                grid_console.text('Data loaded.');
 
                 $('#search_field').on('keyup', function (event) {
                     grid.handsontable('getInstance').search.query(this.value);
@@ -82,7 +84,7 @@
                         },
                         results: function (data, page) {
                             grid.data('handsontable').loadData(data);
-                            console.text('Searched data loaded.');
+                            grid_console.text('Searched data loaded.');
                             return {results: data};
                         }
                     },
@@ -100,7 +102,7 @@
                 grid.parent().find('button[name=load]').click(function () {
                     grid.data('handsontable').loadData(data_data);
                     grid.data('handsontable').sort(0);
-                    console.text('Data reloaded.');
+                    grid_console.text('Data reloaded.');
                 });
 
                 grid.parent().find('button[name=save]').click(function () {
@@ -123,14 +125,14 @@
                         type: 'POST',
                         success: function (data, outcome, response) {
                             if (response.status === 200) {
-                                console.text(outcome+': Data saved.');
+                                grid_console.text(outcome+': Data saved.');
                             }
                             else {
-                                console.text(outcome+': Save error: '+response.statusText+', code: '+response.status+'.');
+                                grid_console.text(outcome+': Save error: '+response.statusText+', code: '+response.status+'.');
                             }
                         },
                         error: function () {
-                            console.text('403: Save error. POST method is not allowed.');
+                            grid_console.text('403: Save error. POST method is not allowed.');
                         }
                     });
                 });
@@ -161,14 +163,14 @@
                             type: 'GET',
                             success: function (data, outcome, response) {
                                 if (response.status === 200) {
-                                    console.text(outcome+': Data deleted.');
+                                    grid_console.text(outcome+': Data deleted.');
                                   }
                                   else {
-                                    console.text(outcome+': Delete error: '+response.statusText+', code: '+response.status+'.');
+                                    grid_console.text(outcome+': Delete error: '+response.statusText+', code: '+response.status+'.');
                                   }
                             },
                             error: function () {
-                                console.text('Delete error. DELETE method is not allowed.');
+                                grid_console.text('Delete error. DELETE method is not allowed.');
                             }
                         });
                     });
