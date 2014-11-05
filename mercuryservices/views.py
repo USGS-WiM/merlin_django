@@ -125,6 +125,7 @@ class SiteViewSet(viewsets.ModelViewSet):
 class FieldSampleBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkUpdateModelMixin, viewsets.ModelViewSet):
     model = FieldSample
 
+
 class FieldSampleViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     queryset = FieldSample.objects.all()
@@ -149,6 +150,7 @@ class BottleViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     #queryset = Bottle.objects.all()
     serializer_class = BottleSerializer
+    paginate_by = 100
 
     def get_queryset(self):
         queryset = Bottle.objects.all()
@@ -308,6 +310,7 @@ class AcidViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     #queryset = Acid.objects.all()
     serializer_class = AcidSerializer
+    paginate_by = 100
 
     # override the default queryset to allow filtering by URL arguments
     def get_queryset(self):
@@ -326,6 +329,7 @@ class BlankWaterViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     #queryset = BlankWater.objects.all()
     serializer_class = BlankWaterSerializer
+    paginate_by = 100
 
     # override the default queryset to allow filtering by URL arguments
     def get_queryset(self):
@@ -344,6 +348,7 @@ class BrominationViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     #queryset = Bromination.objects.all()
     serializer_class = BrominationSerializer
+    paginate_by = 100
 
     # override the default queryset to allow filtering by URL arguments
     def get_queryset(self):
