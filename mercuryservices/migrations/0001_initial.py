@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Acid',
             fields=[
-                ('id', models.AutoField(auto_created=True, verbose_name='ID', serialize=False, primary_key=True)),
+                ('id', models.AutoField(serialize=False, verbose_name='ID', auto_created=True, primary_key=True)),
                 ('code', models.CharField(max_length=128)),
                 ('concentration', models.FloatField(default=-999)),
                 ('comment', models.TextField(blank=True)),
@@ -25,20 +25,9 @@ class Migration(migrations.Migration):
             bases=(models.Model,),
         ),
         migrations.CreateModel(
-            name='AnalysisType',
-            fields=[
-                ('id', models.AutoField(auto_created=True, verbose_name='ID', serialize=False, primary_key=True)),
-                ('analysis', models.CharField(max_length=128)),
-                ('description', models.TextField(blank=True)),
-            ],
-            options={
-            },
-            bases=(models.Model,),
-        ),
-        migrations.CreateModel(
             name='BlankWater',
             fields=[
-                ('id', models.AutoField(auto_created=True, verbose_name='ID', serialize=False, primary_key=True)),
+                ('id', models.AutoField(serialize=False, verbose_name='ID', auto_created=True, primary_key=True)),
                 ('lot_number', models.CharField(max_length=128)),
                 ('concentration', models.FloatField(default=-999)),
                 ('comment', models.TextField(blank=True)),
@@ -50,8 +39,20 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Bottle',
             fields=[
-                ('id', models.AutoField(auto_created=True, verbose_name='ID', serialize=False, primary_key=True)),
+                ('id', models.AutoField(serialize=False, verbose_name='ID', auto_created=True, primary_key=True)),
                 ('bottle_unique_name', models.CharField(max_length=128)),
+                ('description', models.TextField(blank=True)),
+                ('tare_weight', models.DecimalField(decimal_places=4, null=True, max_digits=8, blank=True)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='BottleType',
+            fields=[
+                ('id', models.AutoField(serialize=False, verbose_name='ID', auto_created=True, primary_key=True)),
+                ('bottle_type', models.CharField(max_length=128)),
                 ('description', models.TextField(blank=True)),
             ],
             options={
@@ -61,8 +62,9 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Bromination',
             fields=[
-                ('id', models.AutoField(auto_created=True, verbose_name='ID', serialize=False, primary_key=True)),
+                ('id', models.AutoField(serialize=False, verbose_name='ID', auto_created=True, primary_key=True)),
                 ('concentration', models.FloatField()),
+                ('bromination_date', models.DateTimeField()),
                 ('comment', models.TextField(blank=True)),
             ],
             options={
@@ -72,7 +74,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='ConstituentMedium',
             fields=[
-                ('id', models.AutoField(auto_created=True, verbose_name='ID', serialize=False, primary_key=True)),
+                ('id', models.AutoField(serialize=False, verbose_name='ID', auto_created=True, primary_key=True)),
             ],
             options={
             },
@@ -81,7 +83,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='ConstituentMethod',
             fields=[
-                ('id', models.AutoField(auto_created=True, verbose_name='ID', serialize=False, primary_key=True)),
+                ('id', models.AutoField(serialize=False, verbose_name='ID', auto_created=True, primary_key=True)),
             ],
             options={
             },
@@ -90,7 +92,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='ConstituentType',
             fields=[
-                ('id', models.AutoField(auto_created=True, verbose_name='ID', serialize=False, primary_key=True)),
+                ('id', models.AutoField(serialize=False, verbose_name='ID', auto_created=True, primary_key=True)),
                 ('constituent', models.CharField(max_length=128)),
                 ('description', models.TextField(blank=True)),
             ],
@@ -101,27 +103,27 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Cooperator',
             fields=[
-                ('id', models.AutoField(auto_created=True, verbose_name='ID', serialize=False, primary_key=True)),
+                ('id', models.AutoField(serialize=False, verbose_name='ID', auto_created=True, primary_key=True)),
                 ('name', models.CharField(max_length=128)),
                 ('agency', models.CharField(max_length=128)),
-                ('email', models.EmailField(max_length=75, blank=True)),
+                ('email', models.EmailField(blank=True, max_length=75)),
                 ('phone', models.BigIntegerField(null=True, blank=True)),
                 ('sec_phone', models.BigIntegerField(null=True, blank=True)),
-                ('address', models.CharField(max_length=128, blank=True)),
-                ('city', models.CharField(max_length=128, blank=True)),
-                ('state', models.CharField(max_length=2, blank=True)),
+                ('address', models.CharField(blank=True, max_length=128)),
+                ('city', models.CharField(blank=True, max_length=128)),
+                ('state', models.CharField(blank=True, max_length=2)),
                 ('zipcode', models.BigIntegerField(null=True, blank=True)),
-                ('country', models.CharField(max_length=128, blank=True)),
+                ('country', models.CharField(blank=True, max_length=128)),
             ],
             options={
             },
             bases=(models.Model,),
         ),
         migrations.CreateModel(
-            name='DetectionLimit',
+            name='DetectionFlag',
             fields=[
-                ('id', models.AutoField(auto_created=True, verbose_name='ID', serialize=False, primary_key=True)),
-                ('limit', models.CharField(max_length=128)),
+                ('id', models.AutoField(serialize=False, verbose_name='ID', auto_created=True, primary_key=True)),
+                ('detection_flag', models.CharField(max_length=128)),
                 ('description', models.TextField(blank=True)),
             ],
             options={
@@ -131,12 +133,12 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='FieldSample',
             fields=[
-                ('id', models.AutoField(auto_created=True, verbose_name='ID', serialize=False, primary_key=True)),
+                ('id', models.AutoField(serialize=False, verbose_name='ID', auto_created=True, primary_key=True)),
                 ('time_stamp', models.DateTimeField()),
                 ('depth', models.FloatField()),
                 ('length', models.FloatField(null=True, blank=True)),
                 ('comment', models.TextField(blank=True)),
-                ('received_time_stamp', models.DateTimeField()),
+                ('received_time_stamp', models.DateField()),
                 ('login_comment', models.TextField(blank=True)),
                 ('replicate', models.IntegerField(null=True, blank=True)),
             ],
@@ -147,32 +149,14 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='FieldSampleBottle',
             fields=[
-                ('id', models.AutoField(auto_created=True, verbose_name='ID', serialize=False, primary_key=True)),
-                ('tare_weight', models.FloatField()),
-                ('volume_filtered', models.FloatField()),
-                ('filter_weight', models.FloatField()),
+                ('id', models.AutoField(serialize=False, verbose_name='ID', auto_created=True, primary_key=True)),
+                ('volume_filtered', models.FloatField(null=True, blank=True)),
                 ('preservation_volume', models.FloatField(null=True, blank=True)),
                 ('preservation_comment', models.TextField(blank=True)),
-                ('description', models.TextField()),
+                ('description', models.TextField(blank=True)),
                 ('bottle', models.ForeignKey(to='mercuryservices.Bottle')),
-                ('field_sample', models.ForeignKey(to='mercuryservices.FieldSample')),
-            ],
-            options={
-            },
-            bases=(models.Model,),
-        ),
-        migrations.CreateModel(
-            name='FieldSampleMethod',
-            fields=[
-                ('id', models.AutoField(auto_created=True, verbose_name='ID', serialize=False, primary_key=True)),
-                ('raw_value', models.FloatField()),
-                ('reported_value', models.FloatField()),
-                ('daily_detection_limit', models.FloatField()),
-                ('analyzed_date', models.DateTimeField()),
-                ('analysis_comment', models.TextField(blank=True)),
-                ('analysis_type', models.ForeignKey(to='mercuryservices.AnalysisType')),
                 ('constituent_type', models.ForeignKey(to='mercuryservices.ConstituentType')),
-                ('field_sample', models.ForeignKey(to='mercuryservices.FieldSample')),
+                ('field_sample', models.ForeignKey(related_name='field_sample_bottles', to='mercuryservices.FieldSample')),
             ],
             options={
             },
@@ -181,8 +165,19 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='FilterType',
             fields=[
-                ('id', models.AutoField(auto_created=True, verbose_name='ID', serialize=False, primary_key=True)),
+                ('id', models.AutoField(serialize=False, verbose_name='ID', auto_created=True, primary_key=True)),
                 ('filter', models.CharField(max_length=128)),
+                ('description', models.TextField(blank=True)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='IsotopeFlag',
+            fields=[
+                ('id', models.AutoField(serialize=False, verbose_name='ID', auto_created=True, primary_key=True)),
+                ('isotope_flag', models.CharField(max_length=128)),
                 ('description', models.TextField(blank=True)),
             ],
             options={
@@ -192,8 +187,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='MediumType',
             fields=[
-                ('id', models.AutoField(auto_created=True, verbose_name='ID', serialize=False, primary_key=True)),
-                ('nwis_code', models.CharField(max_length=128, blank=True)),
+                ('id', models.AutoField(serialize=False, verbose_name='ID', auto_created=True, primary_key=True)),
+                ('nwis_code', models.CharField(blank=True, max_length=128)),
                 ('medium', models.CharField(max_length=128)),
                 ('description', models.TextField(blank=True)),
                 ('comment', models.TextField(blank=True)),
@@ -205,9 +200,17 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='MethodType',
             fields=[
-                ('id', models.AutoField(auto_created=True, verbose_name='ID', serialize=False, primary_key=True)),
+                ('id', models.AutoField(serialize=False, verbose_name='ID', auto_created=True, primary_key=True)),
                 ('method', models.CharField(max_length=128)),
+                ('preparation', models.CharField(blank=True, max_length=128)),
                 ('description', models.TextField(blank=True)),
+                ('method_detection_limit', models.CharField(max_length=128)),
+                ('decimal_places', models.IntegerField(null=True, blank=True)),
+                ('significant_figures', models.IntegerField(null=True, blank=True)),
+                ('standard_operating_procedure', models.TextField(blank=True)),
+                ('nwis_parameter_code', models.CharField(blank=True, max_length=128)),
+                ('nwis_parameter_name', models.CharField(blank=True, max_length=128)),
+                ('nwis_method_code', models.CharField(blank=True, max_length=128)),
             ],
             options={
             },
@@ -216,7 +219,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='PreservationType',
             fields=[
-                ('id', models.AutoField(auto_created=True, verbose_name='ID', serialize=False, primary_key=True)),
+                ('id', models.AutoField(serialize=False, verbose_name='ID', auto_created=True, primary_key=True)),
                 ('preservation', models.CharField(max_length=128)),
                 ('description', models.TextField(blank=True)),
             ],
@@ -227,7 +230,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='ProcedureStatusType',
             fields=[
-                ('id', models.AutoField(auto_created=True, verbose_name='ID', serialize=False, primary_key=True)),
+                ('id', models.AutoField(serialize=False, verbose_name='ID', auto_created=True, primary_key=True)),
             ],
             options={
             },
@@ -236,8 +239,19 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='ProcedureType',
             fields=[
-                ('id', models.AutoField(auto_created=True, verbose_name='ID', serialize=False, primary_key=True)),
+                ('id', models.AutoField(serialize=False, verbose_name='ID', auto_created=True, primary_key=True)),
                 ('procedure', models.CharField(max_length=128)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='ProcessingType',
+            fields=[
+                ('id', models.AutoField(serialize=False, verbose_name='ID', auto_created=True, primary_key=True)),
+                ('processing', models.CharField(max_length=128)),
+                ('description', models.TextField(blank=True)),
             ],
             options={
             },
@@ -246,10 +260,10 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Project',
             fields=[
-                ('id', models.AutoField(auto_created=True, verbose_name='ID', serialize=False, primary_key=True)),
+                ('id', models.AutoField(serialize=False, verbose_name='ID', auto_created=True, primary_key=True)),
                 ('name', models.CharField(max_length=128)),
-                ('description', models.CharField(max_length=128, blank=True)),
-                ('accounting_code', models.CharField(max_length=128, blank=True)),
+                ('description', models.CharField(blank=True, max_length=128)),
+                ('accounting_code', models.CharField(blank=True, max_length=128)),
                 ('cooperator', models.ForeignKey(related_name='projects', to='mercuryservices.Cooperator')),
             ],
             options={
@@ -259,7 +273,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='ProjectSite',
             fields=[
-                ('id', models.AutoField(auto_created=True, verbose_name='ID', serialize=False, primary_key=True)),
+                ('id', models.AutoField(serialize=False, verbose_name='ID', auto_created=True, primary_key=True)),
                 ('project', models.ForeignKey(to='mercuryservices.Project')),
             ],
             options={
@@ -269,7 +283,16 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='QualityAssurance',
             fields=[
-                ('id', models.AutoField(auto_created=True, verbose_name='ID', serialize=False, primary_key=True)),
+                ('id', models.AutoField(serialize=False, verbose_name='ID', auto_created=True, primary_key=True)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='QualityAssuranceType',
+            fields=[
+                ('id', models.AutoField(serialize=False, verbose_name='ID', auto_created=True, primary_key=True)),
                 ('quality_assurance', models.CharField(max_length=128)),
                 ('description', models.TextField(blank=True)),
             ],
@@ -278,20 +301,38 @@ class Migration(migrations.Migration):
             bases=(models.Model,),
         ),
         migrations.CreateModel(
+            name='Result',
+            fields=[
+                ('id', models.AutoField(serialize=False, verbose_name='ID', auto_created=True, primary_key=True)),
+                ('raw_value', models.FloatField()),
+                ('final_value', models.FloatField()),
+                ('daily_detection_limit', models.FloatField()),
+                ('analyzed_date', models.DateTimeField()),
+                ('analysis_comment', models.TextField(blank=True)),
+                ('detection_flag', models.ForeignKey(to='mercuryservices.DetectionFlag')),
+                ('field_sample_bottle', models.ForeignKey(to='mercuryservices.FieldSampleBottle')),
+                ('isotope_flag', models.ForeignKey(to='mercuryservices.IsotopeFlag')),
+                ('method', models.ForeignKey(to='mercuryservices.MethodType')),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
             name='Site',
             fields=[
-                ('id', models.AutoField(auto_created=True, verbose_name='ID', serialize=False, primary_key=True)),
+                ('id', models.AutoField(serialize=False, verbose_name='ID', auto_created=True, primary_key=True)),
                 ('name', models.CharField(max_length=128)),
-                ('usgs_sid', models.CharField(max_length=128, blank=True)),
-                ('usgs_scode', models.CharField(max_length=128, blank=True)),
+                ('usgs_sid', models.CharField(blank=True, max_length=128)),
+                ('usgs_scode', models.CharField(blank=True, max_length=128)),
                 ('description', models.TextField(blank=True)),
                 ('latitudedd', models.DecimalField(decimal_places=2, null=True, max_digits=10, blank=True)),
                 ('longitudedd', models.DecimalField(decimal_places=3, null=True, max_digits=11, blank=True)),
-                ('datum', models.CharField(max_length=128, blank=True)),
-                ('method', models.CharField(max_length=128, blank=True)),
-                ('site_status', models.CharField(max_length=128, blank=True)),
-                ('nwis_customer_code', models.CharField(max_length=128, blank=True)),
-                ('projects', models.ManyToManyField(related_name='sites', to='mercuryservices.Project', through='mercuryservices.ProjectSite')),
+                ('datum', models.CharField(blank=True, max_length=128)),
+                ('method', models.CharField(blank=True, max_length=128)),
+                ('site_status', models.CharField(blank=True, max_length=128)),
+                ('nwis_customer_code', models.CharField(blank=True, max_length=128)),
+                ('projects', models.ManyToManyField(related_name='sites', through='mercuryservices.ProjectSite', to='mercuryservices.Project')),
             ],
             options={
             },
@@ -300,7 +341,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Status',
             fields=[
-                ('id', models.AutoField(auto_created=True, verbose_name='ID', serialize=False, primary_key=True)),
+                ('id', models.AutoField(serialize=False, verbose_name='ID', auto_created=True, primary_key=True)),
                 ('status_id', models.BigIntegerField()),
                 ('time_stamp', models.DateTimeField()),
                 ('note', models.TextField(blank=True)),
@@ -314,7 +355,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='StatusType',
             fields=[
-                ('id', models.AutoField(auto_created=True, verbose_name='ID', serialize=False, primary_key=True)),
+                ('id', models.AutoField(serialize=False, verbose_name='ID', auto_created=True, primary_key=True)),
                 ('status_type', models.CharField(max_length=128)),
             ],
             options={
@@ -324,7 +365,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='UnitType',
             fields=[
-                ('id', models.AutoField(auto_created=True, verbose_name='ID', serialize=False, primary_key=True)),
+                ('id', models.AutoField(serialize=False, verbose_name='ID', auto_created=True, primary_key=True)),
                 ('unit', models.CharField(max_length=128)),
                 ('description', models.TextField(blank=True)),
             ],
@@ -335,8 +376,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='UserProfile',
             fields=[
-                ('id', models.AutoField(auto_created=True, verbose_name='ID', serialize=False, primary_key=True)),
-                ('initials', models.CharField(max_length=6, blank=True)),
+                ('id', models.AutoField(serialize=False, verbose_name='ID', auto_created=True, primary_key=True)),
+                ('initials', models.CharField(blank=True, max_length=6)),
                 ('phone', models.BigIntegerField(null=True, blank=True)),
                 ('user', models.OneToOneField(to=settings.AUTH_USER_MODEL)),
             ],
@@ -354,6 +395,18 @@ class Migration(migrations.Migration):
             model_name='status',
             name='user',
             field=models.ForeignKey(to='mercuryservices.UserProfile'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='qualityassurance',
+            name='quality_assurance',
+            field=models.ForeignKey(to='mercuryservices.QualityAssuranceType'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='qualityassurance',
+            name='result',
+            field=models.ForeignKey(related_name='quality_assurances', to='mercuryservices.Result'),
             preserve_default=True,
         ),
         migrations.AddField(
@@ -375,21 +428,21 @@ class Migration(migrations.Migration):
             preserve_default=True,
         ),
         migrations.AddField(
-            model_name='fieldsamplemethod',
-            name='method_type',
-            field=models.ForeignKey(to='mercuryservices.MethodType'),
+            model_name='methodtype',
+            name='final_value_unit',
+            field=models.ForeignKey(related_name='final_unit', null=True, to='mercuryservices.UnitType'),
             preserve_default=True,
         ),
         migrations.AddField(
-            model_name='fieldsamplemethod',
-            name='quality_assurance',
-            field=models.ForeignKey(to='mercuryservices.QualityAssurance'),
+            model_name='methodtype',
+            name='method_detection_limit_unit',
+            field=models.ForeignKey(related_name='mdl_unit', null=True, to='mercuryservices.UnitType'),
             preserve_default=True,
         ),
         migrations.AddField(
-            model_name='fieldsamplemethod',
-            name='unit_type',
-            field=models.ForeignKey(to='mercuryservices.UnitType'),
+            model_name='methodtype',
+            name='raw_value_unit',
+            field=models.ForeignKey(related_name='raw_unit', null=True, to='mercuryservices.UnitType'),
             preserve_default=True,
         ),
         migrations.AddField(
@@ -412,14 +465,38 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='fieldsample',
+            name='lab_processing',
+            field=models.ForeignKey(to='mercuryservices.ProcessingType'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='fieldsample',
             name='medium_type',
             field=models.ForeignKey(to='mercuryservices.MediumType'),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='fieldsample',
+            name='project',
+            field=models.ForeignKey(to='mercuryservices.Project'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='fieldsample',
             name='site',
             field=models.ForeignKey(to='mercuryservices.Site'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='constituenttype',
+            name='mediums',
+            field=models.ManyToManyField(related_name='constituents', through='mercuryservices.ConstituentMedium', to='mercuryservices.MediumType'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='constituenttype',
+            name='methods',
+            field=models.ManyToManyField(related_name='constituents', through='mercuryservices.ConstituentMethod', to='mercuryservices.MethodType'),
             preserve_default=True,
         ),
         migrations.AddField(
@@ -444,6 +521,12 @@ class Migration(migrations.Migration):
             model_name='constituentmedium',
             name='medium_type',
             field=models.ForeignKey(to='mercuryservices.MediumType'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='bottle',
+            name='bottle_type',
+            field=models.ForeignKey(to='mercuryservices.BottleType'),
             preserve_default=True,
         ),
     ]

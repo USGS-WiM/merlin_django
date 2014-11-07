@@ -4,12 +4,44 @@
     <div class="jumbotron">
 
         <p>
-            <button type="button" class="btn btn-default" name="load">Reload</button>
-            <button type="button" class="btn btn-default" name="save">Save</button>
+            <button type="button" class="btn btn-default" name="add">Add New Bottle</button>
         </p>
-        <pre id="grid_console" class="console">Click "Load" to load data from server</pre>
-        <input id="select_field" type="hidden" placeholder="Select for bottle unique name." style="width:600px"/><br />
-        <input id="search_field" type="search" placeholder="Find in table." style="width:600px"/>
+        <div id="form_add" style="display:none">
+            <form class="form-signin span8" id="item_form" method="post" action="{% url 'mercurylab:bottle_add' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <h3 class="form-signin-heading">Create Bottle</h3>
+
+                {% for field in form %}
+                {{ field.errors }}
+                {{ field.help_text }}<br />
+                {{ field }}<br />
+                {% endfor %}
+                <br />
+
+                <input class="btn btn-primary" type="submit" name="submit" value="OK" />
+            </form>
+        </div>
+        <br />
+
+        <pre id="grid_console" class="console" style="width:600px"></pre>
+        <p><input id="select_field" type="hidden" placeholder="Filter by bottle name." style="width:600px"/></p>
+        <p>
+            <div class="select2-container select2-container-multi" style="width:600px">
+                <ul class="select2-choices">
+                    <li class="select2-search-field">
+                        <label class="select2-offscreen"></label>
+                        <input id="search_field" type="search" placeholder="Highlight in table." class="select2-input select2-default" style="width:593px;height:40px;font-size:21px;color:"/>
+                    </li>
+                </ul>
+            </div>
+        <!-- <p><input id="search_field" type="search" placeholder="Highlight in table." style="width:600px; border:1px solid darkgray; height:42px"/></p> -->
+        <br /><br />
+        <p>
+            <button type="button" class="btn btn-default" name="load">Reload Table</button>
+            <button type="button" class="btn btn-default" name="save">Save Changes</button>
+            <button type="button" class="btn btn-default" name="edit">Edit Selected Record</button>
+            <button type="button" class="btn btn-default" name="delete">Delete Selected Record</button>
+        </p>
         <p>
             <button type="button" class="btn btn-default" name="prev">Previous Page</button>
             <button type="button" class="btn btn-default" name="next">Next Page</button>
@@ -21,6 +53,7 @@
 
                 var objectFields = ["ID", "Unique Bottle Name", "Description", "Tare Weight", "Bottle Type"];
                 var currentPage = 1;
+                var addClicked = false;
                 var grid = $('#grid');
                 var data_data = JSON.parse(grid.attr("data-data"));
                 var grid_console = $("#grid_console");
@@ -49,7 +82,11 @@
                 });
 
                 $("#select_field").select2({
-                    allowClear: true,
+                    multiple: true,
+                    maximumSelectionSize: 1,
+                    dropdownCss:{display:'none'},
+                    //minimumResultsForSearch: -1,
+                    //allowClear: true,
                     minimumInputLength: 1,
                     ajax: {
                         url: '/mercuryservices/bottles/',
@@ -60,20 +97,23 @@
                             };
                         },
                         results: function (data, page) {
-                            grid.data('handsontable').loadData(data);
-                            grid_console.text('Searched data loaded.');
-                            return {results: data};
+                            data_data = data;
+                            grid.data('handsontable').loadData(data_data.results);
+                            grid_console.text('Filtered data loaded.');
+                            return {results: data.results};
                         }
                     },
                     sortResults: function(results, container, query) {
-                        return results.sort(function(a,b) { return a - b; }); //sort by ID, numerically ascending
+                        return results.sort(function (a, b) {
+                            return a - b;
+                        }); //sort by ID, numerically ascending
                     },
-                    formatResult: format,
-                    formatSelection: format
+                    formatResult: formatSelect2,
+                    formatSelection: formatSelect2
                 });
 
-                function format(data) {
-                    return data.name;
+                function formatSelect2(data) {
+                    return data.bottle_unique_name;
                 }
 
                 grid.parent().find('button[name=load]').click(function () {
@@ -116,6 +156,29 @@
                             grid_console.log("error");
                         }
                     });
+                });
+
+                grid.parent().find('button[name=add]').click(function () {
+                    if (addClicked) {
+                        addClicked = false;
+                        $("#form_add").hide();
+                    }
+                    else {
+                        addClicked = true;
+                        $("#form_add").show();
+                    }
+                });
+
+                grid.parent().find('button[name=delete]').click(function () {
+                    var thisDataRow = grid.data('handsontable').getDataAtRow(selectionRowIndices[0]);
+                    var thisDataRowID = thisDataRow[0];
+                    window.location = '/mercurylab/acids/'+thisDataRowID+'/delete';
+                });
+
+                grid.parent().find('button[name=edit]').click(function () {
+                    var thisDataRow = grid.data('handsontable').getDataAtRow(selectionRowIndices[0]);
+                    var thisDataRowID = thisDataRow[0];
+                    window.location = '/mercurylab/acids/'+thisDataRowID+'/edit';
                 });
 
                 grid.parent().find('button[name=save]').click(function () {

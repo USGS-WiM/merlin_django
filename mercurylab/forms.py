@@ -1,6 +1,7 @@
 from django import forms
 from mercuryservices.models import UserProfile, Cooperator
 from django.contrib.auth.models import User
+from datetimewidget.widgets import DateTimeWidget
 
 
 class UserForm(forms.ModelForm):
@@ -35,14 +36,36 @@ class CooperatorForm(forms.Form):
     zipcode = forms.IntegerField(help_text="Zipcode", required=False)
     country = forms.CharField(help_text="Country", required=False)
 
-
-class AcidForm(forms.Form):
-    code = forms.CharField(help_text="Code")
-    concentration = forms.IntegerField(help_text="Concentration")
-    comment = forms.CharField(help_text="Comment", required=False)
-
     # class Meta:
     #     model = Cooperator
     #     fields = ('name', 'agency', 'email', 'phone', 'sec_phone', 'address', 'city', 'state', 'zipcode', 'country')
+
+
+class AcidForm(forms.Form):
+    code = forms.CharField(help_text="Code")
+    concentration = forms.DecimalField(help_text="Concentration")
+    comment = forms.CharField(help_text="Comment", required=False)
+
+
+class BlankWaterForm(forms.Form):
+    lot_number = forms.CharField(help_text="Lot Number")
+    concentration = forms.DecimalField(help_text="Concentration")
+    comment = forms.CharField(help_text="Comment", required=False)
+
+
+class BottleForm(forms.Form):
+    bottle_unique_name = forms.CharField(help_text="Bottle Unique Name")
+    tare_weight = forms.DecimalField(help_text="Tare Weight")
+    bottle_type = forms.CharField(help_text="Bottle Type")
+    description = forms.CharField(help_text="Description", required=False)
+
+
+class BrominationForm(forms.Form):
+    dateTimeOptions = {'format': 'yyyy-mm-dd HH:ii:ss', 'autoclose': True, 'showMeridian': True}
+    bromination_date = forms.DateTimeField(help_text="Bromination Date")#, widget=DateTimeWidget(usel10n=True, bootstrap_version=3, options=dateTimeOptions))
+    concentration = forms.DecimalField(help_text="Concentration")
+    comment = forms.CharField(help_text="Comment", required=False)
+
+
 
 

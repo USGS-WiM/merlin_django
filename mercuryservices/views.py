@@ -315,9 +315,9 @@ class AcidViewSet(viewsets.ModelViewSet):
     # override the default queryset to allow filtering by URL arguments
     def get_queryset(self):
         queryset = Acid.objects.all()
-        id = self.request.QUERY_PARAMS.get('id', None)
-        if id is not None:
-            queryset = queryset.filter(id__icontains=id)
+        code = self.request.QUERY_PARAMS.get('code', None)
+        if code is not None:
+            queryset = queryset.filter(code__icontains=code)
         return queryset
 
 
@@ -334,9 +334,9 @@ class BlankWaterViewSet(viewsets.ModelViewSet):
     # override the default queryset to allow filtering by URL arguments
     def get_queryset(self):
         queryset = BlankWater.objects.all()
-        id = self.request.QUERY_PARAMS.get('id', None)
-        if id is not None:
-            queryset = queryset.filter(id__icontains=id)
+        lot_number = self.request.QUERY_PARAMS.get('lot_number', None)
+        if lot_number is not None:
+            queryset = queryset.filter(lot_number__icontains=lot_number)
         return queryset
 
 
@@ -356,6 +356,9 @@ class BrominationViewSet(viewsets.ModelViewSet):
         id = self.request.QUERY_PARAMS.get('id', None)
         if id is not None:
             queryset = queryset.filter(id__icontains=id)
+        date = self.request.QUERY_PARAMS.get('date', None)
+        if date is not None:
+            queryset = queryset.filter(bromination_date__icontains=date)
         return queryset
 
 

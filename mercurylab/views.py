@@ -6,7 +6,7 @@ from django.template import RequestContext
 from django.shortcuts import render, render_to_response
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from mercurylab.forms import UserForm, UserProfileForm, CooperatorForm, AcidForm
+from mercurylab.forms import *
 from django.forms.formsets import formset_factory
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 import requests
@@ -23,7 +23,7 @@ SAMPLE_KEYS = ["project", "site", "time_stamp", "depth", "length", "received_tim
 SAMPLE_BOTTLE_KEYS = ["field_sample", "bottle", "constituent_type", "filter_type", "volume_filtered",
                         "preservation_type", "preservation_volume", "preservation_acid", "preservation_comment"]
 
-def sample_login(request):
+def sample_login_a(request):
     context = RequestContext(request)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'processings/', auth=TEMP_AUTH)
     processings = json.dumps(r.json(), sort_keys=True)
@@ -36,7 +36,23 @@ def sample_login(request):
     r = requests.request(method='GET', url=REST_SERVICES_URL+'acids/', auth=TEMP_AUTH)
     acids = json.dumps(r.json(), sort_keys=True)
     context_dict = {'processings': processings, 'mediums': mediums, 'filters': filters, 'preservations': preservations, 'acids': acids}
-    return render_to_response('mercurylab/sample_login.html', context_dict, context)
+    return render_to_response('mercurylab/sample_login_a.html', context_dict, context)
+
+
+def sample_login_b(request):
+    context = RequestContext(request)
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'processings/', auth=TEMP_AUTH)
+    processings = json.dumps(r.json(), sort_keys=True)
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'mediums/', auth=TEMP_AUTH)
+    mediums = json.dumps(r.json(), sort_keys=True)
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'filters/', auth=TEMP_AUTH)
+    filters = json.dumps(r.json(), sort_keys=True)
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'preservations/', auth=TEMP_AUTH)
+    preservations = json.dumps(r.json(), sort_keys=True)
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'acids/', auth=TEMP_AUTH)
+    acids = json.dumps(r.json(), sort_keys=True)
+    context_dict = {'processings': processings, 'mediums': mediums, 'filters': filters, 'preservations': preservations, 'acids': acids}
+    return render_to_response('mercurylab/sample_login_b.html', context_dict, context)
 
 
 @csrf_exempt
@@ -58,10 +74,8 @@ def sample_login_save(request):
             this_sample = dict(zip(SAMPLE_KEYS, sample_values))
             sample_data.append(this_sample)
         # create a sample bottle object using the sample bottle data within this row
-        #sample_bottle_values = [this_sample_id, item['bottle'], item['constituent_type'], item['filter_type'], item['volume_filtered'], item['preservation_type'], item['preservation_volume'], item['preservation_acid'], item['preservation_comment']]
-        sample_bottle_values = [this_sample_id, 436321, 22, 21, item['volume_filtered'], 13, item['preservation_volume'], 7817, item['preservation_comment']]
+        sample_bottle_values = [this_sample_id, item['bottle'], item['constituent_type'], item['filter_type'], item['volume_filtered'], item['preservation_type'], item['preservation_volume'], item['preservation_acid'], item['preservation_comment']]
         this_sample_bottle = dict(zip(SAMPLE_BOTTLE_KEYS, sample_bottle_values))
-        #this_samplebottle = {'field_sample': this_sample_id, 'bottle': item['bottle'], 'constituent_type': item['constituent_type'], 'filter_type': item['filter_type'], 'volume_filtered': item['volume_filtered'], 'preservation_type': item['preservation_type'], 'preservation_acid': item['preservation_acid'], 'preservation_volume': item['preservation_volume'], 'preservation_comment': item['preservation_comment']}
         # add this new sample bottle object to the list
         sample_bottle_data.append(this_sample_bottle)
 
@@ -90,7 +104,8 @@ def bottles(request):
     context = RequestContext(request)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'bottles/', auth=TEMP_AUTH)
     data = json.dumps(r.json(), sort_keys=True)
-    context_dict = {'data': data}
+    form = BottleForm()
+    context_dict = {'data': data, 'form': form}
     return render_to_response('mercurylab/bottles.html', context_dict, context)
 
 
@@ -107,11 +122,25 @@ def bottles_save(request):
     return HttpResponse(r, content_type='application/json')
 
 
+# Blank editable form to add a bottle
+@csrf_exempt
+def bottle_add(request):
+
+    form = BottleForm(request.POST)
+
+    if form.is_valid():
+        requests.request(method='POST', url=REST_SERVICES_URL+'bottles/', data=form.cleaned_data, auth=TEMP_AUTH)
+        return bottles(request)
+    else:
+        print(form.errors)
+
+
 def brominations(request):
     context = RequestContext(request)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'brominations/', auth=TEMP_AUTH)
     data = json.dumps(r.json(), sort_keys=True)
-    context_dict = {'data': data}
+    form = BrominationForm()
+    context_dict = {'data': data, 'form': form}
     return render_to_response('mercurylab/brominations.html', context_dict, context)
 
 
@@ -128,11 +157,25 @@ def brominations_save(request):
     return HttpResponse(r, content_type='application/json')
 
 
+# Blank editable form to add a bromination
+@csrf_exempt
+def bromination_add(request):
+
+    form = BrominationForm(request.POST)
+
+    if form.is_valid():
+        requests.request(method='POST', url=REST_SERVICES_URL+'brominations/', data=form.cleaned_data, auth=TEMP_AUTH)
+        return brominations(request)
+    else:
+        print(form.errors)
+
+
 def blankwaters(request):
     context = RequestContext(request)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'blankwaters/', auth=TEMP_AUTH)
     data = json.dumps(r.json(), sort_keys=True)
-    context_dict = {'data': data}
+    form = BlankWaterForm()
+    context_dict = {'data': data, 'form': form}
     return render_to_response('mercurylab/blankwaters.html', context_dict, context)
 
 
@@ -149,11 +192,25 @@ def blankwaters_save(request):
     return HttpResponse(r, content_type='application/json')
 
 
+# Blank editable form to add a blank water
+@csrf_exempt
+def blankwater_add(request):
+
+    form = BlankWaterForm(request.POST)
+
+    if form.is_valid():
+        requests.request(method='POST', url=REST_SERVICES_URL+'blankwaters/', data=form.cleaned_data, auth=TEMP_AUTH)
+        return blankwaters(request)
+    else:
+        print(form.errors)
+
+
 def acids(request):
     context = RequestContext(request)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'acids/', auth=TEMP_AUTH)
     data = json.dumps(r.json(), sort_keys=True)
-    context_dict = {'data': data}
+    form = AcidForm()
+    context_dict = {'data': data, 'form': form}
     return render_to_response('mercurylab/acids.html', context_dict, context)
 
 
@@ -168,6 +225,20 @@ def acids_save(request):
     data = request.body
     r = requests.request(method='PUT', url=REST_SERVICES_URL+'bulkacids/', data=data, auth=TEMP_AUTH, headers=JSON_HEADERS)
     return HttpResponse(r, content_type='application/json')
+
+
+# Blank editable form to add an acid
+@csrf_exempt
+def acid_add(request):
+
+    form = AcidForm(request.POST)
+
+    if form.is_valid():
+        requests.request(method='POST', url=REST_SERVICES_URL+'acids/', data=form.cleaned_data, auth=TEMP_AUTH)
+        return acids(request)
+    else:
+        print(form.errors)
+
 
 
 def sites(request):
