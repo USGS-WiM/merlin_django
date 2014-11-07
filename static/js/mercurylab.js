@@ -12,9 +12,9 @@ function getRange(limit) {
 }
 function getIdDom(domDataObject, key, value) {
     var objectID = 0;
-    for (var item in domDataObject) {
-        if (value == item[key]) {
-            objectID = item['id'];
+    for (var index in domDataObject) {
+        if (value == domDataObject[index][key]) {
+            objectID = domDataObject[index]['id'];
         }
     }
     return objectID;
@@ -36,8 +36,16 @@ function getValuesAjax(url, arg, query, process) {
         success: function (response) {
             console.log("success: getValuesAjax");
             var values = [];
-            for (var i = 0; i < response.length; i++) {
-                values.push(String(response[i][arg]));
+            // check for paginated response
+            if ("results" in response) {
+                for (var i = 0; i < response.results.length; i++) {
+                    values.push(String(response.results[i][arg]));
+                }
+            }
+            else {
+                for (var i = 0; i < response.length; i++) {
+                    values.push(String(response[i][arg]));
+                }
             }
             process(values);
         },
@@ -55,7 +63,12 @@ function updateValueAjax(url, arg, newKey, changedVal) {
         data: arg + "=" + changedVal,
         success: function (response) {
             console.log("success: updateValueAjax");
-            newValue = response[0][newKey];
+            if ("results" in response) {
+                newValue = response['results'][0][newKey];
+            }
+            else {
+                newValue = response[0][newKey];
+            }
         },
         error: function (response) {
             console.log("error: updateValueAjax");

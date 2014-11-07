@@ -1,0 +1,425 @@
+{% extends 'mercurylab/base.html' %}
+{% block body_block %}
+
+    <div class="jumbotron">
+        <p>
+            <button type="button" class="btn btn-default" name="save">Save</button>
+            <button type="button" class="btn btn-default" name="insertRows">Insert Rows</button>
+        </p>
+        <pre id="grid_console" class="console"></pre>
+       <!--  <p><input class="form-control" id="select_field" type="hidden" placeholder="Select for sample name." style="width:600px"/></p> -->
+        <p><input class="form-control" id="search_field" type="search" placeholder="Find in table." style="width:600px"/></p>
+        <div class="panel-default">
+            <form class="form-inline">
+                <div class="form-group">
+                    <label for="project_name">Project Name</label><br />
+                    <input class="input-block-level" id="project_name" type="text" style="width:400px">
+                </div>
+                <div class="form-group">
+                    <label for="project_id">Project ID</label><br />
+                    <input class="input-block-level" id="project_id" type="text" style="width:100px">
+                </div>
+                <div class="form-group">
+                    <label for="date_received">Date Received</label><br />
+                    <input class="input-block-level" id="date_received">
+                </div>
+                <div class="form-group">
+                    <label for="lab_processing">Lab Processing</label><br />
+                    <!-- this HTML Select is temporary until an AJAX solution is found -->
+                    <select class="input-block-level" id="lab_processing" style="width:300px; height:26px">
+                        <option value="NONE">NONE</option>
+                        <option value="IN-LAB FILTRATION">IN-LAB FILTRATION</option>
+                        <option value="HOMOGENIZATION AND FREEZE DRY">HOMOGENIZATION AND FREEZE DRY</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+        <br />
+        <div id="grid" data-processings="{{ processings }}" data-mediums="{{ mediums }}" data-filters="{{ filters }}" data-preservations="{{ preservations }}" class="table table-hover table-condensed table-bordered"></div>
+
+        <script>
+            $(document).ready(function() {
+
+                var grid = $('#grid');
+                var grid_console = $("#grid_console");
+                // move grid to bottom of stack so that it doesn't cover up the sample header dropdown fields
+                grid.css("z-index", "0");
+
+                // lookup data containers
+                var data_mediums = JSON.parse(grid.attr('data-mediums'));
+                var data_filters = JSON.parse(grid.attr('data-filters'));
+                var data_preservations = JSON.parse(grid.attr('data-preservations'));
+                // temporary array until isotopes get figured out
+                var data_isotopes = ['', 'A', '198', '199', '200', '201', '202'];
+                var data_projects;
+                var data_sites;
+                var data_constituents;
+
+                // some handsontable helper arrays
+                var objectFields = ["skip_site_name", "site", "skip_date", "time_stamp", "depth", "length", "replicate", "login_comment", "bottle", "medium_type", "constituent_type", /*"isotopic_analysis",*/ "skip_isotope", "filter_type", "volume_filtered", "preservation_type", "preservation_acid", "preservation_volume", "preservation_comment"];
+                var changedRowIndices = [];
+                var selectionRowIndices = [];
+
+                grid_console.text('Loading data.');
+                grid.handsontable({
+                    contextMenu: true,
+                    search: true,
+                    startRows: 8,
+                    columns: [
+                        {title: 'Site Name', width: 210, type: 'autocomplete'},
+                        {title: 'Site ID', width: 70, type: 'autocomplete'},
+                        // Date Time as separate columns is temporary until a single column datetime editor can be found for handsontable
+                        {title: 'Date', width: 100, type: 'date'},
+                        {title: 'Time', width: 60, type: 'text'},
+                        {title: 'Depth', width: 45, type: 'numeric'},
+                        {title: 'Length', width: 50, type: 'numeric'},
+                        {title: 'Rep', width: 35, type: 'numeric'},
+                        {title: 'Sample Comments', width: 140, type: 'text'},
+                        // Container ID must eventually point to Sample Bottles, not Bottles
+                        {title: 'Container ID', width: 90, type: 'autocomplete',  source: function (query, process) {
+                            getValuesAjax('/mercuryservices/bottles', 'bottle_unique_name', query, process)}},
+                        {title: 'Medium', width: 140, type: 'autocomplete', source: getValuesDom(data_mediums,"medium")},
+                        {title: 'Analysis', width: 140, type: 'autocomplete'},
+                        {title: 'Isotope', width: 60, type: 'dropdown', source: data_isotopes},
+                        {title: 'Filter', width: 140, type: 'autocomplete', source: getValuesDom(data_filters,"filter")},
+                        {title: 'Filter Vol.', width: 65, type: 'numeric'},
+                        {title: 'Preservation', width: 130, type: 'autocomplete', source: getValuesDom(data_preservations, "preservation")},
+                        {title: 'Acid', width: 110, type: 'autocomplete',  source: function (query, process) {
+                            getValuesAjax('/mercuryservices/acids', 'code', query, process)}},
+                        {title: 'Acid Vol.', width: 65, type: 'numeric'},
+                        {title: 'Pres. Comments', width: 120, type: 'text'}
+                    ],
+                    // define event handlers
+                    beforeChange: function(changes, source) {
+                        // "changes" is a 2D array containing information about each of the edited cells [ [row, col, oldVal, newVal], [row, col, oldVal, newVal], ... ].
+                        // "source" is one of the strings: "alter", "empty", "edit", "populateFromArray", "loadData", "autofill", "paste".
+
+                        // get index of changed row
+                        var changedRow = changes[0][0];
+                        // get index of changed column
+                        var changedCol = changes[0][1];
+                        // get value of changed cell
+                        var changedVal = changes[0][3];
+
+                        // remember the indices of all changed rows
+                        if (source != 'loadData') {
+                            // find index of this row in the changed rows array
+                            var changedRowIndex = changedRowIndices.indexOf(changedRow);
+                            // if not in the array (index == -1), add it to the array, otherwise ignore
+                            if (changedRowIndex == -1){
+                                changedRowIndices.push(changedRow);
+                            }
+                        }
+
+                        // update dependent columns when a value in a parent column is changed
+                        if (source == 'edit') {
+                            // when site name is changed to a non-null, non-blank value
+                            if (changedCol == 0 && changedVal !== null && changedVal !== "") {
+                                // update site ID to match site name
+                                var newValue = updateValueAjax('/mercuryservices/sites/', 'name', 'id', changedVal);
+                                grid.handsontable('setDataAtCell', changedRow, 1, newValue);
+                            }
+                            // when site ID is changed to a non-null, non-blank value
+                            if (changedCol == 1 && changedVal !== null && changedVal !== "") {
+                                // update site name to match site ID
+                                var newValue = updateValueAjax('/mercuryservices/sites/', 'id', 'name', changedVal);
+                                grid.handsontable('setDataAtCell', changedRow, 0, newValue);
+                            }
+                            // when medium is changed to a non-null, non-blank value
+                            if (changedCol == 9 && changedVal !== null && changedVal !== "") {
+                                // update list of constituents filtered by the selected medium value
+                                $.ajax({
+                                    url: '/mercuryservices/constituents/',
+                                    dataType: 'json',
+                                    data: {
+                                        medium: changedVal
+                                    },
+                                    success: function (response) {
+                                        grid_console.text("success");
+                                        var colToChange = 10;
+                                        // update the local full object collection
+                                        data_constituents = response;
+                                        // update the dropdown list with just the values
+                                        var values = getValuesDom(data_constituents, "constituent");
+                                        var cellProperties = grid.handsontable('getInstance').getCellMeta(changedRow, colToChange);
+                                        cellProperties.source = values;
+                                    },
+                                    error: function (response) {
+                                        grid_console.text("error");
+                                    }
+                                });
+                            }
+                        }
+                    },
+                    // get list of selected rows
+                    afterSelectionEnd: function(r, c, r2, c2) {
+                        //for (var i = r; i < (r2+1); i++){
+                            selectionRowIndices.push(r);
+                        //}
+
+                    }
+                });
+                //grid.data('handsontable').sort(0);
+                grid_console.text('Data loaded.');
+
+                $('#search_field').on('keyup', function (event) {
+                    grid.handsontable('getInstance').search.query(this.value);
+                    grid.handsontable('getInstance').render();
+                });
+
+                $("#project_name").autocomplete({
+                    source: function (request, response) {
+                        jQuery.get('/mercuryservices/projects/', {
+                            name: request.term
+                        }, function (data) {
+                            data_projects = data;
+                            var values = [];
+                            $.each(data_projects, function(index, object) {
+                                $.each(object, function(key, value) {
+                                    if (key == 'name') {
+                                        values.push(value);
+                                    }
+                                });
+                            });
+                            response(values);
+                        });
+                    },
+                    select: function(event, ui){
+                        if (ui.item && ui.item.value){
+                            var changedVal = ui.item.value;
+                            var newValue = updateValueAjax('/mercuryservices/projects/', 'name', 'id', changedVal);
+                            $("#project_id").val(newValue);
+                            $.ajax({
+                                url: '/mercuryservices/sites/',
+                                dataType: 'json',
+                                data: {
+                                    project: changedVal
+                                },
+                                success: function (response) {
+                                    grid_console.text("success");
+                                    // update the local full object collection
+                                    data_sites = response;
+                                    var names = getValuesDom(data_sites, "name");
+                                    var ids = getValuesDom(data_sites, "id");
+                                    var settings = grid.handsontable('getInstance').getSettings();
+                                    settings.columns[0] = {title: 'Site Name', width: 210, type: 'autocomplete', source: names};
+                                    settings.columns[1] = {title: 'Site ID', width: 70, type: 'autocomplete', source: ids};
+                                    grid.handsontable('getInstance').updateSettings(settings);
+                                    /*var rows = grid.handsontable('getInstance').countRows();
+                                    for (var row = 1; row < rows; row++) {
+                                        // update the site name dropdown list with just the names
+                                        var colToChange = 0;
+                                        var cellProperties = grid.handsontable('getInstance').getCellMeta(row, colToChange);
+                                        cellProperties.source = names;
+                                        // update the site IDs dropdown list with just the IDs
+                                        colToChange = 1;
+                                        cellProperties = grid.handsontable('getInstance').getCellMeta(row, colToChange);
+                                        cellProperties.source = ids;
+                                        grid.handsontable('getInstance').render();
+                                    }*/
+                                },
+                                error: function (response) {
+                                    grid_console.text("error");
+                                }
+                            });
+                        }
+                    }
+                });
+
+                $("#project_id").autocomplete({
+                    source: function (request, response) {
+                        jQuery.get('/mercuryservices/projects/', {
+                            id: request.term
+                        }, function (data) {
+                            data_projects = data;
+                            var values = [];
+                            $.each(data_projects, function(index, object) {
+                                $.each(object, function(key, value) {
+                                    if (key == 'id') {
+                                        values.push(String(value));
+                                    }
+                                });
+                            });
+                            response(values);
+                        });
+                    },
+                    select: function(event, ui){
+                        if (ui.item && ui.item.value){
+                            var changedVal = ui.item.value;
+                            var newValue = updateValueAjax('/mercuryservices/projects/', 'id', 'name', changedVal);
+                            $("#project_name").val(newValue);
+                            $.ajax({
+                                url: '/mercuryservices/sites/',
+                                dataType: 'json',
+                                data: {
+                                    project: changedVal
+                                },
+                                success: function (response) {
+                                    grid_console.text("success");
+                                    // update the local full object collection
+                                    data_sites = response;
+                                    var rows = grid.handsontable('getInstance').countRows();
+                                    for (var row in rows) {
+                                        // update the site name dropdown list with just the values
+                                        var colToChange = 0;
+                                        var values = getValuesDom(data_sites, "name");
+                                        var cellProperties = grid.handsontable('getInstance').getCellMeta(row, colToChange);
+                                        cellProperties.source = values;
+                                        // update the site IDs dropdown list with just the IDs
+                                        colToChange = 1;
+                                        values = getValuesDom(data_sites, "id");
+                                        cellProperties = grid.handsontable('getInstance').getCellMeta(row, colToChange);
+                                        cellProperties.source = values;
+                                    }
+                                },
+                                error: function (response) {
+                                    grid_console.text("error");
+                                }
+                            });
+                        }
+                    }
+                });
+
+                $("#date_received").datepicker({
+                    dateFormat: "yy-mm-dd"
+                });
+
+                /*$("#lab_processing").autocomplete({
+                    source: function (request, response) {
+                        jQuery.get('/mercuryservices/processings/', {
+                            processing: request.term
+                        }, function (data) {
+                            data_processings = data;
+                            var values = [];
+                            $.each(data_processings, function(index, object) {
+                                $.each(object, function(key, value) {
+                                    if (key == 'processing') {
+                                        values.push(String(value));
+                                    }
+                                });
+                            });
+                            response(values);
+                        });
+                    }
+                });*/
+
+                grid.parent().find('button[name=insertRows]').click(function () {
+                    grid.data('handsontable').alter('insert_row',null,8);
+                    grid_console.text('Inserted Rows.');
+                });
+
+                // when the save button is clicked, loop through the list of changed rows and build a JSON object containing the changed rows
+                grid.parent().find('button[name=save]').click(function () {
+                    // an array container for storing the changed data rows to send to the database
+                    var changedDataArray = [];
+                    // grab the data from the sample header cells
+                    var projectID = $('#project_id').val();
+                    var dateReceived = $('#date_received').val();
+                    var labProcessing = $('#lab_processing').val();
+                    // loop through the list of changed rows
+                    $.each(changedRowIndices, function(index, value) {
+                        // grab all the data for this row
+                        var thisDataRow = grid.data('handsontable').getDataAtRow(value);
+                        // check if this row still has data; it's possible the user cleared the row after entering data, in which case we no longer want it
+                        if (thisDataRow[0] !== null && thisDataRow[0] !== ""){
+                            // an object container for the data in this row
+                            var thisDataObject = {};
+                            // add the sample header object properties to this object
+                            thisDataObject['project'] = projectID;
+                            thisDataObject['received_time_stamp'] = dateReceived;
+                            thisDataObject['lab_processing'] = labProcessing;
+                            // convert each table cell in this row into an object property and add to this object
+                            for (var i = 0; i < thisDataRow.length; i++) {
+                                switch(i){
+                                    case 0: // site name
+                                        break;
+                                    case 2: // date
+                                        break;
+                                    case 3: // time
+                                        if (thisDataRow[i] !== null && thisDataRow[i] !== "" && thisDataRow[i-1] !== null && thisDataRow[i-1] !== "") {
+                                            var changedVal = thisDataRow[i];
+                                            var newValue;
+                                            switch (changedVal.length) {
+                                                case 1:
+                                                    newValue = "00:0" + changedVal;
+                                                    break;
+                                                case 2:
+                                                    newValue = "00:" + changedVal;
+                                                    break;
+                                                case 3:
+                                                    newValue = "0" + changedVal.substring(0, 1) + ":" + changedVal.substring(1);
+                                                    break;
+                                                case 4:
+                                                    newValue = changedVal.substring(0, 2) + ":" + changedVal.substring(2);
+                                                    break;
+                                                default:
+                                                    // user must have entered an invalid time, so set it to midnight
+                                                    newValue = "00:00";
+                                                    break;
+                                            }
+                                            thisDataObject[objectFields[i]] = thisDataRow[i-1]+" "+newValue+":00";
+                                        }
+                                        break;
+                                    case 8: // bottle
+                                        // this must eventually point to Sample Bottles, not Bottles
+                                        thisDataObject[objectFields[i]] = thisDataObject[objectFields[i]] = updateValueAjax('/mercuryservices/bottles', 'bottle_unique_name', 'id', thisDataRow[i]);
+                                        break;
+                                    case 9: // medium
+                                        thisDataObject[objectFields[i]] = getIdDom(data_mediums,'medium',thisDataRow[i]);
+                                        break;
+                                    case 10: // constituent
+                                        thisDataObject[objectFields[i]] = getIdDom(data_constituents,'constituent',thisDataRow[i]);
+                                        break;
+                                    case 11: // isotope
+                                        break;
+                                    case 12: // filter
+                                        thisDataObject[objectFields[i]] = thisDataObject[objectFields[i]] = getIdDom(data_filters,'filter',thisDataRow[i]);
+                                        break;
+                                    case 14: // preservation
+                                        thisDataObject[objectFields[i]] = thisDataObject[objectFields[i]] = getIdDom(data_preservations,'preservation',thisDataRow[i]);
+                                        break;
+                                    case 15: // acid
+                                        thisDataObject[objectFields[i]] = thisDataObject[objectFields[i]] = updateValueAjax('/mercuryservices/acids', 'code', 'id', thisDataRow[i]);
+                                        break;
+                                    default: // all the rest
+                                        if (thisDataRow[i] !== null && thisDataRow[i] !== "") {
+                                            thisDataObject[objectFields[i]] = thisDataRow[i];
+                                        }
+                                        break;
+                                }
+                            }
+                            // add the new row object to the array
+                            changedDataArray.push(thisDataObject);
+                        }
+                    });
+                    // convert the array to a true JSON object
+                    var changedDataJSON = JSON.stringify(changedDataArray);
+                    // send the entire changed data object to the server via ajax
+                    console.log(changedDataJSON);
+                    grid_console.text('Attempting to save data...');
+                    $.ajax({
+                        url: '/mercurylab/sample_login/save',
+                        data: changedDataJSON,
+                        dataType: 'json',
+                        contentType: "application/json",
+                        type: 'POST',
+                        success: function (data, outcome, response) {
+                            if (response.status === 200) {
+                                grid_console.text(outcome+': Data saved.');
+                            }
+                            else {
+                                grid_console.text(outcome+': Save error: '+response.statusText+', code: '+response.status+'.');
+                            }
+                        },
+                        error: function () {
+                            grid_console.text("Save error. Likely couldn't reach the sample login service. Contact your administrator.");
+                        }
+                    });
+                });
+
+            });
+        </script>
+
+    </div>
+
+{% endblock %}

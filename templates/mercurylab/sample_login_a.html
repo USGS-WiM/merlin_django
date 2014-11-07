@@ -6,7 +6,7 @@
             <button type="button" class="btn btn-default" name="save">Save</button>
             <button type="button" class="btn btn-default" name="insertRows">Insert Rows</button>
         </p>
-        <pre id="grid_console" class="console">Click "Load" to load data from server</pre>
+        <pre id="grid_console" class="console"></pre>
        <!--  <p><input class="form-control" id="select_field" type="hidden" placeholder="Select for sample name." style="width:600px"/></p> -->
         <p><input class="form-control" id="search_field" type="search" placeholder="Find in table." style="width:600px"/></p>
         <div id="grid" data-processings="{{ processings }}" data-mediums="{{ mediums }}" data-filters="{{ filters }}" data-preservations="{{ preservations }}" data-acids="{{ acids }}" class="table table-hover table-condensed table-bordered"></div>
@@ -18,14 +18,14 @@
                 var data_processings = JSON.parse(grid.attr('data-processings'));
                 var data_mediums = JSON.parse(grid.attr('data-mediums'));
                 // temporary array until isotopes get figured out
-                var data_isotopes = ['', '198', '199', '200', '201', '202'];
+                var data_isotopes = ['', 'A', '198', '199', '200', '201', '202'];
                 var data_filters = JSON.parse(grid.attr('data-filters'));
                 var data_preservations = JSON.parse(grid.attr('data-preservations'));
                 var data_acids = JSON.parse(grid.attr('data-acids'));
                 var data_projects;
                 var data_sites;
                 var data_constituents;
-                var objectFields = ["skip_project_name", "project", "skip_site_name", "site", "skip_date", "skip_hour", "time_stamp", "depth", "length", "replicate", "login_comment", "received_time_stamp", "lab_processing", "bottle", "medium_type", "constituent_type", /*"isotopic_analysis",*/ "skip_isotope", "filter_type", "volume_filtered", "preservation_type", "preservation_acid", "preservation_volume", "preservation_comment"];
+                var objectFields = ["skip_project_name", "project", "skip_site_name", "site", "skip_date", "time_stamp", "depth", "length", "replicate", "login_comment", "received_time_stamp", "lab_processing", "bottle", "medium_type", "constituent_type", /*"isotopic_analysis",*/ "skip_isotope", "filter_type", "volume_filtered", "preservation_type", "preservation_acid", "preservation_volume", "preservation_comment"];
                 var grid_console = $("#grid_console");
                 var changedRowIndices = [];
                 var selectionRowIndices = [];
@@ -51,15 +51,18 @@
                         },
                         // Date, Hour, and Minute as separate columns is temporary until a single column datetime editor can be found for handsontable
                         {title: 'Date', width: 100, type: 'date'},
-                        {title: 'Hour', width: 50, type: 'autocomplete', source: getRange(24)},
-                        {title: 'Minute', width: 50, type: 'autocomplete', source: getRange(60)},
+                        {title: 'Time', width: 60, type: 'text'},
+                        //{title: 'Hour', width: 50, type: 'autocomplete', source: getRange(24)},
+                        //{title: 'Minute', width: 50, type: 'autocomplete', source: getRange(60)},
                         {title: 'Depth', width: 50, type: 'numeric'},
                         {title: 'Length', width: 50, type: 'numeric'},
                         {title: 'Rep', width: 50, type: 'numeric'},
                         {title: 'Sample Comments', width: 100, type: 'text'},
                         {title: 'Received', width: 100, type: 'date'},
-                        {title: 'Lab Processing', width: 100, type: 'autocomplete', source: getValuesDom(data_processings,"processing")},
-                        {title: 'Container ID', width: 100, type: 'text'},
+                        {title: 'Lab Processing', width: 105, type: 'autocomplete', source: getValuesDom(data_processings,"processing")},
+                        //{title: 'Container ID', width: 100, type: 'text'},
+                        {title: 'Container ID', width: 90, type: 'autocomplete',  source: function (query, process) {
+                            getValuesAjax('/mercuryservices/bottles', 'bottle_unique_name', query, process)}},
                         {title: 'Medium', width: 100, type: 'autocomplete', source: getValuesDom(data_mediums,"medium")},
                         {title: 'Analysis', width: 70, type: 'autocomplete'/*, source: function (query, process) {
                             // get coordinates of this cell
@@ -69,13 +72,15 @@
                             // get list of constituents that are allowed with the previously selected medium
                             getValuesAjax('/mercuryservices/constituents', 'medium', prevCellValue, process)}*/
                         },
-                        {title: 'Isotope', width: 50, type: 'dropdown', source: data_isotopes},
+                        {title: 'Isotope', width: 55, type: 'dropdown', source: data_isotopes},
                         {title: 'Filter', width: 100, type: 'autocomplete', source: getValuesDom(data_filters,"filter")},
-                        {title: 'Filter Volume', width: 50, type: 'numeric'},
+                        {title: 'Filter Vol.', width: 65, type: 'numeric'},
                         {title: 'Preservation', width: 100, type: 'autocomplete', source: getValuesDom(data_preservations, "preservation")},
-                        {title: 'Acid', width: 100, type: 'autocomplete',  source: getValuesDom(data_acids, "code")},
-                        {title: 'Acid Volume', width: 50, type: 'numeric'},
-                        {title: 'Preservation Comments', width: 100, type: 'text'}
+                        //{title: 'Acid', width: 100, type: 'autocomplete',  source: getValuesDom(data_acids, "code")},
+                        {title: 'Acid', width: 110, type: 'autocomplete',  source: function (query, process) {
+                            getValuesAjax('/mercuryservices/acids', 'code', query, process)}},
+                        {title: 'Acid Vol.', width: 60, type: 'numeric'},
+                        {title: 'Pres. Comments', width: 100, type: 'text'}
                     ],
                     // define event handlers
                     beforeChange: function(changes, source) {
@@ -178,7 +183,7 @@
                                 grid.handsontable('setDataAtCell', changedRow, 2, newValue);
                             }
                             // when medium is changed to a non-null, non-blank value
-                            if (changedCol == 14 && changedVal !== null && changedVal !== "") {
+                            if (changedCol == 13 && changedVal !== null && changedVal !== "") {
                                 // update list of constituents filtered by the selected medium value
                                 $.ajax({
                                     url: '/mercuryservices/constituents/',
@@ -188,7 +193,7 @@
                                     },
                                     success: function (response) {
                                         grid_console.text("success");
-                                        var colToChange = 15;
+                                        var colToChange = 14;
                                         // update the local full object collection
                                         data_constituents = response;
                                         // update the dropdown list with just the values
@@ -277,32 +282,54 @@
                                         break;
                                     case 4: // date
                                         break;
-                                    case 5: // hour
-                                        break;
-                                    case 6: // minute
-                                        if (thisDataRow[i] !== null && thisDataRow[i] !== "" && thisDataRow[i-1] !== null && thisDataRow[i-1] !== "" && thisDataRow[2] !== null && thisDataRow[i-2] !== "") {
-                                            thisDataObject[objectFields[i]] = thisDataRow[i-2]+" "+thisDataRow[i-1]+":"+thisDataRow[i]+":00";
+                                    case 5: // time
+                                        if (thisDataRow[i] !== null && thisDataRow[i] !== "" && thisDataRow[i-1] !== null && thisDataRow[i-1] !== "") {
+                                            var changedVal = thisDataRow[i];
+                                            var newValue;
+                                            switch (changedVal.length) {
+                                                case 1:
+                                                    newValue = "00:0" + changedVal;
+                                                    break;
+                                                case 2:
+                                                    newValue = "00:" + changedVal;
+                                                    break;
+                                                case 3:
+                                                    newValue = "0" + changedVal.substring(0, 1) + ":" + changedVal.substring(1);
+                                                    break;
+                                                case 4:
+                                                    newValue = changedVal.substring(0, 2) + ":" + changedVal.substring(2);
+                                                    break;
+                                                default:
+                                                    // user must have entered an invalid time, so set it to midnight
+                                                    newValue = "00:00";
+                                                    break;
+                                            }
+                                            thisDataObject[objectFields[i]] = thisDataRow[i-1]+" "+newValue+":00";
                                         }
                                         break;
-                                    case 12: // processing
+                                    case 11: // processing
                                         thisDataObject[objectFields[i]] = getIdDom(data_processings,'processing',thisDataRow[i]);
                                         break;
-                                    case 14: // medium
+                                    case 12: // bottle
+                                        // this must eventually point to Sample Bottles, not Bottles
+                                        thisDataObject[objectFields[i]] = thisDataObject[objectFields[i]] = updateValueAjax('/mercuryservices/bottles', 'bottle_unique_name', 'id', thisDataRow[i]);
+                                        break;
+                                    case 13: // medium
                                         thisDataObject[objectFields[i]] = getIdDom(data_mediums,'medium',thisDataRow[i]);
                                         break;
-                                    case 15: // constituent
+                                    case 14: // constituent
                                         thisDataObject[objectFields[i]] = getIdDom(data_constituents,'constituent',thisDataRow[i]);
                                         break;
-                                    case 16: // isotope
+                                    case 15: // isotope
                                         break;
-                                    case 17: // filter
+                                    case 16: // filter
                                         thisDataObject[objectFields[i]] = thisDataObject[objectFields[i]] = getIdDom(data_filters,'filter',thisDataRow[i]);
                                         break;
-                                    case 19: // preservation
+                                    case 18: // preservation
                                         thisDataObject[objectFields[i]] = thisDataObject[objectFields[i]] = getIdDom(data_preservations,'preservation',thisDataRow[i]);
                                         break;
-                                    case 20: // acid
-                                        thisDataObject[objectFields[i]] = thisDataObject[objectFields[i]] = getIdDom(data_acids,'code',thisDataRow[i]);
+                                    case 19: // acid
+                                        thisDataObject[objectFields[i]] = thisDataObject[objectFields[i]] = updateValueAjax('/mercuryservices/acids', 'code', 'id', thisDataRow[i]);
                                         break;
                                     default: // all the rest
                                         if (thisDataRow[i] !== null && thisDataRow[i] !== "") {
@@ -318,9 +345,10 @@
                     // convert the array to a true JSON object
                     var changedDataJSON = JSON.stringify(changedDataArray);
                     // send the entire changed data object to the server via ajax
-                    grid_console.text(changedDataJSON);
+                    console.log(changedDataJSON);
+                    grid_console.text('Attempting to save data...');
                     $.ajax({
-                        url: '/mercurylab/samples/save',
+                        url: '/mercurylab/sample_login/save',
                         data: changedDataJSON,
                         dataType: 'json',
                         contentType: "application/json",
@@ -334,7 +362,7 @@
                             }
                         },
                         error: function () {
-                            grid_console.text('403: Save error. POST method is not allowed.');
+                            grid_console.text("Save error. Likely couldn't reach the sample login service. Contact your administrator.");
                         }
                     });
                 });
