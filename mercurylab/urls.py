@@ -15,6 +15,11 @@ urlpatterns = patterns('',
     url(r'^sample_login_b/$', views.sample_login_b, name='sample_login_a'),
     url(r'^sample_login/save$', views.sample_login_save, name='sample_login_save'),
 
+    url(r'^sample_bottles/$', views.sample_bottles, name='sample_bottles'),
+    url(r'^sample_bottles/save$', views.sample_bottles_save, name='sample_bottles_save'),
+    url(r'^sample_bottles/load$', views.sample_bottles_load, name='sample_bottles_load'),
+    url(r'^sample_bottle_add/$', views.sample_bottle_add, name='sample_bottle_add'),
+
     url(r'^cooperators_list/$', views.cooperators_list, name='cooperators_list'),
     url(r'^cooperators_formset/$', views.cooperators_formset, name='cooperators_formset'),
 

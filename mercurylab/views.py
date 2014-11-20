@@ -100,6 +100,41 @@ def sample_login_save(request):
     return HttpResponse(r, content_type='application/json')
 
 
+def sample_bottles(request):
+    context = RequestContext(request)
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'samplebottles/', auth=TEMP_AUTH)
+    data = json.dumps(r.json(), sort_keys=True)
+    form = SampleBottleForm()
+    context_dict = {'data': data, 'form': form}
+    return render_to_response('mercurylab/sample_bottles.html', context_dict, context)
+
+
+def sample_bottles_load(request):
+    data = request.body
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'samplebottles?name='+data, auth=TEMP_AUTH)
+    return HttpResponse(r, content_type='application/json')
+
+
+@csrf_exempt
+def sample_bottles_save(request):
+    data = request.body
+    r = requests.request(method='PUT', url=REST_SERVICES_URL+'bulksamplebottles/', data=data, auth=TEMP_AUTH, headers=JSON_HEADERS)
+    return HttpResponse(r, content_type='application/json')
+
+
+# Blank editable form to add a bottle
+@csrf_exempt
+def sample_bottle_add(request):
+
+    form = SampleBottleForm(request.POST)
+
+    if form.is_valid():
+        requests.request(method='POST', url=REST_SERVICES_URL+'samplebottles/', data=form.cleaned_data, auth=TEMP_AUTH)
+        return sample_bottles(request)
+    else:
+        print(form.errors)
+
+
 def bottles(request):
     context = RequestContext(request)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'bottles/', auth=TEMP_AUTH)
