@@ -41,6 +41,10 @@ class CooperatorForm(forms.Form):
     #     fields = ('name', 'agency', 'email', 'phone', 'sec_phone', 'address', 'city', 'state', 'zipcode', 'country')
 
 
+class SampleBottleForm(forms.Form):
+    bottle_unique_name = forms.CharField(help_text="Bottle Unique Name")
+
+
 class AcidForm(forms.Form):
     code = forms.CharField(help_text="Code")
     concentration = forms.DecimalField(help_text="Concentration")

@@ -138,8 +138,23 @@ class FieldSampleBottleBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkUpdateM
 
 class FieldSampleBottleViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    queryset = FieldSampleBottle.objects.all()
+    #queryset = FieldSampleBottle.objects.all()
     serializer_class = FieldSampleBottleSerializer
+    paginate_by = 100
+
+    # override the default queryset to allow filtering by URL arguments
+    def get_queryset(self):
+        queryset = FieldSampleBottle.objects.all()
+        id = self.request.QUERY_PARAMS.get('id', None)
+        if id is not None:
+            queryset = queryset.filter(id__exact=id)
+        bottle = self.request.QUERY_PARAMS.get('bottle', None)
+        if bottle is not None:
+            queryset = queryset.filter(bottle__exact=bottle)
+        sample = self.request.QUERY_PARAMS.get('sample', None)
+        if sample is not None:
+            queryset = queryset.filter(field_sample__exact=sample)
+        return queryset
 
 
 class BottleBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
