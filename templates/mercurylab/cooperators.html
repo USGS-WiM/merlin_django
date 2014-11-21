@@ -2,23 +2,58 @@
 {% block body_block %}
 
     <div class="jumbotron">
-{#        <a class="btn" href="{% url 'mercurylab:cooperator_add' %}">Create New Cooperator</a><br /><br />#}
+
         <p>
-            <button type="button" class="btn btn-default" name="add">Add</button>
-            <button type="button" class="btn btn-default" name="delete">Delete</button>
-            <button type="button" class="btn btn-default" name="edit">Edit</button>
-            <button type="button" class="btn btn-default" name="load">Reload</button>
-            <button type="button" class="btn btn-default" name="save">Save</button>
+            <button type="button" class="btn btn-default" name="add">Add New Cooperator</button>
         </p>
-        <pre id="grid_console" class="console">Click "Load" to load data from server</pre>
-        <p><input class="form-control" id="select_field" type="hidden" placeholder="Select for cooperator name." style="width:600px"/></p>
-        <p><input class="form-control" id="search_field" type="search" placeholder="Find in table." style="width:600px"/></p>
+        <div id="form_add" style="display:none">
+            <form class="form-signin span8" id="item_form" method="post" action="{% url 'mercurylab:cooperator_add' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <h3 class="form-signin-heading">Create Cooperator</h3>
+
+                {% for field in form %}
+                {{ field.errors }}
+                {{ field.help_text }}<br />
+                {{ field }}<br />
+                {% endfor %}
+                <br />
+
+                <input class="btn btn-primary" type="submit" name="submit" value="OK" />
+            </form>
+        </div>
+        <br />
+
+        <pre id="grid_console" class="console" style="width:600px"></pre>
+        <p><input id="select_field" type="hidden" placeholder="Filter by cooperator name." style="width:600px"/></p>
+        <p>
+            <div class="select2-container select2-container-multi" style="width:600px">
+                <ul class="select2-choices">
+                    <li class="select2-search-field">
+                        <label class="select2-offscreen"></label>
+                        <input id="search_field" type="search" placeholder="Highlight in table." class="select2-input select2-default" style="width:593px;height:40px;font-size:21px;color:"/>
+                    </li>
+                </ul>
+            </div>
+        <!-- <p><input id="search_field" type="search" placeholder="Highlight in table." style="width:600px; border:1px solid darkgray; height:42px"/></p> -->
+        <br /><br />
+        <p>
+            <button type="button" class="btn btn-default" name="load">Reload Table</button>
+            <button type="button" class="btn btn-default" name="save">Save Changes</button>
+            <button type="button" class="btn btn-default" name="edit">Edit Selected Record</button>
+            <button type="button" class="btn btn-default" name="delete">Delete Selected Record</button>
+        </p>
+        <p>
+            <button type="button" class="btn btn-default" name="prev">Previous Page</button>
+            <button type="button" class="btn btn-default" name="next">Next Page</button>
+        </p>
         <div id="grid" data-data="{{ data }}" class="table table-hover table-condensed table-bordered"></div>
 
         <script>
             $(document).ready(function() {
 
                 var objectFields = ["id", "name", "agency", "email", "phone", "sec_phone", "address", "city", "state", "zipcode", "country", "projects"];
+                var currentPage = 1;
+                var addClicked = false;
                 function getColumns() {
                     var cols = [];
                     var col = {};
@@ -45,7 +80,7 @@
                     contextMenu: true,
                     search: true,
                     //minSpareRows: 1,
-                    data: data_data,
+                    data: data_data.results,
                     columns: getColumns(),
                     //columns: [{data: "id", readOnly: true},{data: "name"},{data: "agency"},{data: "email"},{data: "phone"},{data: "sec_phone"},{data: "address"},{data: "city"},{data: "state"},{data: "zipcode"},{data: "country"},{data: "projects"}],
                     columnSorting: { column: 0 },
@@ -72,7 +107,11 @@
                 });
 
                 $("#select_field").select2({
-                    allowClear: true,
+                    multiple: true,
+                    maximumSelectionSize: 1,
+                    dropdownCss:{display:'none'},
+                    //minimumResultsForSearch: -1,
+                    //allowClear: true,
                     minimumInputLength: 1,
                     ajax: {
                         url: '/mercuryservices/cooperators/',
@@ -83,26 +122,88 @@
                             };
                         },
                         results: function (data, page) {
-                            grid.data('handsontable').loadData(data);
-                            grid_console.text('Searched data loaded.');
-                            return {results: data};
+                            data_data = data;
+                            grid.data('handsontable').loadData(data_data.results);
+                            grid_console.text('Filtered data loaded.');
+                            return {results: data.results};
                         }
                     },
                     sortResults: function(results, container, query) {
-                        return results.sort(function(a,b) { return a - b; }); //sort by ID, numerically ascending
+                        return results.sort(function (a, b) {
+                            return a - b;
+                        }); //sort by ID, numerically ascending
                     },
-                    formatResult: format,
-                    formatSelection: format
+                    formatResult: formatSelect2,
+                    formatSelection: formatSelect2
                 });
 
-                function format(data) {
+                function formatSelect2(data) {
                     return data.name;
                 }
 
                 grid.parent().find('button[name=load]').click(function () {
-                    grid.data('handsontable').loadData(data_data);
+                    grid.data('handsontable').loadData(data_data.results);
                     grid.data('handsontable').sort(0);
                     grid_console.text('Data reloaded.');
+                });
+
+                grid.parent().find('button[name=next]').click(function () {
+                    $.ajax({
+                        url: data_data.next,
+                        dataType: 'json',
+                        success: function (response) {
+                            grid_console.text("success");
+                            data_data = response;
+                            grid.data('handsontable').loadData(data_data.results);
+                            grid.data('handsontable').sort(0);
+                            currentPage++;
+                            grid_console.text('Page '+ currentPage +' data loaded.');
+                        },
+                        error: function (response) {
+                            grid_console.log("error");
+                        }
+                    });
+                });
+
+                grid.parent().find('button[name=prev]').click(function () {
+                    $.ajax({
+                        url: data_data.previous,
+                        dataType: 'json',
+                        success: function (response) {
+                            grid_console.text("success");
+                            data_data = response;
+                            grid.data('handsontable').loadData(data_data.results);
+                            grid.data('handsontable').sort(0);
+                            currentPage--;
+                            grid_console.text('Page '+ currentPage +' data loaded.');
+                        },
+                        error: function (response) {
+                            grid_console.log("error");
+                        }
+                    });
+                });
+
+                grid.parent().find('button[name=add]').click(function () {
+                    if (addClicked) {
+                        addClicked = false;
+                        $("#form_add").hide();
+                    }
+                    else {
+                        addClicked = true;
+                        $("#form_add").show();
+                    }
+                });
+
+                grid.parent().find('button[name=delete]').click(function () {
+                    var thisDataRow = grid.data('handsontable').getDataAtRow(selectionRowIndices[0]);
+                    var thisDataRowID = thisDataRow[0];
+                    window.location = '/mercurylab/cooperators/'+thisDataRowID+'/delete';
+                });
+
+                grid.parent().find('button[name=edit]').click(function () {
+                    var thisDataRow = grid.data('handsontable').getDataAtRow(selectionRowIndices[0]);
+                    var thisDataRowID = thisDataRow[0];
+                    window.location = '/mercurylab/cooperators/'+thisDataRowID+'/edit';
                 });
 
                 grid.parent().find('button[name=save]').click(function () {
@@ -137,11 +238,7 @@
                     });
                 });
 
-                grid.parent().find('button[name=add]').click(function () {
-                    window.location = "{% url 'mercurylab:cooperator_add' %}";
-                });
-
-                grid.parent().find('button[name=delete]').click(function () {
+                /*grid.parent().find('button[name=delete]').click(function () {
                     var thisDataRow = grid.data('handsontable').getDataAtRow(selectionRowIndices[0]);
                     var thisDataRowID = thisDataRow[0];
                     window.location = '/mercurylab/cooperators_list/'+thisDataRowID+'/delete';
@@ -153,7 +250,7 @@
                     window.location = '/mercurylab/cooperators_list/'+thisDataRowID+'/edit';
                 });
 
-                /*grid.parent().find('button[name=delete]').click(function () {
+                grid.parent().find('button[name=delete]').click(function () {
                     $.each(selectionRowIndices, function(index, value) {
                         var thisDataRow = grid.data('handsontable').getDataAtRow(value);
                         var thisDataRowID = thisDataRow[0];

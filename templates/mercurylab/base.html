@@ -6,7 +6,7 @@
 
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="description" content="Mercury Lab">
+        <meta name="description" content="MeRLIN">
         <meta name="author" content="USGS - Wisconsin Internet Mapping (WiM)">
 
          <!-- Bootstrap3 -->
@@ -27,7 +27,7 @@
         <script src="{% static 'js/select2.min.js' %}"></script>
         <script src="{% static 'js/mercurylab.js' %}"></script>
 
-		<title>Mercury Lab - {% block title %} {% endblock %}</title>
+		<title>MeRLIn - {% block title %} {% endblock %}</title>
 	</head>
 
 	<body>
@@ -40,7 +40,7 @@
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                     </button>
-                    <a class="navbar-brand" href="/mercurylab/">Mercury Lab</a>
+                    <a class="navbar-brand" href="/mercurylab/">MeRLIn</a>
                 </div>
                 <div class="navbar-collapse collapse">
                     <ul class="nav navbar-nav navbar-right">
@@ -94,7 +94,7 @@
             <hr>
     		<footer>
     			<div class="container">
-    				<p>&copy; Mercury Lab 2014</p>
+    				<p>&copy; USGS 2014</p>
     			</div>
     		</footer>
         </div>
@@ -103,7 +103,7 @@
          $("#expander").click(function(e) {
             e.preventDefault();
             $("#wrapper").toggleClass("toggled");
-            $("#chevron").toggleClass('glyphicon glyphicon-chevron-left glyphicon glyphicon-chevron-right');
+            $("#chevron").toggleClass('glyphicon glyphicon-chevron-right glyphicon glyphicon-chevron-left');
         });
         </script>
 	</body>

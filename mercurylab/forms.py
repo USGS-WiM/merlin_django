@@ -41,6 +41,14 @@ class CooperatorForm(forms.Form):
     #     fields = ('name', 'agency', 'email', 'phone', 'sec_phone', 'address', 'city', 'state', 'zipcode', 'country')
 
 
+class ProjectForm(forms.Form):
+    name = forms.CharField(help_text="Name")
+
+
+class SiteForm(forms.Form):
+    name = forms.CharField(help_text="Name")
+
+
 class SampleBottleForm(forms.Form):
     bottle_unique_name = forms.CharField(help_text="Bottle Unique Name")
 
