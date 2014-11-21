@@ -48,6 +48,7 @@ class CooperatorViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     #queryset = Cooperator.objects.all()
     serializer_class = CooperatorSerializer
+    paginate_by = 100
 
     # override the default queryset to allow filtering by URL arguments
     def get_queryset(self):
@@ -66,6 +67,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     #queryset = Project.objects.all()
     serializer_class = ProjectSerializer
+    paginate_by = 100
 
     # override the default queryset to allow filtering by URL arguments
     def get_queryset(self):
@@ -87,6 +89,7 @@ class SiteViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     #queryset = Site.objects.all()
     serializer_class = SiteSerializer
+    paginate_by = 100
 
     # override the default queryset to allow filtering by URL arguments
     def get_queryset(self):

@@ -4,9 +4,9 @@
     <div class="jumbotron">
         <p>
             <button type="button" class="btn btn-default" name="save">Save</button>
-            <button type="button" class="btn btn-default" name="insertRows">Insert Rows</button>
+            <button type="button" class="btn btn-default" name="insertRows">Insert 8 Blank Rows</button>
         </p>
-        <pre id="grid_console" class="console"></pre>
+        <pre id="grid_console" class="console" style="width:600px"></pre>
        <!--  <p><input class="form-control" id="select_field" type="hidden" placeholder="Select for sample name." style="width:600px"/></p> -->
         <p><input class="form-control" id="search_field" type="search" placeholder="Find in table." style="width:600px"/></p>
         <div id="grid" data-processings="{{ processings }}" data-mediums="{{ mediums }}" data-filters="{{ filters }}" data-preservations="{{ preservations }}" data-acids="{{ acids }}" class="table table-hover table-condensed table-bordered"></div>
@@ -121,7 +121,7 @@
                                     success: function (response) {
                                         grid_console.text("success");
                                         // update the local full object collection
-                                        data_sites = response;
+                                        data_sites = response['results'];
                                         // update the site name dropdown list with just the values
                                         var colToChange = 2;
                                         var values = getValuesDom(data_sites, "name");
@@ -153,7 +153,7 @@
                                     success: function (response) {
                                         grid_console.text("success");
                                         // update the local full object collection
-                                        data_sites = response;
+                                        data_sites = response['results'];
                                         // update the site name dropdown list with just the values
                                         var colToChange = 2;
                                         var values = getValuesDom(data_sites, "name");

@@ -4,9 +4,9 @@
     <div class="jumbotron">
         <p>
             <button type="button" class="btn btn-default" name="save">Save</button>
-            <button type="button" class="btn btn-default" name="insertRows">Insert Rows</button>
+            <button type="button" class="btn btn-default" name="insertRows">Insert 8 Blank Rows</button>
         </p>
-        <pre id="grid_console" class="console"></pre>
+        <pre id="grid_console" class="console" style="width:600px"></pre>
        <!--  <p><input class="form-control" id="select_field" type="hidden" placeholder="Select for sample name." style="width:600px"/></p> -->
         <p><input class="form-control" id="search_field" type="search" placeholder="Find in table." style="width:600px"/></p>
         <div class="panel-default">
@@ -70,17 +70,17 @@
                         {title: 'Site ID', width: 70, type: 'autocomplete'},
                         // Date Time as separate columns is temporary until a single column datetime editor can be found for handsontable
                         {title: 'Date', width: 100, type: 'date'},
-                        {title: 'Time', width: 60, type: 'text'},
+                        {title: 'Time', width: 55, type: 'text'},
                         {title: 'Depth', width: 45, type: 'numeric'},
                         {title: 'Length', width: 50, type: 'numeric'},
                         {title: 'Rep', width: 35, type: 'numeric'},
-                        {title: 'Sample Comments', width: 140, type: 'text'},
+                        {title: 'Sample Comments', width: 130, type: 'text'},
                         // Container ID must eventually point to Sample Bottles, not Bottles
-                        {title: 'Container ID', width: 90, type: 'autocomplete',  source: function (query, process) {
+                        {title: 'Container ID', width: 110, type: 'autocomplete',  source: function (query, process) {
                             getValuesAjax('/mercuryservices/bottles', 'bottle_unique_name', query, process)}},
                         {title: 'Medium', width: 140, type: 'autocomplete', source: getValuesDom(data_mediums,"medium")},
-                        {title: 'Analysis', width: 140, type: 'autocomplete'},
-                        {title: 'Isotope', width: 60, type: 'dropdown', source: data_isotopes},
+                        {title: 'Analysis', width: 80, type: 'autocomplete'},
+                        {title: 'Isotope', width: 55, type: 'dropdown', source: data_isotopes},
                         {title: 'Filter', width: 140, type: 'autocomplete', source: getValuesDom(data_filters,"filter")},
                         {title: 'Filter Vol.', width: 65, type: 'numeric'},
                         {title: 'Preservation', width: 130, type: 'autocomplete', source: getValuesDom(data_preservations, "preservation")},
@@ -172,7 +172,7 @@
                         jQuery.get('/mercuryservices/projects/', {
                             name: request.term
                         }, function (data) {
-                            data_projects = data;
+                            data_projects = data.results;
                             var values = [];
                             $.each(data_projects, function(index, object) {
                                 $.each(object, function(key, value) {
@@ -198,7 +198,7 @@
                                 success: function (response) {
                                     grid_console.text("success");
                                     // update the local full object collection
-                                    data_sites = response;
+                                    data_sites = response['results'];
                                     var names = getValuesDom(data_sites, "name");
                                     var ids = getValuesDom(data_sites, "id");
                                     var settings = grid.handsontable('getInstance').getSettings();
@@ -231,7 +231,7 @@
                         jQuery.get('/mercuryservices/projects/', {
                             id: request.term
                         }, function (data) {
-                            data_projects = data;
+                            data_projects = data.results;
                             var values = [];
                             $.each(data_projects, function(index, object) {
                                 $.each(object, function(key, value) {
@@ -257,7 +257,7 @@
                                 success: function (response) {
                                     grid_console.text("success");
                                     // update the local full object collection
-                                    data_sites = response;
+                                    data_sites = response['results'];
                                     var rows = grid.handsontable('getInstance').countRows();
                                     for (var row in rows) {
                                         // update the site name dropdown list with just the values
