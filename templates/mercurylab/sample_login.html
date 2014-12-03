@@ -66,8 +66,8 @@
                     search: true,
                     startRows: 8,
                     columns: [
-                        {title: 'Site Name', width: 210, type: 'autocomplete'},
-                        {title: 'Site ID', width: 70, type: 'autocomplete'},
+                        {title: 'Site Name', width: 210, type: 'autocomplete', strict: true},
+                        {title: 'Site ID', width: 70, type: 'autocomplete', strict: true},
                         // Date Time as separate columns is temporary until a single column datetime editor can be found for handsontable
                         {title: 'Date', width: 100, type: 'date'},
                         {title: 'Time', width: 55, type: 'text'},
@@ -76,15 +76,15 @@
                         {title: 'Rep', width: 35, type: 'numeric'},
                         {title: 'Sample Comments', width: 130, type: 'text'},
                         // Container ID must eventually point to Sample Bottles, not Bottles
-                        {title: 'Container ID', width: 110, type: 'autocomplete',  source: function (query, process) {
+                        {title: 'Container ID', width: 110, type: 'autocomplete', strict: true,  source: function (query, process) {
                             getValuesAjax('/mercuryservices/bottles', 'bottle_unique_name', query, process)}},
-                        {title: 'Medium', width: 140, type: 'autocomplete', source: getValuesDom(data_mediums,"medium")},
-                        {title: 'Analysis', width: 80, type: 'autocomplete'},
+                        {title: 'Medium', width: 140, type: 'autocomplete', strict: true, source: getValuesDom(data_mediums,"medium")},
+                        {title: 'Analysis', width: 80, type: 'autocomplete', strict: true},
                         {title: 'Isotope', width: 55, type: 'dropdown', source: data_isotopes},
-                        {title: 'Filter', width: 140, type: 'autocomplete', source: getValuesDom(data_filters,"filter")},
+                        {title: 'Filter', width: 140, type: 'autocomplete', strict: true, source: getValuesDom(data_filters,"filter")},
                         {title: 'Filter Vol.', width: 65, type: 'numeric'},
-                        {title: 'Preservation', width: 130, type: 'autocomplete', source: getValuesDom(data_preservations, "preservation")},
-                        {title: 'Acid', width: 110, type: 'autocomplete',  source: function (query, process) {
+                        {title: 'Preservation', width: 130, type: 'autocomplete', strict: true, source: getValuesDom(data_preservations, "preservation")},
+                        {title: 'Acid', width: 110, type: 'autocomplete', strict: true,  source: function (query, process) {
                             getValuesAjax('/mercuryservices/acids', 'code', query, process)}},
                         {title: 'Acid Vol.', width: 65, type: 'numeric'},
                         {title: 'Pres. Comments', width: 120, type: 'text'}
@@ -168,6 +168,7 @@
                 });
 
                 $("#project_name").autocomplete({
+                    autoFocus: true,
                     source: function (request, response) {
                         jQuery.get('/mercuryservices/projects/', {
                             name: request.term
@@ -227,6 +228,7 @@
                 });
 
                 $("#project_id").autocomplete({
+                    autoFocus: true,
                     source: function (request, response) {
                         jQuery.get('/mercuryservices/projects/', {
                             id: request.term

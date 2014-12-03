@@ -117,9 +117,20 @@
                 }
 
                 grid.parent().find('button[name=load]').click(function () {
-                    grid.data('handsontable').loadData(data_data.results);
-                    grid.data('handsontable').sort(0);
-                    grid_console.text('Data reloaded.');
+                    $.ajax({
+                        url: '/mercuryservices/brominations/?page='+currentPage,
+                        dataType: 'json',
+                        success: function (response) {
+                            grid_console.text("success");
+                            data_data = response;
+                            grid.data('handsontable').loadData(data_data.results);
+                            grid.data('handsontable').sort(0);
+                            grid_console.text('Page '+ currentPage +' data reloaded.');
+                        },
+                        error: function (response) {
+                            grid_console.text("error");
+                        }
+                    });
                 });
 
                 grid.parent().find('button[name=next]').click(function () {
@@ -172,13 +183,13 @@
                 grid.parent().find('button[name=delete]').click(function () {
                     var thisDataRow = grid.data('handsontable').getDataAtRow(selectionRowIndices[0]);
                     var thisDataRowID = thisDataRow[0];
-                    window.location = '/mercurylab/acids/'+thisDataRowID+'/delete';
+                    window.location = '/mercurylab/brominations/'+thisDataRowID+'/delete';
                 });
 
                 grid.parent().find('button[name=edit]').click(function () {
                     var thisDataRow = grid.data('handsontable').getDataAtRow(selectionRowIndices[0]);
                     var thisDataRowID = thisDataRow[0];
-                    window.location = '/mercurylab/acids/'+thisDataRowID+'/edit';
+                    window.location = '/mercurylab/brominations/'+thisDataRowID+'/edit';
                 });
 
                 grid.parent().find('button[name=save]').click(function () {

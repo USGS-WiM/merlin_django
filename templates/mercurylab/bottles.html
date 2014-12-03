@@ -4,14 +4,30 @@
     <div class="jumbotron">
 
         <p>
-            <button type="button" class="btn btn-default" name="add">Add New Bottle</button>
+            <button type="button" class="btn btn-default" name="bottle_add">Add New Bottle</button>
+            <button type="button" class="btn btn-default" name="range_add">Add New Range of Bottles</button>
         </p>
-        <div id="form_add" style="display:none">
+        <div id="form_bottle_add" style="display:none">
             <form class="form-signin span8" id="item_form" method="post" action="{% url 'mercurylab:bottle_add' %}" enctype="multipart/form-data">
                 {% csrf_token %}
                 <h3 class="form-signin-heading">Create Bottle</h3>
 
-                {% for field in form %}
+                {% for field in bottle_form %}
+                {{ field.errors }}
+                {{ field.help_text }}<br />
+                {{ field }}<br />
+                {% endfor %}
+                <br />
+
+                <input class="btn btn-primary" type="submit" name="submit" value="OK" />
+            </form>
+        </div>
+        <div id="form_range_add" style="display:none">
+            <form class="form-signin span8" id="item_form" method="post" action="{% url 'mercurylab:bottle_range_add' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <h3 class="form-signin-heading">Create Range of Bottles</h3>
+
+                {% for field in bottle_range_form %}
                 {{ field.errors }}
                 {{ field.help_text }}<br />
                 {{ field }}<br />
@@ -53,7 +69,8 @@
 
                 var objectFields = ["ID", "Unique Bottle Name", "Description", "Tare Weight", "Bottle Type"];
                 var currentPage = 1;
-                var addClicked = false;
+                var bottleAddClicked = false;
+                var rangeAddClicked = false;
                 var grid = $('#grid');
                 var data_data = JSON.parse(grid.attr("data-data"));
                 var grid_console = $("#grid_console");
@@ -117,9 +134,20 @@
                 }
 
                 grid.parent().find('button[name=load]').click(function () {
-                    grid.data('handsontable').loadData(data_data.results);
-                    grid.data('handsontable').sort(0);
-                    grid_console.text('Data reloaded.');
+                    $.ajax({
+                        url: '/mercuryservices/bottles/?page='+currentPage,
+                        dataType: 'json',
+                        success: function (response) {
+                            grid_console.text("success");
+                            data_data = response;
+                            grid.data('handsontable').loadData(data_data.results);
+                            grid.data('handsontable').sort(0);
+                            grid_console.text('Page '+ currentPage +' data reloaded.');
+                        },
+                        error: function (response) {
+                            grid_console.text("error");
+                        }
+                    });
                 });
 
                 grid.parent().find('button[name=next]').click(function () {
@@ -135,7 +163,7 @@
                             grid_console.text('Page '+ currentPage +' data loaded.');
                         },
                         error: function (response) {
-                            grid_console.log("error");
+                            grid_console.text("error");
                         }
                     });
                 });
@@ -153,32 +181,43 @@
                             grid_console.text('Page '+ currentPage +' data loaded.');
                         },
                         error: function (response) {
-                            grid_console.log("error");
+                            grid_console.text("error");
                         }
                     });
                 });
 
-                grid.parent().find('button[name=add]').click(function () {
-                    if (addClicked) {
-                        addClicked = false;
-                        $("#form_add").hide();
+                grid.parent().find('button[name=bottle_add]').click(function () {
+                    if (bottleAddClicked) {
+                        bottleAddClicked = false;
+                        $("#form_bottle_add").hide();
                     }
                     else {
-                        addClicked = true;
-                        $("#form_add").show();
+                        bottleAddClicked = true;
+                        $("#form_bottle_add").show();
+                    }
+                });
+
+                grid.parent().find('button[name=range_add]').click(function () {
+                    if (rangeAddClicked) {
+                        rangeAddClicked = false;
+                        $("#form_range_add").hide();
+                    }
+                    else {
+                        rangeAddClicked = true;
+                        $("#form_range_add").show();
                     }
                 });
 
                 grid.parent().find('button[name=delete]').click(function () {
                     var thisDataRow = grid.data('handsontable').getDataAtRow(selectionRowIndices[0]);
                     var thisDataRowID = thisDataRow[0];
-                    window.location = '/mercurylab/acids/'+thisDataRowID+'/delete';
+                    window.location = '/mercurylab/bottles/'+thisDataRowID+'/delete';
                 });
 
                 grid.parent().find('button[name=edit]').click(function () {
                     var thisDataRow = grid.data('handsontable').getDataAtRow(selectionRowIndices[0]);
                     var thisDataRowID = thisDataRow[0];
-                    window.location = '/mercurylab/acids/'+thisDataRowID+'/edit';
+                    window.location = '/mercurylab/bottles/'+thisDataRowID+'/edit';
                 });
 
                 grid.parent().find('button[name=save]').click(function () {
