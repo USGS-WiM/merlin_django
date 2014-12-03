@@ -37,16 +37,16 @@
                     search: true,
                     startRows: 8,
                     columns: [
-                        {title: 'Project Name', width: 100, type: 'autocomplete', source: function (query, process) {
+                        {title: 'Project Name', width: 100, type: 'autocomplete', strict: true, source: function (query, process) {
                             getValuesAjax('/mercuryservices/projects', 'name', query, process)}
                         },
-                        {title: 'Project ID', width: 70, type: 'autocomplete', source: function (query, process) {
+                        {title: 'Project ID', width: 70, type: 'autocomplete', strict: true, source: function (query, process) {
                             getValuesAjax('/mercuryservices/projects', 'id', query, process)}
                         },
-                        {title: 'Site Name', width: 70, type: 'autocomplete'/*, source: function (query, process) {
+                        {title: 'Site Name', width: 70, type: 'autocomplete', strict: true/*, source: function (query, process) {
                             getValuesAjax('/mercuryservices/sites', 'name', query, process)}*/
                         },
-                        {title: 'Site ID', width: 70, type: 'autocomplete'/*, source: function (query, process) {
+                        {title: 'Site ID', width: 70, type: 'autocomplete', strict: true/*, source: function (query, process) {
                             getValuesAjax('/mercuryservices/sites', 'id', query, process)}*/
                         },
                         // Date, Hour, and Minute as separate columns is temporary until a single column datetime editor can be found for handsontable
@@ -59,12 +59,12 @@
                         {title: 'Rep', width: 50, type: 'numeric'},
                         {title: 'Sample Comments', width: 100, type: 'text'},
                         {title: 'Received', width: 100, type: 'date'},
-                        {title: 'Lab Processing', width: 105, type: 'autocomplete', source: getValuesDom(data_processings,"processing")},
+                        {title: 'Lab Processing', width: 105, type: 'autocomplete', strict: true, source: getValuesDom(data_processings,"processing")},
                         //{title: 'Container ID', width: 100, type: 'text'},
-                        {title: 'Container ID', width: 90, type: 'autocomplete',  source: function (query, process) {
+                        {title: 'Container ID', width: 90, type: 'autocomplete', strict: true,  source: function (query, process) {
                             getValuesAjax('/mercuryservices/bottles', 'bottle_unique_name', query, process)}},
-                        {title: 'Medium', width: 100, type: 'autocomplete', source: getValuesDom(data_mediums,"medium")},
-                        {title: 'Analysis', width: 70, type: 'autocomplete'/*, source: function (query, process) {
+                        {title: 'Medium', width: 100, type: 'autocomplete', strict: true, source: getValuesDom(data_mediums,"medium")},
+                        {title: 'Analysis', width: 70, type: 'autocomplete', strict: true/*, source: function (query, process) {
                             // get coordinates of this cell
                             var thisCell = grid.data('handsontable').getSelected();
                             // get value of cell one column to the left in the same row
@@ -73,11 +73,11 @@
                             getValuesAjax('/mercuryservices/constituents', 'medium', prevCellValue, process)}*/
                         },
                         {title: 'Isotope', width: 55, type: 'dropdown', source: data_isotopes},
-                        {title: 'Filter', width: 100, type: 'autocomplete', source: getValuesDom(data_filters,"filter")},
+                        {title: 'Filter', width: 100, type: 'autocomplete', strict: true, source: getValuesDom(data_filters,"filter")},
                         {title: 'Filter Vol.', width: 65, type: 'numeric'},
-                        {title: 'Preservation', width: 100, type: 'autocomplete', source: getValuesDom(data_preservations, "preservation")},
+                        {title: 'Preservation', width: 100, type: 'autocomplete', strict: true, source: getValuesDom(data_preservations, "preservation")},
                         //{title: 'Acid', width: 100, type: 'autocomplete',  source: getValuesDom(data_acids, "code")},
-                        {title: 'Acid', width: 110, type: 'autocomplete',  source: function (query, process) {
+                        {title: 'Acid', width: 110, type: 'autocomplete', strict: true,  source: function (query, process) {
                             getValuesAjax('/mercuryservices/acids', 'code', query, process)}},
                         {title: 'Acid Vol.', width: 60, type: 'numeric'},
                         {title: 'Pres. Comments', width: 100, type: 'text'}

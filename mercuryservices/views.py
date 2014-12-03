@@ -160,8 +160,9 @@ class FieldSampleBottleViewSet(viewsets.ModelViewSet):
         return queryset
 
 
-class BottleBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
+class BottleBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkUpdateModelMixin, viewsets.ModelViewSet):
     model = Bottle
+    print('bulkbottle')
 
 
 class BottleViewSet(viewsets.ModelViewSet):

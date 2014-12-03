@@ -11,8 +11,8 @@ urlpatterns = patterns('',
     url(r'^restricted/$', views.restricted, name='restricted'),
     url(r'^logout/$', views.user_logout, name='logout'),
 
-    url(r'^sample_login_a/$', views.sample_login_a, name='sample_login_a'),
-    url(r'^sample_login_b/$', views.sample_login_b, name='sample_login_a'),
+#    url(r'^sample_login_a/$', views.sample_login_a, name='sample_login_a'),
+    url(r'^sample_login/$', views.sample_login, name='sample_login'),
     url(r'^sample_login/save$', views.sample_login_save, name='sample_login_save'),
 
     url(r'^sample_bottles/$', views.sample_bottles, name='sample_bottles'),
@@ -62,6 +62,7 @@ urlpatterns = patterns('',
     url(r'^bottles/save$', views.bottles_save, name='bottles_save'),
     url(r'^bottles/load$', views.bottles_load, name='bottles_load'),
     url(r'^bottle_add/$', views.bottle_add, name='bottle_add'),
+    url(r'^bottle_range_add/$', views.bottle_range_add, name='bottle_range_add'),
 
 )
 

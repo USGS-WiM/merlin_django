@@ -72,6 +72,16 @@ class BottleForm(forms.Form):
     description = forms.CharField(help_text="Description", required=False)
 
 
+class BottleRangeForm(forms.Form):
+    prefix = forms.CharField(help_text="Bottle Prefix")
+    suffix = forms.CharField(help_text="Bottle Suffix")
+    range_start = forms.CharField(help_text="Bottle Range Start")
+    range_end = forms.CharField(help_text="Bottle Range End")
+    tare_weight = forms.DecimalField(help_text="Tare Weight")
+    bottle_type = forms.CharField(help_text="Bottle Type")
+    description = forms.CharField(help_text="Description", required=False)
+
+
 class BrominationForm(forms.Form):
     dateTimeOptions = {'format': 'yyyy-mm-dd HH:ii:ss', 'autoclose': True, 'showMeridian': True}
     bromination_date = forms.DateTimeField(help_text="Bromination Date")#, widget=DateTimeWidget(usel10n=True, bootstrap_version=3, options=dateTimeOptions))

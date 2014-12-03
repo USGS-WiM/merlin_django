@@ -44,6 +44,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     #'django_extensions',
     'rest_framework',
+    'rest_framework_swagger',
     'datetimewidget',
     'mercuryservices',
     'mercurylab',
@@ -119,6 +120,14 @@ REST_FRAMEWORK = {
         #'rest_framework.renderers.BrowsableAPIRenderer',
         #'rest_framework.renderers.JSONRenderer',
     #)
+}
+
+SWAGGER_SETTINGS = {
+    "info": {
+        'description': 'This is the documentation site for the MeRLIn '
+                       '(Mercury Research Lab Information Management System) REST Services.',
+        'title': 'MeRLIn REST Services Documentation',
+    },
 }
 
 SUIT_CONFIG = {

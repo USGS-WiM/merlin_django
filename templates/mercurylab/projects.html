@@ -118,9 +118,20 @@
 
 
                 grid.parent().find('button[name=load]').click(function () {
-                    grid.data('handsontable').loadData(data_data.results);
-                    grid.data('handsontable').sort(0);
-                    grid_console.text('Data reloaded.');
+                    $.ajax({
+                        url: '/mercuryservices/projects/?page='+currentPage,
+                        dataType: 'json',
+                        success: function (response) {
+                            grid_console.text("success");
+                            data_data = response;
+                            grid.data('handsontable').loadData(data_data.results);
+                            grid.data('handsontable').sort(0);
+                            grid_console.text('Page '+ currentPage +' data reloaded.');
+                        },
+                        error: function (response) {
+                            grid_console.text("error");
+                        }
+                    });
                 });
 
                 grid.parent().find('button[name=next]').click(function () {

@@ -36,7 +36,7 @@ def sample_login_a(request):
     return render_to_response('mercurylab/sample_login_a.html', context_dict, context)
 
 
-def sample_login_b(request):
+def sample_login(request):
     context = RequestContext(request)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'processings/', auth=TEMP_AUTH)
     processings = json.dumps(r.json(), sort_keys=True)
@@ -49,7 +49,7 @@ def sample_login_b(request):
     r = requests.request(method='GET', url=REST_SERVICES_URL+'acids/', auth=TEMP_AUTH)
     acids = json.dumps(r.json(), sort_keys=True)
     context_dict = {'processings': processings, 'mediums': mediums, 'filters': filters, 'preservations': preservations, 'acids': acids}
-    return render_to_response('mercurylab/sample_login_b.html', context_dict, context)
+    return render_to_response('mercurylab/sample_login.html', context_dict, context)
 
 
 @csrf_exempt
@@ -135,8 +135,9 @@ def bottles(request):
     context = RequestContext(request)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'bottles/', auth=TEMP_AUTH)
     data = json.dumps(r.json(), sort_keys=True)
-    form = BottleForm()
-    context_dict = {'data': data, 'form': form}
+    bottle_form = BottleForm()
+    bottle_range_form = BottleRangeForm()
+    context_dict = {'data': data, 'bottle_form': bottle_form, 'bottle_range_form': bottle_range_form}
     return render_to_response('mercurylab/bottles.html', context_dict, context)
 
 
@@ -160,7 +161,31 @@ def bottle_add(request):
 
     if form.is_valid():
         requests.request(method='POST', url=REST_SERVICES_URL+'bottles/', data=form.cleaned_data, auth=TEMP_AUTH)
-        return bottles(request)
+        return HttpResponseRedirect('/mercurylab/bottles/')
+    else:
+        print(form.errors)
+
+
+# Blank editable form to add a range of bottles
+@csrf_exempt
+def bottle_range_add(request):
+    form = BottleRangeForm(request.POST)
+
+    if form.is_valid():
+        params = form.cleaned_data
+        digits = len(params['range_start'])
+        start = int(params['range_start'])
+        end = int(params['range_end'])
+        new_bottles = []
+        for i in range(start, end+1, 1):
+            new_name = params['prefix'] + str(i).rjust(digits, '0') + params['suffix']
+            new_bottle = {'bottle_unique_name': new_name, 'description': params['description'], 'tare_weight': float(params['tare_weight']), 'bottle_type': int(params['bottle_type'])}
+            new_bottles.append(new_bottle)
+        new_bottles = json.dumps(new_bottles)
+        r = requests.request(method='POST', url=REST_SERVICES_URL+'bulkbottles/', data=new_bottles, auth=TEMP_AUTH, headers=JSON_HEADERS)
+        response_data = r.json()
+        print(response_data)
+        return HttpResponseRedirect('/mercurylab/bottles/')
     else:
         print(form.errors)
 
