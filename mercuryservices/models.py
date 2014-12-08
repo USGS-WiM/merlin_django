@@ -238,6 +238,7 @@ class Result(models.Model):
 
     field_sample_bottle = models.ForeignKey('FieldSampleBottle')
     method = models.ForeignKey('MethodType')
+    constituent = models.ForeignKey('ConstituentType')
     isotope_flag = models.ForeignKey('IsotopeFlag')
     detection_flag = models.ForeignKey('DetectionFlag')
     raw_value = models.FloatField()

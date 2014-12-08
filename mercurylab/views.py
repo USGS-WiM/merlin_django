@@ -1,5 +1,6 @@
 import json
 import requests
+from collections import Counter
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import RequestContext
 from django.shortcuts import render, render_to_response
@@ -15,6 +16,7 @@ REST_SERVICES_URL = 'http://localhost:8000/mercuryservices/'
 TEMP_AUTH = ('admin', 'admin')
 JSON_HEADERS = {'content-type': 'application/json'}
 
+SAMPLE_KEYS_UNIQUE = ["project", "site", "time_stamp", "depth", "replicate"]
 SAMPLE_KEYS = ["project", "site", "time_stamp", "depth", "length", "received_time_stamp", "login_comment",
                  "replicate", "medium_type", "lab_processing", "field_sample_bottles"]
 SAMPLE_BOTTLE_KEYS = ["field_sample", "bottle", "constituent_type", "filter_type", "volume_filtered",
@@ -54,46 +56,106 @@ def sample_login(request):
 
 @csrf_exempt
 def sample_login_save(request):
-    data = json.loads(request.body.decode('utf-8'))
+    table = json.loads(request.body.decode('utf-8'))
     unique_sample_ids = []
+    unique_sample_bottles = []
+    unique_sample_analyses = []
     sample_data = []
     sample_bottle_data = []
 
+    ## PARSE ROWS AND VALIDATE ##
     # analyze each submitted row, parsing sample data and sample bottle data
-    for item in data:
+    for row in table:
+        print(row)
         # grab the data that uniquely identifies each sample
-        this_sample_id = str(item['project'])+"|"+str(item['site'])+"|"+str(item['time_stamp'])+"|"+str(item['depth'])+"|"+str(item['replicate'])
+        this_sample_id = str(row['project'])+"|"+str(row['site'])+"|"+str(row['time_stamp'])+"|"+str(row['depth'])+"|"+str(row['replicate'])
+        print(this_sample_id)
         # if this sample ID is not already in the unique list, add it, otherwise skip the sample data for this row
         if this_sample_id not in unique_sample_ids:
             unique_sample_ids.append(this_sample_id)
-            # create a sample object using the sample data within this row
-            sample_values = [item['project'], item['site'], item['time_stamp'], item['depth'], item['length'], (item['received_time_stamp']), item['login_comment'], item['replicate'], 47, 2] #item['medium_type'], item['lab_processing']]
+
+            # validate this sample doesn't exist in the database, otherwise notify the user
+            sample_values_unique = [row['project'], row['site'], row['time_stamp'], row['depth'], row['replicate']]
+            this_sample_unique = dict(zip(SAMPLE_KEYS_UNIQUE, sample_values_unique))
+            # couldn't get requests.request() to work properly here, so using requests.get() instead
+            #r = requests.request(method='GET', url=REST_SERVICES_URL+'samples/', data=this_sample_unique, auth=TEMP_AUTH, headers=JSON_HEADERS)
+            r = requests.get(REST_SERVICES_URL+'samples/', params=this_sample_unique)
+            response_data = r.json()
+            print(response_data['count'])
+            # if response count does not equal zero, then this sample already exists in the database
+            if response_data['count'] != 0:
+                this_sample_unique_str = str(json.loads(this_sample_unique))
+                print(this_sample_unique_str)
+                message = "\"This Sample already exists in the database: " + this_sample_unique_str + "\""
+                print(message)
+                return HttpResponse(message, content_type='text/html')
+            print("count = 0")
+
+            # if this is a new and valid sample, create a sample object using the sample data within this row
+            print(row['length'])
+            sample_values = [row['project'], row['site'], row['time_stamp'], row['depth'], row['length'], row['received_time_stamp'], row['login_comment'], row['replicate'], 47, 2] #row['medium_type'], row['lab_processing']]
+            print(sample_values)
             this_sample = dict(zip(SAMPLE_KEYS, sample_values))
             sample_data.append(this_sample)
+
+        print("validate bottle ID")
+        # validate this bottle is used in only one sample, otherwise notify the user
+        this_sample_bottle = [str(row['bottle']), this_sample_id]
+        print(this_sample_bottle)
+        if this_sample_bottle not in unique_sample_bottles:
+            unique_sample_bottles.append(this_sample_bottle)
+        unique_sample_bottle_counter = Counter()
+        for unique_sample_bottle in unique_sample_bottles:
+            unique_sample_bottle_counter[unique_sample_bottle] += 1
+            print(unique_sample_bottle_counter[unique_sample_bottle])
+            if unique_sample_bottle_counter[unique_sample_bottle] > 1:
+                unique_sample_bottle_str = str(json.loads(unique_sample_bottle[0]))
+                message = "\"This Bottle appears in more than one sample: " + unique_sample_bottle_str + "\""
+                print(message)
+                return HttpResponse(message, content_type='text/html')
+
+        # validate no analysis is used more than once per sample, otherwise notify the user
+        this_analysis = this_sample_id+"|"+str(row['constituent_type'])
+        print(this_analysis)
+        if this_analysis not in unique_sample_analyses:
+            unique_sample_analyses.append(this_analysis)
+        else:
+            this_analysis_str = str(json.loads(this_analysis))
+            message = "\"This Analysis appears more than once in this sample: " + this_analysis_str + "\""
+            print(message)
+            return HttpResponse(message, content_type='text/html')
+
         # create a sample bottle object using the sample bottle data within this row
-        sample_bottle_values = [this_sample_id, item['bottle'], item['constituent_type'], item['filter_type'], item['volume_filtered'], item['preservation_type'], item['preservation_volume'], item['preservation_acid'], item['preservation_comment']]
+        sample_bottle_values = [this_sample_id, row['bottle'], row['constituent_type'], row['filter_type'], row['volume_filtered'], row['preservation_type'], row['preservation_volume'], row['preservation_acid'], row['preservation_comment']]
         this_sample_bottle = dict(zip(SAMPLE_BOTTLE_KEYS, sample_bottle_values))
         # add this new sample bottle object to the list
         sample_bottle_data.append(this_sample_bottle)
 
-    # save samples first and then get their database IDs, which are required for later saving the sample bottles
+    ## SAVING ##
+    # save samples first and then get their database IDs, which are required for saving the sample bottles afterward
+
+    ## SAVE SAMPLES ##
+    # send the samples to the database
     sample_data = json.dumps(sample_data)
     r = requests.request(method='POST', url=REST_SERVICES_URL+'bulksamples/', data=sample_data, auth=TEMP_AUTH, headers=JSON_HEADERS)
     response_data = r.json()
     # store the IDs as an array of dictionaries, where the keys are the combo IDs and the values are the database IDs
     sample_ids = []
     for item in response_data:
-        # using a hacky workaround to handle the "T" in the time_stamp; there's probably a better way to handle this
+        # using a hacky workaround here to handle the "T" in the time_stamp; there's probably a better way to handle this
         sample_id = {'combo_id': str(item['project'])+"|"+str(item['site'])+"|"+str(item['time_stamp']).replace("T", " ")+"|"+str(int(item['depth']))+"|"+str(item['replicate']), 'db_id': item['id']}
         sample_ids.append(sample_id)
 
+    ## SAVE SAMPLE BOTTLES ##
     # update the sample bottles with the database IDs, rather than the combo IDs
     for sample_id in sample_ids:
         for sample_bottle in sample_bottle_data:
             if sample_bottle['field_sample'] == sample_id['combo_id']:
                 sample_bottle['field_sample'] = sample_id['db_id']
+    # send the sample bottles to the database
     sample_bottle_data = json.dumps(sample_bottle_data)
     r = requests.request(method='POST', url=REST_SERVICES_URL+'bulksamplebottles/', data=sample_bottle_data, auth=TEMP_AUTH, headers=JSON_HEADERS)
+    # send the response (data & messages) back to the user interface
     return HttpResponse(r, content_type='application/json')
 
 
@@ -485,18 +547,10 @@ def user_logout(request):
 def profile(request):
     context = RequestContext(request)
 
-    context_dict = {'username': request.user.username,
-                    'initials': request.user.userprofile.initials,
-                    'phone': request.user.userprofile.phone, }
+    context_dict = {'username': request.user.username, 'fname': request.user.first_name, 'lname': request.user.last_name,
+                    'initials': request.user.userprofile.initials, 'phone': request.user.userprofile.phone, }
 
     return render_to_response('mercurylab/profile.html', context_dict, context)
-
-
-@login_required
-def restricted(request):
-    #return HttpResponse("Since you're logged in, you can see this text!")
-    context = RequestContext(request)
-    return render_to_response('mercurylab/restricted.html', {}, context)
 
 
 def about(request):

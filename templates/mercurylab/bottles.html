@@ -67,7 +67,7 @@
         <script>
             $(document).ready(function() {
 
-                var objectFields = ["ID", "Unique Bottle Name", "Description", "Tare Weight", "Bottle Type"];
+                var objectFields = ["Unique Bottle Name", "Description", "Tare Weight", "Bottle Type"];
                 var currentPage = 1;
                 var bottleAddClicked = false;
                 var rangeAddClicked = false;
@@ -82,7 +82,7 @@
                     contextMenu: true,
                     //minSpareRows: 1,
                     data: data_data.results,
-                    columns: [{data: "id", readOnly: true},{data: "bottle_unique_name"},{data: "description"},{data: "tare_weight"},{data: "bottle_type"}],
+                    columns: [{data: "bottle_unique_name"},{data: "description"},{data: "tare_weight"},{data: "bottle_type"}],
                     columnSorting: { column: 0 },
                     afterChange: function(changes, source) {
                         if (source != 'loadData') {

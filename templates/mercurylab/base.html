@@ -17,7 +17,7 @@
         <link href="{% static 'css/dashboard.css' %}" rel="stylesheet" media="screen">
         <link href="{% static 'css/simple-sidebar.css' %}" rel="stylesheet" media="screen">
 
-        <link href="{% static 'css/jquery.handsontable.css' %}" rel="stylesheet" media="screen">
+        <link href="{% static 'css/handsontable.full.css' %}" rel="stylesheet" media="screen">
         <link href="{% static 'css/jquery-ui.min.css' %}" rel="stylesheet" media="screen">
         <link href="{% static 'css/select2.css' %}" rel="stylesheet">
         <link href="{% static 'css/mercurylab.css' %}" rel="stylesheet">
@@ -25,7 +25,7 @@
     	<script src="{% static 'js/jquery-2.1.1.min.js' %}"></script>
         <script src="{% static 'js/jquery-ui.min.js' %}"></script>
         <script src="{% static 'js/bootstrap.min.js' %}"></script>
-        <script src="{% static 'js/jquery.handsontable.full.js' %}"></script>
+        <script src="{% static 'js/handsontable.full.js' %}"></script>
         <script src="{% static 'js/select2.min.js' %}"></script>
         <script src="{% static 'js/mercurylab.js' %}"></script>
 
@@ -56,9 +56,6 @@
                         {% endif %}
                     </ul>
                     <ul class="nav navbar-nav">
-                        {% if user.is_authenticated %}
-                            <li><a href="/mercurylab/restricted">Restricted Page</a></li>
-                        {% endif %}
                         <li><a href="/mercurylab/about">About</a></li>
                     </ul>
                 </div>

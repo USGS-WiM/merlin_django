@@ -51,7 +51,7 @@
         <script>
             $(document).ready(function() {
 
-                var objectFields = ["ID", "Lot Number", "Concentration", "Comment"];
+                var objectFields = ["Lot Number", "Concentration", "Comment"];
                 var currentPage = 1;
                 var addClicked = false;
                 var grid = $('#grid');
@@ -65,7 +65,7 @@
                     contextMenu: true,
                     //minSpareRows: 1,
                     data: data_data.results,
-                    columns: [{data: "id", readOnly: true},{data: "lot_number"},{data: "concentration"},{data: "comment"}],
+                    columns: [{data: "lot_number"},{data: "concentration"},{data: "comment"}],
                     columnSorting: { column: 0 },
                     afterChange: function(changes, source) {
                         if (source != 'loadData') {

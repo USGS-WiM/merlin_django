@@ -25,6 +25,30 @@
                 var data_projects;
                 var data_sites;
                 var data_constituents;
+                var validateTime = function(value, callback) {
+                    // convert the string to number to allow math operations; also trims off leading zeroes
+                    value = Number(value);
+                    switch (value.toString().length) {
+                        case 2: // between 12:09am and 1:00am (00:xx)
+                            // minutes must be less than 60
+                            if(value < 60){callback(true);}
+                            else {callback(false);}
+                            break;
+                        case 3: // between 1am and 10am (1:xx thru 9:xx)
+                            // convert to string to extract the minutes, then convert back to number to test if less than 60 (all single digit hours (1 thru 9) are allowed and thus not tested)
+                            if(Number(value.toString().substring(1,3)) < 60){callback(true);}
+                            else {callback(false);}
+                            break;
+                        case 4: // after 10am (10:xx thru xx:xx)
+                            // convert to string to separately extract hours and minutes, then convert back to number to test if less than 24 and 60, respectively
+                            if(Number(value.toString().substring(0,2)) < 24 && Number(value.toString().substring(2,4)) < 60){callback(true);}
+                            else {callback(false);}
+                            break;
+                        default: // any other cases (1 digit, 00:00 thru 00:09) are allowed; column is already limited to 4 digits in the constructor, so no need to test for cases of 5 or more digits
+                            {callback(true);}
+                            break;
+                    }
+                };
                 var objectFields = ["skip_project_name", "project", "skip_site_name", "site", "skip_date", "time_stamp", "depth", "length", "replicate", "login_comment", "received_time_stamp", "lab_processing", "bottle", "medium_type", "constituent_type", /*"isotopic_analysis",*/ "skip_isotope", "filter_type", "volume_filtered", "preservation_type", "preservation_acid", "preservation_volume", "preservation_comment"];
                 var grid_console = $("#grid_console");
                 var changedRowIndices = [];
@@ -50,15 +74,15 @@
                             getValuesAjax('/mercuryservices/sites', 'id', query, process)}*/
                         },
                         // Date, Hour, and Minute as separate columns is temporary until a single column datetime editor can be found for handsontable
-                        {title: 'Date', width: 100, type: 'date'},
-                        {title: 'Time', width: 60, type: 'text'},
+                        {title: 'Date', width: 100, type: 'date', maxDate: 0},
+                        {title: 'Time', width: 60, type: 'numeric', validator: validateTime},
                         //{title: 'Hour', width: 50, type: 'autocomplete', source: getRange(24)},
                         //{title: 'Minute', width: 50, type: 'autocomplete', source: getRange(60)},
                         {title: 'Depth', width: 50, type: 'numeric'},
                         {title: 'Length', width: 50, type: 'numeric'},
                         {title: 'Rep', width: 50, type: 'numeric'},
                         {title: 'Sample Comments', width: 100, type: 'text'},
-                        {title: 'Received', width: 100, type: 'date'},
+                        {title: 'Received', width: 100, type: 'date', maxDate: 0},
                         {title: 'Lab Processing', width: 105, type: 'autocomplete', strict: true, source: getValuesDom(data_processings,"processing")},
                         //{title: 'Container ID', width: 100, type: 'text'},
                         {title: 'Container ID', width: 90, type: 'autocomplete', strict: true,  source: function (query, process) {
@@ -85,7 +109,7 @@
                     // define event handlers
                     beforeChange: function(changes, source) {
                         // "changes" is a 2D array containing information about each of the edited cells [ [row, col, oldVal, newVal], [row, col, oldVal, newVal], ... ].
-                        // "source" is one of the strings: "alter", "empty", "edit", "populateFromArray", "loadData", "autofill", "paste".
+                        // "source" is one of the following strings: "alter", "empty", "edit", "populateFromArray", "loadData", "autofill", "paste".
 
                         // get index of changed row
                         var changedRow = changes[0][0];
@@ -175,6 +199,9 @@
                                 // update site ID to match site name
                                 var newValue = updateValueAjax('/mercuryservices/sites/', 'name', 'id', changedVal);
                                 grid.handsontable('setDataAtCell', changedRow, 3, newValue);
+                                // also update depth to default of 0 and rep to default of 1
+                                grid.handsontable('setDataAtCell', changedRow, 4, 0);
+                                grid.handsontable('setDataAtCell', changedRow, 6, 1);
                             }
                             // when site ID is changed to a non-null, non-blank value
                             if (changedCol == 3 && changedVal !== null && changedVal !== "") {

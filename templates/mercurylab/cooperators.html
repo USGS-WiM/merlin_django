@@ -51,10 +51,10 @@
         <script>
             $(document).ready(function() {
 
-                var objectFields = ["id", "name", "agency", "email", "phone", "sec_phone", "address", "city", "state", "zipcode", "country", "projects"];
+                var objectFields = ["Name", "Agency", "Email", "Phone", "Sec. Phone", "Address", "City", "State", "Zipcode", "Country", "Projects"];
                 var currentPage = 1;
                 var addClicked = false;
-                function getColumns() {
+                /*function getColumns() {
                     var cols = [];
                     var col = {};
                     for (var i = 0; i < objectFields.length; i++){
@@ -67,7 +67,7 @@
                         cols.push(col);
                     }
                     return cols;
-                }
+                }*/
                 var grid = $('#grid');
                 var data_data = JSON.parse(grid.attr("data-data"));
                 var grid_console = $("#grid_console");
@@ -75,14 +75,14 @@
                 var selectionRowIndices = [];
                 grid_console.text('Loading data.');
                 grid.handsontable({
-                    colWidths: [40,160,120,160,120,120,160,120,80,80,80,120],
+                    colWidths: [160,120,160,120,120,160,120,80,80,80,120],
                     colHeaders: objectFields,
                     contextMenu: true,
                     search: true,
                     //minSpareRows: 1,
                     data: data_data.results,
-                    columns: getColumns(),
-                    //columns: [{data: "id", readOnly: true},{data: "name"},{data: "agency"},{data: "email"},{data: "phone"},{data: "sec_phone"},{data: "address"},{data: "city"},{data: "state"},{data: "zipcode"},{data: "country"},{data: "projects"}],
+                    //columns: getColumns(),
+                    columns: [{data: "name"},{data: "agency"},{data: "email"},{data: "phone"},{data: "sec_phone"},{data: "address"},{data: "city"},{data: "state"},{data: "zipcode"},{data: "country"},{data: "projects"}],
                     columnSorting: { column: 0 },
                     afterChange: function(changes, source) {
                         // get list of changed rows
