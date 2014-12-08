@@ -51,7 +51,7 @@
         <script>
             $(document).ready(function() {
 
-                var objectFields = ["ID", "Name", "USGS SID", "USGS SCODE", "Description", "Latitude DD", "Longitude DD", "Datum", "Method", "Site Status", "NWIS Customer Code", "Projects"];
+                var objectFields = [Name", "USGS SID", "USGS SCODE", "Description", "Latitude DD", "Longitude DD", "Datum", "Method", "Site Status", "NWIS Customer Code", "Projects"];
                 var currentPage = 1;
                 var addClicked = false;
                 var grid = $('#grid');
@@ -65,7 +65,7 @@
                     contextMenu: true,
                     //minSpareRows: 1,
                     data: data_data.results,
-                    columns: [{data: "id", readOnly: true},{data: "name"},{data: "usgs_sid"},{data: "usgs_scode"},{data: "description"},{data: "latitudedd"},{data: "longitudedd"},{data: "datum"},{data: "method"},{data: "site_status"},{data: "nwis_customer_code"},{data: "projects"}],
+                    columns: [{data: "name"},{data: "usgs_sid"},{data: "usgs_scode"},{data: "description"},{data: "latitudedd"},{data: "longitudedd"},{data: "datum"},{data: "method"},{data: "site_status"},{data: "nwis_customer_code"},{data: "projects"}],
                     columnSorting: { column: 0 },
                     afterChange: function(changes, source) {
                         if (source != 'loadData') {

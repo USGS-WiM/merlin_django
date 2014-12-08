@@ -131,8 +131,32 @@ class FieldSampleBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkUpdateModelMi
 
 class FieldSampleViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    queryset = FieldSample.objects.all()
+    # queryset = FieldSample.objects.all()
     serializer_class = FieldSampleSerializer
+    paginate_by = 100
+
+    def get_queryset(self):
+        queryset = FieldSample.objects.all()
+        id = self.request.QUERY_PARAMS.get('id', None)
+        if id is not None:
+            queryset = queryset.filter(id__exact=id)
+        # a unique field sample is determined by project+site+time_stamp+depth+replicate
+        project = self.request.QUERY_PARAMS.get('project', None)
+        if project is not None:
+            queryset = queryset.filter(project__exact=project)
+        site = self.request.QUERY_PARAMS.get('site', None)
+        if site is not None:
+            queryset = queryset.filter(site__exact=site)
+        time_stamp = self.request.QUERY_PARAMS.get('time_stamp', None)
+        if time_stamp is not None:
+            queryset = queryset.filter(time_stamp__exact=time_stamp)
+        depth = self.request.QUERY_PARAMS.get('depth', None)
+        if depth is not None:
+            queryset = queryset.filter(depth__exact=depth)
+        replicate = self.request.QUERY_PARAMS.get('replicate', None)
+        if replicate is not None:
+            queryset = queryset.filter(replicate__exact=replicate)
+        return queryset
 
 
 class FieldSampleBottleBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkUpdateModelMixin, viewsets.ModelViewSet):
@@ -150,7 +174,8 @@ class FieldSampleBottleViewSet(viewsets.ModelViewSet):
         queryset = FieldSampleBottle.objects.all()
         id = self.request.QUERY_PARAMS.get('id', None)
         if id is not None:
-            queryset = queryset.filter(id__exact=id)
+            id_list = id.split(',')
+            queryset = queryset.filter(id__in=id_list)
         bottle = self.request.QUERY_PARAMS.get('bottle', None)
         if bottle is not None:
             queryset = queryset.filter(bottle__exact=bottle)
@@ -162,7 +187,6 @@ class FieldSampleBottleViewSet(viewsets.ModelViewSet):
 
 class BottleBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkUpdateModelMixin, viewsets.ModelViewSet):
     model = Bottle
-    print('bulkbottle')
 
 
 class BottleViewSet(viewsets.ModelViewSet):

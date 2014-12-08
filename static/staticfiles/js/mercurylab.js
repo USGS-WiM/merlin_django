@@ -23,7 +23,7 @@ function getValuesDom(domDataObject,attribute) {
     var values = [];
     // var dom_data_object = JSON.parse(grid.attr(domDataObject));
     // var dom_data_object = domDataObject;
-    for (var i = 0; i < domDataObject.length; i++){
+    for (var i = 0; i < domDataObject.length; i++) {
         values.push(String(domDataObject[i][attribute]))
     }
     return values;
@@ -34,7 +34,7 @@ function getValuesAjax(url, arg, query, process) {
         dataType: 'json',
         data: arg + "=" + query,
         success: function (response) {
-            console.log("success: getValuesAjax");
+            //console.log("success: getValuesAjax");
             var values = [];
             // check for paginated response
             if ("results" in response) {
@@ -50,9 +50,18 @@ function getValuesAjax(url, arg, query, process) {
             process(values);
         },
         error: function (response) {
-            console.log("error: getValuesAjax");
+            console.log("ERROR during request by function getValuesAjax to " + url + "?" + arg + "=" + query);
         }
     });
+}
+function updateValueDom(domDataObject, searchKey, resultKey, searchVal) {
+    var returnVal = "";
+    for (var i = 0; i < domDataObject.length; i++) {
+        if (domDataObject[i][searchKey] == searchVal) {
+            returnVal = domDataObject[i][resultKey];
+        }
+    }
+    return returnVal;
 }
 function updateValueAjax(url, arg, newKey, changedVal) {
     var newValue;
@@ -62,7 +71,7 @@ function updateValueAjax(url, arg, newKey, changedVal) {
         dataType: 'json',
         data: arg + "=" + changedVal,
         success: function (response) {
-            console.log("success: updateValueAjax");
+            //console.log("success: updateValueAjax");
             if ("results" in response) {
                 newValue = response['results'][0][newKey];
             }
@@ -71,24 +80,24 @@ function updateValueAjax(url, arg, newKey, changedVal) {
             }
         },
         error: function (response) {
-            console.log("error: updateValueAjax");
+            console.log("ERROR during request by function updateValueAjax to " + url + "?" + arg + "=" + changedVal);
         }
     });
     return newValue;
 }
 // this function never really worked
-function updateDomDataObjectAjax(url, arg, domDataObject, changedValue) {
+function updateDomDataObjectAjax(url, arg, domDataObject, changedVal) {
     $.ajax({
         url: url,
         dataType: 'json',
-        data: arg + "=" + changedValue,
+        data: arg + "=" + changedVal,
         success: function (response) {
-            console.log("success: updateDomDataObjectAjax");
+            //console.log("success: updateDomDataObjectAjax");
             // update the local full object collection
             domDataObject = response;
         },
         error: function (response) {
-            console.log("error: updateDomDataObjectAjax");
+            console.log("ERROR during request by function updateDomDataObjectAjax to " + url + "?" + arg + "=" + changedVal);
         }
     });
 }

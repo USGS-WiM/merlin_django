@@ -51,7 +51,7 @@
         <script>
             $(document).ready(function() {
 
-                var objectFields = ["ID", "Name", "Description", "Accounting Code", "Cooperator"];
+                var objectFields = ["Name", "Description", "Accounting Code", "Cooperator"];
                 var currentPage = 1;
                 var addClicked = false;
                 var grid = $('#grid');
@@ -65,7 +65,7 @@
                     contextMenu: true,
                     //minSpareRows: 1,
                     data: data_data.results,
-                    columns: [{data: "id", readOnly: true},{data: "name"},{data: "description"},{data: "accounting_code"},{data: "cooperator"}],
+                    columns: [{data: "name"},{data: "description"},{data: "accounting_code"},{data: "cooperator"}],
                     columnSorting: { column: 0 },
                     afterChange: function(changes, source) {
                         if (source != 'loadData') {

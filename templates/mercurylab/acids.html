@@ -51,7 +51,7 @@
         <script>
             $(document).ready(function() {
 
-                var objectFields = ["ID", "Code", "Concentration", "Comment"];
+                var objectFields = ["Code", "Concentration", "Comment"];
                 var currentPage = 1;
                 var addClicked = false;
                 var grid = $('#grid');
@@ -66,7 +66,7 @@
                     search: true,
                     //minSpareRows: 1,
                     data: data_data.results,
-                    columns: [{data: "id", readOnly: true},{data: "code"},{data: "concentration"},{data: "comment"}],
+                    columns: [{data: "code"},{data: "concentration"},{data: "comment"}],
                     columnSorting: { column: 0 },
                     afterChange: function(changes, source) {
                         if (source != 'loadData') {
