@@ -5,6 +5,7 @@ urlpatterns = patterns('',
 
     url(r'^mercuryadmin/', include(admin.site.urls)),
     url(r'^mercuryservices/', include('mercuryservices.urls')),# namespace="mercuryservices")),
+    #url(r'^mercuryauth/', include('djoser.urls')),
     url(r'^mercurydocs/', include('rest_framework_swagger.urls')),
     url(r'^mercurylab/', include('mercurylab.urls', namespace="mercurylab")),
 )

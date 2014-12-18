@@ -44,6 +44,8 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     #'django_extensions',
     'rest_framework',
+    'rest_framework.authtoken',
+    'djoser',
     'rest_framework_swagger',
     'datetimewidget',
     'mercuryservices',
@@ -114,6 +116,11 @@ TEMPLATE_CONTEXT_PROCESSORS = TCP + (
 )
 
 REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    )
     #'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',)
     #'DEFAULT_RENDERER_CLASSES': (
         #'rest_framework.renderers.TemplateHTMLRenderer',

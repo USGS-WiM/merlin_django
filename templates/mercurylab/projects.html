@@ -30,7 +30,7 @@
                 <ul class="select2-choices">
                     <li class="select2-search-field">
                         <label class="select2-offscreen"></label>
-                        <input id="search_field" type="search" placeholder="Highlight in table." class="select2-input select2-default" style="width:593px;height:40px;font-size:21px;color:"/>
+                        <input id="search_field" type="search" placeholder="Highlight in table." class="select2-input select2-default" style="width:593px;height:40px;font-size:21px;"/>
                     </li>
                 </ul>
             </div>
@@ -51,26 +51,62 @@
         <script>
             $(document).ready(function() {
 
-                var objectFields = ["Name", "Description", "Accounting Code", "Cooperator"];
+                var csrftoken = $.cookie('csrftoken');
+                function csrfSafeMethod(method) {
+                    // these HTTP methods do not require CSRF protection
+                    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+                }
+                $.ajaxSetup({
+                    beforeSend: function(xhr, settings) {
+                        if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                        }
+                    }
+                });
+
+                var objectFields = ["id", "name", "description", "accounting_code", "cooperator"];
                 var currentPage = 1;
                 var addClicked = false;
                 var grid = $('#grid');
                 var data_data = JSON.parse(grid.attr("data-data"));
                 var grid_console = $("#grid_console");
-                var changesRowIndices = [];
+                var changedRowIndices = [];
+                var selectionRowIndices = [];
                 grid_console.text('Loading data.');
                 grid.handsontable({
-                    colWidths: [40,200,500],
-                    colHeaders: objectFields,
-                    contextMenu: true,
-                    //minSpareRows: 1,
                     data: data_data.results,
-                    columns: [{data: "name"},{data: "description"},{data: "accounting_code"},{data: "cooperator"}],
+                    columns: [
+                        {title: "ID", data: "id", readOnly: true, width: 1},
+                        {title: "Name", data: "name", width: 400},
+                        {title: "Description", data: "description", width: 600},
+                        {title: "Accounting Code", data: "accounting_code", width: 150},
+                        {title: "Cooperator", data: "cooperator", width: 150}
+                    ],
+                    search: true,
                     columnSorting: { column: 0 },
-                    afterChange: function(changes, source) {
+                    beforeChange: function(changes, source) {
+                         // "changes" is a 2D array containing information about each of the edited cells [ [row, col, oldVal, newVal], [row, col, oldVal, newVal], ... ].
+                        // "source" is one of the following strings: "alter", "empty", "edit", "populateFromArray", "loadData", "autofill", "paste".
+
+                        // get index of changed row
+                        var changedRow = changes[0][0];
+
+                        // remember the indices of all changed rows
                         if (source != 'loadData') {
-                            changesRowIndices.push(changes[0][0]);
+                            // find index of this row in the changed rows array
+                            var changedRowIndex = changedRowIndices.indexOf(changedRow);
+                            // if not in the array (index == -1), add it to the array, otherwise ignore
+                            if (changedRowIndex == -1){
+                                changedRowIndices.push(changedRow);
+                            }
                         }
+                    },
+                    // get list of selected rows
+                    afterSelectionEnd: function(r, c, r2, c2) {
+                        //for (var i = r; i < (r2+1); i++){
+                            selectionRowIndices.push(r);
+                        //}
+
                     }
                 });
                 grid.data('handsontable').sort(0);
@@ -195,7 +231,7 @@
 
                 grid.parent().find('button[name=save]').click(function () {
                     var changedDataArray = [];
-                    $.each(changesRowIndices, function(index, value) {
+                    $.each(changedRowIndices, function(index, value) {
                         var thisDataRow = grid.data('handsontable').getDataAtRow(value);
                         var thisDataObject = {};
                         for (var i = 0; i < thisDataRow.length; i++) {
@@ -210,16 +246,22 @@
                         dataType: 'json',
                         contentType: "application/json",
                         type: 'POST',
-                        success: function (data, outcome, response) {
-                            if (response.status === 200) {
-                                grid_console.text(outcome+': Data saved.');
-                              }
-                              else {
-                                grid_console.text(outcome+': Save error: '+response.statusText+', code: '+response.status+'.');
-                              }
+                        success: function (data, textStatus, jqXHRequest) {
+                            var content_type = jqXHRequest.getResponseHeader("content-type");
+                            // if the content-type is plain text, then it's a custom message from our Django view
+                            if (content_type.indexOf('text') > -1) {
+                                grid_console.text(data);
+                            }
+                            // otherwise, it's JSON from the REST Services
+                            else if (jqXHRequest.status === 200) {
+                                grid_console.text(textStatus+': Data saved.');
+                            }
+                            else {
+                                grid_console.text(textStatus+': Save error: '+jqXHRequest.statusText+', code: '+jqXHRequest.status+'.');
+                            }
                         },
-                        error: function () {
-                            grid_console.text('403: Save error. POST method is not allowed.');
+                        error: function (jqXHRequest, textStatus, errorThrown) {
+                            grid_console.text(errorThrown + ": " + textStatus);
                         }
                     });
                 });

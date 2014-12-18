@@ -12,10 +12,11 @@ router.register(r'projects', views.ProjectViewSet, 'projects')
 router.register(r'bulkcooperators', views.CooperatorBulkUpdateViewSet)
 router.register(r'sites', views.SiteViewSet, 'sites')
 router.register(r'bulksites', views.SiteBulkUpdateViewSet)
-router.register(r'samples', views.FieldSampleViewSet, 'samples')
-router.register(r'bulksamples', views.FieldSampleBulkCreateUpdateViewSet)
-router.register(r'samplebottles', views.FieldSampleBottleViewSet, 'samplebottles')
-router.register(r'bulksamplebottles', views.FieldSampleBottleBulkCreateUpdateViewSet)
+router.register(r'samples', views.SampleViewSet, 'samples')
+router.register(r'bulksamples', views.SampleBulkCreateUpdateViewSet)
+router.register(r'samplebottles', views.SampleBottleViewSet, 'samplebottles')
+router.register(r'bulksamplebottles', views.SampleBottleBulkCreateUpdateViewSet)
+router.register(r'samplebottlebrominations', views.SampleBottleBrominationViewSet, 'samplebottlebrominations')
 router.register(r'bottles', views.BottleViewSet, 'bottles')
 router.register(r'bulkbottles', views.BottleBulkCreateUpdateViewSet)
 router.register(r'filters', views.FilterTypeViewSet)
@@ -42,5 +43,8 @@ router.register(r'procedures', views.ProcedureTypeViewSet)
 
 urlpatterns = patterns('',
                        url(r'^', include(router.urls)),
+                       #url(r'^login/', views.UserLoginView.as_view(), name='login'),
+                       #url(r'^logout/', views.UserLogoutView.as_view(), name='logout'),
                        url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+                       url(r'^auth/', include('djoser.urls')),
                        )

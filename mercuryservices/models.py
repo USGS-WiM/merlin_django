@@ -23,7 +23,7 @@ class Cooperator(models.Model):
     state = models.CharField(max_length=2, blank=True)
     zipcode = models.BigIntegerField(null=True, blank=True)
     country = models.CharField(max_length=128, blank=True)
-    #status = models.ForeignKey('Status')
+    status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -36,7 +36,7 @@ class Project(models.Model):
     description = models.CharField(max_length=128, blank=True)
     accounting_code = models.CharField(max_length=128, blank=True)
     cooperator = models.ForeignKey('Cooperator', related_name='projects')
-    #status = models.ForeignKey('Status')
+    status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -49,14 +49,14 @@ class Site(models.Model):
     usgs_sid = models.CharField(max_length=128, blank=True)
     usgs_scode = models.CharField(max_length=128, blank=True)
     description = models.TextField(blank=True)
-    latitudedd = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    longitudedd = models.DecimalField(max_digits=11, decimal_places=3, null=True, blank=True)
+    latitude = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=11, decimal_places=3, null=True, blank=True)
     datum = models.CharField(max_length=128, blank=True)
     method = models.CharField(max_length=128, blank=True)
     site_status = models.CharField(max_length=128, blank=True)
     nwis_customer_code = models.CharField(max_length=128, blank=True)
     projects = models.ManyToManyField('Project', through='ProjectSite', related_name='sites')
-    #status = models.ForeignKey('Status')
+    status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -86,7 +86,7 @@ class Bottle(models.Model):
     description = models.TextField(blank=True)
     tare_weight = models.DecimalField(max_digits=8, decimal_places=4, null=True, blank=True)
     bottle_type = models.ForeignKey('BottleType')
-    #status = models.ForeignKey('Status')
+    status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
         return self.bottle_unique_name
@@ -97,7 +97,7 @@ class BottleType(models.Model):
 
     bottle_type = models.CharField(max_length=128)
     description = models.TextField(blank=True)
-    #status = models.ForeignKey('Status')
+    status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
         return self.bottle_type
@@ -108,7 +108,7 @@ class FilterType(models.Model):
 
     filter = models.CharField(max_length=128)
     description = models.TextField(blank=True)
-    #status = models.ForeignKey('Status')
+    status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
         return self.filter
@@ -119,7 +119,7 @@ class PreservationType(models.Model):
 
     preservation = models.CharField(max_length=128)
     description = models.TextField(blank=True)
-    #status = models.ForeignKey('Status')
+    status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
         return self.preservation
@@ -133,7 +133,7 @@ class ProcessingType(models.Model):
 
     processing = models.CharField(max_length=128)
     description = models.TextField(blank=True)
-    #status = models.ForeignKey('Status')
+    status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
         return self.processing
@@ -146,13 +146,13 @@ class MediumType(models.Model):
     medium = models.CharField(max_length=128)
     description = models.TextField(blank=True)
     comment = models.TextField(blank=True)
-    #status = models.ForeignKey('Status')
+    status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
         return self.medium
 
 
-class FieldSample(models.Model):
+class Sample(models.Model):
     """A sample of a medium at a site, taken at a unique depth and time. Can be stored in one or more bottles."""
 
     project = models.ForeignKey('Project')
@@ -162,30 +162,42 @@ class FieldSample(models.Model):
     length = models.FloatField(null=True, blank=True)
     comment = models.TextField(blank=True)
     received_time_stamp = models.DateField()
-    login_comment = models.TextField(blank=True)
     replicate = models.IntegerField(null=True, blank=True)
     lab_processing = models.ForeignKey('ProcessingType')
     medium_type = models.ForeignKey('MediumType')
-    #status = models.ForeignKey('Status')
+    status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
         return str(self.id)
 
 
-class FieldSampleBottle(models.Model):
+class SampleBottle(models.Model):
     """A bottle (reusable or disposable) containing a (portion of a) sample. Used for analysis methods."""
 
-    field_sample = models.ForeignKey('FieldSample', related_name='field_sample_bottles')
+    field_sample = models.ForeignKey('Sample', related_name='sample_bottles')
     bottle = models.ForeignKey('Bottle')
-    constituent_type = models.ForeignKey('ConstituentType')
     filter_type = models.ForeignKey('FilterType')
     volume_filtered = models.FloatField(null=True, blank=True)
     preservation_type = models.ForeignKey('PreservationType')
     preservation_volume = models.FloatField(null=True, blank=True)
     preservation_acid = models.ForeignKey('Acid')
     preservation_comment = models.TextField(blank=True)
-    description = models.TextField(blank=True)
-    #status = models.ForeignKey('Status')
+    status = models.ForeignKey('Status', null=True, blank=True)
+
+    def __str__(self):
+        return str(self.id)
+
+
+class SampleBottleBromination(models.Model):
+    """An event where Bromine Monochloride (BrCl) is added to a bottle containing a water sample.
+    Used by the Total Mercury (THg) analysis method."""
+
+    sample_bottle = models.ForeignKey('SampleBottle')
+    bromination = models.ForeignKey('Bromination')
+    bromination_event = models.IntegerField(null=True, blank=True)
+    bromination_volume = models.FloatField(null=True, blank=True)
+    time_stamp = models.DateTimeField()
+    status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
         return str(self.id)
@@ -203,7 +215,7 @@ class UnitType(models.Model):
 
     unit = models.CharField(max_length=128)
     description = models.TextField(blank=True)
-    #status = models.ForeignKey('Status')
+    status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
         return self.unit
@@ -226,8 +238,7 @@ class MethodType(models.Model):
     nwis_parameter_code = models.CharField(max_length=128, blank=True)
     nwis_parameter_name = models.CharField(max_length=128, blank=True)
     nwis_method_code = models.CharField(max_length=128, blank=True)
-
-    #status = models.ForeignKey('Status')
+    status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
         return self.method
@@ -236,7 +247,7 @@ class MethodType(models.Model):
 class Result(models.Model):
     """Results of a method analysis on a sample bottle."""
 
-    field_sample_bottle = models.ForeignKey('FieldSampleBottle')
+    sample_bottle = models.ForeignKey('SampleBottle')
     method = models.ForeignKey('MethodType')
     constituent = models.ForeignKey('ConstituentType')
     isotope_flag = models.ForeignKey('IsotopeFlag')
@@ -249,11 +260,11 @@ class Result(models.Model):
     ##
     # ****placeholder for legacy data fields****
     ##
-    #status = models.ForeignKey('Status')
+    status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
         return str(self.id)
-    
+
 
 ######
 ##
@@ -269,7 +280,7 @@ class ConstituentType(models.Model):
     description = models.TextField(blank=True)
     mediums = models.ManyToManyField('MediumType', through='ConstituentMedium', related_name='constituents')
     methods = models.ManyToManyField('MethodType', through='ConstituentMethod', related_name='constituents')
-    #status = models.ForeignKey(Status)
+    status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
         return self.constituent
@@ -280,7 +291,7 @@ class ConstituentMedium(models.Model):
 
     constituent_type = models.ForeignKey('ConstituentType')
     medium_type = models.ForeignKey('MediumType')
-    #status = models.ForeignKey(Status)
+    status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
         return str(self.id)
@@ -291,7 +302,7 @@ class ConstituentMethod(models.Model):
 
     constituent_type = models.ForeignKey('ConstituentType')
     method_type = models.ForeignKey('MethodType')
-    #status = models.ForeignKey(Status)
+    status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
         return str(self.id)
@@ -309,7 +320,7 @@ class QualityAssurance(models.Model):
 
     quality_assurance = models.ForeignKey('QualityAssuranceType')
     result = models.ForeignKey('Result', related_name='quality_assurances')  # usually three QAs per one result
-    #status = models.ForeignKey(Status)
+    status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
         return str(self.id)
@@ -320,7 +331,7 @@ class QualityAssuranceType(models.Model):
 
     quality_assurance = models.CharField(max_length=128)
     description = models.TextField(blank=True)
-    #status = models.ForeignKey(Status)
+    status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
         return self.quality_assurance
@@ -333,7 +344,7 @@ class DetectionFlag(models.Model):
 
     detection_flag = models.CharField(max_length=128)  # A, <, E, L
     description = models.TextField(blank=True)  # less than, estimated, lost
-    #status = models.ForeignKey(Status)
+    status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
         return str(self.detection_flag)
@@ -344,7 +355,7 @@ class IsotopeFlag(models.Model):
 
     isotope_flag = models.CharField(max_length=128)  # A, X-198, X-199, X-200, X-201, X-202, X-204
     description = models.TextField(blank=True)  # Ambient, Excess of 199, Excess of 200, etc
-    #status = models.ForeignKey(Status)
+    status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
         return str(self.isotope_flag)
@@ -362,8 +373,9 @@ class Acid(models.Model):
 
     code = models.CharField(max_length=128)
     concentration = models.FloatField(default=-999)
+    time_stamp = models.DateTimeField()
     comment = models.TextField(blank=True)
-    #status = models.ForeignKey(Status)
+    status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
         return self.code
@@ -374,20 +386,21 @@ class BlankWater(models.Model):
 
     lot_number = models.CharField(max_length=128)
     concentration = models.FloatField(default=-999)
+    time_stamp = models.DateTimeField()
     comment = models.TextField(blank=True)
-    #status = models.ForeignKey(Status)
+    status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
         return self.lot_number
 
 
 class Bromination(models.Model):
-    """***A work in progress...***"""
+    """A particular concentration of Bromine Monochloride (BrCl)."""
 
     concentration = models.FloatField()
-    bromination_date = models.DateTimeField()
+    time_stamp = models.DateTimeField()
     comment = models.TextField(blank=True)
-    #status = models.ForeignKey(Status)
+    status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
         return str(self.id)
@@ -444,7 +457,7 @@ class Status(models.Model):
     status_id = models.BigIntegerField()
     status_type = models.ForeignKey('StatusType')
     procedure_type = models.ForeignKey('ProcedureType')
-    user = models.ForeignKey('UserProfile')
+    user = models.ForeignKey(User)
     time_stamp = models.DateTimeField()
     note = models.TextField(blank=True)
 
@@ -488,11 +501,14 @@ admin.site.register(Cooperator)
 admin.site.register(Project)
 admin.site.register(ProjectSite)
 admin.site.register(Site)
-admin.site.register(FieldSample)
-admin.site.register(FieldSampleBottle)
+admin.site.register(Sample)
+admin.site.register(SampleBottle)
+admin.site.register(SampleBottleBromination)
 admin.site.register(Bottle)
+admin.site.register(BottleType)
 admin.site.register(FilterType)
 admin.site.register(PreservationType)
+admin.site.register(ProcessingType)
 admin.site.register(MediumType)
 admin.site.register(UnitType)
 admin.site.register(MethodType)
