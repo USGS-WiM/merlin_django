@@ -1,15 +1,16 @@
+import json
 from django.shortcuts import render_to_response
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import RequestContext
-from rest_framework import viewsets, permissions
+from rest_framework import views, viewsets, permissions, authentication, exceptions, status
 from rest_framework.response import Response
 from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer, TemplateHTMLRenderer
 from mercuryservices.serializers import *
 from mercuryservices.models import *
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from rest_framework_bulk import ListBulkCreateUpdateDestroyAPIView, BulkCreateModelMixin, BulkUpdateModelMixin
-from rest_framework import filters
 
 
 #The following lines were a test to see if Django Rest Framework could return responses to HTML instead of JSON.
@@ -42,6 +43,9 @@ from rest_framework import filters
 
 class CooperatorBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
     model = Cooperator
+    permission_classes = (permissions.IsAuthenticated,)
+    serializer_class = CooperatorSerializer
+    paginate_by = 100
 
 
 class CooperatorViewSet(viewsets.ModelViewSet):
@@ -61,6 +65,9 @@ class CooperatorViewSet(viewsets.ModelViewSet):
 
 class ProjectBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
     model = Project
+    permission_classes = (permissions.IsAuthenticated,)
+    serializer_class = ProjectSerializer
+    paginate_by = 100
 
 
 class ProjectViewSet(viewsets.ModelViewSet):
@@ -83,6 +90,9 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
 class SiteBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
     model = Site
+    permission_classes = (permissions.IsAuthenticated,)
+    serializer_class = SiteSerializer
+    paginate_by = 100
 
 
 class SiteViewSet(viewsets.ModelViewSet):
@@ -125,18 +135,21 @@ class SiteViewSet(viewsets.ModelViewSet):
 ######
 
 
-class FieldSampleBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkUpdateModelMixin, viewsets.ModelViewSet):
-    model = FieldSample
+class SampleBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkUpdateModelMixin, viewsets.ModelViewSet):
+    model = Sample
+    permission_classes = (permissions.IsAuthenticated,)
+    serializer_class = SampleSerializer
+    paginate_by = 100
 
 
-class FieldSampleViewSet(viewsets.ModelViewSet):
+class SampleViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    # queryset = FieldSample.objects.all()
-    serializer_class = FieldSampleSerializer
+    # queryset = Sample.objects.all()
+    serializer_class = SampleSerializer
     paginate_by = 100
 
     def get_queryset(self):
-        queryset = FieldSample.objects.all()
+        queryset = Sample.objects.all()
         id = self.request.QUERY_PARAMS.get('id', None)
         if id is not None:
             queryset = queryset.filter(id__exact=id)
@@ -159,19 +172,22 @@ class FieldSampleViewSet(viewsets.ModelViewSet):
         return queryset
 
 
-class FieldSampleBottleBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkUpdateModelMixin, viewsets.ModelViewSet):
-    model = FieldSampleBottle
+class SampleBottleBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkUpdateModelMixin, viewsets.ModelViewSet):
+    model = SampleBottle
+    permission_classes = (permissions.IsAuthenticated,)
+    serializer_class = SampleBottleSerializer
+    paginate_by = 100
 
 
-class FieldSampleBottleViewSet(viewsets.ModelViewSet):
+class SampleBottleViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    #queryset = FieldSampleBottle.objects.all()
-    serializer_class = FieldSampleBottleSerializer
+    #queryset = SampleBottle.objects.all()
+    serializer_class = SampleBottleSerializer
     paginate_by = 100
 
     # override the default queryset to allow filtering by URL arguments
     def get_queryset(self):
-        queryset = FieldSampleBottle.objects.all()
+        queryset = SampleBottle.objects.all()
         id = self.request.QUERY_PARAMS.get('id', None)
         if id is not None:
             id_list = id.split(',')
@@ -185,8 +201,18 @@ class FieldSampleBottleViewSet(viewsets.ModelViewSet):
         return queryset
 
 
+class SampleBottleBrominationViewSet(viewsets.ModelViewSet):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    queryset = SampleBottleBromination.objects.all()
+    serializer_class = SampleBottleBrominationSerializer
+    paginate_by = 100
+
+
 class BottleBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkUpdateModelMixin, viewsets.ModelViewSet):
     model = Bottle
+    permission_classes = (permissions.IsAuthenticated,)
+    serializer_class = BottleSerializer
+    paginate_by = 100
 
 
 class BottleViewSet(viewsets.ModelViewSet):
@@ -292,6 +318,9 @@ class ConstituentTypeViewSet(viewsets.ModelViewSet):
                 id = MediumType.objects.get(medium__exact=medium)
                 # get the Constituents related to this Medium ID
                 queryset = queryset.filter(mediums__exact=id)
+        constituent = self.request.QUERY_PARAMS.get('constituent', None)
+        if constituent is not None:
+            queryset = queryset.filter(constituent__icontains=constituent)
         return queryset
 
 
@@ -347,6 +376,9 @@ class IsotopeFlagViewSet(viewsets.ModelViewSet):
 
 class AcidBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
     model = Acid
+    permission_classes = (permissions.IsAuthenticated,)
+    serializer_class = AcidSerializer
+    paginate_by = 100
 
 
 class AcidViewSet(viewsets.ModelViewSet):
@@ -366,6 +398,9 @@ class AcidViewSet(viewsets.ModelViewSet):
 
 class BlankWaterBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
     model = BlankWater
+    permission_classes = (permissions.IsAuthenticated,)
+    serializer_class = BlankWaterSerializer
+    paginate_by = 100
 
 
 class BlankWaterViewSet(viewsets.ModelViewSet):
@@ -385,6 +420,9 @@ class BlankWaterViewSet(viewsets.ModelViewSet):
 
 class BrominationBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
     model = Bromination
+    permission_classes = (permissions.IsAuthenticated,)
+    serializer_class = BrominationSerializer
+    paginate_by = 100
 
 
 class BrominationViewSet(viewsets.ModelViewSet):
@@ -420,6 +458,39 @@ class BrominationViewSet(viewsets.ModelViewSet):
 # class UserViewSet(viewsets.ModelViewSet):
 #     queryset = User.objects.all()
 #     serializer_class = UserSerializer
+
+
+# class UserLoginView(views.APIView):
+#     def post(self, request):
+#         username = request.POST['username']
+#         password = request.POST['password']
+#         user = authenticate(username=username, password=password)
+#
+#         if user is not None:
+#             if user.is_active:
+#                 login(request, user)
+#                 print("Logged In")
+#                 data = UserSerializer(user).data
+#                 return Response(data, status=status.HTTP_200_OK)
+#             else:
+#                 print("Account is disabled: {0}".format(username))
+#                 data = json.dumps({"status": "Unauthorized", "message": "Your account is disabled."})
+#                 return Response(data, status=status.HTTP_401_UNAUTHORIZED)
+#
+#         else:
+#             print("Invalid login details: {0}, {1}".format(username, password))
+#             data = json.dumps({"status": "Unauthorized", "message": "Invalid login details supplied."})
+#             return Response(data, status=status.HTTP_401_UNAUTHORIZED)
+#
+#
+# class UserLogoutView(views.APIView):
+#     permission_classes = (permissions.IsAuthenticated,)
+#
+#     def post(self, request):
+#         logout(request)
+#         print("Logged Out")
+#
+#         return Response({}, status=status.HTTP_204_NO_CONTENT)
 
 
 ######

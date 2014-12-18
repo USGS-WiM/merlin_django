@@ -5,14 +5,15 @@ from mercurylab import views
 urlpatterns = patterns('',
     url(r'^$', views.index, name='index'),
     url(r'^about/$', views.about, name='about'),
-    url(r'^register/$', views.register, name='register'),
+#    url(r'^register/$', views.register, name='register'),
     url(r'^login/$', views.user_login, name='login'),
-    url(r'^profile/$', views.profile, name='profile'),
+#    url(r'^profile/$', views.profile, name='profile'),
     url(r'^logout/$', views.user_logout, name='logout'),
 
 #    url(r'^sample_login_a/$', views.sample_login_a, name='sample_login_a'),
     url(r'^sample_login/$', views.sample_login, name='sample_login'),
     url(r'^sample_login/save$', views.sample_login_save, name='sample_login_save'),
+    url(r'^sample_search/$', views.sample_search, name='sample_search'),
 
     url(r'^sample_bottles/$', views.sample_bottles, name='sample_bottles'),
     url(r'^sample_bottles/save$', views.sample_bottles_save, name='sample_bottles_save'),

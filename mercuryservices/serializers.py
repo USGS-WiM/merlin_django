@@ -28,7 +28,8 @@ class SiteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Site
-        fields = ('id', 'name', 'usgs_sid', 'usgs_scode', 'description', 'latitudedd', 'longitudedd', 'projects',)
+        fields = ('id', 'name', 'usgs_sid', 'usgs_scode', 'description', 'latitude', 'longitude', 'datum',
+                  'method', 'site_status', 'nwis_customer_code', 'projects',)
 
 
 ######
@@ -38,16 +39,18 @@ class SiteSerializer(serializers.ModelSerializer):
 ######
 
 
-class FieldSampleSerializer(serializers.ModelSerializer):
+class SampleSerializer(serializers.ModelSerializer):
+    time_stamp = serializers.DateTimeField(format='%Y-%m-%d %H:%M:%S', source='time_stamp')
+    received_time_stamp = serializers.DateTimeField(format='%Y-%m-%d %H:%M:%S', source='received_time_stamp')
     medium_type = serializers.PrimaryKeyRelatedField(source='medium_type')
 
     class Meta:
-        model = FieldSample
+        model = Sample
         fields = ('id', 'project', 'site', 'time_stamp', 'depth', 'length', 'comment', 'received_time_stamp',
-                  'login_comment', 'replicate', 'medium_type', 'lab_processing', 'field_sample_bottles')
+                  'replicate', 'medium_type', 'lab_processing', 'sample_bottles')
 
 
-class FieldSampleBottleSerializer(serializers.ModelSerializer):
+class SampleBottleSerializer(serializers.ModelSerializer):
     field_sample = serializers.PrimaryKeyRelatedField(source='field_sample')
     bottle = serializers.PrimaryKeyRelatedField(source='bottle')
     filter_type = serializers.PrimaryKeyRelatedField(source='filter_type')
@@ -55,9 +58,17 @@ class FieldSampleBottleSerializer(serializers.ModelSerializer):
     preservation_acid = serializers.PrimaryKeyRelatedField(source='preservation_acid')
 
     class Meta:
-        model = FieldSampleBottle
+        model = SampleBottle
         fields = ('id', 'field_sample', 'bottle', 'constituent_type', 'filter_type', 'volume_filtered',
                   'preservation_type', 'preservation_volume', 'preservation_acid', 'preservation_comment',)
+
+
+class SampleBottleBrominationSerializer(serializers.ModelSerializer):
+    time_stamp = serializers.DateTimeField(format='%Y-%m-%d %H:%M:%S', source='time_stamp')
+
+    class Meta:
+        model = SampleBottleBromination
+        fields = ('id', 'field_sample_bottle', 'bromination', 'bromination_event', 'bromination_volume', 'time_stamp',)
 
 
 class BottleSerializer(serializers.ModelSerializer):
@@ -197,24 +208,27 @@ class IsotopeFlagSerializer(serializers.ModelSerializer):
 
 
 class AcidSerializer(serializers.ModelSerializer):
+    time_stamp = serializers.DateTimeField(format='%Y-%m-%d %H:%M:%S', source='time_stamp')
 
     class Meta:
         model = Acid
-        fields = ('id', 'code', 'concentration', 'comment',)
+        fields = ('id', 'code', 'concentration', 'time_stamp', 'comment',)
 
 
 class BlankWaterSerializer(serializers.ModelSerializer):
+    time_stamp = serializers.DateTimeField(format='%Y-%m-%d %H:%M:%S', source='time_stamp')
 
     class Meta:
         model = BlankWater
-        fields = ('id', 'lot_number', 'concentration', 'comment',)
+        fields = ('id', 'lot_number', 'concentration', 'time_stamp', 'comment',)
 
 
 class BrominationSerializer(serializers.ModelSerializer):
+    time_stamp = serializers.DateTimeField(format='%Y-%m-%d %H:%M:%S', source='time_stamp')
 
     class Meta:
         model = Bromination
-        fields = ('id', 'concentration', 'bromination_date', 'comment',)
+        fields = ('id', 'concentration', 'time_stamp', 'comment',)
 
 
 #######
@@ -229,13 +243,15 @@ class BrominationSerializer(serializers.ModelSerializer):
 #     class Meta:
 #         model = Role
 #         fields = ('id', 'role', 'description', 'users',)
-#
-#
-# class UserSerializer(serializers.ModelSerializer):
-#
-#     class Meta:
-#         model = User
-#         fields = ('id', 'username', 'fname', 'lname', 'initials', 'email', 'phone', 'role',)
+
+
+class UserSerializer(serializers.ModelSerializer):
+    #initials = serializers.PrimaryKeyRelatedField(source='UserProfile')
+    #phone = serializers.PrimaryKeyRelatedField(source='UserProfile')
+
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'first_name', 'last_name', 'email', 'password', 'groups', 'user_permissions',)#, 'initials', 'phone')
 
 
 ######
@@ -246,6 +262,7 @@ class BrominationSerializer(serializers.ModelSerializer):
 
 
 class StatusSerializer(serializers.ModelSerializer):
+    time_stamp = serializers.DateTimeField(format='%Y-%m-%d %H:%M:%S', source='time_stamp')
 
     class Meta:
         model = Status
@@ -256,7 +273,7 @@ class ProcedureStatusTypeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProcedureStatusType
-        fields = ('id','procedure_type', 'status_type',)
+        fields = ('id', 'procedure_type', 'status_type',)
 
 
 class StatusTypeSerializer(serializers.ModelSerializer):
