@@ -174,7 +174,7 @@ class Sample(models.Model):
 class SampleBottle(models.Model):
     """A bottle (reusable or disposable) containing a (portion of a) sample. Used for analysis methods."""
 
-    field_sample = models.ForeignKey('Sample', related_name='sample_bottles')
+    sample = models.ForeignKey('Sample', related_name='sample_bottles')
     bottle = models.ForeignKey('Bottle')
     filter_type = models.ForeignKey('FilterType')
     volume_filtered = models.FloatField(null=True, blank=True)
@@ -186,6 +186,17 @@ class SampleBottle(models.Model):
 
     def __str__(self):
         return str(self.id)
+
+
+# class FullSampleBottle(models.Model):
+#     """A denormalized database view (a 'stored query', not a table) that adds all the fields from the related
+#     Sample record to each SampleBottle record. The normalized relation is one Sample to many SampleBottles.
+#     This view must be manually created and managed outside of Django, but creating this class here in the Models.py
+#     file will allow the view to be used by Django like any normal table. This is accomplished by the 'managed'
+#     meta option, set here to False."""
+#
+#     class Meta:
+#         managed=False
 
 
 class SampleBottleBromination(models.Model):
@@ -247,7 +258,7 @@ class MethodType(models.Model):
 class Result(models.Model):
     """Results of a method analysis on a sample bottle."""
 
-    sample_bottle = models.ForeignKey('SampleBottle')
+    sample_bottle = models.ForeignKey('SampleBottle', related_name='results')
     method = models.ForeignKey('MethodType')
     constituent = models.ForeignKey('ConstituentType')
     isotope_flag = models.ForeignKey('IsotopeFlag')

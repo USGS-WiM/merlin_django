@@ -1,4 +1,5 @@
 import json
+import itertools
 from django.shortcuts import render_to_response
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import RequestContext
@@ -74,7 +75,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     #queryset = Project.objects.all()
     serializer_class = ProjectSerializer
-    paginate_by = 100
+    #paginate_by = 100
 
     # override the default queryset to allow filtering by URL arguments
     def get_queryset(self):
@@ -186,18 +187,71 @@ class SampleBottleViewSet(viewsets.ModelViewSet):
     paginate_by = 100
 
     # override the default queryset to allow filtering by URL arguments
+    # def get_queryset(self):
+    #     queryset = SampleBottle.objects.all()
+    #     id = self.request.QUERY_PARAMS.get('id', None)
+    #     if id is not None:
+    #         id_list = id.split(',')
+    #         queryset = queryset.filter(id__in=id_list)
+    #     bottle = self.request.QUERY_PARAMS.get('bottle', None)
+    #     if bottle is not None:
+    #         queryset = queryset.filter(bottle__exact=bottle)
+    #     sample = self.request.QUERY_PARAMS.get('sample', None)
+    #     if sample is not None:
+    #         queryset = queryset.filter(field_sample__exact=sample)
+    #     return queryset
     def get_queryset(self):
-        queryset = SampleBottle.objects.all()
-        id = self.request.QUERY_PARAMS.get('id', None)
-        if id is not None:
-            id_list = id.split(',')
-            queryset = queryset.filter(id__in=id_list)
+        queryset = SampleBottle.objects.all().select_related('sample')
+        project = self.request.QUERY_PARAMS.get('project', None)
+        if project is not None:
+            project_list = project.split(',')
+            queryset = queryset.filter(sample__project__in=project_list)
+        site = self.request.QUERY_PARAMS.get('site', None)
+        if site is not None:
+            site_list = site.split(',')
+            queryset = queryset.filter(sample__site__in=site_list)
         bottle = self.request.QUERY_PARAMS.get('bottle', None)
         if bottle is not None:
-            queryset = queryset.filter(bottle__exact=bottle)
-        sample = self.request.QUERY_PARAMS.get('sample', None)
-        if sample is not None:
-            queryset = queryset.filter(field_sample__exact=sample)
+            bottle_list = bottle.split(',')
+            queryset = queryset.filter(bottle__bottle_unique_name__in=bottle_list)
+        date_after = self.request.QUERY_PARAMS.get('date_after', None)
+        date_before = self.request.QUERY_PARAMS.get('date_before', None)
+        if date_after is not None and date_before is not None:
+            queryset = queryset.filter(sample__time_stamp__range=(date_after, date_before))
+        elif date_after is not None:
+                queryset = queryset.filter(sample__time_stamp__gt=date_after)
+        elif date_before is not None:
+            queryset = queryset.filter(sample__time_stamp__lt=date_before)
+        return queryset
+
+
+class FullSampleBottleViewSet(viewsets.ModelViewSet):
+    permission_classes = (permissions.IsAuthenticated,)
+    serializer_class = FullSampleBottleSerializer
+    paginate_by = 100
+
+    def get_queryset(self):
+        queryset = SampleBottle.objects.all().select_related()
+        project = self.request.QUERY_PARAMS.get('project', None)
+        if project is not None:
+            project_list = project.split(',')
+            queryset = queryset.filter(sample__project__in=project_list)
+        site = self.request.QUERY_PARAMS.get('site', None)
+        if site is not None:
+            site_list = site.split(',')
+            queryset = queryset.filter(sample__site__in=site_list)
+        bottle = self.request.QUERY_PARAMS.get('bottle', None)
+        if bottle is not None:
+            bottle_list = bottle.split(',')
+            queryset = queryset.filter(bottle__bottle_unique_name__in=bottle_list)
+        date_after = self.request.QUERY_PARAMS.get('date_after', None)
+        date_before = self.request.QUERY_PARAMS.get('date_before', None)
+        if date_after is not None and date_before is not None:
+            queryset = queryset.filter(sample__time_stamp__range=(date_after, date_before))
+        elif date_after is not None:
+                queryset = queryset.filter(sample__time_stamp__gt=date_after)
+        elif date_before is not None:
+            queryset = queryset.filter(sample__time_stamp__lt=date_before)
         return queryset
 
 
@@ -287,8 +341,49 @@ class MethodTypeViewSet(viewsets.ModelViewSet):
 
 class ResultViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    queryset = Result.objects.all()
+    #queryset = Result.objects.all()
     serializer_class = ResultSerializer
+    paginate_by = 100
+
+    # override the default queryset to allow filtering by URL arguments
+    def get_queryset(self):
+        queryset = Result.objects.all()
+        barcode = self.request.QUERY_PARAMS.get('barcode', None)
+        if barcode is not None:
+            queryset = queryset.filter(sample_bottle__exact=barcode)
+        constituent = self.request.QUERY_PARAMS.get('constituent', None)
+        if constituent is not None:
+            queryset = queryset.filter(constituent__exact=constituent)
+        isotope = self.request.QUERY_PARAMS.get('isotope', None)
+        if isotope is not None:
+            queryset = queryset.filter(isotope_flag__exact=isotope)
+        project = self.request.QUERY_PARAMS.get('project', None)
+        if project is not None:
+            project_list = project.split(',')
+            queryset = queryset.filter(sample_bottle__sample__project__in=project_list)
+        site = self.request.QUERY_PARAMS.get('site', None)
+        if site is not None:
+            site_list = site.split(',')
+            queryset = queryset.filter(sample_bottle__sample__site__in=site_list)
+        depth = self.request.QUERY_PARAMS.get('depth', None)
+        if depth is not None:
+            queryset = queryset.filter(sample__depth__exact=depth)
+        replicate = self.request.QUERY_PARAMS.get('replicate', None)
+        if replicate is not None:
+            queryset = queryset.filter(sample__replicate__exact=replicate)
+        bottle = self.request.QUERY_PARAMS.get('bottle', None)
+        if bottle is not None:
+            bottle_list = bottle.split(',')
+            queryset = queryset.filter(sample_bottle__bottle__bottle_unique_name__in=bottle_list)
+        date_after = self.request.QUERY_PARAMS.get('date_after', None)
+        date_before = self.request.QUERY_PARAMS.get('date_before', None)
+        if date_after is not None and date_before is not None:
+            queryset = queryset.filter(sample_bottle__sample__time_stamp__range=(date_after, date_before))
+        elif date_after is not None:
+                queryset = queryset.filter(sample_bottle__sample__time_stamp__gt=date_after)
+        elif date_before is not None:
+            queryset = queryset.filter(sample_bottle__sample__time_stamp__lt=date_before)
+        return queryset
 
 
 ######

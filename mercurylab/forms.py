@@ -49,6 +49,13 @@ class SiteForm(forms.Form):
     name = forms.CharField(help_text="Name")
 
 
+class SampleSearchForm(forms.Form):
+    project = forms.CharField(help_text="Project Name")
+    site = forms.CharField(help_text="Site Name")
+    date_after = forms.DateTimeField(help_text="After Date")
+    date_before = forms.DateTimeField(help_text="Before Date")
+
+
 class SampleBottleForm(forms.Form):
     bottle_unique_name = forms.CharField(help_text="Bottle Unique Name")
 
@@ -83,7 +90,7 @@ class BottleRangeForm(forms.Form):
 
 
 class BrominationForm(forms.Form):
-    dateTimeOptions = {'format': 'yyyy-mm-dd HH:ii:ss', 'autoclose': True, 'showMeridian': True}
+    #dateTimeOptions = {'format': 'yyyy-mm-dd HH:ii:ss', 'autoclose': True, 'showMeridian': True}
     bromination_date = forms.DateTimeField(help_text="Bromination Date")#, widget=DateTimeWidget(usel10n=True, bootstrap_version=3, options=dateTimeOptions))
     concentration = forms.DecimalField(help_text="Concentration")
     comment = forms.CharField(help_text="Comment", required=False)

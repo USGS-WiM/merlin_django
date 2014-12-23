@@ -6,16 +6,42 @@
             <!-- <button type="button" class="btn btn-default" name="save">Save</button> -->
         </p>
         <pre id="grid_console" class="console" style="width:600px"></pre>
-        <p>
-            <input id="select_sample_bottle" type="hidden" placeholder="Sample Bottle Code" style="width:297px"/>
-            <input id="select_project" type="hidden" placeholder="Project Name" style="width:297px"/>
-            <input id="select_site" type="hidden" placeholder="Site Name" style="width:297px"/>
-            <input id="select_constituent" type="hidden" placeholder="Constituent" style="width:297px"/>
-        </p>
-        <p>
-            <input id="date_after" placeholder="After Date" style="width:297px"/>
-            <input id="date_before" placeholder="Before Date" style="width:297px"/>
-        </p>
+{#        <div id="form_sample_search">#}
+{#            <form class="form-signin span8" id="item_form" method="post" action="{% url 'mercurylab:sample_search' %}" enctype="multipart/form-data">#}
+{#                {% csrf_token %}#}
+{#                <h3 class="form-signin-heading">Sample Search</h3>#}
+{##}
+{#                {% for field in form %}#}
+{#                {{ field.errors }}#}
+{#                {{ field.help_text }}<br />#}
+{#                {{ field }}<br />#}
+{#                {% endfor %}#}
+{#                <br />#}
+{##}
+{#                <input class="btn btn-primary" type="submit" name="submit" value="Search" />#}
+{#            </form>#}
+{#        </div>#}
+        <div id="form_sample_search">
+            {% csrf_token %}
+            <p>
+                <!-- <input id="select_sample_bottle" type="hidden" placeholder="Sample Bottle Code" style="width:297px"/> -->
+                <input id="select_project" type="hidden" placeholder="Project Name" style="width:297px"/>
+                <input id="select_site" type="hidden" placeholder="Site Name" style="width:297px"/>
+                <!-- <input id="select_constituent" type="hidden" placeholder="Constituent" style="width:297px"/> -->
+            </p>
+            <p>
+                <input id="select_depth" type="number" placeholder="Depth" style="width:297px"/>
+                <input id="select_rep" type="number" placeholder="Replicate" style="width:297px"/>
+            </p>
+            <p>
+                <input id="date_after" placeholder="After Date" style="width:297px"/>
+                <input id="date_before" placeholder="Before Date" style="width:297px"/>
+            </p>
+            <p>
+                <button type="button" class="btn btn-default" name="search">Search</button>
+            </p>
+        </div>
+
         <p>
             <div class="select2-container select2-container-multi" style="width:600px">
                 <ul class="select2-choices">
@@ -27,13 +53,27 @@
             </div>
         <!-- <p><input id="search_field" type="search" placeholder="Highlight in table." style="width:600px; border:1px solid darkgray; height:42px"/></p> -->
         <br /><br />
-        <div id="grid" class="table table-hover table-condensed table-bordered"></div>
+        <div id="grid" data-projects="{{ projects }}" data-constituents="{{ constituents }}" class="table table-hover table-condensed table-bordered"></div>
 
         <script>
             $(document).ready(function() {
 
+                var csrftoken = $.cookie('csrftoken');
+                function csrfSafeMethod(method) {
+                    // these HTTP methods do not require CSRF protection
+                    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+                }
+                $.ajaxSetup({
+                    beforeSend: function(xhr, settings) {
+                        if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                        }
+                    }
+                });
+
                 var grid = $('#grid');
                 var grid_console = $("#grid_console");
+                var data_data = {};
                 grid.css("z-index", "0");
                 var data_processings;
                 var data_mediums;
@@ -42,9 +82,10 @@
                 var data_filters;
                 var data_preservations;
                 var data_acids;
-                var data_projects;
+                var data_projects = JSON.parse(grid.attr('data-projects'));
                 var data_sites;
-                var data_constituents;
+                var data_constituents = JSON.parse(grid.attr('data-constituents'));
+                function split( val ) {return val.split( /,/ );}
                 var validateTime = function(value, callback) {
                     // convert the string to number to allow math operations; also trims off leading zeroes
                     value = Number(value);
@@ -69,60 +110,53 @@
                             break;
                     }
                 };
-                var objectFields = ["skip_project_name", "project", "skip_site_name", "site", "skip_date", "time_stamp", "depth", "length", "replicate", "comment", "received_time_stamp", "lab_processing", "bottle", "medium_type", "constituent_type", /*"isotopic_analysis",*/ "skip_isotope", "filter_type", "volume_filtered", "preservation_type", "preservation_acid", "preservation_volume", "preservation_comment"];
+                var objectFields = ["id", "project_name", "project", "site_name", "site", "skip_date", "time_stamp", "depth", "length", "replicate", "comment", "received_time_stamp", "lab_processing", "bottle", "medium_type", "constituent_type", /*"isotopic_analysis",*/ "isotope", "filter_type", "volume_filtered", "preservation_type", "preservation_acid", "preservation_volume", "preservation_comment"];
                 var changedRowIndices = [];
                 var selectionRowIndices = [];
-                grid_console.text('Loading data.');
+                grid_console.text('Loading data...');
                 grid.handsontable({
-                    contextMenu: false,
-                    search: true,
-                    startRows: 8,
+                    data: data_data,
                     columns: [
-                        {title: 'Project Name', width: 100, type: 'autocomplete', strict: true, source: function (query, process) {
+                        {title: 'ID', data: 'id', readOnly: true, width: 1},
+                        {title: 'Project Name', data: 'sample_bottle.sample.project.name', width: 100, type: 'autocomplete', strict: true, source: function (query, process) {
                             getValuesAjax('/mercuryservices/projects', 'name', query, process)}
                         },
-                        {title: 'Project ID', width: 70, type: 'autocomplete', strict: true, source: function (query, process) {
+                        {title: 'Project ID', data: 'sample_bottle.sample.project.id', width: 70, type: 'autocomplete', strict: true, source: function (query, process) {
                             getValuesAjax('/mercuryservices/projects', 'id', query, process)}
                         },
-                        {title: 'Site Name', width: 70, type: 'autocomplete', strict: true/*, source: function (query, process) {
+                        {title: 'Site Name', data: 'sample_bottle.sample.site.name', width: 70, type: 'autocomplete', strict: true/*, source: function (query, process) {
                             getValuesAjax('/mercuryservices/sites', 'name', query, process)}*/
                         },
-                        {title: 'Site ID', width: 70, type: 'autocomplete', strict: true/*, source: function (query, process) {
+                        {title: 'Site ID', data: 'sample_bottle.sample.site.id', width: 70, type: 'autocomplete', strict: true/*, source: function (query, process) {
                             getValuesAjax('/mercuryservices/sites', 'id', query, process)}*/
                         },
                         // Date, Hour, and Minute as separate columns is temporary until a single column datetime editor can be found for handsontable
-                        {title: 'Date', width: 100, type: 'date', maxDate: 0},
-                        {title: 'Time', width: 60, type: 'numeric', validator: validateTime},
+                        {title: 'Date', data: 'sample_bottle.sample.date', width: 100, type: 'date', maxDate: 0},
+                        {title: 'Time', data: 'sample_bottle.sample.time', width: 60, type: 'numeric', validator: validateTime},
                         //{title: 'Hour', width: 50, type: 'autocomplete', source: getRange(24)},
                         //{title: 'Minute', width: 50, type: 'autocomplete', source: getRange(60)},
-                        {title: 'Depth', width: 50, type: 'numeric'},
-                        {title: 'Length', width: 50, type: 'numeric'},
-                        {title: 'Rep', width: 50, type: 'numeric'},
-                        {title: 'Sample Comments', width: 100, type: 'text'},
-                        {title: 'Received', width: 100, type: 'date', maxDate: 0},
-                        {title: 'Lab Processing', width: 105, type: 'text'/*, type: 'autocomplete', strict: true, source: getValuesDom(data_processings,"processing")*/},
+                        {title: 'Depth', data: 'sample_bottle.sample.depth', width: 50, type: 'numeric'},
+                        {title: 'Length', data: 'sample_bottle.sample.length', width: 50, type: 'numeric'},
+                        {title: 'Rep', data: 'sample_bottle.sample.replicate', width: 50, type: 'numeric'},
+                        {title: 'Sample Comments', data: 'sample_bottle.sample.comment', width: 100, type: 'text'},
+                        {title: 'Received', data: 'sample_bottle.sample.received_time_stamp', width: 100, type: 'date', maxDate: 0},
+                        {title: 'Lab Processing', data: 'sample_bottle.sample.lab_processing', width: 105, type: 'text'/*, type: 'autocomplete', strict: true, source: getValuesDom(data_processings,"processing")*/},
                         //{title: 'Container ID', width: 100, type: 'text'},
-                        {title: 'Container ID', width: 90, type: 'text'/*, type: 'autocomplete', strict: true,  source: function (query, process) {
+                        {title: 'Container ID', data: 'sample_bottle.bottle.bottle_unique_name', width: 90, type: 'text'/*, type: 'autocomplete', strict: true,  source: function (query, process) {
                             getValuesAjax('/mercuryservices/bottles', 'bottle_unique_name', query, process)}*/},
-                        {title: 'Medium', width: 100, type: 'text'/*, type: 'autocomplete', strict: true, source: getValuesDom(data_mediums,"medium")*/},
-                        {title: 'Analysis', width: 70, type: 'text'/*, type: 'autocomplete', strict: true/*, source: function (query, process) {
-                            // get coordinates of this cell
-                            var thisCell = grid.data('handsontable').getSelected();
-                            // get value of cell one column to the left in the same row
-                            var prevCellValue = grid.data('handsontable').getDataAtCell(thisCell[0],(thisCell[1]-1));
-                            // get list of constituents that are allowed with the previously selected medium
-                            getValuesAjax('/mercuryservices/constituents', 'medium', prevCellValue, process)}*/
-                        },
-                        {title: 'Isotope', width: 55, type: 'dropdown', source: data_isotopes},
-                        {title: 'Filter', width: 100, type: 'text'/*, type: 'autocomplete', strict: true, source: getValuesDom(data_filters,"filter")*/},
-                        {title: 'Filter Vol.', width: 65, type: 'numeric'},
-                        {title: 'Preservation', width: 100, type: 'text'/*, type: 'autocomplete', strict: true, source: getValuesDom(data_preservations, "preservation")*/},
+                        {title: 'Medium', data: 'sample_bottle.sample.medium_type.medium', width: 100, type: 'text'/*, type: 'autocomplete', strict: true, source: getValuesDom(data_mediums,"medium")*/},
+                        {title: 'Analysis', data: 'constituent', width: 70, type: 'text'/*, type: 'autocomplete', strict: true*/},
+                        {title: 'Isotope', data: 'isotope_flag', width: 55, type: 'dropdown', source: data_isotopes},
+                        {title: 'Filter', data: 'sample_bottle.filter_type.filter', width: 100, type: 'text'/*, type: 'autocomplete', strict: true, source: getValuesDom(data_filters,"filter")*/},
+                        {title: 'Filter Vol.', data: 'sample_bottle.volume_filtered', width: 65, type: 'numeric'},
+                        {title: 'Preservation', data: 'sample_bottle.preservation_type.preservation', width: 100, type: 'text'/*, type: 'autocomplete', strict: true, source: getValuesDom(data_preservations, "preservation")*/},
                         //{title: 'Acid', width: 100, type: 'autocomplete',  source: getValuesDom(data_acids, "code")},
-                        {title: 'Acid', width: 110, type: 'text'/*, type: 'autocomplete', strict: true,  source: function (query, process) {
+                        {title: 'Acid', data: 'sample_bottle.preservation_acid.acid', width: 110, type: 'text'/*, type: 'autocomplete', strict: true,  source: function (query, process) {
                             getValuesAjax('/mercuryservices/acids', 'code', query, process)}*/},
-                        {title: 'Acid Vol.', width: 60, type: 'numeric'},
-                        {title: 'Pres. Comments', width: 100, type: 'text'}
+                        {title: 'Acid Vol.', data: 'sample_bottle.preservation_volume', width: 60, type: 'numeric'},
+                        {title: 'Pres. Comments', data: 'sample_bottle.preservation_comment', width: 100, type: 'text'}
                     ],
+                    search: true,
                     // define event handlers
                     beforeChange: function(changes, source) {
                         // "changes" is a 2D array containing information about each of the edited cells [ [row, col, oldVal, newVal], [row, col, oldVal, newVal], ... ].
@@ -268,7 +302,7 @@
                     grid.handsontable('getInstance').render();
                 });
 
-                $("#select_sample_bottle").select2({
+                var select_sample_bottle = $("#select_sample_bottle").select2({
                     allowClear: true,
                     multiple: true,
                     //maximumSelectionSize: 1,
@@ -293,32 +327,19 @@
                     formatSelection: formatBottle
                 });
 
-                $("#select_project").select2({
+                var select_project = $("#select_project").select2({
                     allowClear: true,
                     multiple: true,
                     //maximumSelectionSize: 1,
                     //dropdownCss:{display:'none'},
                     minimumInputLength: 1,
-                    ajax: {
-                        url: '/mercuryservices/projects/',
-                        dataType: 'json',
-                        data: function (term, page) {
-                            return {
-                                name: term
-                            };
-                        },
-                        results: function (data, page) {
-                            //data_data = data;
-                            //grid.data('handsontable').loadData(data.results);
-                            grid_console.text('Filtered data loaded.');
-                            return {results: data.results};
-                        }
-                    },
+                    data: { results: data_projects, text: 'name'},
                     formatResult: formatName,
                     formatSelection: formatName
+                }).on("change", function(e) {
                 });
 
-                $("#select_site").select2({
+                var select_site = $("#select_site").select2({
                     allowClear: true,
                     multiple: true,
                     //maximumSelectionSize: 1,
@@ -333,8 +354,6 @@
                             };
                         },
                         results: function (data, page) {
-                            //data_data = data;
-                            //grid.data('handsontable').loadData(data.results);
                             grid_console.text('Filtered data loaded.');
                             return {results: data.results};
                         }
@@ -343,33 +362,27 @@
                     formatSelection: formatName
                 });
 
-                $("#select_constituent").select2({
+                var select_constituent = $("#select_constituent").select2({
                     allowClear: true,
                     multiple: true,
                     //maximumSelectionSize: 1,
                     //dropdownCss:{display:'none'},
                     minimumInputLength: 1,
-                    ajax: {
-                        url: '/mercuryservices/constituents/',
-                        dataType: 'json',
-                        data: function (term, page) {
-                            return {
-                                constituent: term
-                            };
-                        },
-                        results: function (data, page) {
-                            //data_data = data;
-                            //grid.data('handsontable').loadData(data.results);
-                            grid_console.text('Filtered data loaded.');
-                            return {results: data};
-                        }
-                    },
+                    data: { results: data_constituents, text: 'constituent'},
                     formatResult: formatConstituent,
                     formatSelection: formatConstituent
                 });
 
                 function formatName(data) {
                     return data.name;
+                    /*var newData = [];
+                    $.each(data, function(item){
+                       newData.push({
+                           id: item.id,
+                           text: item.name
+                       })
+                    });
+                    return newData;*/
                 }
 
                 function formatID(data) {
@@ -384,12 +397,12 @@
                     return data.constituent;
                 }
 
-                $("#date_after").datepicker({
+                var date_after = $("#date_after").datepicker({
                     dateFormat: "yy-mm-dd",
                     maxDate: 0
                 });
 
-                $("#date_before").datepicker({
+                var date_before = $("#date_before").datepicker({
                     dateFormat: "yy-mm-dd",
                     maxDate: 0
                 });
@@ -397,6 +410,46 @@
                 grid.parent().find('button[name=insertRows]').click(function () {
                     grid.data('handsontable').alter('insert_row',null,8);
                     grid_console.text('Inserted Rows.');
+                });
+
+                grid.parent().find('button[name=search]').click(function () {
+                    grid_console.text('Attempting to search...');
+                    var thisDataObject = {};
+                    //var theID = $(select_project).select2('data').id;
+                    //var theSelection = $(select_project).select2('data').text;
+                    thisDataObject['project'] = $(select_project).val();
+                    thisDataObject['site'] = $(select_site).val();//.slice(0, -1);
+                    thisDataObject['depth'] = $("#select_depth").val();
+                    thisDataObject['replicate'] = $("#select_replicate").val();
+                    thisDataObject['date_after'] = $(date_after).val();
+                    thisDataObject['date_before'] = $(date_before).val();
+                    var dataJSON = JSON.stringify(thisDataObject);
+                    $.ajax({
+                        url: '/mercurylab/sample_search/search',
+                        data: dataJSON,
+                        dataType: 'json',
+                        contentType: "application/json",
+                        type: 'POST',
+                        success: function (data, textStatus, jqXHRequest) {
+                            var content_type = jqXHRequest.getResponseHeader("content-type");
+                            // if the content-type is plain text, then it's a custom message from our Django view
+                            if (content_type.indexOf('text') > -1) {
+                                grid_console.text(data);
+                            }
+                            // otherwise, it's JSON from the REST Services
+                            else if (jqXHRequest.status === 200) {
+                                data_data = data;
+                                grid_console.text(textStatus+': Data retrieved.');
+                                grid.data('handsontable').loadData(data);
+                            }
+                            else {
+                                grid_console.text(textStatus+': Save error: '+jqXHRequest.statusText+', code: '+jqXHRequest.status+'.');
+                            }
+                        },
+                        error: function (jqXHRequest, textStatus, errorThrown) {
+                            grid_console.text(errorThrown + " ... " + textStatus);
+                        }
+                    });
                 });
 
                 // when the save button is clicked, loop through the list of changed rows and build a JSON object containing the changed rows
