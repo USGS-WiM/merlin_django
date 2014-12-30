@@ -24,39 +24,39 @@ HEADERS_CONTENT_FORM = {'content-type': 'application/x-www-form-urlencoded'}
 
 SAMPLE_KEYS_UNIQUE = ["project", "site", "time_stamp", "depth", "replicate"]
 SAMPLE_KEYS = ["project", "site", "time_stamp", "depth", "length", "received_time_stamp", "comment",
-                 "replicate", "medium_type", "lab_processing", "field_sample_bottles"]
-SAMPLE_BOTTLE_KEYS = ["field_sample", "bottle", "constituent_type", "filter_type", "volume_filtered",
+                 "replicate", "medium_type", "lab_processing", "sample_bottles"]
+SAMPLE_BOTTLE_KEYS = ["sample", "bottle", "constituent_type", "filter_type", "volume_filtered",
                         "preservation_type", "preservation_volume", "preservation_acid", "preservation_comment"]
 
 def sample_login_a(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    #headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     context = RequestContext(request)
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'processings/', headers=headers_auth_token)
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'processings/', auth=USER_AUTH)
     processings = json.dumps(r.json(), sort_keys=True)
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'mediums/', headers=headers_auth_token)
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'mediums/', auth=USER_AUTH)
     mediums = json.dumps(r.json(), sort_keys=True)
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'filters/', headers=headers_auth_token)
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'filters/', auth=USER_AUTH)
     filters = json.dumps(r.json(), sort_keys=True)
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'preservations/', headers=headers_auth_token)
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'preservations/', auth=USER_AUTH)
     preservations = json.dumps(r.json(), sort_keys=True)
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'acids/', headers=headers_auth_token)
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'acids/', auth=USER_AUTH)
     acids = json.dumps(r.json(), sort_keys=True)
     context_dict = {'processings': processings, 'mediums': mediums, 'filters': filters, 'preservations': preservations, 'acids': acids}
     return render_to_response('mercurylab/sample_login_a.html', context_dict, context)
 
 
 def sample_login(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    #headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     context = RequestContext(request)
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'processings/', headers=headers_auth_token)
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'processings/', auth=USER_AUTH)
     processings = json.dumps(r.json(), sort_keys=True)
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'mediums/', headers=headers_auth_token)
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'mediums/', auth=USER_AUTH)
     mediums = json.dumps(r.json(), sort_keys=True)
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'filters/', headers=headers_auth_token)
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'filters/', auth=USER_AUTH)
     filters = json.dumps(r.json(), sort_keys=True)
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'preservations/', headers=headers_auth_token)
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'preservations/', auth=USER_AUTH)
     preservations = json.dumps(r.json(), sort_keys=True)
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'acids/', headers=headers_auth_token)
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'acids/', auth=USER_AUTH)
     acids = json.dumps(r.json(), sort_keys=True)
     context_dict = {'processings': processings, 'mediums': mediums, 'filters': filters, 'preservations': preservations, 'acids': acids}
     return render_to_response('mercurylab/sample_login.html', context_dict, context)
@@ -64,7 +64,7 @@ def sample_login(request):
 
 #@ensure_csrf_cookie
 def sample_login_save(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    #headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     table = json.loads(request.body.decode('utf-8'))
     unique_sample_ids = []
     unique_sample_bottles = []
@@ -87,7 +87,7 @@ def sample_login_save(request):
             sample_values_unique = [row['project'], row['site'], row['time_stamp'], row['depth'], row['replicate']]
             this_sample_unique = dict(zip(SAMPLE_KEYS_UNIQUE, sample_values_unique))
             # couldn't get requests.request() to work properly here, so using requests.get() instead
-            #r = requests.request(method='GET', url=REST_SERVICES_URL+'samples/', data=this_sample_unique, headers=headers_auth_token)
+            #r = requests.request(method='GET', url=REST_SERVICES_URL+'samples/', data=this_sample_unique, auth=USER_AUTH)
             r = requests.get(REST_SERVICES_URL+'samples/', params=this_sample_unique)
             response_data = r.json()
             print(response_data['count'])
@@ -146,7 +146,7 @@ def sample_login_save(request):
     ## SAVE SAMPLES ##
     # send the samples to the database
     sample_data = json.dumps(sample_data)
-    r = requests.request(method='POST', url=REST_SERVICES_URL+'bulksamples/', data=sample_data, headers=headers_auth_token)
+    r = requests.request(method='POST', url=REST_SERVICES_URL+'bulksamples/', data=sample_data, auth=USER_AUTH)
     response_data = r.json()
     # store the IDs as an array of dictionaries, where the keys are the combo IDs and the values are the database IDs
     sample_ids = []
@@ -159,26 +159,68 @@ def sample_login_save(request):
     # update the sample bottles with the database IDs, rather than the combo IDs
     for sample_id in sample_ids:
         for sample_bottle in sample_bottle_data:
-            if sample_bottle['field_sample'] == sample_id['combo_id']:
-                sample_bottle['field_sample'] = sample_id['db_id']
+            if sample_bottle['sample'] == sample_id['combo_id']:
+                sample_bottle['sample'] = sample_id['db_id']
     # send the sample bottles to the database
     sample_bottle_data = json.dumps(sample_bottle_data)
-    r = requests.request(method='POST', url=REST_SERVICES_URL+'bulksamplebottles/', data=sample_bottle_data, headers=headers_auth_token)
+    r = requests.request(method='POST', url=REST_SERVICES_URL+'bulksamplebottles/', data=sample_bottle_data, auth=USER_AUTH)
     # send the response (data & messages) back to the user interface
     return HttpResponse(r, content_type='application/json')
 
 
+@ensure_csrf_cookie
 def sample_search(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    #headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     context = RequestContext(request)
-    context_dict = {}
-    return render_to_response('mercurylab/sample_search.html', context_dict, context)
+
+    if request.method == 'POST':
+        params_dict = {}
+        params = json.loads(request.body.decode('utf-8'))
+        if params['project']:
+            params_dict["project"] = str(params['project']).strip('[]').replace(', ', ',')
+        if params['site']:
+            params_dict["site"] = str(params['site']).strip('[]').replace(', ', ',')
+        if params['depth']:
+            params_dict["depth"] = str(params['depth']).strip('[]')
+        if params['replicate']:
+            params_dict["replicate"] = str(params['replicate']).strip('[]')
+        if params['date_after']:
+            params_dict["date_after"] = str(params['date_after']).strip('[]')
+        if params['date_before']:
+            params_dict["date_before"] = str(params['date_before']).strip('[]')
+
+        # r = requests.request(method='GET', url=REST_SERVICES_URL+'samples/', params=d, auth=USER_AUTH, headers=HEADERS_CONTENT_JSON)
+        # samples = r.json()['results']
+        # bottle_ids = str(samples[0]['sample_bottles']).strip('[]').replace(', ', ',')
+        # d = dict({"id": bottle_ids})
+        r = requests.request(method='GET', url=REST_SERVICES_URL+'results/', params=params_dict, auth=USER_AUTH, headers=HEADERS_CONTENT_JSON)
+        r_dict = r.json()
+        print(r_dict['count'])
+        r_json = json.dumps(r_dict)
+        return HttpResponse(r_json, content_type='application/json')
+
+    else:  # request.method == 'GET'
+        r = requests.request(method='GET', url=REST_SERVICES_URL+'projects/', auth=USER_AUTH)
+        projects = json.dumps(r.json(), sort_keys=True)
+        r = requests.request(method='GET', url=REST_SERVICES_URL+'processings/', auth=USER_AUTH)
+        processings = json.dumps(r.json(), sort_keys=True)
+        r = requests.request(method='GET', url=REST_SERVICES_URL+'constituents/', auth=USER_AUTH)
+        constituents = json.dumps(r.json(), sort_keys=True)
+        r = requests.request(method='GET', url=REST_SERVICES_URL+'mediums/', auth=USER_AUTH)
+        mediums = json.dumps(r.json(), sort_keys=True)
+        r = requests.request(method='GET', url=REST_SERVICES_URL+'filters/', auth=USER_AUTH)
+        filters = json.dumps(r.json(), sort_keys=True)
+        r = requests.request(method='GET', url=REST_SERVICES_URL+'preservations/', auth=USER_AUTH)
+        preservations = json.dumps(r.json(), sort_keys=True)
+        context_dict = {'projects': projects, 'processings': processings, 'constituents': constituents, 'mediums': mediums, 'filters': filters, 'preservations': preservations}
+
+        return render_to_response('mercurylab/sample_search.html', context_dict, context)
 
 
 def sample_bottles(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    #headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     context = RequestContext(request)
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'samplebottles/', headers=headers_auth_token)
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'samplebottles/', auth=USER_AUTH)
     data = json.dumps(r.json(), sort_keys=True)
     form = SampleBottleForm()
     context_dict = {'data': data, 'form': form}
@@ -186,37 +228,37 @@ def sample_bottles(request):
 
 
 def sample_bottles_load(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    #headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     data = request.body
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'samplebottles?name='+data, headers=headers_auth_token)
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'samplebottles?name='+data, auth=USER_AUTH)
     return HttpResponse(r, content_type='application/json')
 
 
 #@ensure_csrf_cookie
 def sample_bottles_save(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    #headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     data = request.body
-    r = requests.request(method='PUT', url=REST_SERVICES_URL+'bulksamplebottles/', data=data, headers=headers_auth_token)
+    r = requests.request(method='PUT', url=REST_SERVICES_URL+'bulksamplebottles/', data=data, auth=USER_AUTH)
     return HttpResponse(r, content_type='application/json')
 
 
 # Blank editable form to add a sample bottle
 #@ensure_csrf_cookie
 def sample_bottle_add(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    #headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     form = SampleBottleForm(request.POST)
 
     if form.is_valid():
-        requests.request(method='POST', url=REST_SERVICES_URL+'samplebottles/', data=form.cleaned_data, headers=headers_auth_token)
+        requests.request(method='POST', url=REST_SERVICES_URL+'samplebottles/', data=form.cleaned_data, auth=USER_AUTH)
         return sample_bottles(request)
     else:
         print(form.errors)
 
 
 def bottles(request):
-    #headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    ##headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     context = RequestContext(request)
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'bottles/')#, headers=headers_auth_token)
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'bottles/')#, auth=USER_AUTH)
     data = json.dumps(r.json(), sort_keys=True)
     bottle_form = BottleForm()
     bottle_range_form = BottleRangeForm()
@@ -225,29 +267,29 @@ def bottles(request):
 
 
 def bottles_load(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    #headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     data = request.body
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'bottles?name='+data, headers=headers_auth_token)
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'bottles?name='+data, auth=USER_AUTH)
     return HttpResponse(r, content_type='application/json')
 
 
 #@ensure_csrf_cookie
 def bottles_save(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
+    #headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    #headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     data = request.body
-    r = requests.request(method='PUT', url=REST_SERVICES_URL+'bulkbottles/', data=data, headers=headers)#headers={'content-type': 'application/json', 'Authorization': 'Token ' + request.session['token']})
+    r = requests.request(method='PUT', url=REST_SERVICES_URL+'bulkbottles/', data=data, auth=USER_AUTH, headers=HEADERS_CONTENT_JSON)
     return HttpResponse(r, content_type='application/json')
 
 
 # Blank editable form to add a bottle
 #@ensure_csrf_cookie
 def bottle_add(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    #headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     form = BottleForm(request.POST)
 
     if form.is_valid():
-        requests.request(method='POST', url=REST_SERVICES_URL+'bottles/', data=form.cleaned_data, headers=headers_auth_token)
+        requests.request(method='POST', url=REST_SERVICES_URL+'bottles/', data=form.cleaned_data, auth=USER_AUTH)
         return HttpResponseRedirect('/mercurylab/bottles/')
     else:
         print(form.errors)
@@ -256,7 +298,8 @@ def bottle_add(request):
 # Blank editable form to add a range of bottles
 #@ensure_csrf_cookie
 def bottle_range_add(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    #headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    #headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     form = BottleRangeForm(request.POST)
 
     if form.is_valid():
@@ -270,7 +313,7 @@ def bottle_range_add(request):
             new_bottle = {'bottle_unique_name': new_name, 'description': params['description'], 'tare_weight': float(params['tare_weight']), 'bottle_type': int(params['bottle_type'])}
             new_bottles.append(new_bottle)
         new_bottles = json.dumps(new_bottles)
-        r = requests.request(method='POST', url=REST_SERVICES_URL+'bulkbottles/', data=new_bottles, headers=headers_auth_token)
+        r = requests.request(method='POST', url=REST_SERVICES_URL+'bulkbottles/', data=new_bottles, headers=HEADERS_CONTENT_JSON)
         response_data = r.json()
         print(response_data)
         return HttpResponseRedirect('/mercurylab/bottles/')
@@ -279,9 +322,9 @@ def bottle_range_add(request):
 
 
 def brominations(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    #headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     context = RequestContext(request)
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'brominations/', headers=headers_auth_token)
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'brominations/', auth=USER_AUTH)
     data = json.dumps(r.json(), sort_keys=True)
     form = BrominationForm()
     context_dict = {'data': data, 'form': form}
@@ -289,37 +332,37 @@ def brominations(request):
 
 
 def brominations_load(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    #headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     data = request.body
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'brominations?id='+data, headers=headers_auth_token)
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'brominations?id='+data, auth=USER_AUTH)
     return HttpResponse(r, content_type='application/json')
 
 
 #@ensure_csrf_cookie
 def brominations_save(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    #headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     data = request.body
-    r = requests.request(method='PUT', url=REST_SERVICES_URL+'bulkbrominations/', data=data, headers=headers_auth_token)
+    r = requests.request(method='PUT', url=REST_SERVICES_URL+'bulkbrominations/', data=data, auth=USER_AUTH)
     return HttpResponse(r, content_type='application/json')
 
 
 # Blank editable form to add a bromination
 #@ensure_csrf_cookie
 def bromination_add(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    #headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     form = BrominationForm(request.POST)
 
     if form.is_valid():
-        requests.request(method='POST', url=REST_SERVICES_URL+'brominations/', data=form.cleaned_data, headers=headers_auth_token)
+        requests.request(method='POST', url=REST_SERVICES_URL+'brominations/', data=form.cleaned_data, auth=USER_AUTH)
         return brominations(request)
     else:
         print(form.errors)
 
 
 def blankwaters(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    #headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     context = RequestContext(request)
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'blankwaters/', headers=headers_auth_token)
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'blankwaters/', auth=USER_AUTH)
     data = json.dumps(r.json(), sort_keys=True)
     form = BlankWaterForm()
     context_dict = {'data': data, 'form': form}
@@ -327,37 +370,37 @@ def blankwaters(request):
 
 
 def blankwaters_load(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    #headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     data = request.body
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'blankwaters?id='+data, headers=headers_auth_token)
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'blankwaters?id='+data, auth=USER_AUTH)
     return HttpResponse(r, content_type='application/json')
 
 
 #@ensure_csrf_cookie
 def blankwaters_save(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    #headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     data = request.body
-    r = requests.request(method='PUT', url=REST_SERVICES_URL+'bulkblankwaters/', data=data, headers=headers_auth_token)
+    r = requests.request(method='PUT', url=REST_SERVICES_URL+'bulkblankwaters/', data=data, auth=USER_AUTH)
     return HttpResponse(r, content_type='application/json')
 
 
 # Blank editable form to add a blank water
 #@ensure_csrf_cookie
 def blankwater_add(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    #headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     form = BlankWaterForm(request.POST)
 
     if form.is_valid():
-        requests.request(method='POST', url=REST_SERVICES_URL+'blankwaters/', data=form.cleaned_data, headers=headers_auth_token)
+        requests.request(method='POST', url=REST_SERVICES_URL+'blankwaters/', data=form.cleaned_data, auth=USER_AUTH)
         return blankwaters(request)
     else:
         print(form.errors)
 
 
 def acids(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    #headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     context = RequestContext(request)
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'acids/', headers=headers_auth_token)
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'acids/', auth=USER_AUTH)
     data = json.dumps(r.json(), sort_keys=True)
     form = AcidForm()
     context_dict = {'data': data, 'form': form}
@@ -365,37 +408,37 @@ def acids(request):
 
 
 def acids_load(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    #headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     data = request.body
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'acids?id='+data, headers=headers_auth_token)
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'acids?id='+data, auth=USER_AUTH)
     return HttpResponse(r, content_type='application/json')
 
 
 #@ensure_csrf_cookie
 def acids_save(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    #headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     data = request.body
-    r = requests.request(method='PUT', url=REST_SERVICES_URL+'bulkacids/', data=data, headers=headers_auth_token)
+    r = requests.request(method='PUT', url=REST_SERVICES_URL+'bulkacids/', data=data, auth=USER_AUTH)
     return HttpResponse(r, content_type='application/json')
 
 
 # Blank editable form to add an acid
 ##@ensure_csrf_cookie
 def acid_add(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    #headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     form = AcidForm(request.POST)
 
     if form.is_valid():
-        requests.request(method='POST', url=REST_SERVICES_URL+'acids/', data=form.cleaned_data, headers=headers_auth_token)
+        requests.request(method='POST', url=REST_SERVICES_URL+'acids/', data=form.cleaned_data, auth=USER_AUTH)
         return acids(request)
     else:
         print(form.errors)
 
 
 def sites(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    #headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     context = RequestContext(request)
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'sites/', headers=headers_auth_token)
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'sites/', auth=USER_AUTH)
     data = json.dumps(r.json(), sort_keys=True)
     form = SiteForm()
     context_dict = {'data': data, 'form': form}
@@ -403,37 +446,37 @@ def sites(request):
 
 
 def sites_load(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    #headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     data = request.body
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'sites?name='+data, headers=headers_auth_token)
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'sites?name='+data, auth=USER_AUTH)
     return HttpResponse(r, content_type='application/json')
 
 
 #@ensure_csrf_cookie
 def sites_save(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    #headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     data = request.body
-    r = requests.request(method='PUT', url=REST_SERVICES_URL+'bulksites/', data=data, headers=headers_auth_token)
+    r = requests.request(method='PUT', url=REST_SERVICES_URL+'bulksites/', data=data, auth=USER_AUTH)
     return HttpResponse(r, content_type='application/json')
 
 
 # Blank editable form to add a site
 #@ensure_csrf_cookie
 def site_add(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    #headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     form = SiteForm(request.POST)
 
     if form.is_valid():
-        requests.request(method='POST', url=REST_SERVICES_URL+'sites/', data=form.cleaned_data, headers=headers_auth_token)
+        requests.request(method='POST', url=REST_SERVICES_URL+'sites/', data=form.cleaned_data, auth=USER_AUTH)
         return sites(request)
     else:
         print(form.errors)
 
 
 def projects(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    #headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     context = RequestContext(request)
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'projects/', headers=headers_auth_token)
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'projects/', auth=USER_AUTH)
     data = json.dumps(r.json(), sort_keys=True)
     form = ProjectForm()
     context_dict = {'data': data, 'form': form}
@@ -441,37 +484,37 @@ def projects(request):
 
 
 def projects_load(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    #headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     data = request.body
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'projects?name='+data, headers=headers_auth_token)
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'projects?name='+data, auth=USER_AUTH)
     return HttpResponse(r, content_type='application/json')
 
 
 #@ensure_csrf_cookie
 def projects_save(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    #headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     data = request.body
-    r = requests.request(method='PUT', url=REST_SERVICES_URL+'bulkprojects/', data=data, headers=headers_auth_token)
+    r = requests.request(method='PUT', url=REST_SERVICES_URL+'bulkprojects/', data=data, auth=USER_AUTH)
     return HttpResponse(r, content_type='application/json')
 
 
 # Blank editable form to add a project
 #@ensure_csrf_cookie
 def project_add(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    #headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     form = ProjectForm(request.POST)
 
     if form.is_valid():
-        requests.request(method='POST', url=REST_SERVICES_URL+'projects/', data=form.cleaned_data, headers=headers_auth_token)
+        requests.request(method='POST', url=REST_SERVICES_URL+'projects/', data=form.cleaned_data, auth=USER_AUTH)
         return projects(request)
     else:
         print(form.errors)
 
 
 def cooperators(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    #headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     context = RequestContext(request)
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'cooperators/', headers=headers_auth_token)
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'cooperators/', auth=USER_AUTH)
     data = json.dumps(r.json(), sort_keys=True)
     form = CooperatorForm()
     context_dict = {'data': data, 'form': form}
@@ -479,23 +522,23 @@ def cooperators(request):
 
 
 def cooperators_load(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    #headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     data = request.body
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'cooperators?name='+data, headers=headers_auth_token)
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'cooperators?name='+data, auth=USER_AUTH)
     return HttpResponse(r, content_type='application/json')
 
 
 #@ensure_csrf_cookie
 def cooperators_save(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    #headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     data = request.body
-    r = requests.request(method='PUT', url=REST_SERVICES_URL+'bulkcooperators/', data=data, headers=headers_auth_token)
+    r = requests.request(method='PUT', url=REST_SERVICES_URL+'bulkcooperators/', data=data, auth=USER_AUTH)
     return HttpResponse(r, content_type='application/json')
 
 
 # def cooperator(request, pk):
 #     context = RequestContext(request)
-#     r = requests.request(method='GET', url=REST_SERVICES_URL+'cooperators/'+pk+'/', headers=headers_auth_token)
+#     r = requests.request(method='GET', url=REST_SERVICES_URL+'cooperators/'+pk+'/', auth=USER_AUTH)
 #     data = json.dumps(r.json())
 #     context_dict = {'data': data, 'id': pk}
 #     return render_to_response('mercurylab/cooperator.html', context_dict, context)
@@ -504,18 +547,18 @@ def cooperators_save(request):
 # #@ensure_csrf_cookie
 # def cooperator_save(request, pk):
 #     data = request.body
-#     r = requests.request(method='PUT', url=REST_SERVICES_URL+'cooperators/'+pk+'/', data=data, headers=headers_auth_token)
+#     r = requests.request(method='PUT', url=REST_SERVICES_URL+'cooperators/'+pk+'/', data=data, auth=USER_AUTH)
 #     return HttpResponse(r, content_type='application/json')
 
 
 # Blank editable form to add a cooperator
 #@ensure_csrf_cookie
 def cooperator_add(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    #headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     form = CooperatorForm(request.POST)
 
     if form.is_valid():
-        requests.request(method='POST', url=REST_SERVICES_URL+'cooperators/', data=form.cleaned_data, headers=headers_auth_token)
+        requests.request(method='POST', url=REST_SERVICES_URL+'cooperators/', data=form.cleaned_data, auth=USER_AUTH)
         return cooperators(request)
     else:
         print(form.errors)
@@ -559,33 +602,33 @@ def cooperator_add(request):
 #         context)
 
 
-# #login using Session Authentication
-# #@ensure_csrf_cookie
-# # This may not be the right way to do this. We need to decouple the client from the database and log in through services instead.
-# def user_login(request):
-#     context = RequestContext(request)
-#
-#     if request.method == 'POST':
-#         username = request.POST['username']
-#         password = request.POST['password']
-#
-#         user = authenticate(username=username, password=password)
-#
-#         if user:
-#             if user.is_active:
-#                 login(request, user)
-#                 global USER_AUTH
-#                 USER_AUTH = (username, password)
-#                 return HttpResponseRedirect('/mercurylab/')
-#             else:
-#                 return HttpResponse("Your account is disabled.")
-#
-#         else:
-#             print("Invalid login details: {0}, {1}".format(username, password))
-#             return HttpResponse("Invalid login details supplied.")
-#
-#     else:
-#         return render_to_response('mercurylab/login.html', {}, context)
+#login using Session Authentication
+#@ensure_csrf_cookie
+# This may not be the right way to do this. We need to decouple the client from the database and log in through services instead.
+def user_login(request):
+    context = RequestContext(request)
+
+    if request.method == 'POST':
+        username = request.POST['username']
+        password = request.POST['password']
+
+        user = authenticate(username=username, password=password)
+
+        if user:
+            if user.is_active:
+                login(request, user)
+                global USER_AUTH
+                USER_AUTH = (username, password)
+                return HttpResponseRedirect('/mercurylab/')
+            else:
+                return HttpResponse("Your account is disabled.")
+
+        else:
+            print("Invalid login details: {0}, {1}".format(username, password))
+            return HttpResponse("Invalid login details supplied.")
+
+    else:
+        return render_to_response('mercurylab/login.html', {}, context)
 
 
 # #login using Basic Authentication
@@ -618,34 +661,40 @@ def cooperator_add(request):
 #         return render_to_response('mercurylab/login.html', {}, context)
 
 
-#login using Token Authentication
-def user_login(request):
-    context = RequestContext(request)
+# #login using Token Authentication
+# def user_login(request):
+#     context = RequestContext(request)
+#
+#     if request.method == 'POST':
+#         username = request.POST['username']
+#         password = request.POST['password']
+#         data = {"username": username, "password": password}
+#
+#         r = requests.request(method='POST', url=REST_SERVICES_URL+'auth/login', data=data, headers=HEADERS_CONTENT_FORM)
+#
+#         if r.status_code == 200:
+#             # global USER_TOKEN
+#             # USER_TOKEN = eval(r.content)['auth_token']
+#             # global USER_AUTH
+#             # USER_AUTH = (username, password)
+#             token = eval(r.content)['auth_token']
+#             request.session['token'] = token
+#             request.session['username'] = username
+#             request.session['password'] = password
+#             return HttpResponseRedirect('/mercurylab/')
+#
+#         else:
+#             print(r)
+#             return render_to_response('mercurylab/login.html', r, context)
+#
+#     else:
+#         return render_to_response('mercurylab/login.html', {}, context)
 
-    if request.method == 'POST':
-        username = request.POST['username']
-        password = request.POST['password']
-        data = {"username": username, "password": password}
 
-        r = requests.request(method='POST', url=REST_SERVICES_URL+'auth/login', data=data, headers=HEADERS_CONTENT_FORM)
-
-        if r.status_code == 200:
-            # global USER_TOKEN
-            # USER_TOKEN = eval(r.content)['auth_token']
-            # global USER_AUTH
-            # USER_AUTH = (username, password)
-            token = eval(r.content)['auth_token']
-            request.session['token'] = token
-            request.session['username'] = username
-            request.session['password'] = password
-            return HttpResponseRedirect('/mercurylab/')
-
-        else:
-            print(r)
-            return render_to_response('mercurylab/login.html', r, context)
-
-    else:
-        return render_to_response('mercurylab/login.html', {}, context)
+#logout using Session Authentication
+def user_logout(request):
+    logout(request)
+    return HttpResponseRedirect('/mercurylab/')
 
 
 # #logout using Basic Authentication
@@ -662,25 +711,25 @@ def user_login(request):
 #         return HttpResponse("<h1>Logout wasn't performed. Please contact the administrator.</h1>")
 
 
-#logout using Token Authentication
-def user_logout(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    r = requests.request(method='POST', url=REST_SERVICES_URL+'auth/logout', headers=headers_auth_token)
-    print(r)
-
-    if r.status_code == 200:
-        del request.session['token']
-        del request.session['username']
-        del request.session['password']
-        request.session.modified = True
-        # global USER_AUTH
-        # USER_AUTH = ('guest', 'guest')
-        # global USER_TOKEN
-        # USER_TOKEN = ''
-        return HttpResponseRedirect('/mercurylab/')
-
-    else:
-        return HttpResponse("<h1>Logout wasn't performed. Please contact the administrator.</h1>")
+# #logout using Token Authentication
+# def user_logout(request):
+#     #headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+#     r = requests.request(method='POST', url=REST_SERVICES_URL+'auth/logout', auth=USER_AUTH)
+#     print(r)
+#
+#     if r.status_code == 200:
+#         del request.session['token']
+#         del request.session['username']
+#         del request.session['password']
+#         request.session.modified = True
+#         # global USER_AUTH
+#         # USER_AUTH = ('guest', 'guest')
+#         # global USER_TOKEN
+#         # USER_TOKEN = ''
+#         return HttpResponseRedirect('/mercurylab/')
+#
+#     else:
+#         return HttpResponse("<h1>Logout wasn't performed. Please contact the administrator.</h1>")
 
 
 # @login_required

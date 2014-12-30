@@ -47,8 +47,8 @@
                 </div>
                 <div class="navbar-collapse collapse">
                     <ul class="nav navbar-nav navbar-right">
-                        {% if request.session.username %}
-                            <li class="navbar-text">Welcome, {{ request.session.username }}!</li>
+                        {% if user.is_authenticated %}
+                            <li class="navbar-text">Welcome, {{ user.username }}!</li>
                             <li><a href="/mercurylab/logout">Logout</a></li>
                         {% else %}
                             <li><a href="/mercurylab/login">Login</a></li>
@@ -61,7 +61,7 @@
              </div>
         </div>
         <div id="wrapper" class="toggled">
-        {% if request.session.username %}
+        {% if user.is_authenticated %}
             <div id="sidebar-wrapper">
                 <ul class="sidebar-nav">
                     <li class="sidebar-brand">

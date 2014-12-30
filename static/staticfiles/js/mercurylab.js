@@ -28,11 +28,14 @@ function getValuesDom(domDataObject,attribute) {
     }
     return values;
 }
-function getValuesAjax(url, arg, query, process) {
+function getValuesAjax(url, arg, query, process, filterParam) {
+    var dataParams;
+    if (filterParam) {dataParams = filterParam + "&" + arg + "=" + query}
+    else {dataParams = arg + "=" + query}
     $.ajax({
         url: url,
         dataType: 'json',
-        data: arg + "=" + query,
+        data: dataParams,
         success: function (response) {
             //console.log("success: getValuesAjax");
             var values = [];
@@ -63,13 +66,16 @@ function updateValueDom(domDataObject, searchKey, resultKey, searchVal) {
     }
     return returnVal;
 }
-function updateValueAjax(url, arg, newKey, changedVal) {
+function updateValueAjax(url, arg, newKey, changedVal, filterParam) {
     var newValue;
+    var dataParams;
+    if (filterParam) {dataParams = filterParam + "&" + arg + "=" + changedVal}
+    else {dataParams = arg + "=" + changedVal}
     $.ajax({
         async: false,
         url: url,
         dataType: 'json',
-        data: arg + "=" + changedVal,
+        data: dataParams,
         success: function (response) {
             //console.log("success: updateValueAjax");
             if ("results" in response) {
