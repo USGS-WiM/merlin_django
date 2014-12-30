@@ -25,15 +25,13 @@
             {% csrf_token %}
             <p>
                 <!-- <input id="select_sample_bottle" type="hidden" placeholder="Sample Bottle Code" style="width:297px"/> -->
-                <input id="select_project" type="hidden" placeholder="Project Name" style="width:297px"/>
-                <input id="select_site" type="hidden" placeholder="Site Name" style="width:297px"/>
+                <input id="select_project" type="hidden" placeholder="Project Name" style="width:600px"/>
+                <input id="select_site" type="hidden" placeholder="Site Name" style="width:600px"/>
+            </p>
+            <p>
                 <!-- <input id="select_constituent" type="hidden" placeholder="Constituent" style="width:297px"/> -->
-            </p>
-            <p>
                 <input id="select_depth" type="number" placeholder="Depth" style="width:297px"/>
-                <input id="select_rep" type="number" placeholder="Replicate" style="width:297px"/>
-            </p>
-            <p>
+                <input id="select_replicate" type="number" placeholder="Replicate" style="width:297px"/>
                 <input id="date_after" placeholder="After Date" style="width:297px"/>
                 <input id="date_before" placeholder="Before Date" style="width:297px"/>
             </p>
@@ -53,7 +51,7 @@
             </div>
         <!-- <p><input id="search_field" type="search" placeholder="Highlight in table." style="width:600px; border:1px solid darkgray; height:42px"/></p> -->
         <br /><br />
-        <div id="grid" data-projects="{{ projects }}" data-constituents="{{ constituents }}" class="table table-hover table-condensed table-bordered"></div>
+        <div id="grid" data-projects="{{ projects }}" data-processings="{{ processings }}" data-constituents="{{ constituents }}" data-mediums="{{ mediums }}" data-filters="{{ filters }}" data-preservations="{{ preservations }}" class="table table-hover table-condensed table-bordered"></div>
 
         <script>
             $(document).ready(function() {
@@ -75,12 +73,12 @@
                 var grid_console = $("#grid_console");
                 var data_data = {};
                 grid.css("z-index", "0");
-                var data_processings;
-                var data_mediums;
+                var data_processings = JSON.parse(grid.attr('data-processings'));
+                var data_mediums = JSON.parse(grid.attr('data-mediums'));
+                var data_filters = JSON.parse(grid.attr('data-filters'));
+                var data_preservations = JSON.parse(grid.attr('data-preservations'));
                 // temporary array until isotopes get figured out
                 var data_isotopes = ['', 'A', '198', '199', '200', '201', '202'];
-                var data_filters;
-                var data_preservations;
                 var data_acids;
                 var data_projects = JSON.parse(grid.attr('data-projects'));
                 var data_sites;
@@ -124,11 +122,11 @@
                         {title: 'Project ID', data: 'sample_bottle.sample.project.id', width: 70, type: 'autocomplete', strict: true, source: function (query, process) {
                             getValuesAjax('/mercuryservices/projects', 'id', query, process)}
                         },
-                        {title: 'Site Name', data: 'sample_bottle.sample.site.name', width: 70, type: 'autocomplete', strict: true/*, source: function (query, process) {
-                            getValuesAjax('/mercuryservices/sites', 'name', query, process)}*/
+                        {title: 'Site Name', data: 'sample_bottle.sample.site.name', width: 70, type: 'autocomplete', strict: true, source: function (query, process) {
+                            getValuesAjax('/mercuryservices/sites', 'name', query, process, ('project=' + grid.handsontable('getInstance').getDataAtCell(grid.handsontable('getInstance').getSelected()[0], 2)))}
                         },
-                        {title: 'Site ID', data: 'sample_bottle.sample.site.id', width: 70, type: 'autocomplete', strict: true/*, source: function (query, process) {
-                            getValuesAjax('/mercuryservices/sites', 'id', query, process)}*/
+                        {title: 'Site ID', data: 'sample_bottle.sample.site.id', width: 70, type: 'autocomplete', strict: true, source: function (query, process) {
+                            getValuesAjax('/mercuryservices/sites', 'id', query, process, ('project=' + grid.handsontable('getInstance').getDataAtCell(grid.handsontable('getInstance').getSelected()[0], 2)))}
                         },
                         // Date, Hour, and Minute as separate columns is temporary until a single column datetime editor can be found for handsontable
                         {title: 'Date', data: 'sample_bottle.sample.date', width: 100, type: 'date', maxDate: 0},
@@ -142,17 +140,17 @@
                         {title: 'Received', data: 'sample_bottle.sample.received_time_stamp', width: 100, type: 'date', maxDate: 0},
                         {title: 'Lab Processing', data: 'sample_bottle.sample.lab_processing', width: 105, type: 'text'/*, type: 'autocomplete', strict: true, source: getValuesDom(data_processings,"processing")*/},
                         //{title: 'Container ID', width: 100, type: 'text'},
-                        {title: 'Container ID', data: 'sample_bottle.bottle.bottle_unique_name', width: 90, type: 'text'/*, type: 'autocomplete', strict: true,  source: function (query, process) {
-                            getValuesAjax('/mercuryservices/bottles', 'bottle_unique_name', query, process)}*/},
-                        {title: 'Medium', data: 'sample_bottle.sample.medium_type.medium', width: 100, type: 'text'/*, type: 'autocomplete', strict: true, source: getValuesDom(data_mediums,"medium")*/},
-                        {title: 'Analysis', data: 'constituent', width: 70, type: 'text'/*, type: 'autocomplete', strict: true*/},
+                        {title: 'Container ID', data: 'sample_bottle.bottle', width: 90, type: 'autocomplete', strict: true,  source: function (query, process) {
+                            getValuesAjax('/mercuryservices/bottles', 'bottle_unique_name', query, process)}},
+                        {title: 'Medium', data: 'sample_bottle.sample.medium_type', width: 100, type: 'autocomplete', strict: true, source: getValuesDom(data_mediums,"medium")},
+                        {title: 'Analysis', data: 'constituent', width: 70, type: 'autocomplete', strict: true},
                         {title: 'Isotope', data: 'isotope_flag', width: 55, type: 'dropdown', source: data_isotopes},
-                        {title: 'Filter', data: 'sample_bottle.filter_type.filter', width: 100, type: 'text'/*, type: 'autocomplete', strict: true, source: getValuesDom(data_filters,"filter")*/},
+                        {title: 'Filter', data: 'sample_bottle.filter_type', width: 100, type: 'autocomplete', strict: true, source: getValuesDom(data_filters,"filter")},
                         {title: 'Filter Vol.', data: 'sample_bottle.volume_filtered', width: 65, type: 'numeric'},
-                        {title: 'Preservation', data: 'sample_bottle.preservation_type.preservation', width: 100, type: 'text'/*, type: 'autocomplete', strict: true, source: getValuesDom(data_preservations, "preservation")*/},
+                        {title: 'Preservation', data: 'sample_bottle.preservation_type', width: 100, type: 'autocomplete', strict: true, source: getValuesDom(data_preservations, "preservation")},
                         //{title: 'Acid', width: 100, type: 'autocomplete',  source: getValuesDom(data_acids, "code")},
-                        {title: 'Acid', data: 'sample_bottle.preservation_acid.acid', width: 110, type: 'text'/*, type: 'autocomplete', strict: true,  source: function (query, process) {
-                            getValuesAjax('/mercuryservices/acids', 'code', query, process)}*/},
+                        {title: 'Acid', data: 'sample_bottle.preservation_acid', width: 110, type: 'autocomplete', strict: true,  source: function (query, process) {
+                            getValuesAjax('/mercuryservices/acids', 'code', query, process)}},
                         {title: 'Acid Vol.', data: 'sample_bottle.preservation_volume', width: 60, type: 'numeric'},
                         {title: 'Pres. Comments', data: 'sample_bottle.preservation_comment', width: 100, type: 'text'}
                     ],
@@ -182,12 +180,12 @@
                         // update dependent columns when a value in a parent column is changed
                         if (source == 'edit') {
                             // when project name is changed to a non-null, non-blank value
-                            if (changedCol == 0 && changedVal !== null && changedVal !== "") {
+                            if (changedCol == 'sample_bottle.sample.project.name' && changedVal !== null && changedVal !== "") {
                                 // update project ID to match project name
-                                var newValue = updateValueAjax('/mercuryservices/projects/', 'name', 'id', changedVal);
-                                grid.handsontable('setDataAtCell', changedRow, 1, newValue);
+                                var newValue = updateValueDom(data_sites, 'name', 'id', changedVal);
+                                grid.handsontable('setDataAtCell', changedRow, 2, newValue);
                                 // update lists of site names and IDs filtered by the selected project name
-                                $.ajax({
+                                /*$.ajax({
                                     url: '/mercuryservices/sites/',
                                     dataType: 'json',
                                     data: {
@@ -211,15 +209,15 @@
                                     error: function (response) {
                                         grid_console.text("error");
                                     }
-                                });
+                                });*/
                             }
                             // when project ID is changed to a non-null, non-blank value
-                            if (changedCol == 1 && changedVal !== null && changedVal !== "") {
+                            if (changedCol == 'sample_bottle.sample.project.id' && changedVal !== null && changedVal !== "") {
                                 // update project name to match project ID
-                                var newValue = updateValueAjax('/mercuryservices/projects/', 'id', 'name', changedVal);
-                                grid.handsontable('setDataAtCell', changedRow, 0, newValue);
+                                var newValue = updateValueDom(data_projects, 'id', 'name', changedVal);
+                                grid.handsontable('setDataAtCell', changedRow, 1, newValue);
                                 // update lists of site names and IDs filtered by the selected project name
-                                $.ajax({
+                               /* $.ajax({
                                     url: '/mercuryservices/sites/',
                                     dataType: 'json',
                                     data: {
@@ -243,25 +241,22 @@
                                     error: function (response) {
                                         grid_console.text("error");
                                     }
-                                });
+                                });*/
                             }
                             // when site name is changed to a non-null, non-blank value
-                            if (changedCol == 2 && changedVal !== null && changedVal !== "") {
+                            if (changedCol == 'sample_bottle.sample.site.name' && changedVal !== null && changedVal !== "") {
                                 // update site ID to match site name
                                 var newValue = updateValueAjax('/mercuryservices/sites/', 'name', 'id', changedVal);
-                                grid.handsontable('setDataAtCell', changedRow, 3, newValue);
-                                // also update depth to default of 0 and rep to default of 1
-                                grid.handsontable('setDataAtCell', changedRow, 4, 0);
-                                grid.handsontable('setDataAtCell', changedRow, 6, 1);
+                                grid.handsontable('setDataAtCell', changedRow, 4, newValue);
                             }
                             // when site ID is changed to a non-null, non-blank value
-                            if (changedCol == 3 && changedVal !== null && changedVal !== "") {
+                            if (changedCol == 'sample_bottle.sample.site.id' && changedVal !== null && changedVal !== "") {
                                 // update site name to match site ID
                                 var newValue = updateValueAjax('/mercuryservices/sites/', 'id', 'name', changedVal);
-                                grid.handsontable('setDataAtCell', changedRow, 2, newValue);
+                                grid.handsontable('setDataAtCell', changedRow, 3, newValue);
                             }
                             // when medium is changed to a non-null, non-blank value
-                            if (changedCol == 13 && changedVal !== null && changedVal !== "") {
+                            if (changedCol == 'sample_bottle.sample.medium_type' && changedVal !== null && changedVal !== "") {
                                 // update list of constituents filtered by the selected medium value
                                 $.ajax({
                                     url: '/mercuryservices/constituents/',
@@ -271,7 +266,7 @@
                                     },
                                     success: function (response) {
                                         grid_console.text("success");
-                                        var colToChange = 14;
+                                        var colToChange = 15;
                                         // update the local full object collection
                                         data_constituents = response;
                                         // update the dropdown list with just the values
@@ -336,8 +331,7 @@
                     data: { results: data_projects, text: 'name'},
                     formatResult: formatName,
                     formatSelection: formatName
-                }).on("change", function(e) {
-                });
+                });//.on("change", function(e) {});
 
                 var select_site = $("#select_site").select2({
                     allowClear: true,
@@ -439,8 +433,8 @@
                             // otherwise, it's JSON from the REST Services
                             else if (jqXHRequest.status === 200) {
                                 data_data = data;
-                                grid_console.text(textStatus+': Data retrieved.');
-                                grid.data('handsontable').loadData(data);
+                                grid_console.text(textStatus+': Retrieved '+ data_data['count'] +' results.');
+                                grid.data('handsontable').loadData(data_data.results);
                             }
                             else {
                                 grid_console.text(textStatus+': Save error: '+jqXHRequest.statusText+', code: '+jqXHRequest.status+'.');
@@ -470,13 +464,13 @@
                             // convert each cell in this row into an object property
                             for (var i = 0; i < thisDataRow.length; i++) {
                                 switch(i){
-                                    case 0: // project name
+                                    case 1: // project name
                                         break;
-                                    case 2: // site name
+                                    case 3: // site name
                                         break;
-                                    case 4: // date
+                                    case 5: // date
                                         break;
-                                    case 5: // time
+                                    case 6: // time
                                         if (thisDataRow[i] !== null && thisDataRow[i] !== "" && thisDataRow[i-1] !== null && thisDataRow[i-1] !== "") {
                                             var changedVal = thisDataRow[i];
                                             var newValue;
@@ -501,28 +495,28 @@
                                             thisDataObject[objectFields[i]] = thisDataRow[i-1]+" "+newValue+":00";
                                         }
                                         break;
-                                    case 11: // processing
+                                    case 12: // processing
                                         thisDataObject[objectFields[i]] = getIdDom(data_processings,'processing',thisDataRow[i]);
                                         break;
-                                    case 12: // bottle
+                                    case 13: // bottle
                                         // this must eventually point to Sample Bottles, not Bottles
                                         thisDataObject[objectFields[i]] = thisDataObject[objectFields[i]] = updateValueAjax('/mercuryservices/bottles', 'bottle_unique_name', 'id', thisDataRow[i]);
                                         break;
-                                    case 13: // medium
+                                    case 14: // medium
                                         thisDataObject[objectFields[i]] = getIdDom(data_mediums,'medium',thisDataRow[i]);
                                         break;
-                                    case 14: // constituent
+                                    case 15: // constituent
                                         thisDataObject[objectFields[i]] = getIdDom(data_constituents,'constituent',thisDataRow[i]);
                                         break;
-                                    case 15: // isotope
+                                    case 16: // isotope
                                         break;
-                                    case 16: // filter
+                                    case 17: // filter
                                         thisDataObject[objectFields[i]] = thisDataObject[objectFields[i]] = getIdDom(data_filters,'filter',thisDataRow[i]);
                                         break;
-                                    case 18: // preservation
+                                    case 19: // preservation
                                         thisDataObject[objectFields[i]] = thisDataObject[objectFields[i]] = getIdDom(data_preservations,'preservation',thisDataRow[i]);
                                         break;
-                                    case 19: // acid
+                                    case 20: // acid
                                         thisDataObject[objectFields[i]] = thisDataObject[objectFields[i]] = updateValueAjax('/mercuryservices/acids', 'code', 'id', thisDataRow[i]);
                                         break;
                                     default: // all the rest

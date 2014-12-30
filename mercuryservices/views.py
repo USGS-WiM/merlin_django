@@ -367,10 +367,10 @@ class ResultViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(sample_bottle__sample__site__in=site_list)
         depth = self.request.QUERY_PARAMS.get('depth', None)
         if depth is not None:
-            queryset = queryset.filter(sample__depth__exact=depth)
+            queryset = queryset.filter(sample_bottle__sample__depth__exact=depth)
         replicate = self.request.QUERY_PARAMS.get('replicate', None)
         if replicate is not None:
-            queryset = queryset.filter(sample__replicate__exact=replicate)
+            queryset = queryset.filter(sample_bottle__sample__replicate__exact=replicate)
         bottle = self.request.QUERY_PARAMS.get('bottle', None)
         if bottle is not None:
             bottle_list = bottle.split(',')

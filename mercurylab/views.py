@@ -172,37 +172,49 @@ def sample_login_save(request):
 def sample_search(request):
     #headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     context = RequestContext(request)
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'projects/', auth=USER_AUTH)
-    projects = json.dumps(r.json(), sort_keys=True)
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'constituents/', auth=USER_AUTH)
-    constituents = json.dumps(r.json(), sort_keys=True)
-    context_dict = {'projects': projects, 'constituents': constituents}
 
     if request.method == 'POST':
+        params_dict = {}
         params = json.loads(request.body.decode('utf-8'))
-        project = str(params['project']).strip('[]').replace(', ', ',')
-        site = str(params['site']).strip('[]').replace(', ', ',')
-        # site = request.POST['site']
-        # date_after = request.POST['date_after']
-        # date_before = request.POST['date_before']
-        d = dict({"project": project, "site": site})
-        print(d)
+        if params['project']:
+            params_dict["project"] = str(params['project']).strip('[]').replace(', ', ',')
+        if params['site']:
+            params_dict["site"] = str(params['site']).strip('[]').replace(', ', ',')
+        if params['depth']:
+            params_dict["depth"] = str(params['depth']).strip('[]')
+        if params['replicate']:
+            params_dict["replicate"] = str(params['replicate']).strip('[]')
+        if params['date_after']:
+            params_dict["date_after"] = str(params['date_after']).strip('[]')
+        if params['date_before']:
+            params_dict["date_before"] = str(params['date_before']).strip('[]')
 
         # r = requests.request(method='GET', url=REST_SERVICES_URL+'samples/', params=d, auth=USER_AUTH, headers=HEADERS_CONTENT_JSON)
         # samples = r.json()['results']
         # bottle_ids = str(samples[0]['sample_bottles']).strip('[]').replace(', ', ',')
         # d = dict({"id": bottle_ids})
-        r = requests.request(method='GET', url=REST_SERVICES_URL+'results/', params=d, auth=USER_AUTH, headers=HEADERS_CONTENT_JSON)
-        r_json = r.json()
-        results = r_json['results']
-        print(type(results))
-        print(r_json['count'])
-        print(results[0])
-        data = json.dumps(results)
-        print(type(data))
-        return HttpResponse(data, content_type='application/json')
+        r = requests.request(method='GET', url=REST_SERVICES_URL+'results/', params=params_dict, auth=USER_AUTH, headers=HEADERS_CONTENT_JSON)
+        r_dict = r.json()
+        print(r_dict['count'])
+        r_json = json.dumps(r_dict)
+        return HttpResponse(r_json, content_type='application/json')
 
-    return render_to_response('mercurylab/sample_search.html', context_dict, context)
+    else:  # request.method == 'GET'
+        r = requests.request(method='GET', url=REST_SERVICES_URL+'projects/', auth=USER_AUTH)
+        projects = json.dumps(r.json(), sort_keys=True)
+        r = requests.request(method='GET', url=REST_SERVICES_URL+'processings/', auth=USER_AUTH)
+        processings = json.dumps(r.json(), sort_keys=True)
+        r = requests.request(method='GET', url=REST_SERVICES_URL+'constituents/', auth=USER_AUTH)
+        constituents = json.dumps(r.json(), sort_keys=True)
+        r = requests.request(method='GET', url=REST_SERVICES_URL+'mediums/', auth=USER_AUTH)
+        mediums = json.dumps(r.json(), sort_keys=True)
+        r = requests.request(method='GET', url=REST_SERVICES_URL+'filters/', auth=USER_AUTH)
+        filters = json.dumps(r.json(), sort_keys=True)
+        r = requests.request(method='GET', url=REST_SERVICES_URL+'preservations/', auth=USER_AUTH)
+        preservations = json.dumps(r.json(), sort_keys=True)
+        context_dict = {'projects': projects, 'processings': processings, 'constituents': constituents, 'mediums': mediums, 'filters': filters, 'preservations': preservations}
+
+        return render_to_response('mercurylab/sample_search.html', context_dict, context)
 
 
 def sample_bottles(request):
