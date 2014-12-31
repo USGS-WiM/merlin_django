@@ -45,8 +45,6 @@ from rest_framework_bulk import ListBulkCreateUpdateDestroyAPIView, BulkCreateMo
 class CooperatorBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
     model = Cooperator
     permission_classes = (permissions.IsAuthenticated,)
-    serializer_class = CooperatorSerializer
-    paginate_by = 100
 
 
 class CooperatorViewSet(viewsets.ModelViewSet):
@@ -67,8 +65,6 @@ class CooperatorViewSet(viewsets.ModelViewSet):
 class ProjectBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
     model = Project
     permission_classes = (permissions.IsAuthenticated,)
-    serializer_class = ProjectSerializer
-    paginate_by = 100
 
 
 class ProjectViewSet(viewsets.ModelViewSet):
@@ -92,8 +88,6 @@ class ProjectViewSet(viewsets.ModelViewSet):
 class SiteBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
     model = Site
     permission_classes = (permissions.IsAuthenticated,)
-    serializer_class = SiteSerializer
-    paginate_by = 100
 
 
 class SiteViewSet(viewsets.ModelViewSet):
@@ -139,8 +133,6 @@ class SiteViewSet(viewsets.ModelViewSet):
 class SampleBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkUpdateModelMixin, viewsets.ModelViewSet):
     model = Sample
     permission_classes = (permissions.IsAuthenticated,)
-    serializer_class = SampleSerializer
-    paginate_by = 100
 
 
 class SampleViewSet(viewsets.ModelViewSet):
@@ -176,8 +168,6 @@ class SampleViewSet(viewsets.ModelViewSet):
 class SampleBottleBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkUpdateModelMixin, viewsets.ModelViewSet):
     model = SampleBottle
     permission_classes = (permissions.IsAuthenticated,)
-    serializer_class = SampleBottleSerializer
-    paginate_by = 100
 
 
 class SampleBottleViewSet(viewsets.ModelViewSet):
@@ -265,8 +255,6 @@ class SampleBottleBrominationViewSet(viewsets.ModelViewSet):
 class BottleBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkUpdateModelMixin, viewsets.ModelViewSet):
     model = Bottle
     permission_classes = (permissions.IsAuthenticated,)
-    serializer_class = BottleSerializer
-    paginate_by = 100
 
 
 class BottleViewSet(viewsets.ModelViewSet):
@@ -337,6 +325,11 @@ class MethodTypeViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     queryset = MethodType.objects.all()
     serializer_class = MethodTypeSerializer
+
+
+class ResultBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkUpdateModelMixin, viewsets.ModelViewSet):
+    model = Result
+    permission_classes = (permissions.IsAuthenticated,)
 
 
 class ResultViewSet(viewsets.ModelViewSet):

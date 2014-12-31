@@ -259,14 +259,14 @@ class Result(models.Model):
     """Results of a method analysis on a sample bottle."""
 
     sample_bottle = models.ForeignKey('SampleBottle', related_name='results')
-    method = models.ForeignKey('MethodType')
+    method = models.ForeignKey('MethodType', null=True, blank=True)
     constituent = models.ForeignKey('ConstituentType')
     isotope_flag = models.ForeignKey('IsotopeFlag')
-    detection_flag = models.ForeignKey('DetectionFlag')
-    raw_value = models.FloatField()
-    final_value = models.FloatField()
-    daily_detection_limit = models.FloatField()
-    analyzed_date = models.DateTimeField()
+    detection_flag = models.ForeignKey('DetectionFlag', null=True, blank=True)
+    raw_value = models.FloatField(null=True, blank=True)
+    final_value = models.FloatField(null=True, blank=True)
+    daily_detection_limit = models.FloatField(null=True, blank=True)
+    analyzed_date = models.DateTimeField(null=True, blank=True)
     analysis_comment = models.TextField(blank=True)
     ##
     # ****placeholder for legacy data fields****

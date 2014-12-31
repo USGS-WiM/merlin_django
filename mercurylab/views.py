@@ -25,8 +25,9 @@ HEADERS_CONTENT_FORM = {'content-type': 'application/x-www-form-urlencoded'}
 SAMPLE_KEYS_UNIQUE = ["project", "site", "time_stamp", "depth", "replicate"]
 SAMPLE_KEYS = ["project", "site", "time_stamp", "depth", "length", "received_time_stamp", "comment",
                  "replicate", "medium_type", "lab_processing", "sample_bottles"]
-SAMPLE_BOTTLE_KEYS = ["sample", "bottle", "constituent_type", "filter_type", "volume_filtered",
+SAMPLE_BOTTLE_KEYS = ["sample", "bottle", "filter_type", "volume_filtered",
                         "preservation_type", "preservation_volume", "preservation_acid", "preservation_comment"]
+SAMPLE_ANALYSIS_KEYS = ["sample_bottle", "constituent", "isotope_flag"]
 
 def sample_login_a(request):
     #headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
@@ -48,6 +49,8 @@ def sample_login_a(request):
 def sample_login(request):
     #headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     context = RequestContext(request)
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'projects/', auth=USER_AUTH)
+    projects = json.dumps(r.json(), sort_keys=True)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'processings/', auth=USER_AUTH)
     processings = json.dumps(r.json(), sort_keys=True)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'mediums/', auth=USER_AUTH)
@@ -56,13 +59,13 @@ def sample_login(request):
     filters = json.dumps(r.json(), sort_keys=True)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'preservations/', auth=USER_AUTH)
     preservations = json.dumps(r.json(), sort_keys=True)
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'acids/', auth=USER_AUTH)
-    acids = json.dumps(r.json(), sort_keys=True)
-    context_dict = {'processings': processings, 'mediums': mediums, 'filters': filters, 'preservations': preservations, 'acids': acids}
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'isotopeflags/', auth=USER_AUTH)
+    isotope_flags = json.dumps(r.json(), sort_keys=True)
+    context_dict = {'projects': projects, 'processings': processings, 'mediums': mediums, 'filters': filters, 'preservations': preservations, 'isotope_flags': isotope_flags}
     return render_to_response('mercurylab/sample_login.html', context_dict, context)
 
 
-#@ensure_csrf_cookie
+@ensure_csrf_cookie
 def sample_login_save(request):
     #headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     table = json.loads(request.body.decode('utf-8'))
@@ -71,6 +74,7 @@ def sample_login_save(request):
     unique_sample_analyses = []
     sample_data = []
     sample_bottle_data = []
+    sample_analysis_data = []
 
     ## PARSE ROWS AND VALIDATE ##
     # analyze each submitted row, parsing sample data and sample bottle data
@@ -102,14 +106,14 @@ def sample_login_save(request):
 
             # if this is a new and valid sample, create a sample object using the sample data within this row
             print(row['length'])
-            sample_values = [row['project'], row['site'], row['time_stamp'], row['depth'], row['length'], row['received_time_stamp'], row['comment'], row['replicate'], 47, 2] #row['medium_type'], row['lab_processing']]
+            sample_values = [row['project'], row['site'], row['time_stamp'], row['depth'], row['length'], row['received_time_stamp'], row['comment'], row['replicate'], row['medium_type'], row['lab_processing']]
             print(sample_values)
             this_sample = dict(zip(SAMPLE_KEYS, sample_values))
             sample_data.append(this_sample)
 
         print("validate bottle ID")
         # validate this bottle is used in only one sample, otherwise notify the user
-        this_sample_bottle = [str(row['bottle']), this_sample_id]
+        this_sample_bottle = (str(row['bottle']), this_sample_id)
         print(this_sample_bottle)
         if this_sample_bottle not in unique_sample_bottles:
             unique_sample_bottles.append(this_sample_bottle)
@@ -124,9 +128,11 @@ def sample_login_save(request):
                 return HttpResponse(message, content_type='text/html')
 
         # validate no analysis is used more than once per sample, otherwise notify the user
+        print("validate analysis")
         this_analysis = this_sample_id+"|"+str(row['constituent_type'])
         print(this_analysis)
         if this_analysis not in unique_sample_analyses:
+            print("unique sample analysis")
             unique_sample_analyses.append(this_analysis)
         else:
             this_analysis_str = str(json.loads(this_analysis))
@@ -135,19 +141,30 @@ def sample_login_save(request):
             return HttpResponse(message, content_type='text/html')
 
         # create a sample bottle object using the sample bottle data within this row
-        sample_bottle_values = [this_sample_id, row['bottle'], row['constituent_type'], row['filter_type'], row['volume_filtered'], row['preservation_type'], row['preservation_volume'], row['preservation_acid'], row['preservation_comment']]
+        sample_bottle_values = [this_sample_id, row['bottle'], row['filter_type'], row['volume_filtered'], row['preservation_type'], row['preservation_volume'], row['preservation_acid'], row['preservation_comment']]
         this_sample_bottle = dict(zip(SAMPLE_BOTTLE_KEYS, sample_bottle_values))
+        print(this_sample_bottle)
         # add this new sample bottle object to the list
         sample_bottle_data.append(this_sample_bottle)
+
+        # create a result object using the result data within this row
+        sample_analysis_values = [str(row['bottle']), row['constituent_type'], row['isotope_flag']]
+        this_sample_analysis = dict(zip(SAMPLE_ANALYSIS_KEYS, sample_analysis_values))
+        # add this new sample bottle object to the list
+        sample_analysis_data.append(this_sample_analysis)
 
     ## SAVING ##
     # save samples first and then get their database IDs, which are required for saving the sample bottles afterward
 
     ## SAVE SAMPLES ##
     # send the samples to the database
+    print("SAVE SAMPLES")
     sample_data = json.dumps(sample_data)
-    r = requests.request(method='POST', url=REST_SERVICES_URL+'bulksamples/', data=sample_data, auth=USER_AUTH)
+    print(sample_data)
+    r = requests.request(method='POST', url=REST_SERVICES_URL+'bulksamples/', data=sample_data, auth=USER_AUTH, headers=HEADERS_CONTENT_JSON)
+    print(r)
     response_data = r.json()
+    print(len(response_data))
     # store the IDs as an array of dictionaries, where the keys are the combo IDs and the values are the database IDs
     sample_ids = []
     for item in response_data:
@@ -157,13 +174,38 @@ def sample_login_save(request):
 
     ## SAVE SAMPLE BOTTLES ##
     # update the sample bottles with the database IDs, rather than the combo IDs
+    print("SAVE SAMPLE BOTTLES")
     for sample_id in sample_ids:
         for sample_bottle in sample_bottle_data:
             if sample_bottle['sample'] == sample_id['combo_id']:
                 sample_bottle['sample'] = sample_id['db_id']
     # send the sample bottles to the database
     sample_bottle_data = json.dumps(sample_bottle_data)
-    r = requests.request(method='POST', url=REST_SERVICES_URL+'bulksamplebottles/', data=sample_bottle_data, auth=USER_AUTH)
+    print(sample_bottle_data)
+    r = requests.request(method='POST', url=REST_SERVICES_URL+'bulksamplebottles/', data=sample_bottle_data, auth=USER_AUTH, headers=HEADERS_CONTENT_JSON)
+    print(r)
+    response_data = r.json()
+    print(len(response_data))
+    # store the IDs as an array of dictionaries, where the keys are the bottle IDs and the values are the sample bottle IDs
+    sample_bottle_ids = []
+    for item in response_data:
+        sample_bottle_id = {'bottle_id': str(item['bottle']), 'db_id': item['id']}
+        sample_bottle_ids.append(sample_bottle_id)
+
+    ## SAVE SAMPLE ANALYSES (placeholder records in Results table) ##
+    # update the sample analyses with the sample bottle IDs, rather than the bottle IDs
+    print("SAVE RESULTS")
+    for sample_bottle_id in sample_bottle_ids:
+        for sample_analysis in sample_analysis_data:
+            if sample_analysis['sample_bottle'] == sample_bottle_id['bottle_id']:
+                sample_analysis['sample_bottle'] = sample_bottle_id['db_id']
+    # send the sample analyses to the database
+    sample_analysis_data = json.dumps(sample_analysis_data)
+    print(sample_analysis_data)
+    r = requests.request(method='POST', url=REST_SERVICES_URL+'bulkresults/', data=sample_analysis_data, auth=USER_AUTH, headers=HEADERS_CONTENT_JSON)
+    print(r)
+    response_data = r.json()
+    print(len(response_data))
     # send the response (data & messages) back to the user interface
     return HttpResponse(r, content_type='application/json')
 
