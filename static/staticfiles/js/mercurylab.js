@@ -66,11 +66,11 @@ function updateValueDom(domDataObject, searchKey, resultKey, searchVal) {
     }
     return returnVal;
 }
-function updateValueAjax(url, arg, newKey, changedVal, filterParam) {
+function updateValueAjax(url, arg, newKey, searchVal, filterParam) {
     var newValue;
     var dataParams;
-    if (filterParam) {dataParams = filterParam + "&" + arg + "=" + changedVal}
-    else {dataParams = arg + "=" + changedVal}
+    if (filterParam) {dataParams = filterParam + "&" + arg + "=" + searchVal}
+    else {dataParams = arg + "=" + searchVal}
     $.ajax({
         async: false,
         url: url,
@@ -86,7 +86,7 @@ function updateValueAjax(url, arg, newKey, changedVal, filterParam) {
             }
         },
         error: function (response) {
-            console.log("ERROR during request by function updateValueAjax to " + url + "?" + arg + "=" + changedVal);
+            console.log("ERROR during request to " + url + "?" + arg + "=" + searchVal + " by function updateValueAjax()");
         }
     });
     return newValue;

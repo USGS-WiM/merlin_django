@@ -25,20 +25,34 @@
                 </div>
                 <div class="form-group">
                     <label for="lab_processing">Lab Processing</label><br />
+                    <input class="input-block-level" id="lab_processing" type="text" style="width:400px">
                     <!-- this HTML Select is temporary until an AJAX solution is found -->
-                    <select class="input-block-level" id="lab_processing" style="width:300px; height:26px">
-                        <option value="NONE">NONE</option>
-                        <option value="IN-LAB FILTRATION">IN-LAB FILTRATION</option>
-                        <option value="HOMOGENIZATION AND FREEZE DRY">HOMOGENIZATION AND FREEZE DRY</option>
-                    </select>
+                    <!-- <select class="input-block-level" id="lab_processing" style="width:300px; height:26px"> -->
+                        <!-- <option value="NONE">NONE</option> -->
+                        <!-- <option value="IN-LAB FILTRATION">IN-LAB FILTRATION</option> -->
+                        <!-- <option value="HOMOGENIZATION AND FREEZE DRY">HOMOGENIZATION AND FREEZE DRY</option> -->
+                    <!-- </select> -->
                 </div>
             </form>
         </div>
         <br />
-        <div id="grid" data-processings="{{ processings }}" data-mediums="{{ mediums }}" data-filters="{{ filters }}" data-preservations="{{ preservations }}" class="table table-hover table-condensed table-bordered"></div>
+        <div id="grid" data-projects="{{ projects }}" data-processings="{{ processings }}" data-mediums="{{ mediums }}" data-isotopeflags="{{ isotope_flags }}" data-filters="{{ filters }}" data-preservations="{{ preservations }}" class="table table-hover table-condensed table-bordered"></div>
 
         <script>
             $(document).ready(function() {
+
+                var csrftoken = $.cookie('csrftoken');
+                function csrfSafeMethod(method) {
+                    // these HTTP methods do not require CSRF protection
+                    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+                }
+                $.ajaxSetup({
+                    beforeSend: function(xhr, settings) {
+                        if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                        }
+                    }
+                });
 
                 var validTable = false;
 
@@ -48,17 +62,18 @@
                 grid.css("z-index", "0");
 
                 // lookup data containers
+                var data_projects = JSON.parse(grid.attr('data-projects'));
+                var data_processings = JSON.parse(grid.attr('data-processings'));
+                var data_sites;
                 var data_mediums = JSON.parse(grid.attr('data-mediums'));
+                var data_constituents;
+                var data_isotopeflags = JSON.parse(grid.attr('data-isotopeflags'));
+                var data_isotopes = ['NA', 'A', '198', '199', '200', '201', '202'];
                 var data_filters = JSON.parse(grid.attr('data-filters'));
                 var data_preservations = JSON.parse(grid.attr('data-preservations'));
-                // temporary array until isotopes get figured out
-                var data_isotopes = ['', 'A', '198', '199', '200', '201', '202'];
-                var data_projects;
-                var data_sites;
-                var data_constituents;
 
                 // some handsontable helper arrays
-                var objectFields = ["skip_site_name", "site", "skip_date", "time_stamp", "depth", "length", "replicate", "comment", "bottle", "medium_type", "constituent_type", /*"isotopic_analysis",*/ "skip_isotope", "filter_type", "volume_filtered", "preservation_type", "preservation_acid", "preservation_volume", "preservation_comment"];
+                var objectFields = ["skip_site_name", "site", "skip_date", "time_stamp", "depth", "length", "replicate", "comment", "bottle", "medium_type", "constituent_type", "isotope_flag", "filter_type", "volume_filtered", "preservation_type", "preservation_acid", "preservation_volume", "preservation_comment"];
                 var changedRowIndices = [];
                 var selectionRowIndices = [];
 
@@ -114,16 +129,16 @@
                         {title: 'Rep', width: 35, type: 'numeric'},
                         {title: 'Sample Comments', width: 130, type: 'text'},
                         {title: 'Container ID', width: 110, type: 'autocomplete', strict: true, validator: validateRequired,  source: function (query, process) {
-                            getValuesAjax('/mercuryservices/bottles', 'bottle_unique_name', query, process)}},
+                            getValuesAjax('/mercuryservices/bottles/', 'bottle_unique_name', query, process)}},
                         {title: 'Medium', width: 140, type: 'autocomplete', strict: true, validator: validateRequired, source: getValuesDom(data_mediums,"medium")},
                         {title: 'Analysis', width: 80, type: 'autocomplete', strict: true, validator: validateRequired},
-                        {title: 'Isotope', width: 55, type: 'dropdown', source: data_isotopes},
+                        {title: 'Isotope', width: 60, type: 'dropdown', source: data_isotopes}, //type: 'autocomplete', strict: true, source: getValuesDom(data_isotopeflags,"isotope_flag"), validator: validateRequired},
                         {title: 'Filter', width: 140, type: 'autocomplete', strict: true, source: getValuesDom(data_filters,"filter")},
-                        {title: 'Filter Vol.', width: 65, type: 'numeric'},
+                        {title: 'Filter Vol', width: 65, type: 'numeric'},
                         {title: 'Preservation', width: 130, type: 'autocomplete', strict: true, source: getValuesDom(data_preservations, "preservation")},
                         {title: 'Acid', width: 110, type: 'autocomplete', strict: true,  source: function (query, process) {
-                            getValuesAjax('/mercuryservices/acids', 'code', query, process)}},
-                        {title: 'Acid Vol.', width: 65, type: 'numeric'},
+                            getValuesAjax('/mercuryservices/acids/', 'code', query, process)}},
+                        {title: 'Acid Vol', width: 65, type: 'numeric'},
                         {title: 'Preservation Comments', width: 160, type: 'text'}
                     ],
                     // define event handlers
@@ -156,9 +171,10 @@
                                 //var newValue = updateValueAjax('/mercuryservices/sites/', 'name', 'id', changedVal);
                                 var newValue = updateValueDom(data_sites, 'name', 'id', changedVal);
                                 grid.handsontable('setDataAtCell', changedRow, 1, newValue);
-                                // also update depth to default of 0 and rep to default of 1
+                                // also update depth to default of 0, rep to default of 1, and isotope to default of 'NA'
                                 grid.handsontable('setDataAtCell', changedRow, 4, 0);
                                 grid.handsontable('setDataAtCell', changedRow, 6, 1);
+                                grid.handsontable('setDataAtCell', changedRow, 11, 'NA');
                             }
                             // when site ID is changed to a non-null, non-blank value
                             if (changedCol == 1 && changedVal !== null && changedVal !== "") {
@@ -210,11 +226,17 @@
 
                 $("#project_name").autocomplete({
                     autoFocus: true,
-                    source: function (request, response) {
+                    source: $.map(data_projects, function(i) {
+                        return {
+                            label: i.name,
+                            value: i.name
+                        };
+                    }),
+                    /*source: function (request, response) {
                         jQuery.get('/mercuryservices/projects/', {
                             name: request.term
                         }, function (data) {
-                            data_projects = data.results;
+                            data_projects = data;
                             var values = [];
                             $.each(data_projects, function(index, object) {
                                 $.each(object, function(key, value) {
@@ -225,11 +247,11 @@
                             });
                             response(values);
                         });
-                    },
+                    },*/
                     select: function(event, ui){
                         if (ui.item && ui.item.value){
                             var changedVal = ui.item.value;
-                            var newValue = updateValueAjax('/mercuryservices/projects/', 'name', 'id', changedVal);
+                            var newValue = updateValueDom(data_projects, 'name', 'id', changedVal);
                             $("#project_id").val(newValue);
                             $.ajax({
                                 url: '/mercuryservices/sites/',
@@ -270,26 +292,16 @@
 
                 $("#project_id").autocomplete({
                     autoFocus: true,
-                    source: function (request, response) {
-                        jQuery.get('/mercuryservices/projects/', {
-                            id: request.term
-                        }, function (data) {
-                            data_projects = data.results;
-                            var values = [];
-                            $.each(data_projects, function(index, object) {
-                                $.each(object, function(key, value) {
-                                    if (key == 'id') {
-                                        values.push(String(value));
-                                    }
-                                });
-                            });
-                            response(values);
-                        });
-                    },
+                    source: $.map(data_projects, function(i) {
+                        return {
+                            label: i.id,
+                            value: i.id
+                        };
+                    }),
                     select: function(event, ui){
                         if (ui.item && ui.item.value){
                             var changedVal = ui.item.value;
-                            var newValue = updateValueAjax('/mercuryservices/projects/', 'id', 'name', changedVal);
+                            var newValue = updateValueDom(data_projects, 'id', 'name', changedVal);
                             $("#project_name").val(newValue);
                             $.ajax({
                                 url: '/mercuryservices/sites/',
@@ -328,24 +340,15 @@
                     maxDate: 0
                 });
 
-                /*$("#lab_processing").autocomplete({
-                    source: function (request, response) {
-                        jQuery.get('/mercuryservices/processings/', {
-                            processing: request.term
-                        }, function (data) {
-                            data_processings = data;
-                            var values = [];
-                            $.each(data_processings, function(index, object) {
-                                $.each(object, function(key, value) {
-                                    if (key == 'processing') {
-                                        values.push(String(value));
-                                    }
-                                });
-                            });
-                            response(values);
-                        });
-                    }
-                });*/
+                $("#lab_processing").autocomplete({
+                    autoFocus: true,
+                    source: $.map(data_processings, function(i) {
+                        return {
+                            label: i.processing,
+                            value: i.processing
+                        };
+                    })
+                });
 
                 grid.parent().find('button[name=insertRows]').click(function () {
                     grid.data('handsontable').alter('insert_row',null,8);
@@ -361,7 +364,7 @@
                     if (!projectID) {grid_console.text('Project ID is required!'); validTable = false; return false;}
                     var dateReceived = $('#date_received').val();
                     if (!dateReceived) {grid_console.text('Date Received is required!'); validTable = false; return false;}
-                    var labProcessing = $('#lab_processing').val();
+                    var labProcessing = getIdDom(data_processings,'processing',$('#lab_processing').val());
                     // if there are no changed rows, notify the user and stop the submission
                     if (typeof changedRowIndices == 'undefined' || changedRowIndices.length < 1) {grid_console.text('Table is empty!'); validTable = false; return false;}
                     // otherwise loop through the list of changed rows
@@ -395,7 +398,7 @@
                                         // if it has a value, properly format it as a time, otherwise notify the user that this is a required field, and stop the submission
                                         if (thisDataRow[i] === null || thisDataRow[i] === "") {grid_console.text('Time is required!'); validTable = false; return false;}
                                         else {
-                                            var changedVal = thisDataRow[i];
+                                            var changedVal = thisDataRow[i].toString();
                                             var newValue;
                                             switch (changedVal.length) {
                                                 case 1:
@@ -421,7 +424,7 @@
                                     case 8: // bottle
                                         // if it has a value, look up and return the ID, otherwise notify the user that this is a required field, and stop the submission
                                         if (!thisDataRow[i]) {grid_console.text('Container ID is required!'); validTable = false; return false;}
-                                        else {thisDataObject[objectFields[i]] = updateValueAjax('/mercuryservices/bottles', 'bottle_unique_name', 'id', thisDataRow[i]);}
+                                        else {thisDataObject[objectFields[i]] = updateValueAjax('/mercuryservices/bottles/', 'bottle_unique_name', 'id', thisDataRow[i]);}
                                         break;
                                     case 9: // medium
                                         // if it has a value, look up and return the ID, otherwise notify the user that this is a required field, and stop the submission
@@ -434,7 +437,9 @@
                                         else {thisDataObject[objectFields[i]] = getIdDom(data_constituents,'constituent',thisDataRow[i]);}
                                         break;
                                     case 11: // isotope
-                                        // do nothing with this column until we figure out where to store isotope data in the DB
+                                        // if it has a value, look up and return the ID, otherwise notify the user that this is a required field, and stop the submission
+                                        if (!thisDataRow[i]) {grid_console.text('Isotope is required!'); validTable = false; return false;}
+                                        else {thisDataObject[objectFields[i]] = getIdDom(data_isotopeflags,'isotope_flag',thisDataRow[i]);}
                                         break;
                                     case 12: // filter
                                         // if it has a value, look up and return the ID, otherwise skip this field (won't be included in submission to database)
@@ -446,7 +451,7 @@
                                         break;
                                     case 15: // acid
                                         // if it has a value, look up and return the ID, otherwise skip this field (won't be included in submission to database)
-                                        if (thisDataRow[i] !== null && thisDataRow[i] !== "" && thisDataRow[i] !== 0 && thisDataRow[i] !== undefined) {thisDataObject[objectFields[i]] = updateValueAjax('/mercuryservices/acids', 'code', 'id', thisDataRow[i]);}
+                                        if (thisDataRow[i] !== null && thisDataRow[i] !== "" && thisDataRow[i] !== 0 && thisDataRow[i] !== undefined) {thisDataObject[objectFields[i]] = updateValueAjax('/mercuryservices/acids/', 'code', 'id', thisDataRow[i]);}
                                         break;
                                     default: // all the rest
                                         // if it doesn't have a value, skip the field, otherwise include it
