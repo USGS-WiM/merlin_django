@@ -47,8 +47,9 @@
                 </div>
                 <div class="navbar-collapse collapse">
                     <ul class="nav navbar-nav navbar-right">
-                        {% if user.is_authenticated %}
-                            <li class="navbar-text">Welcome, {{ user.username }}!</li>
+{#                        {% if user.is_authenticated %}#}
+                        {% if request.session.username %}
+                            <li class="navbar-text">Welcome, {{ request.session.username }}!</li>
                             <li><a href="/mercurylab/logout">Logout</a></li>
                         {% else %}
                             <li><a href="/mercurylab/login">Login</a></li>
@@ -61,7 +62,8 @@
              </div>
         </div>
         <div id="wrapper" class="toggled">
-        {% if user.is_authenticated %}
+{#        {% if user.is_authenticated %}#}
+        {% if request.session.username %}
             <div id="sidebar-wrapper">
                 <ul class="sidebar-nav">
                     <li class="sidebar-brand">
@@ -94,6 +96,8 @@
             <hr>
     		<footer>
     			<div class="container">
+                    {{ request.session.username }}
+                    {{ request.session.token }}
     				<p>&copy; USGS 2014</p>
     			</div>
     		</footer>
