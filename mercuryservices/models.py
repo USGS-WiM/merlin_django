@@ -163,7 +163,7 @@ class Sample(models.Model):
     comment = models.TextField(blank=True)
     received_time_stamp = models.DateField()
     replicate = models.IntegerField(null=True, blank=True)
-    lab_processing = models.ForeignKey('ProcessingType')
+    lab_processing = models.ForeignKey('ProcessingType', null=True, blank=True)
     medium_type = models.ForeignKey('MediumType')
     status = models.ForeignKey('Status', null=True, blank=True)
 

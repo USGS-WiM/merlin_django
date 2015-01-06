@@ -80,33 +80,40 @@ def sample_login_save(request):
     ## PARSE ROWS AND VALIDATE ##
     # analyze each submitted row, parsing sample data and sample bottle data
     for row in table:
+        print("for row in table...")
         print(row)
         # grab the data that uniquely identifies each sample
-        this_sample_id = str(row['project'])+"|"+str(row['site'])+"|"+str(row['time_stamp'])+"|"+str(row['depth'])+"|"+str(row['replicate'])
+        this_sample_id = str(row.get('project'))+"|"+str(row.get('site'))+"|"+str(row.get('time_stamp'))+"|"+str(row.get('depth'))+"|"+str(row.get('replicate'))
+        print("this sample id:")
         print(this_sample_id)
         # if this sample ID is not already in the unique list, add it, otherwise skip the sample data for this row
         if this_sample_id not in unique_sample_ids:
             unique_sample_ids.append(this_sample_id)
 
             # validate this sample doesn't exist in the database, otherwise notify the user
-            sample_values_unique = [row['project'], row['site'], row['time_stamp'], row['depth'], row['replicate']]
+            sample_values_unique = [row.get('project'), row.get('site'), row.get('time_stamp'), row.get('depth'), row.get('replicate')]
             this_sample_unique = dict(zip(SAMPLE_KEYS_UNIQUE, sample_values_unique))
             # couldn't get requests.request() to work properly here, so using requests.get() instead
             #r = requests.request(method='GET', url=REST_SERVICES_URL+'samples/', data=this_sample_unique, headers=headers_auth_token)
             r = requests.get(REST_SERVICES_URL+'samples/', params=this_sample_unique)
+            print(r)
             response_data = r.json()
+            print("count:")
             print(response_data['count'])
             # if response count does not equal zero, then this sample already exists in the database
             if response_data['count'] != 0:
+                print("count != 0")
                 this_sample_unique_str = str(json.loads(this_sample_unique))
                 print(this_sample_unique_str)
                 message = "\"This Sample already exists in the database: " + this_sample_unique_str + "\""
                 print(message)
                 return HttpResponse(message, content_type='text/html')
-            print("count = 0")
 
             # if this is a new and valid sample, create a sample object using the sample data within this row
-            sample_values = [row['project'], row['site'], row['time_stamp'], row['depth'], row['length'], row['received_time_stamp'], row['comment'], row['replicate'], row['medium_type'], row['lab_processing']]
+            print("test for length...")
+            print(row.get('length'))
+            sample_values = [row.get('project'), row.get('site'), row.get('time_stamp'), row.get('depth'), row.get('length'), row.get('received_time_stamp'), row.get('comment'), row.get('replicate'), row.get('medium_type'), row.get('lab_processing')]
+            print("sample values:")
             print(sample_values)
             this_sample = dict(zip(SAMPLE_KEYS, sample_values))
             sample_data.append(this_sample)
@@ -129,7 +136,7 @@ def sample_login_save(request):
 
         # validate no analysis is used more than once per sample, otherwise notify the user
         print("validate analysis")
-        this_analysis = this_sample_id+"|"+str(row['constituent_type'])
+        this_analysis = this_sample_id+"|"+str(row.get('constituent_type'))
         print(this_analysis)
         if this_analysis not in unique_sample_analyses:
             print("unique sample analysis")
@@ -141,14 +148,14 @@ def sample_login_save(request):
             return HttpResponse(message, content_type='text/html')
 
         # create a sample bottle object using the sample bottle data within this row
-        sample_bottle_values = [this_sample_id, row['bottle'], row['filter_type'], row['volume_filtered'], row['preservation_type'], row['preservation_volume'], row['preservation_acid'], row['preservation_comment']]
+        sample_bottle_values = [this_sample_id, row.get('bottle'), row.get('filter_type'), row.get('volume_filtered'), row.get('preservation_type'), row.get('preservation_volume'), row.get('preservation_acid'), row.get('preservation_comment')]
         this_sample_bottle = dict(zip(SAMPLE_BOTTLE_KEYS, sample_bottle_values))
         print(this_sample_bottle)
         # add this new sample bottle object to the list
         sample_bottle_data.append(this_sample_bottle)
 
         # create a result object using the result data within this row
-        sample_analysis_values = [str(row['bottle']), row['constituent_type'], row['isotope_flag']]
+        sample_analysis_values = [str(row.get('bottle')), row.get('constituent_type'), row.get('isotope_flag')]
         this_sample_analysis = dict(zip(SAMPLE_ANALYSIS_KEYS, sample_analysis_values))
         # add this new sample bottle object to the list
         sample_analysis_data.append(this_sample_analysis)
@@ -169,7 +176,7 @@ def sample_login_save(request):
     sample_ids = []
     for item in response_data:
         # using a hacky workaround here to handle the "T" in the time_stamp; there's probably a better way to handle this
-        sample_id = {'combo_id': str(item['project'])+"|"+str(item['site'])+"|"+str(item['time_stamp']).replace("T", " ")+"|"+str(int(item['depth']))+"|"+str(item['replicate']), 'db_id': item['id']}
+        sample_id = {'combo_id': str(item.get('project'))+"|"+str(item.get('site'))+"|"+str(item.get('time_stamp')).replace("T", " ")+"|"+str(int(item.get('depth')))+"|"+str(item.get('replicate')), 'db_id': item.get('id')}
         sample_ids.append(sample_id)
 
     ## SAVE SAMPLE BOTTLES ##
