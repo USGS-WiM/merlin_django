@@ -378,7 +378,7 @@
                             // add the sample header object properties to this object
                             thisDataObject['project'] = Number(projectID);
                             thisDataObject['received_time_stamp'] = dateReceived;
-                            thisDataObject['lab_processing'] = labProcessing;
+                            if (labProcessing != -1) {thisDataObject['lab_processing'] = labProcessing;}
                             // convert each table cell in this row into an object property and add to this object
                             for (var i = 0; i < thisDataRow.length; i++) {
                                 switch(i){

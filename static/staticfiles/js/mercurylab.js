@@ -11,7 +11,7 @@ function getRange(limit) {
     return values;
 }
 function getIdDom(domDataObject, key, value) {
-    var objectID = 0;
+    var objectID = -1;
     for (var index in domDataObject) {
         if (value == domDataObject[index][key]) {
             objectID = domDataObject[index]['id'];
