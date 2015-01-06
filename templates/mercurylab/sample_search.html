@@ -140,8 +140,8 @@
                         {title: 'Received', data: 'sample_bottle.sample.received_time_stamp', width: 100, type: 'date', maxDate: 0},
                         {title: 'Lab Processing', data: 'sample_bottle.sample.lab_processing', width: 105, type: 'text'/*, type: 'autocomplete', strict: true, source: getValuesDom(data_processings,"processing")*/},
                         //{title: 'Container ID', width: 100, type: 'text'},
-                        {title: 'Container ID', data: 'sample_bottle.bottle', width: 90, type: 'autocomplete', strict: true,  source: function (query, process) {
-                            getValuesAjax('/mercuryservices/bottles', 'bottle_unique_name', query, process)}},
+                        {title: 'Container ID', data: 'sample_bottle.bottle.bottle_unique_name', width: 90, type: 'autocomplete', strict: true,  source: function (query, process) {
+                            getValuesAjax('/mercuryservices/bottles', 'name', query, process)}},
                         {title: 'Medium', data: 'sample_bottle.sample.medium_type', width: 100, type: 'autocomplete', strict: true, source: getValuesDom(data_mediums,"medium")},
                         {title: 'Analysis', data: 'constituent', width: 70, type: 'autocomplete', strict: true},
                         {title: 'Isotope', data: 'isotope_flag', width: 55, type: 'dropdown', source: data_isotopes},

@@ -267,6 +267,48 @@ def sample_search(request):
         return render_to_response('mercurylab/sample_search.html', context_dict, context)
 
 
+#@ensure_csrf_cookie
+def result_search(request):
+    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
+    context = RequestContext(request)
+
+    if request.method == 'POST':
+        params_dict = {}
+        params = json.loads(request.body.decode('utf-8'))
+        if params['bottle']:
+            params_dict["bottle"] = str(params['bottle']).strip('[]').replace(', ', ',')
+        if params['project']:
+            params_dict["project"] = str(params['project']).strip('[]').replace(', ', ',')
+        if params['site']:
+            params_dict["site"] = str(params['site']).strip('[]').replace(', ', ',')
+        if params['constituent']:
+            params_dict["constituent"] = str(params['constituent']).strip('[]')
+        if params['date_after']:
+            params_dict["date_after"] = str(params['date_after']).strip('[]')
+        if params['date_before']:
+            params_dict["date_before"] = str(params['date_before']).strip('[]')
+
+        # r = requests.request(method='GET', url=REST_SERVICES_URL+'samples/', params=d, headers=headers_auth_token, headers=HEADERS_CONTENT_JSON)
+        # samples = r.json()['results']
+        # bottle_ids = str(samples[0]['sample_bottles']).strip('[]').replace(', ', ',')
+        # d = dict({"id": bottle_ids})
+        r = requests.request(method='GET', url=REST_SERVICES_URL+'results/', params=params_dict, headers=headers)
+        r_dict = r.json()
+        print(r_dict['count'])
+        r_json = json.dumps(r_dict)
+        return HttpResponse(r_json, content_type='application/json')
+
+    else:  # request.method == 'GET'
+        r = requests.request(method='GET', url=REST_SERVICES_URL+'projects/', headers=headers_auth_token)
+        projects = json.dumps(r.json(), sort_keys=True)
+        r = requests.request(method='GET', url=REST_SERVICES_URL+'constituents/', headers=headers_auth_token)
+        constituents = json.dumps(r.json(), sort_keys=True)
+        context_dict = {'projects': projects, 'constituents': constituents}
+
+        return render_to_response('mercurylab/result_search.html', context_dict, context)
+
+
 def sample_bottles(request):
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     context = RequestContext(request)

@@ -367,7 +367,12 @@ class ResultViewSet(viewsets.ModelViewSet):
         bottle = self.request.QUERY_PARAMS.get('bottle', None)
         if bottle is not None:
             bottle_list = bottle.split(',')
-            queryset = queryset.filter(sample_bottle__bottle__bottle_unique_name__in=bottle_list)
+            # if query values are IDs
+            if bottle_list[0].isdigit():
+                queryset = queryset.filter(sample_bottle__bottle__id__in=bottle_list)
+            # if query values are names
+            else:
+                queryset = queryset.filter(sample_bottle__bottle__bottle_unique_name__in=bottle_list)
         date_after = self.request.QUERY_PARAMS.get('date_after', None)
         date_before = self.request.QUERY_PARAMS.get('date_before', None)
         if date_after is not None and date_before is not None:

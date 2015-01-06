@@ -268,7 +268,7 @@ class ProcedureTypeSerializer(serializers.ModelSerializer):
 
 class FullSampleBottleSerializer(serializers.ModelSerializer):
     sample = SampleSerializer(source='sample')
-    bottle = serializers.RelatedField(source='bottle')
+    bottle = BottleSerializer(source='bottle')
     filter_type = serializers.RelatedField(source='filter_type')
     preservation_type = serializers.RelatedField(source='preservation_type')
     preservation_acid = serializers.RelatedField(source='preservation_acid')
