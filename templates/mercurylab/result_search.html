@@ -6,23 +6,43 @@
             <!-- <button type="button" class="btn btn-default" name="save">Save</button> -->
         </p>
         <pre id="grid_console" class="console" style="width:600px"></pre>
-        <div id="form_result_search">
-            {% csrf_token %}
-            <p>
-                <input id="select_bottle" type="hidden" placeholder="Bottle Code" style="width:297px"/>
-                <input id="select_project" type="hidden" placeholder="Project Name" style="width:600px"/>
-                <input id="select_site" type="hidden" placeholder="Site Name" style="width:600px"/>
-            </p>
-            <p>
-                <input id="select_constituent" type="hidden" placeholder="Constituent" style="width:297px"/>
-                <!-- <input id="select_depth" type="number" placeholder="Depth" style="width:297px"/> -->
-                <!-- <input id="select_replicate" type="number" placeholder="Replicate" style="width:297px"/> -->
-                <input id="date_after" placeholder="After Date" style="width:297px"/>
-                <input id="date_before" placeholder="Before Date" style="width:297px"/>
-            </p>
-            <p>
-                <button type="button" class="btn btn-default" name="search">Search</button>
-            </p>
+        <div class="panel-default">
+            <form id="form_result_search" class="form-inline">
+                {% csrf_token %}
+                <p>
+                    <div class="form-group">
+                        <label for="select_project">Project Name</label><br />
+                        <input id="select_project" type="hidden" style="width:600px"/>
+                    </div>
+                    <div class="form-group">
+                        <label for="select_site">Site Name</label><br />
+                        <input id="select_site" type="hidden" style="width:600px"/>
+                    </div>
+                </p>
+                <p>
+                    <div class="form-group">
+                        <label for="select_bottle">Bottle Code</label><br />
+                        <input id="select_bottle" type="hidden" style="width:297px"/>
+                    </div>
+                    <div class="form-group">
+                        <label for="select_constituent">Constituent</label><br />
+                        <input id="select_constituent" type="hidden" style="width:297px"/>
+                    </div>
+                    <div class="form-group">
+                        <label for="date_after">After Date</label><br />
+                        <input id="date_after" class="select2-container select2-container-multi" style="width:297px;height:34px;font-size:15px;padding-left:4px;"/>
+                    </div>
+                    <div class="form-group">
+                        <label for="date_before">Before Date</label><br />
+                        <input id="date_before" class="select2-container select2-container-multi" style="width:297px;height:34px;font-size:15px;padding-left:4px;"/>
+                    </div>
+                </p>
+                <p>
+                    <button type="button" class="btn btn-default" name="search">Search</button>
+                    <button type="button" class="btn btn-default" name="prev">Previous Page</button>
+                    <button type="button" class="btn btn-default" name="next">Next Page</button>
+                </p>
+            </form>
         </div>
 
         <p>
@@ -54,6 +74,8 @@
                     }
                 });
 
+                var currentPage = 1;
+                var resultPages = 1;
                 var grid = $('#grid');
                 var grid_console = $("#grid_console");
                 var data_data = {};
@@ -216,11 +238,12 @@
                             // otherwise, it's JSON from the REST Services
                             else if (jqXHRequest.status === 200) {
                                 data_data = data;
-                                grid_console.text(textStatus+': Retrieved '+ data_data['count'] +' results.');
+                                resultPages = Math.ceil(data_data['count'] / 100);
+                                grid_console.text(textStatus+': Retrieved '+ data_data['count'] +' results across ' + resultPages + ' pages. Showing first 100 results.');
                                 grid.data('handsontable').loadData(data_data.results);
                             }
                             else {
-                                grid_console.text(textStatus+': Save error: '+jqXHRequest.statusText+', code: '+jqXHRequest.status+'.');
+                                grid_console.text(textStatus+': Search error: '+jqXHRequest.statusText+', code: '+jqXHRequest.status+'.');
                             }
                         },
                         error: function (jqXHRequest, textStatus, errorThrown) {
@@ -229,7 +252,39 @@
                     });
                 });
 
+                grid.parent().find('button[name=next]').click(function () {
+                    $.ajax({
+                        url: data_data.next,
+                        dataType: 'json',
+                        success: function (response) {
+                            grid_console.text("success");
+                            data_data = response;
+                            grid.data('handsontable').loadData(data_data.results);
+                            currentPage++;
+                            grid_console.text('Page '+ currentPage +' of '+ resultPages +' loaded.');
+                        },
+                        error: function (response) {
+                            grid_console.text("error");
+                        }
+                    });
+                });
 
+                grid.parent().find('button[name=prev]').click(function () {
+                    $.ajax({
+                        url: data_data.previous,
+                        dataType: 'json',
+                        success: function (response) {
+                            grid_console.text("success");
+                            data_data = response;
+                            grid.data('handsontable').loadData(data_data.results);
+                            currentPage--;
+                            grid_console.text('Page '+ currentPage +' of '+ resultPages +' loaded.');
+                        },
+                        error: function (response) {
+                            grid_console.text("error");
+                        }
+                    });
+                });
 
             });
         </script>

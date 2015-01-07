@@ -243,7 +243,7 @@ def sample_search(request):
         # samples = r.json()['results']
         # bottle_ids = str(samples[0]['sample_bottles']).strip('[]').replace(', ', ',')
         # d = dict({"id": bottle_ids})
-        r = requests.request(method='GET', url=REST_SERVICES_URL+'results/', params=params_dict, headers=headers)
+        r = requests.request(method='GET', url=REST_SERVICES_URL+'fullresults/', params=params_dict, headers=headers)
         r_dict = r.json()
         print(r_dict['count'])
         r_json = json.dumps(r_dict)
@@ -293,7 +293,7 @@ def result_search(request):
         # samples = r.json()['results']
         # bottle_ids = str(samples[0]['sample_bottles']).strip('[]').replace(', ', ',')
         # d = dict({"id": bottle_ids})
-        r = requests.request(method='GET', url=REST_SERVICES_URL+'results/', params=params_dict, headers=headers)
+        r = requests.request(method='GET', url=REST_SERVICES_URL+'fullresults/', params=params_dict, headers=headers)
         r_dict = r.json()
         print(r_dict['count'])
         r_json = json.dumps(r_dict)

@@ -338,6 +338,13 @@ class ResultViewSet(viewsets.ModelViewSet):
     serializer_class = ResultSerializer
     paginate_by = 100
 
+
+class FullResultViewSet(viewsets.ModelViewSet):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    #queryset = Result.objects.all()
+    serializer_class = FullResultSerializer
+    paginate_by = 100
+
     # override the default queryset to allow filtering by URL arguments
     def get_queryset(self):
         queryset = Result.objects.all()
