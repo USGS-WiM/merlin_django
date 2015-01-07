@@ -268,7 +268,7 @@ class ProcedureTypeSerializer(serializers.ModelSerializer):
 
 class FullSampleBottleSerializer(serializers.ModelSerializer):
     sample = SampleSerializer(source='sample')
-    bottle = serializers.RelatedField(source='bottle')
+    bottle = BottleSerializer(source='bottle')
     filter_type = serializers.RelatedField(source='filter_type')
     preservation_type = serializers.RelatedField(source='preservation_type')
     preservation_acid = serializers.RelatedField(source='preservation_acid')
@@ -324,9 +324,21 @@ class MethodTypeSerializer(serializers.ModelSerializer):
                   'nwis_parameter_code', 'nwis_parameter_name', 'nwis_method_code')
 
 
-class ResultSerializer(serializers.ModelSerializer):
+class FullResultSerializer(serializers.ModelSerializer):
     analyzed_date = serializers.DateTimeField(format='%Y-%m-%d %H:%M:%S', source='analyzed_date')
     sample_bottle = FullSampleBottleSerializer(source='sample_bottle')
+    constituent = serializers.RelatedField(source='constituent')
+    isotope_flag = serializers.RelatedField(source='isotope_flag')
+
+    class Meta:
+        model = Result
+        fields = ('id', 'sample_bottle', 'method', 'constituent', 'isotope_flag', 'detection_flag', 'raw_value',
+                  'final_value', 'daily_detection_limit', 'analyzed_date', 'analysis_comment', 'quality_assurances')
+
+
+class ResultSerializer(serializers.ModelSerializer):
+    analyzed_date = serializers.DateTimeField(format='%Y-%m-%d %H:%M:%S', source='analyzed_date')
+    sample_bottle = serializers.RelatedField(source='sample_bottle')
     constituent = serializers.RelatedField(source='constituent')
     isotope_flag = serializers.RelatedField(source='isotope_flag')
 

@@ -15,6 +15,8 @@ urlpatterns = patterns('',
     url(r'^sample_login/save$', views.sample_login_save, name='sample_login_save'),
     url(r'^sample_search/$', views.sample_search, name='sample_search'),
     url(r'^sample_search/search$', views.sample_search, name='sample_search_search'),
+    url(r'^result_search/$', views.result_search, name='result_search'),
+    url(r'^result_search/search$', views.result_search, name='result_search_search'),
 
     url(r'^sample_bottles/$', views.sample_bottles, name='sample_bottles'),
     url(r'^sample_bottles/save$', views.sample_bottles_save, name='sample_bottles_save'),

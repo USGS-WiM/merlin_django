@@ -69,6 +69,7 @@
                 var addClicked = false;
                 var grid = $('#grid');
                 var data_data = JSON.parse(grid.attr("data-data"));
+                var resultPages = Math.ceil(data_data['count'] / 100);
                 var grid_console = $("#grid_console");
                 var changedRowIndices = [];
                 var selectionRowIndices = [];
@@ -169,39 +170,47 @@
                 });
 
                 grid.parent().find('button[name=next]').click(function () {
-                    $.ajax({
-                        url: data_data.next,
-                        dataType: 'json',
-                        success: function (response) {
-                            grid_console.text("success");
-                            data_data = response;
-                            grid.data('handsontable').loadData(data_data.results);
-                            grid.data('handsontable').sort(0);
-                            currentPage++;
-                            grid_console.text('Page '+ currentPage +' data loaded.');
-                        },
-                        error: function (response) {
-                            grid_console.log("error");
-                        }
-                    });
+                    if (currentPage != resultPages) {
+                        $.ajax({
+                            url: data_data.next,
+                            dataType: 'json',
+                            success: function (response) {
+                                grid_console.text("success");
+                                data_data = response;
+                                grid.data('handsontable').loadData(data_data.results);
+                                currentPage++;
+                                grid_console.text('Page ' + currentPage + ' of ' + resultPages + ' loaded.');
+                            },
+                            error: function (response) {
+                                grid_console.text("error");
+                            }
+                        });
+                    }
+                    else {
+                        grid_console.text("End of results, there are no pages after Page " + resultPages + ".");
+                    }
                 });
 
                 grid.parent().find('button[name=prev]').click(function () {
-                    $.ajax({
-                        url: data_data.previous,
-                        dataType: 'json',
-                        success: function (response) {
-                            grid_console.text("success");
-                            data_data = response;
-                            grid.data('handsontable').loadData(data_data.results);
-                            grid.data('handsontable').sort(0);
-                            currentPage--;
-                            grid_console.text('Page '+ currentPage +' data loaded.');
-                        },
-                        error: function (response) {
-                            grid_console.log("error");
-                        }
-                    });
+                    if (currentPage != 1) {
+                        $.ajax({
+                            url: data_data.previous,
+                            dataType: 'json',
+                            success: function (response) {
+                                grid_console.text("success");
+                                data_data = response;
+                                grid.data('handsontable').loadData(data_data.results);
+                                currentPage--;
+                                grid_console.text('Page ' + currentPage + ' of ' + resultPages + ' loaded.');
+                            },
+                            error: function (response) {
+                                grid_console.text("error");
+                            }
+                        });
+                    }
+                    else {
+                        grid_console.text("There are no pages before Page 1.");
+                    }
                 });
 
                 grid.parent().find('button[name=add]').click(function () {
