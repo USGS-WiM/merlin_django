@@ -5,6 +5,7 @@
         <p>
             <button type="button" class="btn btn-default" name="save">Save</button>
             <button type="button" class="btn btn-default" name="insertRows">Insert 8 Blank Rows</button>
+            <button type="button" class="btn btn-default" name="delete">Delete Selected Row</button>
         </p>
         <pre id="grid_console" class="console" style="width:600px"></pre>
         <p><input class="form-control" id="select_field" type="hidden" placeholder="Select for sample name." style="width:600px"/></p>
@@ -55,7 +56,6 @@
                 });
 
                 var validTable = false;
-
                 var grid = $('#grid');
                 var grid_console = $("#grid_console");
                 // move grid to bottom of stack so that it doesn't cover up the sample header dropdown fields
@@ -134,11 +134,11 @@
                         {title: 'Analysis', width: 80, type: 'autocomplete', strict: true, validator: validateRequired},
                         {title: 'Isotope', width: 60, type: 'dropdown', source: data_isotopes}, //type: 'autocomplete', strict: true, source: getValuesDom(data_isotopeflags,"isotope_flag"), validator: validateRequired},
                         {title: 'Filter', width: 140, type: 'autocomplete', strict: true, source: getValuesDom(data_filters,"filter")},
-                        {title: 'Filter Vol', width: 65, type: 'numeric'},
+                        {title: 'Filter Vol', width: 65, type: 'numeric', format: '0.00'},
                         {title: 'Preservation', width: 130, type: 'autocomplete', strict: true, source: getValuesDom(data_preservations, "preservation")},
                         {title: 'Acid', width: 110, type: 'autocomplete', strict: true,  source: function (query, process) {
                             getValuesAjax('/mercuryservices/acids/', 'code', query, process)}},
-                        {title: 'Acid Vol', width: 65, type: 'numeric'},
+                        {title: 'Acid Vol', width: 65, type: 'numeric', format: '0.00'},
                         {title: 'Preservation Comments', width: 160, type: 'text'}
                     ],
                     // define event handlers
@@ -171,10 +171,20 @@
                                 //var newValue = updateValueAjax('/mercuryservices/sites/', 'name', 'id', changedVal);
                                 var newValue = updateValueDom(data_sites, 'name', 'id', changedVal);
                                 grid.handsontable('setDataAtCell', changedRow, 1, newValue);
-                                // also update depth to default of 0, rep to default of 1, and isotope to default of 'NA'
-                                grid.handsontable('setDataAtCell', changedRow, 4, 0);
-                                grid.handsontable('setDataAtCell', changedRow, 6, 1);
-                                grid.handsontable('setDataAtCell', changedRow, 11, 'NA');
+                                // also, if this row hasn't had the default values set (or altered by user)...
+                                if (grid.handsontable('getDataAtCell', grid.handsontable('getInstance').getSelected()[0], 4) == null
+                                        && grid.handsontable('getDataAtCell', grid.handsontable('getInstance').getSelected()[0], 5) == null
+                                        && grid.handsontable('getDataAtCell', grid.handsontable('getInstance').getSelected()[0], 6) == null
+                                        && grid.handsontable('getDataAtCell', grid.handsontable('getInstance').getSelected()[0], 11) == null
+                                        && grid.handsontable('getDataAtCell', grid.handsontable('getInstance').getSelected()[0], 13) == null)
+                                {
+                                    // ...then set defaults: depth 0, length -999, rep 1, isotope 'NA', filter volume -999
+                                    grid.handsontable('setDataAtCell', changedRow, 4, 0);
+                                    grid.handsontable('setDataAtCell', changedRow, 5, -999);
+                                    grid.handsontable('setDataAtCell', changedRow, 6, 1);
+                                    grid.handsontable('setDataAtCell', changedRow, 11, 'NA');
+                                    grid.handsontable('setDataAtCell', changedRow, 13, -999);
+                                }
                             }
                             // when site ID is changed to a non-null, non-blank value
                             if (changedCol == 1 && changedVal !== null && changedVal !== "") {
@@ -182,6 +192,20 @@
                                 //var newValue = updateValueAjax('/mercuryservices/sites/', 'id', 'name', changedVal);
                                 var newValue = updateValueDom(data_sites, 'id', 'name', changedVal);
                                 grid.handsontable('setDataAtCell', changedRow, 0, newValue);
+                                // also, if this row hasn't had the default values set (or altered by user)...
+                                if (grid.handsontable('getDataAtCell', grid.handsontable('getInstance').getSelected()[0], 4) == null
+                                        && grid.handsontable('getDataAtCell', grid.handsontable('getInstance').getSelected()[0], 5) == null
+                                        && grid.handsontable('getDataAtCell', grid.handsontable('getInstance').getSelected()[0], 6) == null
+                                        && grid.handsontable('getDataAtCell', grid.handsontable('getInstance').getSelected()[0], 11) == null
+                                        && grid.handsontable('getDataAtCell', grid.handsontable('getInstance').getSelected()[0], 13) == null)
+                                {
+                                    // ...then set defaults: depth 0, length -999, rep 1, isotope 'NA', filter volume -999
+                                    grid.handsontable('setDataAtCell', changedRow, 4, 0);
+                                    grid.handsontable('setDataAtCell', changedRow, 5, -999);
+                                    grid.handsontable('setDataAtCell', changedRow, 6, 1);
+                                    grid.handsontable('setDataAtCell', changedRow, 11, 'NA');
+                                    grid.handsontable('setDataAtCell', changedRow, 13, -999);
+                                }
                             }
                             // when medium is changed to a non-null, non-blank value
                             if (changedCol == 9 && changedVal !== null && changedVal !== "") {
@@ -210,10 +234,11 @@
                     },
                     // get list of selected rows
                     afterSelectionEnd: function(r, c, r2, c2) {
-                        //for (var i = r; i < (r2+1); i++){
-                            selectionRowIndices.push(r);
-                        //}
-
+                        // clear the array
+                        selectionRowIndices.length = 0;
+                        // add the beginning and ending indices
+                        selectionRowIndices[0] = r;
+                        selectionRowIndices[1] = r2;
                     }
                 });
                 //grid.data('handsontable').sort(0);
@@ -353,6 +378,10 @@
                 grid.parent().find('button[name=insertRows]').click(function () {
                     grid.data('handsontable').alter('insert_row',null,8);
                     grid_console.text('Inserted Rows.');
+                });
+
+                grid.parent().find('button[name=delete]').click(function () {
+                    grid.data('handsontable').alter('remove_row', selectionRowIndices[0], (selectionRowIndices[1] - 1));
                 });
 
                 // when the save button is clicked, loop through the list of changed rows and build a JSON object containing the changed rows

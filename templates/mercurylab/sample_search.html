@@ -184,12 +184,12 @@
                         {title: 'Analysis', data: 'constituent', width: 70, type: 'autocomplete', strict: true},
                         {title: 'Isotope', data: 'isotope_flag', width: 55, type: 'dropdown', source: data_isotopes},
                         {title: 'Filter', data: 'sample_bottle.filter_type', width: 100, type: 'autocomplete', strict: true, source: getValuesDom(data_filters,"filter")},
-                        {title: 'Filter Vol.', data: 'sample_bottle.volume_filtered', width: 65, type: 'numeric'},
+                        {title: 'Filter Vol.', data: 'sample_bottle.volume_filtered', width: 65, type: 'numeric', format: '0.00'},
                         {title: 'Preservation', data: 'sample_bottle.preservation_type', width: 100, type: 'autocomplete', strict: true, source: getValuesDom(data_preservations, "preservation")},
                         //{title: 'Acid', width: 100, type: 'autocomplete',  source: getValuesDom(data_acids, "code")},
                         {title: 'Acid', data: 'sample_bottle.preservation_acid', width: 110, type: 'autocomplete', strict: true,  source: function (query, process) {
                             getValuesAjax('/mercuryservices/acids', 'code', query, process)}},
-                        {title: 'Acid Vol.', data: 'sample_bottle.preservation_volume', width: 60, type: 'numeric'},
+                        {title: 'Acid Vol.', data: 'sample_bottle.preservation_volume', width: 60, type: 'numeric', format: '0.00'},
                         {title: 'Pres. Comments', data: 'sample_bottle.preservation_comment', width: 100, type: 'text'}
                     ],
                     search: true,
