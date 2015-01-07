@@ -111,10 +111,11 @@
                     },
                     // get list of selected rows
                     afterSelectionEnd: function(r, c, r2, c2) {
-                        //for (var i = r; i < (r2+1); i++){
-                            selectionRowIndices.push(r);
-                        //}
-
+                        // clear the array
+                        selectionRowIndices.length = 0;
+                        // add the beginning and ending indices
+                        selectionRowIndices[0] = r;
+                        selectionRowIndices[1] = r2;
                     }
                 });
                 grid.data('handsontable').sort(0);
