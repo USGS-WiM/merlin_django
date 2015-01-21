@@ -2,6 +2,8 @@ from django import forms
 from mercuryservices.models import UserProfile, Cooperator
 from django.contrib.auth.models import User
 from datetimewidget.widgets import DateTimeWidget
+import requests
+import json
 
 
 class UserForm(forms.ModelForm):
@@ -73,9 +75,16 @@ class BlankWaterForm(forms.Form):
 
 
 class BottleForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        super(BottleForm, self).__init__(*args, **kwargs)
+        self.fields['bottle_type'] = forms.ChoiceField(
+            help_text="Bottle Type",
+            choices=get_bottle_type_choices()
+        )
+
     bottle_unique_name = forms.CharField(help_text="Bottle Unique Name")
-    tare_weight = forms.DecimalField(help_text="Tare Weight")
-    bottle_type = forms.CharField(help_text="Bottle Type")
+    tare_weight = forms.DecimalField(help_text="Tare Weight", required=False)
+    bottle_type = forms.ChoiceField(help_text="Bottle Type")
     description = forms.CharField(help_text="Description", required=False)
 
 
@@ -96,5 +105,11 @@ class BrominationForm(forms.Form):
     comment = forms.CharField(help_text="Comment", required=False)
 
 
-
-
+def get_bottle_type_choices():
+    r = requests.request(method='GET', url='http://localhost:8000/mercuryservices/bottletypes/')
+    bottle_types = r.json()
+    bottle_type_choices = []
+    for bottle_type in bottle_types:
+        bottle_type_choices.append((bottle_type["id"], bottle_type["bottle_type"]))
+    #print(bottle_type_choices)
+    return bottle_type_choices

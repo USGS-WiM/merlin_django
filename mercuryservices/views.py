@@ -99,6 +99,7 @@ class SiteViewSet(viewsets.ModelViewSet):
     # override the default queryset to allow filtering by URL arguments
     def get_queryset(self):
         queryset = Site.objects.all()
+        #queryset = Site.objects.exclude(usgs_scode__exact="''")
         # filter by site name
         name = self.request.QUERY_PARAMS.get('name', None)
         if name is not None:
@@ -265,10 +266,16 @@ class BottleViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = Bottle.objects.all()
-        name = self.request.QUERY_PARAMS.get('name', None)
-        if name is not None:
-            queryset = queryset.filter(bottle_unique_name__icontains=name)
+        bottle_unique_name = self.request.QUERY_PARAMS.get('bottle_unique_name', None)
+        if bottle_unique_name is not None:
+            queryset = queryset.filter(bottle_unique_name__icontains=bottle_unique_name)
         return queryset
+
+
+class BottleTypeViewSet(viewsets.ModelViewSet):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    queryset = BottleType.objects.all()
+    serializer_class = BottleTypeSerializer
 
 
 class FilterTypeViewSet(viewsets.ModelViewSet):
@@ -348,47 +355,51 @@ class FullResultViewSet(viewsets.ModelViewSet):
     # override the default queryset to allow filtering by URL arguments
     def get_queryset(self):
         queryset = Result.objects.all()
-        barcode = self.request.QUERY_PARAMS.get('barcode', None)
-        if barcode is not None:
-            queryset = queryset.filter(sample_bottle__exact=barcode)
-        constituent = self.request.QUERY_PARAMS.get('constituent', None)
-        if constituent is not None:
-            queryset = queryset.filter(constituent__exact=constituent)
-        isotope = self.request.QUERY_PARAMS.get('isotope', None)
-        if isotope is not None:
-            queryset = queryset.filter(isotope_flag__exact=isotope)
-        project = self.request.QUERY_PARAMS.get('project', None)
-        if project is not None:
-            project_list = project.split(',')
-            queryset = queryset.filter(sample_bottle__sample__project__in=project_list)
-        site = self.request.QUERY_PARAMS.get('site', None)
-        if site is not None:
-            site_list = site.split(',')
-            queryset = queryset.filter(sample_bottle__sample__site__in=site_list)
-        depth = self.request.QUERY_PARAMS.get('depth', None)
-        if depth is not None:
-            queryset = queryset.filter(sample_bottle__sample__depth__exact=depth)
-        replicate = self.request.QUERY_PARAMS.get('replicate', None)
-        if replicate is not None:
-            queryset = queryset.filter(sample_bottle__sample__replicate__exact=replicate)
+        # if bottle is in query, only search by bottle and ignore other params
         bottle = self.request.QUERY_PARAMS.get('bottle', None)
         if bottle is not None:
             bottle_list = bottle.split(',')
             # if query values are IDs
             if bottle_list[0].isdigit():
-                queryset = queryset.filter(sample_bottle__bottle__id__in=bottle_list)
+                queryset = queryset.filter(sample_bottle__bottle_id__in=bottle_list)
             # if query values are names
             else:
                 queryset = queryset.filter(sample_bottle__bottle__bottle_unique_name__in=bottle_list)
-        date_after = self.request.QUERY_PARAMS.get('date_after', None)
-        date_before = self.request.QUERY_PARAMS.get('date_before', None)
-        if date_after is not None and date_before is not None:
-            queryset = queryset.filter(sample_bottle__sample__time_stamp__range=(date_after, date_before))
-        elif date_after is not None:
-                queryset = queryset.filter(sample_bottle__sample__time_stamp__gt=date_after)
-        elif date_before is not None:
-            queryset = queryset.filter(sample_bottle__sample__time_stamp__lt=date_before)
-        return queryset
+            return queryset
+        # else, search by other params
+        else:
+            barcode = self.request.QUERY_PARAMS.get('barcode', None)
+            if barcode is not None:
+                queryset = queryset.filter(sample_bottle__exact=barcode)
+            constituent = self.request.QUERY_PARAMS.get('constituent', None)
+            if constituent is not None:
+                queryset = queryset.filter(constituent__exact=constituent)
+            isotope = self.request.QUERY_PARAMS.get('isotope', None)
+            if isotope is not None:
+                queryset = queryset.filter(isotope_flag__exact=isotope)
+            project = self.request.QUERY_PARAMS.get('project', None)
+            if project is not None:
+                project_list = project.split(',')
+                queryset = queryset.filter(sample_bottle__sample__project__in=project_list)
+            site = self.request.QUERY_PARAMS.get('site', None)
+            if site is not None:
+                site_list = site.split(',')
+                queryset = queryset.filter(sample_bottle__sample__site__in=site_list)
+            depth = self.request.QUERY_PARAMS.get('depth', None)
+            if depth is not None:
+                queryset = queryset.filter(sample_bottle__sample__depth__exact=depth)
+            replicate = self.request.QUERY_PARAMS.get('replicate', None)
+            if replicate is not None:
+                queryset = queryset.filter(sample_bottle__sample__replicate__exact=replicate)
+            date_after = self.request.QUERY_PARAMS.get('date_after', None)
+            date_before = self.request.QUERY_PARAMS.get('date_before', None)
+            if date_after is not None and date_before is not None:
+                queryset = queryset.filter(sample_bottle__sample__time_stamp__range=(date_after, date_before))
+            elif date_after is not None:
+                    queryset = queryset.filter(sample_bottle__sample__time_stamp__gt=date_after)
+            elif date_before is not None:
+                queryset = queryset.filter(sample_bottle__sample__time_stamp__lt=date_before)
+            return queryset
 
 
 ######

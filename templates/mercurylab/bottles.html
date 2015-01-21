@@ -8,17 +8,23 @@
             <button type="button" class="btn btn-default" name="range_add">Add New Range of Bottles</button>
         </p>
         <div id="form_bottle_add" style="display:none">
-            <form class="form-signin span8" id="item_form" method="post" action="{% url 'mercurylab:bottle_add' %}" enctype="multipart/form-data">
+            <form class="form-signin span4" id="item_form" method="post" action="{% url 'mercurylab:bottle_add' %}" enctype="multipart/form-data">
                 {% csrf_token %}
-                <h3 class="form-signin-heading">Create Bottle</h3>
+                <h3>Create Bottle</h3>
 
-                {% for field in bottle_form %}
-                {{ field.errors }}
-                {{ field.help_text }}<br />
-                {{ field }}<br />
-                {% endfor %}
+                <table style="border:1px solid">
+                    <tr>
+                        {% for field in bottle_form %}
+                        <th style="padding:2px;text-align:center">{{ field.help_text }}<br />{{ field.errors }}</th>
+                        {% endfor %}
+                    </tr>
+                    <tr>
+                        {% for field in bottle_form %}
+                        <td style="padding:8px">{{ field }}</td>
+                        {% endfor %}
+                    </tr>
+                </table>
                 <br />
-
                 <input class="btn btn-primary" type="submit" name="submit" value="OK" />
             </form>
         </div>
@@ -149,7 +155,7 @@
                         dataType: 'json',
                         data: function (term, page) {
                             return {
-                                name: term
+                                bottle_unique_name: term
                             };
                         },
                         results: function (data, page) {
@@ -239,7 +245,9 @@
                         $("#form_bottle_add").hide();
                     }
                     else {
+                        rangeAddClicked = false;
                         bottleAddClicked = true;
+                        $("#form_range_add").hide();
                         $("#form_bottle_add").show();
                     }
                 });
@@ -251,6 +259,8 @@
                     }
                     else {
                         rangeAddClicked = true;
+                        bottleAddClicked = false;
+                        $("#form_bottle_add").hide();
                         $("#form_range_add").show();
                     }
                 });

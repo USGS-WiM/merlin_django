@@ -42,12 +42,19 @@
                 {% csrf_token %}
                 <p>
                     <div class="form-group">
+                        <label for="select_sample_bottle">Bottle ID</label><br />
+                        <input id="select_sample_bottle" type="hidden" style="width:1200px"/>
+                    </div>
+                </p>
+                <span>OR</span>
+                <p>
+                    <div class="form-group">
                         <label for="select_project">Project Name</label><br />
-                        <input id="select_project" type="hidden" style="width:600px"/>
+                        <input id="select_project" type="hidden" style="width:598px"/>
                     </div>
                     <div class="form-group">
                         <label for="select_site">Site Name</label><br />
-                        <input id="select_site" type="hidden" style="width:600px"/>
+                        <input id="select_site" type="hidden" style="width:598px"/>
                     </div>
                 </p>
                 <p>
@@ -342,11 +349,11 @@
                     //dropdownCss:{display:'none'},
                     minimumInputLength: 1,
                     ajax: {
-                        url: '/mercuryservices/samplebottles/',
+                        url: '/mercuryservices/bottles/',
                         dataType: 'json',
                         data: function (term, page) {
                             return {
-                                bottle: term
+                                bottle_unique_name: term
                             };
                         },
                         results: function (data, page) {
@@ -422,7 +429,7 @@
                 }
 
                 function formatBottle(data) {
-                    return data.bottle;
+                    return data.bottle_unique_name;
                 }
 
                 function formatConstituent(data) {
@@ -449,6 +456,7 @@
                     var thisDataObject = {};
                     //var theID = $(select_project).select2('data').id;
                     //var theSelection = $(select_project).select2('data').text;
+                    thisDataObject['bottle'] = $(select_sample_bottle).val();
                     thisDataObject['project'] = $(select_project).val();
                     thisDataObject['site'] = $(select_site).val();//.slice(0, -1);
                     thisDataObject['depth'] = $("#select_depth").val();

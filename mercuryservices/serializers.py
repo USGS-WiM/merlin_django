@@ -13,7 +13,7 @@ class ProjectSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Project
-        fields = ('id', 'name', 'description', 'cooperator', 'sites',)
+        fields = ('id', 'name', 'description', 'accounting_code', 'cooperator', 'sites',)
 
 
 class CooperatorSerializer(serializers.ModelSerializer):
@@ -40,10 +40,18 @@ class SiteSerializer(serializers.ModelSerializer):
 
 
 class BottleSerializer(serializers.ModelSerializer):
+    bottle_type = serializers.RelatedField(source='bottle_type')
 
     class Meta:
         model = Bottle
         fields = ('id', 'bottle_unique_name', 'description', 'tare_weight', 'bottle_type',)
+
+
+class BottleTypeSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = BottleType
+        fields = ('id', 'bottle_type', 'description',)
 
 
 class SampleSerializer(serializers.ModelSerializer):
@@ -62,8 +70,8 @@ class SampleSerializer(serializers.ModelSerializer):
 
 
 class SampleBottleSerializer(serializers.ModelSerializer):
-    sample = serializers.PrimaryKeyRelatedField(source='sample')
-    bottle = serializers.PrimaryKeyRelatedField(source='bottle')
+    sample = serializers.RelatedField(source='sample')
+    bottle = serializers.RelatedField(source='bottle')
 
     class Meta:
         model = SampleBottle
@@ -76,7 +84,7 @@ class SampleBottleBrominationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SampleBottleBromination
-        fields = ('id', 'field_sample_bottle', 'bromination', 'bromination_event', 'bromination_volume', 'time_stamp',)
+        fields = ('id', 'sample_bottle', 'bromination', 'bromination_event', 'bromination_volume', 'time_stamp',)
 
 
 class FilterTypeSerializer(serializers.ModelSerializer):

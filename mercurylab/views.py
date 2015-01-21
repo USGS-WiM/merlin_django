@@ -226,6 +226,8 @@ def sample_search(request):
     if request.method == 'POST':
         params_dict = {}
         params = json.loads(request.body.decode('utf-8'))
+        if params['bottle']:
+            params_dict["bottle"] = str(params['bottle']).strip('[]').replace(', ', ',')
         if params['project']:
             params_dict["project"] = str(params['project']).strip('[]').replace(', ', ',')
         if params['site']:
@@ -338,10 +340,11 @@ def sample_bottles_save(request):
 #@ensure_csrf_cookie
 def sample_bottle_add(request):
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_FORM.items()))
     form = SampleBottleForm(request.POST)
 
     if form.is_valid():
-        requests.request(method='POST', url=REST_SERVICES_URL+'samplebottles/', data=form.cleaned_data, headers=headers_auth_token)
+        requests.request(method='POST', url=REST_SERVICES_URL+'samplebottles/', data=form.cleaned_data, headers=headers)
         return sample_bottles(request)
     else:
         print(form.errors)
@@ -381,7 +384,10 @@ def bottle_add(request):
     form = BottleForm(request.POST)
 
     if form.is_valid():
-        requests.request(method='POST', url=REST_SERVICES_URL+'bottles/', data=form.cleaned_data, headers=headers_auth_token)
+        r = requests.request(method='POST', url=REST_SERVICES_URL+'bottles/', data=form.cleaned_data, headers=headers_auth_token)
+        print(r.request.headers)
+        print(r.status_code)
+        print(r.reason)
         return HttpResponseRedirect('/mercurylab/bottles/')
     else:
         print(form.errors)
@@ -762,7 +768,7 @@ def user_login(request):
         password = request.POST['password']
         data = {"username": username, "password": password}
 
-        r = requests.request(method='POST', url=REST_SERVICES_URL+'auth/login', data=data, headers=HEADERS_CONTENT_FORM)
+        r = requests.request(method='POST', url='http://localhost:8000/mercuryauth/login', data=data, headers=HEADERS_CONTENT_FORM)
 
         if r.status_code == 200:
             # global USER_TOKEN
@@ -813,7 +819,7 @@ def user_login(request):
 #logout using Token Authentication
 def user_logout(request):
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    r = requests.request(method='POST', url=REST_SERVICES_URL+'auth/logout', headers=headers_auth_token)
+    r = requests.request(method='POST', url='http://localhost:8000/mercuryauth/logout', headers=headers_auth_token)
     print(r)
 
     if r.status_code == 200:
