@@ -1,64 +1,32 @@
 {% extends 'mercurylab/base.html' %}
 {% block body_block %}
 
-    <div class="jumbotron">
+    <div style="padding:10px">
         <p>
-            <!-- <button type="button" class="btn btn-default" name="save">Save</button> -->
+            <button type="button" class="btn btn-default" name="save">Save</button>
         </p>
         <pre id="grid_console" class="console" style="width:600px"></pre>
-{#        <div id="form_sample_search">#}
-{#            <form class="form-signin span8" id="item_form" method="post" action="{% url 'mercurylab:sample_search' %}" enctype="multipart/form-data">#}
-{#                {% csrf_token %}#}
-{#                <h3 class="form-signin-heading">Sample Search</h3>#}
-{##}
-{#                {% for field in form %}#}
-{#                {{ field.errors }}#}
-{#                {{ field.help_text }}<br />#}
-{#                {{ field }}<br />#}
-{#                {% endfor %}#}
-{#                <br />#}
-{##}
-{#                <input class="btn btn-primary" type="submit" name="submit" value="Search" />#}
-{#            </form>#}
-{#        </div>#}
-{#        <div id="form_sample_search">#}
-{#            {% csrf_token %}#}
-{#            <p>#}
-{#                <input id="select_project" type="hidden" placeholder="Project Name" style="width:600px"/>#}
-{#                <input id="select_site" type="hidden" placeholder="Site Name" style="width:600px"/>#}
-{#            </p>#}
-{#            <p>#}
-{#                <input id="select_depth" type="number" placeholder="Depth" style="width:297px"/>#}
-{#                <input id="select_replicate" type="number" placeholder="Replicate" style="width:297px"/>#}
-{#                <input id="date_after" placeholder="After Date" style="width:297px"/>#}
-{#                <input id="date_before" placeholder="Before Date" style="width:297px"/>#}
-{#            </p>#}
-{#            <p>#}
-{#                <button type="button" class="btn btn-default" name="search">Search</button>#}
-{#            </p>#}
-{#        </div>#}
         <div class="panel-default">
             <form id="form_result_search" class="form-inline">
                 {% csrf_token %}
                 <p>
                     <div class="form-group">
+                        <label for="select_bottle">Bottle Code</label><br />
+                        <input id="select_bottle" type="hidden" style="width:1200px"/>
+                    </div>
+                </p>
+                <span>OR</span>
+                <p>
+                    <div class="form-group">
                         <label for="select_project">Project Name</label><br />
-                        <input id="select_project" type="hidden" style="width:600px"/>
+                        <input id="select_project" type="hidden" style="width:598px"/>
                     </div>
                     <div class="form-group">
                         <label for="select_site">Site Name</label><br />
-                        <input id="select_site" type="hidden" style="width:600px"/>
+                        <input id="select_site" type="hidden" style="width:598px"/>
                     </div>
                 </p>
                 <p>
-                    <div class="form-group">
-                        <label for="select_depth">Depth</label><br />
-                        <input id="select_depth" type="number" class="select2-container select2-container-multi" style="width:297px;height:34px;font-size:15px;padding-left:4px;"/>
-                    </div>
-                    <div class="form-group">
-                        <label for="select_replicate">Replicate</label><br />
-                        <input id="select_replicate" type="number" class="select2-container select2-container-multi" style="width:297px;height:34px;font-size:15px;padding-left:4px;"/>
-                    </div>
                     <div class="form-group">
                         <label for="date_after">After Date</label><br />
                         <input id="date_after" class="select2-container select2-container-multi" style="width:297px;height:34px;font-size:15px;padding-left:4px;"/>
@@ -66,6 +34,14 @@
                     <div class="form-group">
                         <label for="date_before">Before Date</label><br />
                         <input id="date_before" class="select2-container select2-container-multi" style="width:297px;height:34px;font-size:15px;padding-left:4px;"/>
+                    </div>
+                    <div class="form-group">
+                        <label for="select_depth">Depth</label><br />
+                        <input id="select_depth" type="number" class="select2-container select2-container-multi" style="width:297px;height:34px;font-size:15px;padding-left:4px;"/>
+                    </div>
+                    <div class="form-group">
+                        <label for="select_replicate">Replicate</label><br />
+                        <input id="select_replicate" type="number" class="select2-container select2-container-multi" style="width:297px;height:34px;font-size:15px;padding-left:4px;"/>
                     </div>
                 </p>
                 <p>
@@ -87,7 +63,7 @@
             </div>
         <!-- <p><input id="search_field" type="search" placeholder="Highlight in table." style="width:600px; border:1px solid darkgray; height:42px"/></p> -->
         <br /><br />
-        <div id="grid" data-projects="{{ projects }}" data-processings="{{ processings }}" data-constituents="{{ constituents }}" data-mediums="{{ mediums }}" data-filters="{{ filters }}" data-preservations="{{ preservations }}" class="table table-hover table-condensed table-bordered"></div>
+        <div id="grid" data-projects="{{ projects }}" data-processings="{{ processings }}" data-constituents="{{ constituents }}" data-mediums="{{ mediums }}" data-filters="{{ filters }}" data-preservations="{{ preservations }}" data-isotopeflags="{{ isotope_flags }}" ></div>
 
         <script>
             $(document).ready(function() {
@@ -116,7 +92,8 @@
                 var data_filters = JSON.parse(grid.attr('data-filters'));
                 var data_preservations = JSON.parse(grid.attr('data-preservations'));
                 // temporary array until isotopes get figured out
-                var data_isotopes = ['', 'A', '198', '199', '200', '201', '202'];
+                //var data_isotopes = ['', 'A', '198', '199', '200', '201', '202'];
+                var data_isotopeflags = JSON.parse(grid.attr('data-isotopeflags'));
                 var data_acids;
                 var data_projects = JSON.parse(grid.attr('data-projects'));
                 var data_sites;
@@ -146,43 +123,43 @@
                             break;
                     }
                 };
-                var objectFields = ["id", "project_name", "project", "site_name", "site", "skip_date", "time_stamp", "depth", "length", "replicate", "comment", "received_time_stamp", "lab_processing", "bottle", "medium_type", "constituent_type", /*"isotopic_analysis",*/ "isotope", "filter_type", "volume_filtered", "preservation_type", "preservation_acid", "preservation_volume", "preservation_comment"];
+                var objectFields = ["sample_bottle.sample.id", "project_name", "project", "site_name", "site", "skip_date", "sample_date_time", "depth", "length", "replicate", "comment", "received_date", "lab_processing", "bottle", "medium_type", "constituent_type", "isotope_flag", "filter_type", "volume_filtered", "preservation_type", "preservation_acid", "preservation_volume", "preservation_comment", "sample_bottle.id", "id"];
                 var changedRowIndices = [];
                 var selectionRowIndices = [];
                 grid_console.text('Loading data...');
                 grid.handsontable({
                     data: data_data,
                     columns: [
-                        {title: 'ID', data: 'id', readOnly: true, width: 1},
+                        {title: 'Sample ID', data: 'sample_bottle.sample.id', readOnly: true, width: 1},
                         {title: 'Project Name', data: 'sample_bottle.sample.project.name', width: 100, type: 'autocomplete', strict: true, source: function (query, process) {
                             getValuesAjax('/mercuryservices/projects', 'name', query, process)}
                         },
                         {title: 'Project ID', data: 'sample_bottle.sample.project.id', width: 70, type: 'autocomplete', strict: true, source: function (query, process) {
                             getValuesAjax('/mercuryservices/projects', 'id', query, process)}
                         },
-                        {title: 'Site Name', data: 'sample_bottle.sample.site.name', width: 70, type: 'autocomplete', strict: true, source: function (query, process) {
+                        {title: 'Site Name', data: 'sample_bottle.sample.site.name', width: 75, type: 'autocomplete', strict: true, source: function (query, process) {
                             getValuesAjax('/mercuryservices/sites', 'name', query, process, ('project=' + grid.handsontable('getInstance').getDataAtCell(grid.handsontable('getInstance').getSelected()[0], 2)))}
                         },
                         {title: 'Site ID', data: 'sample_bottle.sample.site.id', width: 70, type: 'autocomplete', strict: true, source: function (query, process) {
                             getValuesAjax('/mercuryservices/sites', 'id', query, process, ('project=' + grid.handsontable('getInstance').getDataAtCell(grid.handsontable('getInstance').getSelected()[0], 2)))}
                         },
                         // Date, Hour, and Minute as separate columns is temporary until a single column datetime editor can be found for handsontable
-                        {title: 'Date', data: 'sample_bottle.sample.date', width: 100, type: 'date', maxDate: 0},
+                        {title: 'Date', data: 'sample_bottle.sample.date', width: 100, type: 'date', dateFormat: 'yy-mm-dd', maxDate: 0},
                         {title: 'Time', data: 'sample_bottle.sample.time', width: 60, type: 'numeric', validator: validateTime},
                         //{title: 'Hour', width: 50, type: 'autocomplete', source: getRange(24)},
                         //{title: 'Minute', width: 50, type: 'autocomplete', source: getRange(60)},
                         {title: 'Depth', data: 'sample_bottle.sample.depth', width: 50, type: 'numeric'},
                         {title: 'Length', data: 'sample_bottle.sample.length', width: 50, type: 'numeric'},
                         {title: 'Rep', data: 'sample_bottle.sample.replicate', width: 50, type: 'numeric'},
-                        {title: 'Sample Comments', data: 'sample_bottle.sample.comment', width: 100, type: 'text'},
-                        {title: 'Received', data: 'sample_bottle.sample.received_time_stamp', width: 100, type: 'date', maxDate: 0},
+                        {title: 'Sample Comments', data: 'sample_bottle.sample.comment', width: 130, type: 'text'},
+                        {title: 'Received', data: 'sample_bottle.sample.received_date', width: 100, type: 'date', dateFormat: 'yy-mm-dd', maxDate: 0},
                         {title: 'Lab Processing', data: 'sample_bottle.sample.lab_processing', width: 105, type: 'text'/*, type: 'autocomplete', strict: true, source: getValuesDom(data_processings,"processing")*/},
                         //{title: 'Container ID', width: 100, type: 'text'},
                         {title: 'Container ID', data: 'sample_bottle.bottle.bottle_unique_name', width: 90, type: 'autocomplete', strict: true,  source: function (query, process) {
                             getValuesAjax('/mercuryservices/bottles', 'name', query, process)}},
                         {title: 'Medium', data: 'sample_bottle.sample.medium_type', width: 100, type: 'autocomplete', strict: true, source: getValuesDom(data_mediums,"medium")},
                         {title: 'Analysis', data: 'constituent', width: 70, type: 'autocomplete', strict: true},
-                        {title: 'Isotope', data: 'isotope_flag', width: 55, type: 'dropdown', source: data_isotopes},
+                        {title: 'Isotope', data: 'isotope_flag', width: 55, type: 'dropdown', source: data_isotopeflags},
                         {title: 'Filter', data: 'sample_bottle.filter_type', width: 100, type: 'autocomplete', strict: true, source: getValuesDom(data_filters,"filter")},
                         {title: 'Filter Vol.', data: 'sample_bottle.volume_filtered', width: 65, type: 'numeric', format: '0.00'},
                         {title: 'Preservation', data: 'sample_bottle.preservation_type', width: 100, type: 'autocomplete', strict: true, source: getValuesDom(data_preservations, "preservation")},
@@ -190,7 +167,9 @@
                         {title: 'Acid', data: 'sample_bottle.preservation_acid', width: 110, type: 'autocomplete', strict: true,  source: function (query, process) {
                             getValuesAjax('/mercuryservices/acids', 'code', query, process)}},
                         {title: 'Acid Vol.', data: 'sample_bottle.preservation_volume', width: 60, type: 'numeric', format: '0.00'},
-                        {title: 'Pres. Comments', data: 'sample_bottle.preservation_comment', width: 100, type: 'text'}
+                        {title: 'Pres. Comments', data: 'sample_bottle.preservation_comment', width: 115, type: 'text'},
+                        {title: 'Sample Bottle ID', data: 'sample_bottle.id', readOnly: true, width: 1},
+                        {title: 'Result ID', data: 'id', readOnly: true, width: 1}
                     ],
                     search: true,
                     // define event handlers
@@ -335,18 +314,18 @@
                     grid.handsontable('getInstance').render();
                 });
 
-                var select_sample_bottle = $("#select_sample_bottle").select2({
+                var select_bottle = $("#select_bottle").select2({
                     allowClear: true,
                     multiple: true,
                     //maximumSelectionSize: 1,
                     //dropdownCss:{display:'none'},
                     minimumInputLength: 1,
                     ajax: {
-                        url: '/mercuryservices/samplebottles/',
+                        url: '/mercuryservices/bottles/',
                         dataType: 'json',
                         data: function (term, page) {
                             return {
-                                bottle: term
+                                bottle_unique_name: term
                             };
                         },
                         results: function (data, page) {
@@ -422,7 +401,7 @@
                 }
 
                 function formatBottle(data) {
-                    return data.bottle;
+                    return data.bottle_unique_name;
                 }
 
                 function formatConstituent(data) {
@@ -449,6 +428,7 @@
                     var thisDataObject = {};
                     //var theID = $(select_project).select2('data').id;
                     //var theSelection = $(select_project).select2('data').text;
+                    thisDataObject['bottle'] = $(select_bottle).val();
                     thisDataObject['project'] = $(select_project).val();
                     thisDataObject['site'] = $(select_site).val();//.slice(0, -1);
                     thisDataObject['depth'] = $("#select_depth").val();
@@ -456,6 +436,7 @@
                     thisDataObject['date_after'] = $(date_after).val();
                     thisDataObject['date_before'] = $(date_before).val();
                     var dataJSON = JSON.stringify(thisDataObject);
+                    //alert(dataJSON);
                     $.ajax({
                         url: '/mercurylab/sample_search/search',
                         data: dataJSON,
@@ -530,10 +511,10 @@
                 });
 
                 // when the save button is clicked, loop through the list of changed rows and build a JSON object containing the changed rows
+                //grid.parent().find('button[name=save]').click(function () {
+                //    grid_console.text('Saving is disabled at the moment.');
+                //});
                 grid.parent().find('button[name=save]').click(function () {
-                    grid_console.text('Saving is disabled at the moment.');
-                });
-                /*grid.parent().find('button[name=save]').click(function () {
                     // an array container for storing the changed data rows to send to the database
                     var changedDataArray = [];
                     // loop through the list of changed rows
@@ -545,6 +526,7 @@
                             // an object container for the data in this row
                             var thisDataObject = {};
                             // convert each cell in this row into an object property
+                            //["sample_bottle.sample.id", "project_name", "project", "site_name", "site", "skip_date", "time_stamp", "depth", "length", "replicate", "comment", "received_date", "lab_processing", "bottle", "medium_type", "constituent_type", /*"isotopic_analysis",*/ "isotope", "filter_type", "volume_filtered", "preservation_type", "preservation_acid", "preservation_volume", "preservation_comment", "sample_bottle.id", "id"];
                             for (var i = 0; i < thisDataRow.length; i++) {
                                 switch(i){
                                     case 1: // project name
@@ -578,11 +560,14 @@
                                             thisDataObject[objectFields[i]] = thisDataRow[i-1]+" "+newValue+":00";
                                         }
                                         break;
+                                    case 11: // received date
+                                        thisDataObject[objectFields[i]] = thisDataRow[i];
+                                        break;
                                     case 12: // processing
                                         thisDataObject[objectFields[i]] = getIdDom(data_processings,'processing',thisDataRow[i]);
                                         break;
                                     case 13: // bottle
-                                        // this must eventually point to Sample Bottles, not Bottles
+                                        // should this eventually point to Sample Bottles, not Bottles?
                                         thisDataObject[objectFields[i]] = thisDataObject[objectFields[i]] = updateValueAjax('/mercuryservices/bottles', 'bottle_unique_name', 'id', thisDataRow[i]);
                                         break;
                                     case 14: // medium
@@ -591,7 +576,8 @@
                                     case 15: // constituent
                                         thisDataObject[objectFields[i]] = getIdDom(data_constituents,'constituent',thisDataRow[i]);
                                         break;
-                                    case 16: // isotope
+                                    case 16: // isotope flag
+                                        thisDataObject[objectFields[i]] = getIdDom(data_isotopeflags,'isotope_flag',thisDataRow[i]);
                                         break;
                                     case 17: // filter
                                         thisDataObject[objectFields[i]] = thisDataObject[objectFields[i]] = getIdDom(data_filters,'filter',thisDataRow[i]);
@@ -619,7 +605,7 @@
                     console.log(changedDataJSON);
                     grid_console.text('Attempting to save data...');
                     $.ajax({
-                        url: '/mercurylab/sample_login/save',
+                        url: '/mercurylab/sample_search/save',
                         data: changedDataJSON,
                         dataType: 'json',
                         contentType: "application/json",
@@ -642,7 +628,7 @@
                             grid_console.text(errorThrown + ": " + textStatus);
                         }
                     });
-                });*/
+                });
 
             });
         </script>

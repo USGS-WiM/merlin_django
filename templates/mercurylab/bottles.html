@@ -1,41 +1,127 @@
 {% extends 'mercurylab/base.html' %}
 {% block body_block %}
 
-    <div class="jumbotron">
-
+    <div style="padding:10px">
         <p>
             <button type="button" class="btn btn-default" name="bottle_add">Add New Bottle</button>
             <button type="button" class="btn btn-default" name="range_add">Add New Range of Bottles</button>
+            <button type="button" class="btn btn-default" name="bottles_add">Add New Bottles</button>
         </p>
-        <div id="form_bottle_add" style="display:none">
-            <form class="form-signin span8" id="item_form" method="post" action="{% url 'mercurylab:bottle_add' %}" enctype="multipart/form-data">
-                {% csrf_token %}
-                <h3 class="form-signin-heading">Create Bottle</h3>
-
-                {% for field in bottle_form %}
-                {{ field.errors }}
-                {{ field.help_text }}<br />
-                {{ field }}<br />
-                {% endfor %}
-                <br />
-
-                <input class="btn btn-primary" type="submit" name="submit" value="OK" />
+        <div id="form_bottle_add" class="panel-default" style="display:none;">
+            <h3>Create Bottle</h3>
+            <form class="form-inline" style="border:1px solid;width:1200px;padding:4px;">
+                <div class="form-group" style="padding:2px;text-align:center">
+                    <label for="bottle_unique_name">Bottle Unique Name</label><br />
+                    <input class="input-block-level" name="bottle_unique_name" type="text" style="width:400px">
+                </div>
+                <div class="form-group" style="padding:2px;text-align:center">
+                    <label for="date_bottle">Date</label><br />
+                    <input class="input-block-level" name="date_bottle" id="date_bottle">
+                </div>
+                <div class="form-group" style="padding:2px;text-align:center">
+                    <label for="tare_weight">Tare Weight</label><br />
+                    <input class="input-block-level" name="tare_weight" type="number">
+                </div>
+                <div class="form-group" style="padding:2px;text-align:center">
+                    <label for="bottle_type_bottle">Bottle Type</label><br />
+                    <select class="input-block-level" name="bottle_type_bottle" id="bottle_type_bottle" style="height:26px;"></select>
+                </div>
+                <div class="form-group" style="padding:2px;text-align:center">
+                    <label for="description">Description</label><br />
+                    <input class="input-block-level" name="description" type="text">
+                </div>
             </form>
+            <br />
+            <button type="button" class="btn btn-primary" name="bottleAddOK">OK</button>
         </div>
-        <div id="form_range_add" style="display:none">
-            <form class="form-signin span8" id="item_form" method="post" action="{% url 'mercurylab:bottle_range_add' %}" enctype="multipart/form-data">
-                {% csrf_token %}
-                <h3 class="form-signin-heading">Create Range of Bottles</h3>
-
-                {% for field in bottle_range_form %}
-                {{ field.errors }}
-                {{ field.help_text }}<br />
-                {{ field }}<br />
-                {% endfor %}
+        <div id="form_range_add" class="panel-default" style="display:none;">
+            <h3>Create Range of Bottles</h3>
+            <form class="form-inline" style="border:1px solid;width:800px;padding:4px;">
+                <div class="form-group" style="padding:2px;text-align:center">
+                    <label for="bottle_prefix">Bottle Prefix</label><br />
+                    <input class="input-block-level" name="bottle_prefix" type="text">
+                </div>
+                <div class="form-group" style="padding:2px;text-align:center">
+                    <label for="suffix">Bottle Suffix</label><br />
+                    <input class="input-block-level" name="bottle_suffix" type="text">
+                </div>
+                <div class="form-group" style="padding:2px;text-align:center">
+                    <label for="bottle_range_start">Bottle Range Start</label><br />
+                    <input class="input-block-level" name="bottle_range_start" type="text">
+                </div>
+                <div class="form-group" style="padding:2px;text-align:center">
+                    <label for="bottle_range_end">Bottle Range End</label><br />
+                    <input class="input-block-level" name="bottle_range_end" type="text">
+                </div>
                 <br />
-
-                <input class="btn btn-primary" type="submit" name="submit" value="OK" />
+                <div class="form-group" style="padding:2px;text-align:center">
+                    <label for="date_bottle_range">Date</label><br />
+                    <input class="input-block-level" name="date_bottle_range" id="date_bottle_range">
+                </div>
+                <div class="form-group" style="padding:2px;text-align:center">
+                    <label for="tare_weight">Tare Weight</label><br />
+                    <input class="input-block-level" name="tare_weight" type="text">
+                </div>
+                <div class="form-group" style="padding:2px;text-align:center">
+                    <label for="bottle_type_bottle_range">Bottle Type</label><br />
+                    <select class="input-block-level" name="bottle_type_bottle_range" id="bottle_type_bottle_range" style="height:26px;"></select>
+                </div>
+                <div class="form-group" style="padding:2px;text-align:center">
+                    <label for="description">Description</label><br />
+                    <input class="input-block-level" name="description" type="text">
+                </div>
             </form>
+            <br />
+            <button type="button" class="btn btn-primary" name="rangeAddOK">OK</button>
+        </div>
+{#        <div id="form_bottle_add" style="display:none">#}
+{#            <form class="form-signin span4" id="item_form" method="post" action="{% url 'mercurylab:bottle_add' %}" enctype="multipart/form-data">#}
+{#                {% csrf_token %}#}
+{#                <h3>Create Bottle</h3>#}
+{##}
+{#                <table style="border:1px solid">#}
+{#                    <tr>#}
+{#                        {% for field in bottle_form %}#}
+{#                        <th style="padding:2px;text-align:center">{{ field.help_text }}<br />{{ field.errors }}</th>#}
+{#                        {% endfor %}#}
+{#                    </tr>#}
+{#                    <tr>#}
+{#                        {% for field in bottle_form %}#}
+{#                        <td style="padding:8px">{{ field }}</td>#}
+{#                        {% endfor %}#}
+{#                    </tr>#}
+{#                </table>#}
+{#                <br />#}
+{#                <input class="btn btn-primary" type="submit" name="submit" value="OK" />#}
+{#            </form>#}
+{#        </div>#}
+{#        <div id="form_range_add" style="display:none">#}
+{#            <form class="form-signin span8" id="item_form" method="post" action="{% url 'mercurylab:bottle_range_add' %}" enctype="multipart/form-data">#}
+{#                {% csrf_token %}#}
+{#                <h3>Create Range of Bottles</h3>#}
+{##}
+{#                <table style="border:1px solid">#}
+{#                    <tr>#}
+{#                        {% for field in bottle_range_form %}#}
+{#                        <th style="padding:2px;text-align:center">{{ field.help_text }}<br />{{ field.errors }}</th>#}
+{#                        {% endfor %}#}
+{#                    </tr>#}
+{#                    <tr>#}
+{#                        {% for field in bottle_range_form %}#}
+{#                        <td style="padding:8px">{{ field }}</td>#}
+{#                        {% endfor %}#}
+{#                    </tr>#}
+{#                </table>#}
+{#                <br />#}
+{##}
+{#                <input class="btn btn-primary" type="submit" name="submit" value="OK" />#}
+{#            </form>#}
+{#        </div>#}
+        <div id="grid_bottles_add" data-bottle-types="{{ bottletypes }}" style="display:none" >
+            <br />
+            <button type="button" class="btn btn-primary" name="bottlesAddOK">OK</button>
+            <button type="button" class="btn btn-default" name="insertRows">Insert 8 Blank Rows</button>
+            <button type="button" class="btn btn-default" name="deleteRows">Delete Selected Rows</button>
         </div>
         <br />
 
@@ -55,14 +141,13 @@
         <p>
             <button type="button" class="btn btn-default" name="load">Reload Table</button>
             <button type="button" class="btn btn-default" name="save">Save Changes</button>
-            <button type="button" class="btn btn-default" name="edit">Edit Selected Record</button>
             <button type="button" class="btn btn-default" name="delete">Delete Selected Record</button>
         </p>
         <p>
             <button type="button" class="btn btn-default" name="prev">Previous Page</button>
             <button type="button" class="btn btn-default" name="next">Next Page</button>
         </p>
-        <div id="grid" data-data="{{ data }}" class="table table-hover table-condensed table-bordered"></div>
+        <div id="grid" data-data="{{ data }}" ></div>
 
         <script>
             $(document).ready(function() {
@@ -80,23 +165,287 @@
                     }
                 });
 
-                var objectFields = ["id", "bottle_unique_name", "description", "tare_weight", "bottle_type"];
-                var currentPage = 1;
                 var bottleAddClicked = false;
                 var rangeAddClicked = false;
-                var grid = $('#grid');
-                var data_data = JSON.parse(grid.attr("data-data"));
-                var resultPages = Math.ceil(data_data['count'] / 100);
+                var bottlesAddClicked = false;
                 var grid_console = $("#grid_console");
+
+                var objectFieldsAdd = ["prefix", "suffix", "bottle_unique_name", "created_date", "tare_weight", "bottle_type", "description"];
+                var grid_bottles_add = $('#grid_bottles_add');
+                var data_bottle_types = JSON.parse(grid_bottles_add.attr("data-bottle-types"));
+                var changedRowIndicesBottlesAdd = [];
+                var dateToday = new Date().toISOString().split("T")[0];
+                var grid_bottles_add_options = {
+                    contextMenu: false,
+                    search: true,
+                    startRows: 8,
+                    columns: [
+                        {title: "Bottle Prefix", editor: 'text', width: 100},
+                        {title: "Suffix", width: 60},
+                        {title: "Bottle Unique Name", type: 'text', width: 160},
+                        {title: "Date", type: 'date', dateFormat: 'yy-mm-dd', width: 100},
+                        {title: "Tare Weight", type: 'numeric', format: '0.00', width: 100},
+                        {title: "Bottle Type", type: 'autocomplete', strict: true, source: getValuesDom(data_bottle_types,"bottle_type"), width: 240},
+                        {title: "Description", type: 'text', width: 240}
+                    ],
+                    /*beforeAutofill: function(start, end, data) {
+                        var newVal;
+                        for (var i = start['row']; i <= end['row']; i++) {
+                            if (start['col'] == 0) {
+                                var suffix = grid_bottles_add.handsontable('getDataAtCell', i, 1);
+                                newVal = data[0] + (suffix != null ? suffix : "");
+                            }
+                            if (start['col'] == 1) {
+                                var prefix = grid_bottles_add.handsontable('getDataAtCell', i, 0);
+                                newVal = (prefix != null ? prefix : "") + data[0];
+                            }
+                            grid_bottles_add.handsontable('setDataAtCell', i, 2, newVal);
+                            grid_bottles_add.handsontable('setDataAtCell', i, 3, dateToday);
+                        }
+                    },*/
+                    beforeChange: function(changes, source) {
+                        // get index of changed row
+                        var changedRow = changes[0][0];
+                        // get index of changed column
+                        var changedCol = changes[0][1];
+                        // get value of changed cell
+                        var changedVal = changes[0][3];
+
+                        // remember the indices of all changed rows
+                        if (source != 'loadData') {
+                            // find index of this row in the changed rows array
+                            var changedRowIndex = changedRowIndicesBottlesAdd.indexOf(changedRow);
+                            // if not in the array (index == -1), add it to the array, otherwise ignore
+                            if (changedRowIndex == -1) {
+                                changedRowIndicesBottlesAdd.push(changedRow);
+                            }
+                        }
+
+                        // if change is Bottle Prefix or Suffix, concatenate them into the Bottle Code
+                        if (changedCol == 0 || changedCol == 1) {
+                            var newVal;
+                            if (source == 'edit' || source == 'paste') {
+                                if (changedCol == 0) {
+                                    var suffix;
+                                    if (grid_bottles_add.handsontable('getDataAtCell', changedRow, 1) !== null) {
+                                        suffix = grid_bottles_add.handsontable('getDataAtCell', changedRow, 1);
+                                    }
+                                    else if (grid_bottles_add.handsontable('getDataAtCell', 0, 1) !== null) {
+                                        suffix = grid_bottles_add.handsontable('getDataAtCell', 0, 1);
+                                        grid_bottles_add.handsontable('setDataAtCell', changedRow, 1, suffix);
+                                    }
+                                    newVal = changedVal + (suffix != null ? suffix : "");
+                                }
+                                if (changedCol == 1) {
+                                    var prefix = grid_bottles_add.handsontable('getDataAtCell', changedRow, 0);
+                                    newVal = (prefix != null ? prefix : "") + changedVal;
+                                }
+                                grid_bottles_add.handsontable('setDataAtCell', changedRow, 2, newVal);
+                                grid_bottles_add.handsontable('setDataAtCell', changedRow, 3, dateToday);
+                            }
+                            /*if (source == 'autofill') {
+                                var newVal = "1";
+                                // get range of autofilled rows
+                                var selectedRows = grid_bottles_add.handsontable('getInstance').getSelectedRange();
+                                var firstSelectedRow = selectedRows['from']['row'];
+                                var lastSelectedRow = selectedRows['to']['row'];
+                                // for each row in the autofill selection
+                                for (var i = firstSelectedRow; i <= lastSelectedRow; i++) {
+                                    if (changedCol == 0) {
+                                        var suffix = grid_bottles_add.handsontable('getDataAtCell', i, 1);
+                                        newVal = changedVal + (suffix != null ? suffix : "");
+                                    }
+                                    if (changedCol == 1) {
+                                        var prefix = grid_bottles_add.handsontable('getDataAtCell', i, 0);
+                                        newVal = (prefix != null ? prefix : "") + changedVal;
+                                    }
+                                    grid_bottles_add.handsontable('setDataAtCell', i, 2, newVal);
+                                    grid_bottles_add.handsontable('setDataAtCell', i, 3, dateToday);
+                                }
+                            }*/
+                        }
+                    }
+                };
+
+                grid_bottles_add.handsontable(grid_bottles_add_options);
+
+                grid_bottles_add.parent().find('button[name=insertRows]').click(function () {
+                    grid_bottles_add.data('handsontable').alter('insert_row', null, 8);
+                    grid_console.text('Inserted Rows.');
+                });
+
+                grid_bottles_add.parent().find('button[name=deleteRows]').click(function () {
+                    var selectedRows = grid_bottles_add.handsontable('getInstance').getSelectedRange();
+                    var firstSelectedRow = selectedRows['from']['row'];
+                    var lastSelectedRow = selectedRows['to']['row'];
+                    grid_bottles_add.data('handsontable').alter('remove_row', firstSelectedRow, (lastSelectedRow != firstSelectedRow ? (lastSelectedRow - firstSelectedRow) + 1 : 1));
+                });
+
+                grid_bottles_add.parent().find('button[name=bottlesAddOK]').click(function () {
+                    var changedDataArrayBottlesAdd = [];
+                    $.each(changedRowIndicesBottlesAdd, function(index, value) {
+                        var thisDataRow = grid_bottles_add.data('handsontable').getDataAtRow(value);
+                        var thisDataObject = {};
+                        for (var i = 0; i < thisDataRow.length; i++) {
+                            switch(i){
+                                case 0: // prefix
+                                    break;
+                                case 1: // suffix
+                                    break;
+                                case 5: // bottle type
+                                    thisDataObject[objectFieldsAdd[i]] = getIdDom(data_bottle_types,'bottle_type',thisDataRow[i]);
+                                    break;
+                                default:
+                                    thisDataObject[objectFieldsAdd[i]] = thisDataRow[i];
+                                    break;
+                            }
+                        }
+                        changedDataArrayBottlesAdd.push(thisDataObject);
+                    });
+                    var changedDataJSON = JSON.stringify(changedDataArrayBottlesAdd);
+                    $.ajax({
+                        url: '/mercurylab/bottles_add/',
+                        data: changedDataJSON,
+                        dataType: 'json',
+                        contentType: "application/json",
+                        type: 'POST',
+                        success: function (data, textStatus, jqXHRequest) {
+                            var content_type = jqXHRequest.getResponseHeader("content-type");
+                            // if the content-type is plain text, then it's a custom message from our Django view
+                            if (content_type.indexOf('text') > -1) {
+                                grid_console.text(data);
+                            }
+                            // otherwise, it's JSON from the REST Services
+                            else if (jqXHRequest.status === 200) {
+                                grid_console.text(textStatus+': Data saved.');
+                                grid_bottles.parent().find('button[name=bottles_add]').click();
+                                // the data was saved to the database, so empty the table
+                                var rows = grid_bottles_add.handsontable('getInstance').countRows();
+                                grid_bottles_add.data('handsontable').alter('remove_row', 0, rows);
+                                grid_bottles_add.data('handsontable').alter('insert_row', null, 8);
+                            }
+                            else {
+                                grid_console.text(textStatus+': Save error: '+jqXHRequest.statusText+', code: '+jqXHRequest.status+'.');
+                            }
+                        },
+                        error: function (jqXHRequest, textStatus, errorThrown) {
+                            grid_console.text(errorThrown + ": " + textStatus);
+                        }
+                    });
+                });
+
+                var form_bottle_add = $("#form_bottle_add");
+                form_bottle_add.find('button[name=bottleAddOK]').click(function() {
+                    var thisDataObject = {};
+                    thisDataObject['bottle_unique_name'] = form_bottle_add.find('input[name=bottle_unique_name]').val();
+                    thisDataObject['created_date'] = form_bottle_add.find('input[name=date_bottle]').val();
+                    thisDataObject['tare_weight'] = Number(form_bottle_add.find('input[name=tare_weight]').val());
+                    thisDataObject['bottle_type'] = select_bottle_type.val();
+                    thisDataObject['description'] = form_bottle_add.find('input[name=description]').val();
+                    var dataJSON = JSON.stringify(thisDataObject);
+                    $.ajax({
+                        url: '/mercurylab/bottle_add/',
+                        data: dataJSON,
+                        dataType: 'json',
+                        contentType: "application/json",
+                        type: 'POST',
+                        success: function (data, textStatus, jqXHRequest) {
+                            var content_type = jqXHRequest.getResponseHeader("content-type");
+                            // if the content-type is plain text, then it's a custom message from our Django view
+                            if (content_type.indexOf('text') > -1) {
+                                grid_console.text(data);
+                            }
+                            // otherwise, it's JSON from the REST Services
+                            else if (jqXHRequest.status === 200) {
+                                $(":input", "#form_bottle_add").not(":button").val("");
+                                grid_bottles.parent().find('button[name=bottle_add]').click();
+                                grid_console.text(textStatus+': Data saved.');
+                            }
+                            else {
+                                grid_console.text(textStatus+': Save error: '+jqXHRequest.statusText+', code: '+jqXHRequest.status+'.');
+                            }
+                        },
+                        error: function (jqXHRequest, textStatus, errorThrown) {
+                            grid_console.text(errorThrown + ": " + textStatus);
+                        }
+                    });
+                });
+
+                var form_range_add = $("#form_range_add");
+                form_range_add.find('button[name=rangeAddOK]').click(function () {
+                    var thisDataObject = {};
+                    thisDataObject['prefix'] = form_range_add.find('input[name=bottle_prefix]').val();
+                    thisDataObject['suffix'] = form_range_add.find('input[name=bottle_suffix]').val();
+                    thisDataObject['range_start'] = form_range_add.find('input[name=bottle_range_start]').val();
+                    thisDataObject['range_end'] = form_range_add.find('input[name=bottle_range_end]').val();
+                    thisDataObject['created_date'] = form_range_add.find('input[name=date_bottle_range]').val();
+                    thisDataObject['tare_weight'] = Number(form_range_add.find('input[name=tare_weight]').val());
+                    thisDataObject['bottle_type'] = select_bottle_type_range.val();
+                    thisDataObject['description'] = form_range_add.find('input[name=description]').val();
+                    var dataJSON = JSON.stringify(thisDataObject);
+                    $.ajax({
+                        url: '/mercurylab/bottle_range_add/',
+                        data: dataJSON,
+                        dataType: 'json',
+                        contentType: "application/json",
+                        type: 'POST',
+                        success: function (data, textStatus, jqXHRequest) {
+                            var content_type = jqXHRequest.getResponseHeader("content-type");
+                            // if the content-type is plain text, then it's a custom message from our Django view
+                            if (content_type.indexOf('text') > -1) {
+                                grid_console.text(data);
+                            }
+                            // otherwise, it's JSON from the REST Services
+                            else if (jqXHRequest.status === 200) {
+                                $(":input", "#form_range_add").not(":button").val("");
+                                grid_bottles.parent().find('button[name=range_add]').click();
+                                grid_console.text(textStatus+': Data saved.');
+                            }
+                            else {
+                                grid_console.text(textStatus+': Save error: '+jqXHRequest.statusText+', code: '+jqXHRequest.status+'.');
+                            }
+                        },
+                        error: function (jqXHRequest, textStatus, errorThrown) {
+                            grid_console.text(errorThrown + ": " + textStatus);
+                        }
+                    });
+                });
+
+                $("#date_bottle").datepicker({
+                    dateFormat: "yy-mm-dd",
+                    maxDate: 0
+                });
+
+                $("#date_bottle_range").datepicker({
+                    dateFormat: "yy-mm-dd",
+                    maxDate: 0
+                });
+
+                var select_bottle_type = $("#bottle_type_bottle");
+                for (var i in data_bottle_types) {
+                    select_bottle_type.append(new Option(data_bottle_types[i].bottle_type, data_bottle_types[i].id));
+                }
+
+                var select_bottle_type_range = $("#bottle_type_bottle_range");
+                for (var i in data_bottle_types) {
+                    select_bottle_type_range.append(new Option(data_bottle_types[i].bottle_type, data_bottle_types[i].id));
+                }
+
+                var objectFields = ["id", "bottle_unique_name", "created_date", "description", "tare_weight", "bottle_type"];
+                var currentPage = 1;
+                var grid_bottles = $('#grid');
+                var data_data = JSON.parse(grid_bottles.attr("data-data"));
+                var resultPages = Math.ceil(data_data['count'] / 100);
                 var changedRowIndices = [];
                 var selectionRowIndices = [];
                 grid_console.text('Loading data.');
-                grid.handsontable({
+                grid_bottles.handsontable({
                     //minSpareRows: 1,
                     data: data_data.results,
                     columns: [
                         {title: "ID", data: "id", readOnly: true, width: 1},
-                        {title:"Unique Bottle Name", data: "bottle_unique_name", width: 150},
+                        {title: "Unique Bottle Name", data: "bottle_unique_name", width: 150},
+                        {title: "Date", data: "created_date", width: 100, dateFormat: 'yy-mm-dd'}
                         {title: "Description", data: "description", width: 350},
                         {title: "Tare Weight", data: "tare_weight", width: 100},
                         {title: "Bottle Type", data: "bottle_type", width: 100}
@@ -104,7 +453,7 @@
                     search: true,
                     columnSorting: { column: 0 },
                     beforeChange: function(changes, source) {
-                         // "changes" is a 2D array containing information about each of the edited cells [ [row, col, oldVal, newVal], [row, col, oldVal, newVal], ... ].
+                        // "changes" is a 2D array containing information about each of the edited cells [ [row, col, oldVal, newVal], [row, col, oldVal, newVal], ... ].
                         // "source" is one of the following strings: "alter", "empty", "edit", "populateFromArray", "loadData", "autofill", "paste".
 
                         // get index of changed row
@@ -119,6 +468,10 @@
                                 changedRowIndices.push(changedRow);
                             }
                         }
+                        //var selectedRows = grid_bottles.handsontable('getInstance').getSelectedRange();
+                        //var firstSelectedRow = selectedRows['from']['row'];
+                        //var lastSelectedRow = selectedRows['to']['row'];
+                        //alert(firstSelectedRow+":"+lastSelectedRow);
                     },
                     // get list of selected rows
                     afterSelectionEnd: function(r, c, r2, c2) {
@@ -129,12 +482,12 @@
                         selectionRowIndices[1] = r2;
                     }
                 });
-                grid.data('handsontable').sort(0);
+                grid_bottles.data('handsontable').sort(0);
                 grid_console.text('Data loaded.');
 
                 $('#search_field').on('keyup', function (event) {
-                    grid.handsontable('getInstance').search.query(this.value);
-                    grid.handsontable('getInstance').render();
+                    grid_bottles.handsontable('getInstance').search.query(this.value);
+                    grid_bottles.handsontable('getInstance').render();
                 });
 
                 $("#select_field").select2({
@@ -149,12 +502,12 @@
                         dataType: 'json',
                         data: function (term, page) {
                             return {
-                                name: term
+                                bottle_unique_name: term
                             };
                         },
                         results: function (data, page) {
                             data_data = data;
-                            grid.data('handsontable').loadData(data_data.results);
+                            grid_bottles.data('handsontable').loadData(data_data.results);
                             grid_console.text('Filtered data loaded.');
                             return {results: data.results};
                         }
@@ -172,15 +525,15 @@
                     return data.bottle_unique_name;
                 }
 
-                grid.parent().find('button[name=load]').click(function () {
+                grid_bottles.parent().find('button[name=load]').click(function () {
                     $.ajax({
                         url: '/mercuryservices/bottles/?page='+currentPage,
                         dataType: 'json',
                         success: function (response) {
                             grid_console.text("success");
                             data_data = response;
-                            grid.data('handsontable').loadData(data_data.results);
-                            grid.data('handsontable').sort(0);
+                            grid_bottles.data('handsontable').loadData(data_data.results);
+                            grid_bottles.data('handsontable').sort(0);
                             grid_console.text('Page '+ currentPage +' data reloaded.');
                         },
                         error: function (response) {
@@ -189,7 +542,7 @@
                     });
                 });
 
-                grid.parent().find('button[name=next]').click(function () {
+                grid_bottles.parent().find('button[name=next]').click(function () {
                     if (currentPage != resultPages) {
                         $.ajax({
                             url: data_data.next,
@@ -197,7 +550,7 @@
                             success: function (response) {
                                 grid_console.text("success");
                                 data_data = response;
-                                grid.data('handsontable').loadData(data_data.results);
+                                grid_bottles.data('handsontable').loadData(data_data.results);
                                 currentPage++;
                                 grid_console.text('Page ' + currentPage + ' of ' + resultPages + ' loaded.');
                             },
@@ -211,7 +564,7 @@
                     }
                 });
 
-                grid.parent().find('button[name=prev]').click(function () {
+                grid_bottles.parent().find('button[name=prev]').click(function () {
                     if (currentPage != 1) {
                         $.ajax({
                             url: data_data.previous,
@@ -219,7 +572,7 @@
                             success: function (response) {
                                 grid_console.text("success");
                                 data_data = response;
-                                grid.data('handsontable').loadData(data_data.results);
+                                grid_bottles.data('handsontable').loadData(data_data.results);
                                 currentPage--;
                                 grid_console.text('Page ' + currentPage + ' of ' + resultPages + ' loaded.');
                             },
@@ -233,44 +586,67 @@
                     }
                 });
 
-                grid.parent().find('button[name=bottle_add]').click(function () {
+                grid_bottles.parent().find('button[name=bottle_add]').click(function () {
                     if (bottleAddClicked) {
                         bottleAddClicked = false;
                         $("#form_bottle_add").hide();
                     }
                     else {
+                        rangeAddClicked = false;
                         bottleAddClicked = true;
+                        bottlesAddClicked = false;
+                        $("#form_range_add").hide();
                         $("#form_bottle_add").show();
+                        $("#grid_bottles_add").hide();
                     }
                 });
 
-                grid.parent().find('button[name=range_add]').click(function () {
+                grid_bottles.parent().find('button[name=range_add]').click(function () {
                     if (rangeAddClicked) {
                         rangeAddClicked = false;
                         $("#form_range_add").hide();
                     }
                     else {
                         rangeAddClicked = true;
+                        bottleAddClicked = false;
+                        bottlesAddClicked = false;
+                        $("#form_bottle_add").hide();
                         $("#form_range_add").show();
+                        $("#grid_bottles_add").hide();
                     }
                 });
 
-                grid.parent().find('button[name=delete]').click(function () {
-                    var thisDataRow = grid.data('handsontable').getDataAtRow(selectionRowIndices[0]);
+                grid_bottles.parent().find('button[name=bottles_add]').click(function () {
+                    if (bottlesAddClicked) {
+                        bottlesAddClicked = false;
+                        $("#grid_bottles_add").hide();
+                    }
+                    else {
+                        bottleAddClicked = false;
+                        rangeAddClicked = false;
+                        bottlesAddClicked = true;
+                        $("#form_bottle_add").hide();
+                        $("#form_range_add").hide();
+                        $("#grid_bottles_add").show();
+                    }
+                });
+
+                grid_bottles.parent().find('button[name=delete]').click(function () {
+                    var thisDataRow = grid_bottles.data('handsontable').getDataAtRow(selectionRowIndices[0]);
                     var thisDataRowID = thisDataRow[0];
                     window.location = '/mercurylab/bottles/'+thisDataRowID+'/delete';
                 });
 
-                grid.parent().find('button[name=edit]').click(function () {
-                    var thisDataRow = grid.data('handsontable').getDataAtRow(selectionRowIndices[0]);
+                grid_bottles.parent().find('button[name=edit]').click(function () {
+                    var thisDataRow = grid_bottles.data('handsontable').getDataAtRow(selectionRowIndices[0]);
                     var thisDataRowID = thisDataRow[0];
                     window.location = '/mercurylab/bottles/'+thisDataRowID+'/edit';
                 });
 
-                grid.parent().find('button[name=save]').click(function () {
+                grid_bottles.parent().find('button[name=save]').click(function () {
                     var changedDataArray = [];
                     $.each(changedRowIndices, function(index, value) {
-                        var thisDataRow = grid.data('handsontable').getDataAtRow(value);
+                        var thisDataRow = grid_bottles.data('handsontable').getDataAtRow(value);
                         var thisDataObject = {};
                         for (var i = 0; i < thisDataRow.length; i++) {
                             thisDataObject[objectFields[i]] = thisDataRow[i];

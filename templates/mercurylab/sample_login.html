@@ -1,11 +1,11 @@
 {% extends 'mercurylab/base.html' %}
 {% block body_block %}
 
-    <div class="jumbotron">
+    <div style="padding:10px">
         <p>
             <button type="button" class="btn btn-default" name="save">Save</button>
             <button type="button" class="btn btn-default" name="insertRows">Insert 8 Blank Rows</button>
-            <button type="button" class="btn btn-default" name="delete">Delete Selected Row</button>
+            <button type="button" class="btn btn-default" name="delete">Delete Selected Rows</button>
         </p>
         <pre id="grid_console" class="console" style="width:600px"></pre>
         <p><input class="form-control" id="select_field" type="hidden" placeholder="Select for sample name." style="width:600px"/></p>
@@ -16,7 +16,7 @@
                     <label for="project_name">Project Name</label><br />
                     <input class="input-block-level" id="project_name" type="text" style="width:400px">
                 </div>
-                <div class="form-group">
+                <div class="form-group" style="display:none;">
                     <label for="project_id">Project ID</label><br />
                     <input class="input-block-level" id="project_id" type="text" style="width:100px">
                 </div>
@@ -26,7 +26,7 @@
                 </div>
                 <div class="form-group">
                     <label for="lab_processing">Lab Processing</label><br />
-                    <input class="input-block-level" id="lab_processing" type="text" style="width:400px">
+                    <select class="input-block-level" id="lab_processing" style="width:400px;height:26px;"></select>
                     <!-- this HTML Select is temporary until an AJAX solution is found -->
                     <!-- <select class="input-block-level" id="lab_processing" style="width:300px; height:26px"> -->
                         <!-- <option value="NONE">NONE</option> -->
@@ -37,7 +37,7 @@
             </form>
         </div>
         <br />
-        <div id="grid" data-projects="{{ projects }}" data-processings="{{ processings }}" data-mediums="{{ mediums }}" data-isotopeflags="{{ isotope_flags }}" data-filters="{{ filters }}" data-preservations="{{ preservations }}" class="table table-hover table-condensed table-bordered"></div>
+        <div id="grid" data-projects="{{ projects }}" data-processings="{{ processings }}" data-mediums="{{ mediums }}" data-isotopeflags="{{ isotope_flags }}" data-filters="{{ filters }}" data-preservations="{{ preservations }}" ></div>
 
         <script>
             $(document).ready(function() {
@@ -73,7 +73,7 @@
                 var data_preservations = JSON.parse(grid.attr('data-preservations'));
 
                 // some handsontable helper arrays
-                var objectFields = ["skip_site_name", "site", "skip_date", "time_stamp", "depth", "length", "replicate", "comment", "bottle", "medium_type", "constituent_type", "isotope_flag", "filter_type", "volume_filtered", "preservation_type", "preservation_acid", "preservation_volume", "preservation_comment"];
+                var objectFields = ["skip_site_name", "site", "skip_date", "sample_date_time", "depth", "length", "replicate", "comment", "bottle", "medium_type", "constituent_type", "isotope_flag", "filter_type", "volume_filtered", "preservation_type", "preservation_acid", "preservation_volume", "preservation_comment"];
                 var changedRowIndices = [];
                 var selectionRowIndices = [];
 
@@ -87,8 +87,8 @@
                     else {callback(false);}
                 };
                 var validateTime = function(value, callback) {
-                    // cannot be null or empty
-                    if (value === null || value === "") {callback(false);}
+                    // allow null or empty while editing (this null will instead be caught on Save event)
+                    if (value === null || value === "") {callback(true);}
                     // convert the string to number to allow math operations; also trims off leading zeroes
                     value = Number(value);
                     switch (value.toString().length) {
@@ -113,19 +113,18 @@
                     }
                 };
 
-                grid_console.text('Loading data.');
-                grid.handsontable({
+                var grid_options = {
                     contextMenu: false,
                     search: true,
                     startRows: 8,
                     columns: [
                         {title: 'Site Name', width: 210, type: 'autocomplete', strict: true, validator: validateRequired},
-                        {title: 'Site ID', width: 70, type: 'autocomplete', strict: true, validator: validateRequired},
+                        {title: 'Site ID', width: 100, type: 'autocomplete', strict: true, validator: validateRequired},
                         // Date Time as separate columns is temporary until a single column datetime editor can be found for handsontable
-                        {title: 'Date', width: 100, type: 'date', validator: validateRequired, maxDate: 0},
+                        {title: 'Date', width: 100, type: 'date', dateFormat: 'yy-mm-dd', validator: validateRequired, maxDate: 0},
                         {title: 'Time', width: 55, type: 'numeric', validator: validateTime, allowInvalid: false},
-                        {title: 'Depth', width: 45, type: 'numeric', validator: validateRequiredZeroOK},
-                        {title: 'Length', width: 50, type: 'numeric'},
+                        {title: 'Depth', width: 45, type: 'numeric', validator: validateRequiredZeroOK, format: '0.00'},
+                        {title: 'Length', width: 70, type: 'numeric', format: '0.00'},
                         {title: 'Rep', width: 35, type: 'numeric'},
                         {title: 'Sample Comments', width: 130, type: 'text'},
                         {title: 'Container ID', width: 110, type: 'autocomplete', strict: true, validator: validateRequired,  source: function (query, process) {
@@ -133,7 +132,7 @@
                         {title: 'Medium', width: 140, type: 'autocomplete', strict: true, validator: validateRequired, source: getValuesDom(data_mediums,"medium")},
                         {title: 'Analysis', width: 80, type: 'autocomplete', strict: true, validator: validateRequired},
                         {title: 'Isotope', width: 60, type: 'dropdown', source: data_isotopes}, //type: 'autocomplete', strict: true, source: getValuesDom(data_isotopeflags,"isotope_flag"), validator: validateRequired},
-                        {title: 'Filter', width: 140, type: 'autocomplete', strict: true, source: getValuesDom(data_filters,"filter")},
+                        {title: 'Filter', width: 130, type: 'autocomplete', strict: true, source: getValuesDom(data_filters,"filter")},
                         {title: 'Filter Vol', width: 65, type: 'numeric', format: '0.00'},
                         {title: 'Preservation', width: 130, type: 'autocomplete', strict: true, source: getValuesDom(data_preservations, "preservation")},
                         {title: 'Acid', width: 110, type: 'autocomplete', strict: true,  source: function (query, process) {
@@ -164,47 +163,71 @@
                         }
 
                         // update dependent columns when a value in a parent column is changed
-                        if (source == 'edit') {
-                            // when site name is changed to a non-null, non-blank value
-                            if (changedCol == 0 && changedVal !== null && changedVal !== "") {
-                                // update site ID to match site name
-                                //var newValue = updateValueAjax('/mercuryservices/sites/', 'name', 'id', changedVal);
-                                var newValue = updateValueDom(data_sites, 'name', 'id', changedVal);
-                                grid.handsontable('setDataAtCell', changedRow, 1, newValue);
-                                // also, if this row hasn't had the default values set (or altered by user)...
-                                if (grid.handsontable('getDataAtCell', grid.handsontable('getInstance').getSelected()[0], 4) == null
-                                        && grid.handsontable('getDataAtCell', grid.handsontable('getInstance').getSelected()[0], 5) == null
-                                        && grid.handsontable('getDataAtCell', grid.handsontable('getInstance').getSelected()[0], 6) == null
-                                        && grid.handsontable('getDataAtCell', grid.handsontable('getInstance').getSelected()[0], 11) == null
-                                        && grid.handsontable('getDataAtCell', grid.handsontable('getInstance').getSelected()[0], 13) == null)
-                                {
-                                    // ...then set defaults: depth 0, length -999, rep 1, isotope 'NA', filter volume -999
-                                    grid.handsontable('setDataAtCell', changedRow, 4, 0);
-                                    grid.handsontable('setDataAtCell', changedRow, 5, -999);
-                                    grid.handsontable('setDataAtCell', changedRow, 6, 1);
-                                    grid.handsontable('setDataAtCell', changedRow, 11, 'NA');
-                                    grid.handsontable('setDataAtCell', changedRow, 13, -999);
+                        if (source == 'edit' || source == 'paste' || source == 'autofill') {
+                            // when site name or site ID is changed to a non-null, non-blank value
+                            if ((changedCol == 0 || changedCol == 1) && changedVal !== null && changedVal !== "") {
+                                var siteValue;
+                                if (source == 'edit' || source == 'paste') {
+                                    // if site name is changed
+                                    if (changedCol == 0) {
+                                        // update site ID to match site name
+                                        siteValue = updateValueDom(data_sites, 'name', 'usgs_scode', changedVal);
+                                        grid.handsontable('setDataAtCell', changedRow, 1, siteValue);
+                                    }
+                                    // if site ID is changed
+                                    if (changedCol == 1) {
+                                        // update site name to match site ID
+                                        siteValue = updateValueDom(data_sites, 'usgs_scode', 'name', changedVal);
+                                        grid.handsontable('setDataAtCell', changedRow, 0, siteValue);
+                                    }
+                                    // if this row hasn't had the default values set (or altered by user)...
+                                    if (grid.handsontable('getDataAtCell', changedRow, 4) == null
+                                            && grid.handsontable('getDataAtCell', changedRow, 5) == null
+                                            && grid.handsontable('getDataAtCell', changedRow, 6) == null
+                                            && grid.handsontable('getDataAtCell', changedRow, 11) == null
+                                            && grid.handsontable('getDataAtCell', changedRow, 13) == null) {
+                                        // ...then set defaults: depth 0, length -999, rep 1, isotope 'NA', filter volume -999
+                                        grid.handsontable('setDataAtCell', changedRow, 4, 0);
+                                        grid.handsontable('setDataAtCell', changedRow, 5, -999);
+                                        grid.handsontable('setDataAtCell', changedRow, 6, 1);
+                                        grid.handsontable('setDataAtCell', changedRow, 11, 'NA');
+                                        grid.handsontable('setDataAtCell', changedRow, 13, -999);
+                                    }
                                 }
-                            }
-                            // when site ID is changed to a non-null, non-blank value
-                            if (changedCol == 1 && changedVal !== null && changedVal !== "") {
-                                // update site name to match site ID
-                                //var newValue = updateValueAjax('/mercuryservices/sites/', 'id', 'name', changedVal);
-                                var newValue = updateValueDom(data_sites, 'id', 'name', changedVal);
-                                grid.handsontable('setDataAtCell', changedRow, 0, newValue);
-                                // also, if this row hasn't had the default values set (or altered by user)...
-                                if (grid.handsontable('getDataAtCell', grid.handsontable('getInstance').getSelected()[0], 4) == null
-                                        && grid.handsontable('getDataAtCell', grid.handsontable('getInstance').getSelected()[0], 5) == null
-                                        && grid.handsontable('getDataAtCell', grid.handsontable('getInstance').getSelected()[0], 6) == null
-                                        && grid.handsontable('getDataAtCell', grid.handsontable('getInstance').getSelected()[0], 11) == null
-                                        && grid.handsontable('getDataAtCell', grid.handsontable('getInstance').getSelected()[0], 13) == null)
-                                {
-                                    // ...then set defaults: depth 0, length -999, rep 1, isotope 'NA', filter volume -999
-                                    grid.handsontable('setDataAtCell', changedRow, 4, 0);
-                                    grid.handsontable('setDataAtCell', changedRow, 5, -999);
-                                    grid.handsontable('setDataAtCell', changedRow, 6, 1);
-                                    grid.handsontable('setDataAtCell', changedRow, 11, 'NA');
-                                    grid.handsontable('setDataAtCell', changedRow, 13, -999);
+                                if (source == 'autofill') {
+                                    // get range of autofilled rows
+                                    var selectedRows = grid.handsontable('getInstance').getSelectedRange();
+                                    var firstSelectedRow = selectedRows['from']['row'];
+                                    var lastSelectedRow = selectedRows['to']['row'];
+                                    // for each row in the autofill selection
+                                    for (var i = firstSelectedRow; i <= lastSelectedRow; i++) {
+                                        // if site name is changed
+                                        if (changedCol == 0) {
+                                            // update site ID to match site name
+                                            siteValue = updateValueDom(data_sites, 'name', 'usgs_scode', changedVal);
+                                            grid.handsontable('setDataAtCell', i, 1, siteValue);
+                                        }
+                                        // if site ID is changed
+                                        if (changedCol == 1) {
+                                            // update site name to match site ID
+                                            siteValue = updateValueDom(data_sites, 'usgs_scode', 'name', changedVal);
+                                            grid.handsontable('setDataAtCell', i, 0, siteValue);
+                                        }
+                                        // if this row hasn't had the default values set (or altered by user)...
+                                        if (grid.handsontable('getDataAtCell', i, 4) == null
+                                            && grid.handsontable('getDataAtCell', i, 5) == null
+                                            && grid.handsontable('getDataAtCell', i, 6) == null
+                                            && grid.handsontable('getDataAtCell', i, 11) == null
+                                            && grid.handsontable('getDataAtCell', i, 13) == null)
+                                        {
+                                            // ...then set defaults: depth 0, length -999, rep 1, isotope 'NA', filter volume -999
+                                            grid.handsontable('setDataAtCell', i, 4, 0);
+                                            grid.handsontable('setDataAtCell', i, 5, -999);
+                                            grid.handsontable('setDataAtCell', i, 6, 1);
+                                            grid.handsontable('setDataAtCell', i, 11, 'NA');
+                                            grid.handsontable('setDataAtCell', i, 13, -999);
+                                        }
+                                    }
                                 }
                             }
                             // when medium is changed to a non-null, non-blank value
@@ -217,13 +240,25 @@
                                         medium: changedVal
                                     },
                                     success: function (response) {
-                                        var colToChange = 10;
                                         // update the local full object collection
                                         data_constituents = response;
-                                        // update the dropdown list with just the values
+                                        // grab just just the values from the object
                                         var values = getValuesDom(data_constituents, "constituent");
-                                        var cellProperties = grid.handsontable('getInstance').getCellMeta(changedRow, colToChange);
-                                        cellProperties.source = values;
+                                        // get range of selected rows
+                                        var selectedRows = grid.handsontable('getInstance').getSelectedRange();
+                                        var firstSelectedRow = selectedRows['from']['row'];
+                                        var lastSelectedRow = selectedRows['to']['row'];
+                                        // for each row in the selection
+                                        for (var i = firstSelectedRow; i <= lastSelectedRow; i++) {
+                                            // if there is a previously entered value in this cell, set it to null, otherwise leave it alone (this avoids unnecessary triggering of cell validation)
+                                            if (grid.handsontable('getDataAtCell', i, 10) != null) {
+                                                grid.handsontable('setDataAtCell', i, 10, null);
+                                            }
+                                            // get the cell object for the constituents column in this row
+                                            var cellProperties = grid.handsontable('getInstance').getCellMeta(i, 10);
+                                            // update the dropdown list of this cell
+                                            cellProperties.source = values;
+                                        }
                                     },
                                     error: function (response) {
                                         grid_console.text("error");
@@ -240,7 +275,9 @@
                         selectionRowIndices[0] = r;
                         selectionRowIndices[1] = r2;
                     }
-                });
+                };
+                grid_console.text('Loading data.');
+                grid.handsontable(grid_options);
                 //grid.data('handsontable').sort(0);
                 grid_console.text('Data loaded.');
 
@@ -276,7 +313,7 @@
                     select: function(event, ui){
                         if (ui.item && ui.item.value){
                             var changedVal = ui.item.value;
-                            var newValue = updateValueDom(data_projects, 'name', 'id', changedVal);
+                            var newValue = updateValueDom(data_projects, 'name', 'accounting_code', changedVal);
                             $("#project_id").val(newValue);
                             $.ajax({
                                 url: '/mercuryservices/sites/',
@@ -289,10 +326,10 @@
                                     // update the local full object collection
                                     data_sites = response['results'];
                                     var names = getValuesDom(data_sites, "name");
-                                    var ids = getValuesDom(data_sites, "id");
+                                    var ids = getValuesDom(data_sites, "usgs_scode");
                                     var settings = grid.handsontable('getInstance').getSettings();
                                     settings.columns[0] = {title: 'Site Name', width: 210, type: 'autocomplete', source: names};
-                                    settings.columns[1] = {title: 'Site ID', width: 70, type: 'autocomplete', source: ids};
+                                    settings.columns[1] = {title: 'Site ID', width: 100, type: 'autocomplete', source: ids};
                                     grid.handsontable('getInstance').updateSettings(settings);
                                     /*var rows = grid.handsontable('getInstance').countRows();
                                     for (var row = 1; row < rows; row++) {
@@ -326,7 +363,7 @@
                     select: function(event, ui){
                         if (ui.item && ui.item.value){
                             var changedVal = ui.item.value;
-                            var newValue = updateValueDom(data_projects, 'id', 'name', changedVal);
+                            var newValue = updateValueDom(data_projects, 'accounting_code', 'name', changedVal);
                             $("#project_name").val(newValue);
                             $.ajax({
                                 url: '/mercuryservices/sites/',
@@ -347,7 +384,7 @@
                                         cellProperties.source = values;
                                         // update the site IDs dropdown list with just the IDs
                                         colToChange = 1;
-                                        values = getValuesDom(data_sites, "id");
+                                        values = getValuesDom(data_sites, "usgs_scode");
                                         cellProperties = grid.handsontable('getInstance').getCellMeta(row, colToChange);
                                         cellProperties.source = values;
                                     }
@@ -365,23 +402,25 @@
                     maxDate: 0
                 });
 
-                $("#lab_processing").autocomplete({
-                    autoFocus: true,
-                    source: $.map(data_processings, function(i) {
-                        return {
-                            label: i.processing,
-                            value: i.processing
-                        };
-                    })
-                });
+                var select_lab_processing = $("#lab_processing");
+                for (var i in data_processings) {
+                    if (data_processings[i].processing == 'NONE') {
+                        var proc_none = new Option(data_processings[i].processing, data_processings[i].id);
+                        proc_none.selected = true;
+                        select_lab_processing.append(proc_none);
+                    }
+                    else {
+                        select_lab_processing.append(new Option(data_processings[i].processing, data_processings[i].id));
+                    }
+                }
 
                 grid.parent().find('button[name=insertRows]').click(function () {
-                    grid.data('handsontable').alter('insert_row',null,8);
+                    grid.data('handsontable').alter('insert_row', null, 8);
                     grid_console.text('Inserted Rows.');
                 });
 
                 grid.parent().find('button[name=delete]').click(function () {
-                    grid.data('handsontable').alter('remove_row', selectionRowIndices[0], (selectionRowIndices[1] - 1));
+                    grid.data('handsontable').alter('remove_row', selectionRowIndices[0], (selectionRowIndices[1] != selectionRowIndices[0]  ? (selectionRowIndices[1] - selectionRowIndices[0]) + 1 : 1));
                 });
 
                 // when the save button is clicked, loop through the list of changed rows and build a JSON object containing the changed rows
@@ -389,8 +428,8 @@
                     // an array container for storing the changed data rows to send to the database
                     var changedDataArray = [];
                     // grab the data from the sample header cells; if either Project ID or Date Received doesn't have a value, notify the user that this is a required field, and stop the submission
-                    var projectID = $('#project_id').val();
-                    if (!projectID) {grid_console.text('Project ID is required!'); validTable = false; return false;}
+                    var projectID = getIdDom(data_projects,'name',$('#project_name').val());
+                    if (!projectID) {grid_console.text('Project Name is required!'); validTable = false; return false;}
                     var dateReceived = $('#date_received').val();
                     if (!dateReceived) {grid_console.text('Date Received is required!'); validTable = false; return false;}
                     var labProcessing = getIdDom(data_processings,'processing',$('#lab_processing').val());
@@ -406,7 +445,7 @@
                             var thisDataObject = {};
                             // add the sample header object properties to this object
                             thisDataObject['project'] = Number(projectID);
-                            thisDataObject['received_time_stamp'] = dateReceived;
+                            thisDataObject['received_date'] = dateReceived;
                             if (labProcessing != -1) {thisDataObject['lab_processing'] = labProcessing;}
                             // convert each table cell in this row into an object property and add to this object
                             for (var i = 0; i < thisDataRow.length; i++) {
@@ -417,7 +456,7 @@
                                     case 1: // site ID
                                         // if it doesn't have a value, notify the user that this is a required field, and stop the submission
                                         if (!thisDataRow[i]) {grid_console.text('Site ID is required!'); validTable = false; return false;}
-                                        else {thisDataObject[objectFields[i]] = thisDataRow[i];}
+                                        else {thisDataObject[objectFields[i]] = getIdDom(data_sites,'usgs_scode',thisDataRow[i]);}
                                         break;
                                     case 2: // date
                                         // if it doesn't have a value, notify the user that this is a required field, and stop the submission
@@ -512,10 +551,15 @@
                                 // if the content-type is plain text, then it's a custom message from our Django view
                                 if (content_type.indexOf('text') > -1) {
                                     grid_console.text(data);
+
                                 }
                                 // otherwise, it's JSON from the REST Services
                                 else if (jqXHRequest.status === 200) {
                                     grid_console.text(textStatus+': Data saved.');
+                                    // the data was saved to the database, so empty the table
+                                    var rows = grid.handsontable('getInstance').countRows();
+                                    grid.data('handsontable').alter('remove_row', 0, rows);
+                                    grid.data('handsontable').alter('insert_row', null, 8);
                                 }
                                 else {
                                     grid_console.text(textStatus+': Save error: '+jqXHRequest.statusText+', code: '+jqXHRequest.status+'.');

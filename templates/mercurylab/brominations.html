@@ -1,29 +1,31 @@
 {% extends 'mercurylab/base.html' %}
 {% block body_block %}
 
-    <div class="jumbotron">
+    <div style="padding:10px">
 
         <p>
             <button type="button" class="btn btn-default" name="add">Add New Bromination</button>
         </p>
-        <div id="form_add" style="display:none">
-            <form class="form-signin span8" id="item_form" method="post" action="{% url 'mercurylab:bromination_add' %}" enctype="multipart/form-data">
-                {% csrf_token %}
-                <h3 class="form-signin-heading">Create Bromination</h3>
-
-                {% for field in form %}
-                {{ field.errors }}
-                {{ field.help_text }}<br />
-                {{ field }}<br />
-                {% endfor %}
-                <br />
-
-                <input class="btn btn-primary" type="submit" name="submit" value="OK" />
+        <div id="form_add" class="panel-default" style="display:none;">
+            <h3>Create Bromination</h3>
+            <form class="form-inline" style="border:1px solid;width:600px;padding:4px;">
+                <div class="form-group" style="padding:2px;text-align:center">
+                    <label for="concentration">Concentration</label><br />
+                    <input class="input-block-level" name="concentration" type="number">
+                </div>
+                <div class="form-group" style="padding:2px;text-align:center">
+                    <label for="created_date">Date</label><br />
+                    <input class="input-block-level" name="created_date" id="created_date">
+                </div>
+                <div class="form-group" style="padding:2px;text-align:center">
+                    <label for="comment">Comment</label><br />
+                    <input class="input-block-level" name="comment" type="text">
+                </div>
             </form>
+            <br />
+            <button type="button" class="btn btn-primary" name="addOK">OK</button>
         </div>
-        <br />
-
-        <pre id="grid_console" class="console" style="width:600px"></pre>
+        <br />        <pre id="grid_console" class="console" style="width:600px"></pre>
         <p><input id="select_field" type="hidden" placeholder="Filter by bromination date." style="width:600px"/></p>
         <p>
             <div class="select2-container select2-container-multi" style="width:600px">
@@ -39,14 +41,13 @@
         <p>
             <button type="button" class="btn btn-default" name="load">Reload Table</button>
             <button type="button" class="btn btn-default" name="save">Save Changes</button>
-            <button type="button" class="btn btn-default" name="edit">Edit Selected Record</button>
             <button type="button" class="btn btn-default" name="delete">Delete Selected Record</button>
         </p>
         <p>
             <button type="button" class="btn btn-default" name="prev">Previous Page</button>
             <button type="button" class="btn btn-default" name="next">Next Page</button>
         </p>
-        <div id="grid" data-data="{{ data }}" class="table table-hover table-condensed table-bordered"></div>
+        <div id="grid" data-data="{{ data }}" ></div>
 
         <script>
             $(document).ready(function() {
@@ -64,7 +65,7 @@
                     }
                 });
 
-                var objectFields = ["id", "concentration", "time_stamp", "comment"];
+                var objectFields = ["id", "concentration", "created_date", "comment"];
                 var currentPage = 1;
                 var addClicked = false;
                 var grid = $('#grid');
@@ -79,7 +80,7 @@
                     columns: [
                         {title: "ID", data: "id", readOnly: true, width: 1},
                         {title: "Concentration", data: "concentration", width: 120},
-                        {title: "Date", data: "time_stamp", width: 300},
+                        {title: "Date", data: "created_date", width: 300, dateFormat: 'yy-mm-dd'},
                         {title: "Comment", data: "comment", width: 300}
                     ],
                     search: true,
@@ -112,6 +113,46 @@
                 });
                 grid.data('handsontable').sort(0);
                 grid_console.text('Data loaded.');
+
+                $("#created_date").datepicker({
+                    dateFormat: "yy-mm-dd",
+                    maxDate: 0
+                });
+
+                var form_add = $("#form_add");
+                form_add.find('button[name=addOK]').click(function() {
+                    var thisDataObject = {};
+                    thisDataObject['concentration'] = Number(form_add.find('input[name=concentration]').val());
+                    thisDataObject['comment'] = form_add.find('input[name=comment]').val();
+                    thisDataObject['created_date'] = form_add.find('input[name=created_date]').val();
+                    var dataJSON = JSON.stringify(thisDataObject);
+                    $.ajax({
+                        url: '/mercurylab/bromination_add/',
+                        data: dataJSON,
+                        dataType: 'json',
+                        contentType: "application/json",
+                        type: 'POST',
+                        success: function (data, textStatus, jqXHRequest) {
+                            var content_type = jqXHRequest.getResponseHeader("content-type");
+                            // if the content-type is plain text, then it's a custom message from our Django view
+                            if (content_type.indexOf('text') > -1) {
+                                grid_console.text(data);
+                            }
+                            // otherwise, it's JSON from the REST Services
+                            else if (jqXHRequest.status === 200) {
+                                $(":input", "#form_add").not(":button").val("");
+                                grid.parent().find('button[name=add]').click();
+                                grid_console.text(textStatus+': Data saved.');
+                            }
+                            else {
+                                grid_console.text(textStatus+': Save error: '+jqXHRequest.statusText+', code: '+jqXHRequest.status+'.');
+                            }
+                        },
+                        error: function (jqXHRequest, textStatus, errorThrown) {
+                            grid_console.text(errorThrown + ": " + textStatus);
+                        }
+                    });
+                });
 
                 $('#search_field').on('keyup', function (event) {
                     grid.handsontable('getInstance').search.query(this.value);

@@ -135,6 +135,7 @@ SWAGGER_SETTINGS = {
                        '(Mercury Research Lab Information Management System) REST Services.',
         'title': 'MeRLIn REST Services Documentation',
     },
+    "exclude_namespaces": ["mercuryauth"],
 }
 
 SUIT_CONFIG = {
