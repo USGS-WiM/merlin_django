@@ -1,28 +1,7 @@
 {% extends 'mercurylab/base.html' %}
 {% block body_block %}
 
-    <div class="jumbotron">
-
-        <p>
-            <button type="button" class="btn btn-default" name="add">Add New Site</button>
-        </p>
-        <div id="form_add" style="display:none">
-            <form class="form-signin span8" id="item_form" method="post" action="{% url 'mercurylab:site_add' %}" enctype="multipart/form-data">
-                {% csrf_token %}
-                <h3 class="form-signin-heading">Create Site</h3>
-
-                {% for field in form %}
-                {{ field.errors }}
-                {{ field.help_text }}<br />
-                {{ field }}<br />
-                {% endfor %}
-                <br />
-
-                <input class="btn btn-primary" type="submit" name="submit" value="OK" />
-            </form>
-        </div>
-        <br />
-
+    <div style="padding:10px">
         <pre id="grid_console" class="console" style="width:600px"></pre>
         <p><input id="select_field" type="hidden" placeholder="Filter by site name." style="width:600px"/></p>
         <p>
@@ -39,14 +18,13 @@
         <p>
             <button type="button" class="btn btn-default" name="load">Reload Table</button>
             <button type="button" class="btn btn-default" name="save">Save Changes</button>
-            <button type="button" class="btn btn-default" name="edit">Edit Selected Record</button>
             <button type="button" class="btn btn-default" name="delete">Delete Selected Record</button>
         </p>
         <p>
             <button type="button" class="btn btn-default" name="prev">Previous Page</button>
             <button type="button" class="btn btn-default" name="next">Next Page</button>
         </p>
-        <div id="grid" data-data="{{ data }}" class="table table-hover table-condensed table-bordered"></div>
+        <div id="grid" data-data="{{ data }}" ></div>
 
         <script>
             $(document).ready(function() {

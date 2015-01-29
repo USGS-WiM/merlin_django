@@ -1,9 +1,27 @@
 from django import forms
+from datetime import datetime
 from mercuryservices.models import UserProfile, Cooperator
 from django.contrib.auth.models import User
 from datetimewidget.widgets import DateTimeWidget
+from django.forms.widgets import DateTimeInput
 import requests
 import json
+
+
+def get_bottle_type_choices():
+    r = requests.request(method='GET', url='http://localhost:8000/mercuryservices/bottletypes/')
+    bottle_types = r.json()
+    bottle_type_choices = []
+    for bottle_type in bottle_types:
+        bottle_type_choices.append((bottle_type["id"], bottle_type["bottle_type"]))
+    #print(bottle_type_choices)
+    return bottle_type_choices
+
+
+def get_datetime_today():
+    string_today = datetime.today().date().strftime('%Y-%m-%d') + " 00:00:00"
+    datetime_today = datetime.strptime(string_today, '%Y-%m-%d %H:%M:%S')
+    return datetime_today
 
 
 class UserForm(forms.ModelForm):
@@ -65,12 +83,14 @@ class SampleBottleForm(forms.Form):
 class AcidForm(forms.Form):
     code = forms.CharField(help_text="Code")
     concentration = forms.DecimalField(help_text="Concentration")
+    time_stamp = forms.DateTimeField(help_text="Date", initial=get_datetime_today(), widget=DateTimeInput())
     comment = forms.CharField(help_text="Comment", required=False)
 
 
 class BlankWaterForm(forms.Form):
     lot_number = forms.CharField(help_text="Lot Number")
     concentration = forms.DecimalField(help_text="Concentration")
+    time_stamp = forms.DateTimeField(help_text="Date", initial=get_datetime_today(), widget=DateTimeInput())
     comment = forms.CharField(help_text="Comment", required=False)
 
 
@@ -83,33 +103,34 @@ class BottleForm(forms.Form):
         )
 
     bottle_unique_name = forms.CharField(help_text="Bottle Unique Name")
+    time_stamp = forms.CharField(help_text="Date", initial=datetime.today().date().strftime('%Y-%m-%d') + " 00:00:00")
     tare_weight = forms.DecimalField(help_text="Tare Weight", required=False)
     bottle_type = forms.ChoiceField(help_text="Bottle Type")
     description = forms.CharField(help_text="Description", required=False)
 
 
 class BottleRangeForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        super(BottleRangeForm, self).__init__(*args, **kwargs)
+        self.fields['bottle_type'] = forms.ChoiceField(
+            help_text="Bottle Type",
+            choices=get_bottle_type_choices()
+        )
+
     prefix = forms.CharField(help_text="Bottle Prefix")
     suffix = forms.CharField(help_text="Bottle Suffix")
     range_start = forms.CharField(help_text="Bottle Range Start")
     range_end = forms.CharField(help_text="Bottle Range End")
-    tare_weight = forms.DecimalField(help_text="Tare Weight")
-    bottle_type = forms.CharField(help_text="Bottle Type")
+    time_stamp = forms.DateTimeField(help_text="Date", initial=get_datetime_today(), widget=DateTimeInput())
+    tare_weight = forms.DecimalField(help_text="Tare Weight", required=False)
+    bottle_type = forms.ChoiceField(help_text="Bottle Type")
     description = forms.CharField(help_text="Description", required=False)
 
 
 class BrominationForm(forms.Form):
     #dateTimeOptions = {'format': 'yyyy-mm-dd HH:ii:ss', 'autoclose': True, 'showMeridian': True}
-    bromination_date = forms.DateTimeField(help_text="Bromination Date")#, widget=DateTimeWidget(usel10n=True, bootstrap_version=3, options=dateTimeOptions))
     concentration = forms.DecimalField(help_text="Concentration")
+    time_stamp = forms.DateTimeField(help_text="Date", initial=get_datetime_today(), widget=DateTimeInput())
+    #time_stamp = forms.DateTimeField(help_text="Date")#, widget=DateTimeWidget(usel10n=True, bootstrap_version=3, options=dateTimeOptions))
     comment = forms.CharField(help_text="Comment", required=False)
 
-
-def get_bottle_type_choices():
-    r = requests.request(method='GET', url='http://localhost:8000/mercuryservices/bottletypes/')
-    bottle_types = r.json()
-    bottle_type_choices = []
-    for bottle_type in bottle_types:
-        bottle_type_choices.append((bottle_type["id"], bottle_type["bottle_type"]))
-    #print(bottle_type_choices)
-    return bottle_type_choices

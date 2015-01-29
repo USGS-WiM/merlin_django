@@ -1,11 +1,11 @@
 {% extends 'mercurylab/base.html' %}
 {% block body_block %}
 
-    <div class="jumbotron">
+    <div style="padding:10px">
         <p>
             <button type="button" class="btn btn-default" name="save">Save</button>
             <button type="button" class="btn btn-default" name="insertRows">Insert 8 Blank Rows</button>
-            <button type="button" class="btn btn-default" name="delete">Delete Selected Row</button>
+            <button type="button" class="btn btn-default" name="delete">Delete Selected Rows</button>
         </p>
         <pre id="grid_console" class="console" style="width:600px"></pre>
         <p><input class="form-control" id="select_field" type="hidden" placeholder="Select for sample name." style="width:600px"/></p>
@@ -16,7 +16,7 @@
                     <label for="project_name">Project Name</label><br />
                     <input class="input-block-level" id="project_name" type="text" style="width:400px">
                 </div>
-                <div class="form-group">
+                <div class="form-group" style="display:none;">
                     <label for="project_id">Project ID</label><br />
                     <input class="input-block-level" id="project_id" type="text" style="width:100px">
                 </div>
@@ -26,7 +26,7 @@
                 </div>
                 <div class="form-group">
                     <label for="lab_processing">Lab Processing</label><br />
-                    <input class="input-block-level" id="lab_processing" type="text" style="width:400px">
+                    <select class="input-block-level" id="lab_processing" style="width:400px;height:26px;"></select>
                     <!-- this HTML Select is temporary until an AJAX solution is found -->
                     <!-- <select class="input-block-level" id="lab_processing" style="width:300px; height:26px"> -->
                         <!-- <option value="NONE">NONE</option> -->
@@ -37,7 +37,7 @@
             </form>
         </div>
         <br />
-        <div id="grid" data-projects="{{ projects }}" data-processings="{{ processings }}" data-mediums="{{ mediums }}" data-isotopeflags="{{ isotope_flags }}" data-filters="{{ filters }}" data-preservations="{{ preservations }}" class="table table-hover table-condensed table-bordered"></div>
+        <div id="grid" data-projects="{{ projects }}" data-processings="{{ processings }}" data-mediums="{{ mediums }}" data-isotopeflags="{{ isotope_flags }}" data-filters="{{ filters }}" data-preservations="{{ preservations }}" ></div>
 
         <script>
             $(document).ready(function() {
@@ -73,7 +73,7 @@
                 var data_preservations = JSON.parse(grid.attr('data-preservations'));
 
                 // some handsontable helper arrays
-                var objectFields = ["skip_site_name", "site", "skip_date", "time_stamp", "depth", "length", "replicate", "comment", "bottle", "medium_type", "constituent_type", "isotope_flag", "filter_type", "volume_filtered", "preservation_type", "preservation_acid", "preservation_volume", "preservation_comment"];
+                var objectFields = ["skip_site_name", "site", "skip_date", "sample_date_time", "depth", "length", "replicate", "comment", "bottle", "medium_type", "constituent_type", "isotope_flag", "filter_type", "volume_filtered", "preservation_type", "preservation_acid", "preservation_volume", "preservation_comment"];
                 var changedRowIndices = [];
                 var selectionRowIndices = [];
 
@@ -121,7 +121,7 @@
                         {title: 'Site Name', width: 210, type: 'autocomplete', strict: true, validator: validateRequired},
                         {title: 'Site ID', width: 100, type: 'autocomplete', strict: true, validator: validateRequired},
                         // Date Time as separate columns is temporary until a single column datetime editor can be found for handsontable
-                        {title: 'Date', width: 100, type: 'date', validator: validateRequired, maxDate: 0},
+                        {title: 'Date', width: 100, type: 'date', dateFormat: 'yy-mm-dd', validator: validateRequired, maxDate: 0},
                         {title: 'Time', width: 55, type: 'numeric', validator: validateTime, allowInvalid: false},
                         {title: 'Depth', width: 45, type: 'numeric', validator: validateRequiredZeroOK, format: '0.00'},
                         {title: 'Length', width: 70, type: 'numeric', format: '0.00'},
@@ -402,15 +402,17 @@
                     maxDate: 0
                 });
 
-                $("#lab_processing").autocomplete({
-                    autoFocus: true,
-                    source: $.map(data_processings, function(i) {
-                        return {
-                            label: i.processing,
-                            value: i.processing
-                        };
-                    })
-                });
+                var select_lab_processing = $("#lab_processing");
+                for (var i in data_processings) {
+                    if (data_processings[i].processing == 'NONE') {
+                        var proc_none = new Option(data_processings[i].processing, data_processings[i].id);
+                        proc_none.selected = true;
+                        select_lab_processing.append(proc_none);
+                    }
+                    else {
+                        select_lab_processing.append(new Option(data_processings[i].processing, data_processings[i].id));
+                    }
+                }
 
                 grid.parent().find('button[name=insertRows]').click(function () {
                     grid.data('handsontable').alter('insert_row', null, 8);
@@ -443,7 +445,7 @@
                             var thisDataObject = {};
                             // add the sample header object properties to this object
                             thisDataObject['project'] = Number(projectID);
-                            thisDataObject['received_time_stamp'] = dateReceived;
+                            thisDataObject['received_date'] = dateReceived;
                             if (labProcessing != -1) {thisDataObject['lab_processing'] = labProcessing;}
                             // convert each table cell in this row into an object property and add to this object
                             for (var i = 0; i < thisDataRow.length; i++) {
@@ -549,6 +551,7 @@
                                 // if the content-type is plain text, then it's a custom message from our Django view
                                 if (content_type.indexOf('text') > -1) {
                                     grid_console.text(data);
+
                                 }
                                 // otherwise, it's JSON from the REST Services
                                 else if (jqXHRequest.status === 200) {
