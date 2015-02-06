@@ -214,6 +214,9 @@ class SampleBottleBromination(models.Model):
     def __str__(self):
         return str(self.id)
 
+    class Meta:
+        ordering = ['-created_date']
+
 
 ######
 ##
@@ -416,6 +419,9 @@ class Bromination(models.Model):
 
     def __str__(self):
         return str(self.id)
+
+    class Meta:
+        ordering = ['-created_date']
 
 
 ######

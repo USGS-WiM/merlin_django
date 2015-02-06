@@ -1,7 +1,10 @@
-from rest_framework import viewsets, permissions
+from datetime import datetime
+from rest_framework import views, viewsets, generics, permissions, settings, response
+from rest_framework_bulk import ListBulkCreateUpdateDestroyAPIView, BulkCreateModelMixin, BulkUpdateModelMixin
+from rest_framework_csv import renderers as rcsv
 from mercuryservices.serializers import *
 from mercuryservices.models import *
-from rest_framework_bulk import ListBulkCreateUpdateDestroyAPIView, BulkCreateModelMixin, BulkUpdateModelMixin
+from mercuryservices.renderers import *
 
 
 #The following lines were a test to see if Django Rest Framework could return responses to HTML instead of JSON.
@@ -235,11 +238,41 @@ class FullSampleBottleViewSet(viewsets.ModelViewSet):
         return queryset
 
 
+class SampleBottleBrominationBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkUpdateModelMixin, viewsets.ModelViewSet):
+    model = SampleBottleBromination
+    permission_classes = (permissions.IsAuthenticated,)
+
+
 class SampleBottleBrominationViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    queryset = SampleBottleBromination.objects.all()
+    #queryset = SampleBottleBromination.objects.all()
     serializer_class = SampleBottleBrominationSerializer
     paginate_by = 100
+
+    def get_queryset(self):
+        print(self.request.QUERY_PARAMS)
+        queryset = SampleBottleBromination.objects.all()
+        bottle = self.request.QUERY_PARAMS.get('bottle', None)
+        if bottle is not None:
+            bottle_list = bottle.split(',')
+            # if query values are IDs
+            if bottle_list[0].isdigit():
+                print(bottle_list[0])
+                queryset = queryset.filter(sample_bottle__bottle__id__in=bottle_list)
+                print(queryset)
+            # if query values are names
+            else:
+                queryset = queryset.filter(sample_bottle__bottle__bottle_unique_name__in=bottle_list)
+            return queryset
+        date_after = self.request.QUERY_PARAMS.get('date_after', None)
+        date_before = self.request.QUERY_PARAMS.get('date_before', None)
+        if date_after is not None and date_before is not None:
+            queryset = queryset.filter(created_date__range=(date_after, date_before))
+        elif date_after is not None:
+                queryset = queryset.filter(created_date__gt=date_after)
+        elif date_before is not None:
+            queryset = queryset.filter(created_date__lt=date_before)
+        return queryset
 
 
 class BottleBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkUpdateModelMixin, viewsets.ModelViewSet):
@@ -628,3 +661,30 @@ class ProcedureTypeViewSet(viewsets.ModelViewSet):
     queryset = ProcedureType.objects.all()
     serializer_class = ProcedureTypeSerializer
 
+
+class TestReport(generics.ListAPIView):
+    renderer_classes = (PaginatedCSVRenderer, )
+    queryset = Result.objects.all()
+    serializer_class = TestResultSerializer
+
+    def list(self, request, *args, **kwargs):
+        resp = super(TestReport, self).list(request, *args, **kwargs)
+        filename = "projects" + "_" + datetime.now().strftime("%Y-%m-%d") + ".csv"
+        headers = {'Content-Disposition': 'attachment; filename=' + filename}
+        return response.Response(resp.data, headers=headers, content_type='text/csv')
+
+    # def get(self, request, *args, **kwargs):
+    #     #cooperator = request.QUERY_PARAMS.get('cooperator', None)
+    #     #if cooperator is not None:
+    #         #report = [Cooperator.name for cooperator in Cooperator.objects.all()]
+    #     filename = "projects" + "_" + datetime.now().strftime("%Y-%m-%d") + ".csv"
+    #     headers = {'Content-Disposition': 'attachment; filename=' + filename}
+    #     return response.Response(queryset, headers=headers, content_type='text/csv')
+    #
+    # def get_paginate_by(self):
+    #     """
+    #     Use smaller pagination for HTML representations.
+    #     """
+    #     if self.request.accepted_renderer.format == 'html':
+    #         return 20
+    #     return 30

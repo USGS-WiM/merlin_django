@@ -19,11 +19,6 @@ urlpatterns = patterns('',
     url(r'^result_search/$', views.result_search, name='result_search'),
     url(r'^result_search/search$', views.result_search, name='result_search_search'),
 
-    url(r'^sample_bottles/$', views.sample_bottles, name='sample_bottles'),
-    url(r'^sample_bottles/save$', views.sample_bottles_save, name='sample_bottles_save'),
-    url(r'^sample_bottles/load$', views.sample_bottles_load, name='sample_bottles_load'),
-    url(r'^sample_bottle_add/$', views.sample_bottle_add, name='sample_bottle_add'),
-
 #    url(r'^cooperators_list/$', views.cooperators_list, name='cooperators_list'),
 #    url(r'^cooperators_formset/$', views.cooperators_formset, name='cooperators_formset'),
 
@@ -61,6 +56,8 @@ urlpatterns = patterns('',
     url(r'^brominations/save$', views.brominations_save, name='brominations_save'),
     url(r'^brominations/load$', views.brominations_load, name='brominations_load'),
     url(r'^bromination_add/$', views.bromination_add, name='bromination_add'),
+    url(r'^samplebottlebromination_add/$', views.samplebottlebromination_add, name='samplebottlebromination_add'),
+    url(r'^samplebottlebromination_search/$', views.samplebottlebromination_search, name='samplebottlebromination_search'),
 
     url(r'^bottles/$', views.bottles, name='bottles'),
     url(r'^bottles/save$', views.bottles_save, name='bottles_save'),

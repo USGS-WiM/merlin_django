@@ -4,14 +4,14 @@
     <div style="padding:10px">
 
         <p>
-            <button type="button" class="btn btn-default" name="add">Add New Bromination</button>
+            <button type="button" class="btn btn-default" name="formAdd">Add New Bromination</button>
         </p>
         <div id="form_add" class="panel-default" style="display:none;">
             <h3>Create Bromination</h3>
             <form class="form-inline" style="border:1px solid;width:600px;padding:4px;">
                 <div class="form-group" style="padding:2px;text-align:center">
                     <label for="concentration">Concentration</label><br />
-                    <input class="input-block-level" name="concentration" type="number">
+                    <input class="input-block-level" name="concentration" id="concentration" value=-999 type="number">
                 </div>
                 <div class="form-group" style="padding:2px;text-align:center">
                     <label for="created_date">Date</label><br />
@@ -19,35 +19,86 @@
                 </div>
                 <div class="form-group" style="padding:2px;text-align:center">
                     <label for="comment">Comment</label><br />
-                    <input class="input-block-level" name="comment" type="text">
+                    <input class="input-block-level" name="comment" id="comment" type="text">
                 </div>
             </form>
             <br />
             <button type="button" class="btn btn-primary" name="addOK">OK</button>
         </div>
-        <br />        <pre id="grid_console" class="console" style="width:600px"></pre>
-        <p><input id="select_field" type="hidden" placeholder="Filter by bromination date." style="width:600px"/></p>
-        <p>
-            <div class="select2-container select2-container-multi" style="width:600px">
-                <ul class="select2-choices">
-                    <li class="select2-search-field">
-                        <label class="select2-offscreen"></label>
-                        <input id="search_field" type="search" placeholder="Highlight in table." class="select2-input select2-default" style="width:593px;height:40px;font-size:21px;"/>
-                    </li>
-                </ul>
-            </div>
+        <br />
+        <pre id="grid_console" class="console" style="width:600px"></pre>
+
         <!-- <p><input id="search_field" type="search" placeholder="Highlight in table." style="width:600px; border:1px solid darkgray; height:42px"/></p> -->
         <br /><br />
-        <p>
-            <button type="button" class="btn btn-default" name="load">Reload Table</button>
-            <button type="button" class="btn btn-default" name="save">Save Changes</button>
-            <button type="button" class="btn btn-default" name="delete">Delete Selected Record</button>
-        </p>
-        <p>
-            <button type="button" class="btn btn-default" name="prev">Previous Page</button>
-            <button type="button" class="btn btn-default" name="next">Next Page</button>
-        </p>
-        <div id="grid" data-data="{{ data }}" ></div>
+
+        <div class="row">
+            <div id="tools_brominations" class="col-md-4">
+                <p><input id="select_field" type="hidden" placeholder="Filter by bromination date." style="width:400px"/></p>
+                <p>
+                    <div class="select2-container select2-container-multi" style="width:400px">
+                        <ul class="select2-choices">
+                            <li class="select2-search-field">
+                                <label class="select2-offscreen"></label>
+                                <input id="search_field" type="search" placeholder="Highlight in table." class="select2-input select2-default" style="width:393px;height:30px;font-size:14px;"/>
+                            </li>
+                        </ul>
+                    </div>
+                </p>
+                <p>
+                    <button type="button" class="btn btn-default" name="load">Reload Table</button>
+                    <button type="button" class="btn btn-default" name="prev">Previous Page</button>
+                    <button type="button" class="btn btn-default" name="next">Next Page</button>
+                </p>
+                <p>
+                    <button type="button" class="btn btn-primary" name="save">Save Changes</button>
+                    <button type="button" class="btn btn-danger" name="delete">Delete Row</button>
+					<button type="button" class="btn btn-info" name="gridAdd">Brominate Samples</button>
+                </p>
+            </div>
+            <div id="tools_add" class="col-md-4" style="display:none;"></div>
+            <div id="tools_samples" class="col-md-4">
+                <div class="row">
+                    <div class="panel-default" style="padding-left:15px;">
+                        <form class="form-inline">
+                            <div class="form-group">
+                                <label for="date_after">After Date</label><br />
+                                <input id="date_after" class="select2-container select2-container-multi" style="width:197px;height:34px;font-size:14px;padding-left:4px;"/>
+                            </div>
+                            <div class="form-group">
+                                <label for="date_before">Before Date</label><br />
+                                <input id="date_before" class="select2-container select2-container-multi" style="width:197px;height:34px;font-size:14px;padding-left:4px;"/>
+                            </div>
+                            <br />
+                            <div class="form-group">
+                                <label for="select_bottle">Bottle ID</label><br />
+                                <input id="select_bottle" class="select2-container select2-container-multi" style="width:397px;height:34px;font-size:14px;"/>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <br />
+                <p>
+                    <button type="button" class="btn btn-info" name="search">Search</button>
+                </p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4" id="grid_brominations" data-data="{{ data }}"></div>
+            <div class="col-md-4" id="grid_add" style="display:none;">
+                <span id="selected_bromination_id">Selected Bromination ID: <strong>NULL</strong></span><br />
+                <span id="selected_bromination_id_warning" style="display:none;color:darkred"><strong>You must select a Bromination ID before you can save!</strong></span><br />
+                <button type="button" class="btn btn-primary" name="sampleOK">OK</button></div>
+            <div class="col-md-4" id="grid_samples" data-samples="{{ samples }}"></div>
+        </div>
+        <style>
+            .handsontable .currentRow {
+              background-color: #EEF4FF;
+            }
+
+            .handsontable .currentCol {
+              background-color: #F9F9FB;
+            }
+          </style>
 
         <script>
             $(document).ready(function() {
@@ -67,21 +118,27 @@
 
                 var objectFields = ["id", "concentration", "created_date", "comment"];
                 var currentPage = 1;
-                var addClicked = false;
-                var grid = $('#grid');
-                var data_data = JSON.parse(grid.attr("data-data"));
+                var formAddClicked = false;
+                var gridAddClicked = false;
+                var grid_brominations = $('#grid_brominations');
+                grid_brominations.css("z-index", "0");
+                var data_data = JSON.parse(grid_brominations.attr("data-data"));
                 var resultPages = Math.ceil(data_data['count'] / 100);
                 var grid_console = $("#grid_console");
                 var changedRowIndices = [];
                 var selectionRowIndices = [];
+                var selectedBrominationRow;
+
                 grid_console.text('Loading data.');
-                grid.handsontable({
+                grid_brominations.handsontable({
                     data: data_data.results,
+                    currentRowClassName: 'currentRow',
+                    outsideClickDeselects: false,
                     columns: [
-                        {title: "ID", data: "id", readOnly: true, width: 1},
-                        {title: "Concentration", data: "concentration", width: 120},
-                        {title: "Date", data: "created_date", width: 300, dateFormat: 'yy-mm-dd'},
-                        {title: "Comment", data: "comment", width: 300}
+                        {title: "ID", data: "id", readOnly: true, width: 100},
+                        {title: "Concentration", data: "concentration", width: 100},
+                        {title: "Date", data: "created_date", width: 100, dateFormat: 'yy-mm-dd'},
+                        {title: "Comment", data: "comment", width: 100}
                     ],
                     search: true,
                     columnSorting: { column: 0 },
@@ -104,6 +161,9 @@
                     },
                     // get list of selected rows
                     afterSelectionEnd: function(r, c, r2, c2) {
+                        selectedBrominationRow = r;
+                        $('#selected_bromination_id').html("Selected Bromination ID: <strong>" + grid_brominations.handsontable('getInstance').getDataAtCell(selectedBrominationRow, 0) + "</strong>");
+                        $('#selected_bromination_id_warning').hide();
                         // clear the array
                         selectionRowIndices.length = 0;
                         // add the beginning and ending indices
@@ -111,23 +171,103 @@
                         selectionRowIndices[1] = r2;
                     }
                 });
-                grid.data('handsontable').sort(0);
+                //grid_brominations.data('handsontable').sort(0);
                 grid_console.text('Data loaded.');
 
-                $("#created_date").datepicker({
-                    dateFormat: "yy-mm-dd",
-                    maxDate: 0
-                });
+                var grid_add = $('#grid_add');
+                grid_add.css("z-index", "0");
+                var gridAdd_changedRowIndices = [];
+                grid_add.handsontable({
+                    //minSpareRows: 1,
+                    startRows: 8,
+                    columns: [
+                        {title: "Unique Bottle Name", width: 150, type: 'autocomplete', strict: true, source: function (query, process) {
+                            getValuesAjax('/mercuryservices/bottles', 'bottle_unique_name', query, process)}},
+                        {title: "Event Number", width: 100},
+                        {title: "Volume Added (mL)", width: 150}
+                    ],
+                    // define event handlers
+                    beforeChange: function(changes, source) {
+                        // "changes" is a 2D array containing information about each of the edited cells [ [row, col, oldVal, newVal], [row, col, oldVal, newVal], ... ].
+                        // "source" is one of the following strings: "alter", "empty", "edit", "populateFromArray", "loadData", "autofill", "paste".
 
-                var form_add = $("#form_add");
-                form_add.find('button[name=addOK]').click(function() {
+                        // get index of changed row
+                        var changedRow = changes[0][0];
+                        // get index of changed column
+                        var changedCol = changes[0][1];
+                        // get value of changed cell
+                        var changedVal = changes[0][3];
+
+                        // remember the indices of all changed rows
+                        if (source != 'loadData') {
+                            // find index of this row in the changed rows array
+                            var changedRowIndex = gridAdd_changedRowIndices.indexOf(changedRow);
+                            // if not in the array (index == -1), add it to the array, otherwise ignore
+                            if (changedRowIndex == -1){
+                                gridAdd_changedRowIndices.push(changedRow);
+                            }
+                        }
+
+                        // update dependent columns when a value in a parent column is changed
+                        if (source == 'edit' || source == 'paste') {
+                            // when bottle is changed to a non-null, non-blank value
+                            if (changedCol == 0 && changedVal !== null && changedVal !== "") {
+                                // update event number using bottle ID
+                                $.ajax({
+                                    url: '/mercuryservices/samplebottlebrominations/',
+                                    dataType: 'json',
+                                    data: {
+                                        bottle: changedVal
+                                    },
+                                    success: function (response) {
+                                        var newValue = 1;
+                                        if (response['count'] > 0) {
+                                            var eventNum = response['count'];
+                                            if (eventNum > 0) {
+                                                newValue = eventNum + 1;
+                                            }
+                                        }
+                                        grid_add.handsontable('setDataAtCell', changedRow, 1, newValue);
+                                    },
+                                    error: function (response) {
+                                        grid_console.text("error");
+                                    }
+                                });
+                            }
+                        }
+                    }
+                });
+                //grid_samples.data('handsontable').sort(0);
+                grid_console.text('Data loaded.');
+                
+                var grid_samples = $('#grid_samples');
+                grid_samples.css("z-index", "0");
+                var data_samples = JSON.parse(grid_samples.attr("data-samples"));
+                grid_samples.handsontable({
+                    //minSpareRows: 1,
+                    data: data_samples.results,
+                    columns: [
+                        {title: "ID", data: "id", readOnly: true, width: 1},
+                        {title: "Unique Bottle Name", data: "sample_bottle.bottle", width: 150},
+                        {title: "Event Number", data: "bromination_event", width: 100},
+                        {title: "Volume Added (mL)", data: "bromination_volume", width: 150},
+                        {title: "Date", data: "created_date", width: 100, dateFormat: 'yy-mm-dd'}
+                    ]
+                });
+                //grid_samples.data('handsontable').sort(0);
+                grid_console.text('Data loaded.');
+
+                $('#tools_samples').find('button[name=search]').click(function () {
+                    grid_console.text('Attempting to search...');
                     var thisDataObject = {};
-                    thisDataObject['concentration'] = Number(form_add.find('input[name=concentration]').val());
-                    thisDataObject['comment'] = form_add.find('input[name=comment]').val();
-                    thisDataObject['created_date'] = form_add.find('input[name=created_date]').val();
+                    //var theID = $(select_project).select2('data').id;
+                    //var theSelection = $(select_project).select2('data').text;
+                    thisDataObject['bottle'] = select_bottle.val();
+                    thisDataObject['date_after'] = $(date_after).val();
+                    thisDataObject['date_before'] = $(date_before).val();
                     var dataJSON = JSON.stringify(thisDataObject);
                     $.ajax({
-                        url: '/mercurylab/bromination_add/',
+                        url: '/mercurylab/samplebottlebromination_search/',
                         data: dataJSON,
                         dataType: 'json',
                         contentType: "application/json",
@@ -140,23 +280,68 @@
                             }
                             // otherwise, it's JSON from the REST Services
                             else if (jqXHRequest.status === 200) {
-                                $(":input", "#form_add").not(":button").val("");
-                                grid.parent().find('button[name=add]').click();
-                                grid_console.text(textStatus+': Data saved.');
+                                data_samples = data;
+                                resultPages = Math.ceil(data_samples['count'] / 100);
+                                grid_console.text(textStatus+': Retrieved '+ data_samples['count'] +' results across ' + resultPages + ' pages. Showing first 100 results.');
+                                grid_samples.data('handsontable').loadData(data_samples.results);
                             }
                             else {
-                                grid_console.text(textStatus+': Save error: '+jqXHRequest.statusText+', code: '+jqXHRequest.status+'.');
+                                grid_console.text(textStatus+': Search error: '+jqXHRequest.statusText+', code: '+jqXHRequest.status+'.');
                             }
                         },
                         error: function (jqXHRequest, textStatus, errorThrown) {
-                            grid_console.text(errorThrown + ": " + textStatus);
+                            grid_console.text(errorThrown + " ... " + textStatus);
                         }
                     });
                 });
 
+                $("#created_date").datepicker({
+                    dateFormat: "yy-mm-dd",
+                    maxDate: 0
+                });
+
+                var date_after = $("#date_after").datepicker({
+                    dateFormat: "yy-mm-dd",
+                    maxDate: 0
+                });
+
+                var date_before = $("#date_before").datepicker({
+                    dateFormat: "yy-mm-dd",
+                    maxDate: 0
+                });
+
+                var select_bottle = $("#select_bottle").select2({
+                    allowClear: true,
+                    multiple: true,
+                    //maximumSelectionSize: 1,
+                    //dropdownCss:{display:'none'},
+                    minimumInputLength: 1,
+                    ajax: {
+                        url: '/mercuryservices/bottles/',
+                        dataType: 'json',
+                        data: function (term, page) {
+                            return {
+                                bottle_unique_name: term
+                            };
+                        },
+                        results: function (data, page) {
+                            //data_data = data;
+                            //grid.data('handsontable').loadData(data.results);
+                            grid_console.text('Filtered data loaded.');
+                            return {results: data.results};
+                        }
+                    },
+                    formatResult: formatBottle,
+                    formatSelection: formatBottle
+                });
+
+                function formatBottle(data) {
+                    return data.bottle_unique_name;
+                }
+
                 $('#search_field').on('keyup', function (event) {
-                    grid.handsontable('getInstance').search.query(this.value);
-                    grid.handsontable('getInstance').render();
+                    grid_brominations.handsontable('getInstance').search.query(this.value);
+                    grid_brominations.handsontable('getInstance').render();
                 });
 
                 $("#select_field").select2({
@@ -176,7 +361,7 @@
                         },
                         results: function (data, page) {
                             data_data = data;
-                            grid.data('handsontable').loadData(data_data.results);
+                            grid_brominations.data('handsontable').loadData(data_data.results);
                             grid_console.text('Filtered data loaded.');
                             return {results: data.results};
                         }
@@ -193,16 +378,18 @@
                 function formatSelect2(data) {
                     return data.date;
                 }
+                
+                var tools_brominations = $('#tools_brominations');
 
-                grid.parent().find('button[name=load]').click(function () {
+                tools_brominations.find('button[name=load]').click(function () {
                     $.ajax({
                         url: '/mercuryservices/brominations/?page='+currentPage,
                         dataType: 'json',
                         success: function (response) {
                             grid_console.text("success");
                             data_data = response;
-                            grid.data('handsontable').loadData(data_data.results);
-                            grid.data('handsontable').sort(0);
+                            grid_brominations.data('handsontable').loadData(data_data.results);
+                            grid_brominations.data('handsontable').sort(0);
                             grid_console.text('Page '+ currentPage +' data reloaded.');
                         },
                         error: function (response) {
@@ -211,7 +398,7 @@
                     });
                 });
 
-                grid.parent().find('button[name=next]').click(function () {
+                tools_brominations.find('button[name=next]').click(function () {
                     if (currentPage != resultPages) {
                         $.ajax({
                             url: data_data.next,
@@ -219,7 +406,7 @@
                             success: function (response) {
                                 grid_console.text("success");
                                 data_data = response;
-                                grid.data('handsontable').loadData(data_data.results);
+                                grid_brominations.data('handsontable').loadData(data_data.results);
                                 currentPage++;
                                 grid_console.text('Page ' + currentPage + ' of ' + resultPages + ' loaded.');
                             },
@@ -233,7 +420,7 @@
                     }
                 });
 
-                grid.parent().find('button[name=prev]').click(function () {
+                tools_brominations.find('button[name=prev]').click(function () {
                     if (currentPage != 1) {
                         $.ajax({
                             url: data_data.previous,
@@ -241,7 +428,7 @@
                             success: function (response) {
                                 grid_console.text("success");
                                 data_data = response;
-                                grid.data('handsontable').loadData(data_data.results);
+                                grid_brominations.data('handsontable').loadData(data_data.results);
                                 currentPage--;
                                 grid_console.text('Page ' + currentPage + ' of ' + resultPages + ' loaded.');
                             },
@@ -255,33 +442,22 @@
                     }
                 });
 
-                grid.parent().find('button[name=add]').click(function () {
-                    if (addClicked) {
-                        addClicked = false;
-                        $("#form_add").hide();
-                    }
-                    else {
-                        addClicked = true;
-                        $("#form_add").show();
-                    }
-                });
-
-                grid.parent().find('button[name=delete]').click(function () {
-                    var thisDataRow = grid.data('handsontable').getDataAtRow(selectionRowIndices[0]);
+                tools_brominations.find('button[name=delete]').click(function () {
+                    var thisDataRow = grid_brominations.data('handsontable').getDataAtRow(selectionRowIndices[0]);
                     var thisDataRowID = thisDataRow[0];
                     window.location = '/mercurylab/brominations/'+thisDataRowID+'/delete';
                 });
 
-                grid.parent().find('button[name=edit]').click(function () {
-                    var thisDataRow = grid.data('handsontable').getDataAtRow(selectionRowIndices[0]);
-                    var thisDataRowID = thisDataRow[0];
-                    window.location = '/mercurylab/brominations/'+thisDataRowID+'/edit';
-                });
+                //grid_brominations.parent().find('button[name=edit]').click(function () {
+                //    var thisDataRow = grid_brominations.data('handsontable').getDataAtRow(selectionRowIndices[0]);
+                //    var thisDataRowID = thisDataRow[0];
+                //    window.location = '/mercurylab/brominations/'+thisDataRowID+'/edit';
+                //});
 
-                grid.parent().find('button[name=save]').click(function () {
+                tools_brominations.find('button[name=save]').click(function () {
                     var changedDataArray = [];
                     $.each(changedRowIndices, function(index, value) {
-                        var thisDataRow = grid.data('handsontable').getDataAtRow(value);
+                        var thisDataRow = grid_brominations.data('handsontable').getDataAtRow(value);
                         var thisDataObject = {};
                         for (var i = 0; i < thisDataRow.length; i++) {
                             thisDataObject[objectFields[i]] = thisDataRow[i];
@@ -313,6 +489,116 @@
                             grid_console.text(errorThrown + ": " + textStatus);
                         }
                     });
+                });
+
+                tools_brominations.find('button[name=gridAdd]').click(function () {
+                    if (gridAddClicked) {
+                        gridAddClicked = false;
+                        $("#grid_add").hide();
+                        $("#tools_add").hide();
+                    }
+                    else {
+                        grid_brominations.handsontable('getInstance').selectCell(selectedBrominationRow,0,selectedBrominationRow,3);
+                        gridAddClicked = true;
+                        $("#grid_add").show();
+                        $("#tools_add").show();
+                    }
+                });
+
+                grid_add.find('button[name=sampleOK]').click(function() {
+                    if (typeof(selectedBrominationRow) === 'undefined' || selectedBrominationRow == null) {$('#selected_bromination_id_warning').show(); return;}
+                    else {$('#selected_bromination_id_warning').hide();}
+                    var selected_bromination_id = grid_brominations.handsontable('getInstance').getDataAtCell(selectedBrominationRow, 0);
+                    var date_today = new Date().toISOString().split("T")[0];
+                    var dataArray = [];
+                    $.each(gridAdd_changedRowIndices, function(index, value) {
+                        var thisDataRow = grid_add.data('handsontable').getDataAtRow(value);
+                        var thisDataObject = {};
+                        thisDataObject['bromination'] = selected_bromination_id;
+                        thisDataObject['sample_bottle'] = updateValueAjax('/mercuryservices/samplebottles/', 'bottle', 'id', thisDataRow[0]);
+                        thisDataObject['bromination_event'] = thisDataRow[1];
+                        thisDataObject['bromination_volume'] = thisDataRow[2];
+                        thisDataObject['created_date'] = date_today;
+                        dataArray.push(thisDataObject);
+                    });
+                    var dataJSON = JSON.stringify(dataArray);
+                    alert(dataJSON);
+                    $.ajax({
+                        url: '/mercurylab/samplebottlebromination_add/',
+                        data: dataJSON,
+                        dataType: 'json',
+                        contentType: "application/json",
+                        type: 'POST',
+                        success: function (data, textStatus, jqXHRequest) {
+                            var content_type = jqXHRequest.getResponseHeader("content-type");
+                            // if the content-type is plain text, then it's a custom message from our Django view
+                            if (content_type.indexOf('text') > -1) {
+                                grid_console.text(data);
+                            }
+                            // otherwise, it's JSON from the REST Services
+                            else if (jqXHRequest.status === 200) {
+                                grid_console.text(textStatus+': Data saved.');
+                                grid_brominations.parent().find('button[name=gridAdd]').click();
+                                var rows = grid_add.handsontable('getInstance').countRows();
+                                grid_add.data('handsontable').alter('remove_row', 0, rows);
+                                grid_add.data('handsontable').alter('insert_row', null, 8);
+                                selectedBrominationRow = null;
+                                $('#selected_bromination_id').html("Selected Bromination ID: <strong>NULL</strong>");
+                            }
+                            else {
+                                grid_console.text(textStatus+': Save error: '+jqXHRequest.statusText+', code: '+jqXHRequest.status+'.');
+                            }
+                        },
+                        error: function (jqXHRequest, textStatus, errorThrown) {
+                            grid_console.text(errorThrown + ": " + textStatus);
+                        }
+                    });
+                });
+
+                var form_add = $("#form_add");
+                form_add.find('button[name=addOK]').click(function() {
+                    var thisDataObject = {};
+                    thisDataObject['concentration'] = Number(form_add.find('input[name=concentration]').val());
+                    thisDataObject['comment'] = form_add.find('input[name=comment]').val();
+                    thisDataObject['created_date'] = form_add.find('input[name=created_date]').val();
+                    var dataJSON = JSON.stringify(thisDataObject);
+                    $.ajax({
+                        url: '/mercurylab/bromination_add/',
+                        data: dataJSON,
+                        dataType: 'json',
+                        contentType: "application/json",
+                        type: 'POST',
+                        success: function (data, textStatus, jqXHRequest) {
+                            var content_type = jqXHRequest.getResponseHeader("content-type");
+                            // if the content-type is plain text, then it's a custom message from our Django view
+                            if (content_type.indexOf('text') > -1) {
+                                grid_console.text(data);
+                            }
+                            // otherwise, it's JSON from the REST Services
+                            else if (jqXHRequest.status === 200) {
+                                $(":input", "#form_add").not(":button").val("");
+                                grid_brominations.parent().find('button[name=add]').click();
+                                grid_console.text(textStatus+': Data saved.');
+                            }
+                            else {
+                                grid_console.text(textStatus+': Save error: '+jqXHRequest.statusText+', code: '+jqXHRequest.status+'.');
+                            }
+                        },
+                        error: function (jqXHRequest, textStatus, errorThrown) {
+                            grid_console.text(errorThrown + ": " + textStatus);
+                        }
+                    });
+                });
+
+                form_add.parent().find('button[name=formAdd]').click(function () {
+                    if (formAddClicked) {
+                        formAddClicked = false;
+                        $("#form_add").hide();
+                    }
+                    else {
+                        formAddClicked = true;
+                        $("#form_add").show();
+                    }
                 });
 
             });

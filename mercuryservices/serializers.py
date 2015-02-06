@@ -81,6 +81,7 @@ class SampleBottleSerializer(serializers.ModelSerializer):
 
 
 class SampleBottleBrominationSerializer(serializers.ModelSerializer):
+    sample_bottle = SampleBottleSerializer(source='sample_bottle')
     created_date = serializers.DateTimeField(format='%Y-%m-%d', source='created_date')
 
     class Meta:
@@ -346,6 +347,18 @@ class FullResultSerializer(serializers.ModelSerializer):
 
 
 class ResultSerializer(serializers.ModelSerializer):
+    analyzed_date = serializers.DateTimeField(format='%Y-%m-%d', source='analyzed_date')
+    sample_bottle = serializers.RelatedField(source='sample_bottle')
+    constituent = serializers.RelatedField(source='constituent')
+    isotope_flag = serializers.RelatedField(source='isotope_flag')
+
+    class Meta:
+        model = Result
+        fields = ('id', 'sample_bottle', 'method', 'constituent', 'isotope_flag', 'detection_flag', 'raw_value',
+                  'final_value', 'daily_detection_limit', 'analyzed_date', 'analysis_comment', 'quality_assurances')
+
+
+class TestResultSerializer(serializers.ModelSerializer):
     analyzed_date = serializers.DateTimeField(format='%Y-%m-%d', source='analyzed_date')
     sample_bottle = serializers.RelatedField(source='sample_bottle')
     constituent = serializers.RelatedField(source='constituent')
