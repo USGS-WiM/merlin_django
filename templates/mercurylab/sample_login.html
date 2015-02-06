@@ -82,7 +82,7 @@
                 var data_preservations = JSON.parse(grid.attr('data-preservations'));
 
                 // some handsontable helper arrays
-                var objectFields = ["skip_site_name", "site", "skip_date", "sample_date_time", "depth", "length", "replicate", "comment", "bottle", "medium_type", "constituent_type", "isotope_flag", "filter_type", "volume_filtered", "preservation_type", "preservation_acid", "preservation_volume", "preservation_comment"];
+                var objectFields = ["site", "skip_site_code", "skip_date", "sample_date_time", "depth", "length", "replicate", "comment", "bottle", "medium_type", "constituent_type", "isotope_flag", "filter_type", "volume_filtered", "preservation_type", "preservation_acid", "preservation_volume", "preservation_comment"];
                 var changedRowIndices = [];
                 var selectionRowIndices = [];
 
@@ -128,7 +128,7 @@
                     startRows: 8,
                     columns: [
                         {title: 'Site Name', width: 210, type: 'autocomplete', strict: true, validator: validateRequired},
-                        {title: 'Site ID', width: 100, type: 'autocomplete', strict: true, validator: validateRequired},
+                        {title: 'Site ID', width: 100, type: 'autocomplete', strict: true},
                         // Date Time as separate columns is temporary until a single column datetime editor can be found for handsontable
                         {title: 'Date', width: 100, type: 'date', dateFormat: 'yy-mm-dd', validator: validateRequired, maxDate: 0},
                         {title: 'Time', width: 55, type: 'numeric', validator: validateTime, allowInvalid: false},
@@ -323,6 +323,7 @@
                         if (ui.item && ui.item.value){
                             var changedVal = ui.item.value;
                             var newValue = updateValueDom(data_projects, 'name', 'accounting_code', changedVal);
+                            changedVal = updateValueDom(data_projects, 'name', 'id', ui.item.value);
                             $("#project_id").val(newValue);
                             $.ajax({
                                 url: '/mercuryservices/sites/',
@@ -337,8 +338,8 @@
                                     var names = getValuesDom(data_sites, "name");
                                     var ids = getValuesDom(data_sites, "usgs_scode");
                                     var settings = grid.handsontable('getInstance').getSettings();
-                                    settings.columns[0] = {title: 'Site Name', width: 210, type: 'autocomplete', source: names};
-                                    settings.columns[1] = {title: 'Site ID', width: 100, type: 'autocomplete', source: ids};
+                                    settings.columns[0] = {title: 'Site Name', width: 210, type: 'autocomplete', strict: true, validator: validateRequired, source: names};
+                                    settings.columns[1] = {title: 'Site ID', width: 100, type: 'autocomplete', strict: true, source: ids};
                                     grid.handsontable('getInstance').updateSettings(settings);
                                     /*var rows = grid.handsontable('getInstance').countRows();
                                     for (var row = 1; row < rows; row++) {
@@ -373,6 +374,7 @@
                         if (ui.item && ui.item.value){
                             var changedVal = ui.item.value;
                             var newValue = updateValueDom(data_projects, 'accounting_code', 'name', changedVal);
+                            changedVal = updateValueDom(data_projects, 'id', 'accounting_code', ui.item.value);
                             $("#project_name").val(newValue);
                             $.ajax({
                                 url: '/mercuryservices/sites/',
@@ -460,12 +462,16 @@
                             for (var i = 0; i < thisDataRow.length; i++) {
                                 switch(i){
                                     case 0: // site name
-                                        // do nothing with this column
+                                        // if it doesn't have a value, notify the user that this is a required field, and stop the submission
+                                        if (!thisDataRow[i]) {grid_console.text('Site Name is required!'); validTable = false; return false;}
+                                        else {thisDataObject[objectFields[i]] = getIdDom(data_sites,'name',thisDataRow[i]);}
                                         break;
                                     case 1: // site ID
-                                        // if it doesn't have a value, notify the user that this is a required field, and stop the submission
-                                        if (!thisDataRow[i]) {grid_console.text('Site ID is required!'); validTable = false; return false;}
-                                        else {thisDataObject[objectFields[i]] = getIdDom(data_sites,'usgs_scode',thisDataRow[i]);}
+                                        //// if it doesn't have a value, notify the user that this is a required field, and stop the submission
+                                        //if (!thisDataRow[i]) {grid_console.text('Site ID is required!'); validTable = false; return false;}
+                                        //else {thisDataObject[objectFields[i]] = getIdDom(data_sites,'usgs_scode',thisDataRow[i]);}
+
+                                        // do nothing with this column
                                         break;
                                     case 2: // date
                                         // if it doesn't have a value, notify the user that this is a required field, and stop the submission
@@ -538,6 +544,7 @@
                             }
                             // add the new row object to the array
                             changedDataArray.push(thisDataObject);
+                            alert(thisDataObject);
                         }
                         // if we made it through the various validations above, then the table must be valid
                         validTable = true;

@@ -85,7 +85,7 @@ def sample_login_save(request):
             # if response count does not equal zero, then this sample already exists in the database
             if response_data['count'] != 0:
                 print("count != 0")
-                this_sample_unique_str = str(json.loads(this_sample_unique))
+                this_sample_unique_str = str(this_sample_unique)
                 print(this_sample_unique_str)
                 message = "\"This Sample already exists in the database: " + this_sample_unique_str + "\""
                 print(message)
@@ -118,7 +118,7 @@ def sample_login_save(request):
             print("unique sample analysis")
             unique_sample_analyses.append(this_analysis)
         else:
-            this_analysis_str = str(json.loads(this_analysis))
+            this_analysis_str = str(this_analysis)
             message = "\"This Analysis appears more than once in this sample: " + this_analysis_str + "\""
             print(message)
             return HttpResponse(message, content_type='text/html')
@@ -305,7 +305,7 @@ def sample_search_save(request):
             # if response count equals zero, then this sample already does not exist in the database
             if response_data['count'] == 0:
                 print("count == 0")
-                this_sample_unique_str = str(json.loads(this_sample_unique))
+                this_sample_unique_str = str(this_sample_unique)
                 print(this_sample_unique_str)
                 message = "\"This Sample does not exist in the database: " + this_sample_unique_str + ". Please use the Sample Login form instead.\""
                 print(message)
@@ -529,7 +529,7 @@ def bottles_save(request):
         print(r)
         if r.status_code != 200 or r.status_code != 201:
             print("ERROR")
-            message = "\"Encountered an error while attempting to save " + item["id"] + ": " + r.status_code + "\""
+            message = "\"Encountered an error while attempting to save bottle " + item["id"] + ": " + r.status_code + "\""
             print(message)
             return HttpResponse(message, content_type='text/html')
         else:
@@ -616,7 +616,7 @@ def brominations_save(request):
         print(r)
         if r.status_code != 200 or r.status_code != 201:
             print("ERROR")
-            message = "\"Encountered an error while attempting to save " + item["id"] + ": " + r.status_code + "\""
+            message = "\"Encountered an error while attempting to save bromination " + item["id"] + ": " + r.status_code + "\""
             print(message)
             return HttpResponse(message, content_type='text/html')
         else:
@@ -697,7 +697,7 @@ def blankwaters_save(request):
         print(r)
         if r.status_code != 200 or r.status_code != 201:
             print("ERROR")
-            message = "\"Encountered an error while attempting to save " + item["id"] + ": " + r.status_code + "\""
+            message = "\"Encountered an error while attempting to save blank water " + item["id"] + ": " + r.status_code + "\""
             print(message)
             return HttpResponse(message, content_type='text/html')
         else:
@@ -746,7 +746,7 @@ def acids_save(request):
         print(r)
         if r.status_code != 200 or r.status_code != 201:
             print("ERROR")
-            message = "\"Encountered an error while attempting to save " + item["id"] + ": " + r.status_code + "\""
+            message = "\"Encountered an error while attempting to save acid " + item["id"] + ": " + r.status_code + "\""
             print(message)
             return HttpResponse(message, content_type='text/html')
         else:
@@ -795,7 +795,7 @@ def sites_save(request):
         print(r)
         if r.status_code != 200 or r.status_code != 201:
             print("ERROR")
-            message = "\"Encountered an error while attempting to save " + item["id"] + ": " + r.status_code + "\""
+            message = "\"Encountered an error while attempting to save site " + item["id"] + ": " + r.status_code + "\""
             print(message)
             return HttpResponse(message, content_type='text/html')
         else:
@@ -844,7 +844,7 @@ def projects_save(request):
         print(r)
         if r.status_code != 200 or r.status_code != 201:
             print("ERROR")
-            message = "\"Encountered an error while attempting to save " + item["id"] + ": " + r.status_code + "\""
+            message = "\"Encountered an error while attempting to save project " + item["id"] + ": " + r.status_code + "\""
             print(message)
             return HttpResponse(message, content_type='text/html')
         else:
@@ -893,7 +893,7 @@ def cooperators_save(request):
         print(r)
         if r.status_code != 200 or r.status_code != 201:
             print("ERROR")
-            message = "\"Encountered an error while attempting to save " + item["id"] + ": " + r.status_code + "\""
+            message = "\"Encountered an error while attempting to save cooperator " + item["id"] + ": " + r.status_code + "\""
             print(message)
             return HttpResponse(message, content_type='text/html')
         else:
