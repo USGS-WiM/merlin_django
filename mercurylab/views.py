@@ -8,7 +8,9 @@ from django.shortcuts import render_to_response
 
 
 REST_SERVICES_URL = 'http://localhost:8000/mercuryservices/'
+REST_AUTH_URL = 'http://localhost:8000/mercuryauth/'
 #REST_SERVICES_URL = 'http://130.11.161.159/mercuryservices/'
+#REST_AUTH_URL = 'http://130.11.161.159/mercuryauth/'
 
 USER_AUTH = ('admin', 'admin')
 #USER_TOKEN = ''
@@ -585,7 +587,9 @@ def brominations(request):
     context = RequestContext(request)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'brominations/', headers=headers_auth_token)
     data = json.dumps(r.json(), sort_keys=True)
-    context_dict = {'data': data}
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'samplebottlebrominations/', headers=headers_auth_token)
+    samples = json.dumps(r.json(), sort_keys=True)
+    context_dict = {'data': data, 'samples': samples}
     return render_to_response('mercurylab/brominations.html', context_dict, context)
 
 
@@ -627,6 +631,38 @@ def bromination_add(request):
     data = request.body
     r = requests.request(method='POST', url=REST_SERVICES_URL+'bulkbrominations/', data=data, headers=headers)
     return HttpResponse(r, content_type='application/json')
+
+
+def samplebottlebromination_add(request):
+    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
+    data = request.body
+    r = requests.request(method='POST', url=REST_SERVICES_URL+'bulksamplebottlebrominations/', data=data, headers=headers)
+    return HttpResponse(r, content_type='application/json')
+
+
+def samplebottlebromination_search(request):
+    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
+    context = RequestContext(request)
+
+    if request.method == 'POST':
+        params_dict = {}
+        params = json.loads(request.body.decode('utf-8'))
+        print(params)
+        if params['bottle']:
+            params_dict["bottle"] = str(params['bottle']).strip('[]').replace(', ', ',')
+        if params['date_after']:
+            params_dict["date_after"] = str(params['date_after']).strip('[]')
+        if params['date_before']:
+            params_dict["date_before"] = str(params['date_before']).strip('[]')
+        print(params_dict)
+
+        r = requests.request(method='GET', url=REST_SERVICES_URL+'samplebottlebrominations/', params=params_dict, headers=headers)
+        r_dict = r.json()
+        print(r_dict['count'])
+        r_json = json.dumps(r_dict)
+        return HttpResponse(r_json, content_type='application/json')
 
 
 def blankwaters(request):
@@ -942,7 +978,7 @@ def user_login(request):
         password = request.POST['password']
         data = {"username": username, "password": password}
 
-        r = requests.request(method='POST', url='http://localhost:8000/mercuryauth/login', data=data, headers=HEADERS_CONTENT_FORM)
+        r = requests.request(method='POST', url=REST_AUTH_URL+'login', data=data, headers=HEADERS_CONTENT_FORM)
 
         if r.status_code == 200:
             # global USER_TOKEN
@@ -993,7 +1029,7 @@ def user_login(request):
 #logout using Token Authentication
 def user_logout(request):
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    r = requests.request(method='POST', url='http://localhost:8000/mercuryauth/logout', headers=headers_auth_token)
+    r = requests.request(method='POST', url=REST_AUTH_URL+'logout', headers=headers_auth_token)
     print(r)
 
     if r.status_code == 200:

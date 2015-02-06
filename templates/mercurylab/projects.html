@@ -9,21 +9,21 @@
                 <ul class="select2-choices">
                     <li class="select2-search-field">
                         <label class="select2-offscreen"></label>
-                        <input id="search_field" type="search" placeholder="Highlight in table." class="select2-input select2-default" style="width:593px;height:40px;font-size:21px;"/>
+                        <input id="search_field" type="search" placeholder="Highlight in table." class="select2-input select2-default" style="width:393px;height:30px;font-size:14px;"/>
                     </li>
                 </ul>
             </div>
         <!-- <p><input id="search_field" type="search" placeholder="Highlight in table." style="width:600px; border:1px solid darkgray; height:42px"/></p> -->
         <br /><br />
         <p>
-            <button type="button" class="btn btn-default" name="load">Reload Table</button>
-            <button type="button" class="btn btn-default" name="save">Save Changes</button>
-            <button type="button" class="btn btn-default" name="delete">Delete Selected Record</button>
-        </p>
-        <p>
-            <button type="button" class="btn btn-default" name="prev">Previous Page</button>
-            <button type="button" class="btn btn-default" name="next">Next Page</button>
-        </p>
+                    <button type="button" class="btn btn-default" name="load">Reload Table</button>
+                    <button type="button" class="btn btn-default" name="prev">Previous Page</button>
+                    <button type="button" class="btn btn-default" name="next">Next Page</button>
+                </p>
+                <p>
+                    <button type="button" class="btn btn-primary" name="save">Save Changes</button>
+                    <button type="button" class="btn btn-danger" name="delete">Delete Row</button>
+                </p>
         <div id="grid" data-data="{{ data }}" ></div>
 
         <script>

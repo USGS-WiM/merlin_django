@@ -2,9 +2,6 @@
 {% block body_block %}
 
     <div style="padding:10px">
-        <p>
-            <button type="button" class="btn btn-default" name="save">Save</button>
-        </p>
         <pre id="grid_console" class="console" style="width:600px"></pre>
         <div class="panel-default">
             <form id="form_result_search" class="form-inline">
@@ -45,7 +42,8 @@
                     </div>
                 </p>
                 <p>
-                    <button type="button" class="btn btn-default" name="search">Search</button>
+                    <button type="button" class="btn btn-warning" name="save">Save</button>
+                    <button type="button" class="btn btn-info" name="search">Search</button>
                     <button type="button" class="btn btn-default" name="prev">Previous Page</button>
                     <button type="button" class="btn btn-default" name="next">Next Page</button>
                 </p>
@@ -83,9 +81,10 @@
 
                 var currentPage = 1;
                 var resultPages = 1;
+                var validTable = false;
                 var grid = $('#grid');
                 var grid_console = $("#grid_console");
-                var data_data = {};
+                var data_data;
                 grid.css("z-index", "0");
                 var data_processings = JSON.parse(grid.attr('data-processings'));
                 var data_mediums = JSON.parse(grid.attr('data-mediums'));
@@ -128,6 +127,7 @@
                 var selectionRowIndices = [];
                 grid_console.text('Loading data...');
                 grid.handsontable({
+                    startRows: 0,
                     data: data_data,
                     columns: [
                         {title: 'Sample ID', data: 'sample_bottle.sample.id', readOnly: true, width: 1},
@@ -517,6 +517,7 @@
                 grid.parent().find('button[name=save]').click(function () {
                     // an array container for storing the changed data rows to send to the database
                     var changedDataArray = [];
+                    if (changedRowIndices.length == 0) {grid_console.text('There is nothing to save!'); return;}
                     // loop through the list of changed rows
                     $.each(changedRowIndices, function(index, value) {
                         // grab all the data for this row
@@ -530,12 +531,26 @@
                             for (var i = 0; i < thisDataRow.length; i++) {
                                 switch(i){
                                     case 1: // project name
+                                        // do nothing with this column
+                                        break;
+                                    case 2: // project ID
+                                        // if it doesn't have a value, notify the user that this is a required field, and stop the submission
+                                        if (!thisDataRow[i]) {grid_console.text('Project ID is required!'); validTable = false; return false;}
                                         break;
                                     case 3: // site name
+                                        // do nothing with this column
+                                        break;
+                                    case 4: // site ID
+                                        // if it doesn't have a value, notify the user that this is a required field, and stop the submission
+                                        if (!thisDataRow[i]) {grid_console.text('Site ID is required!'); validTable = false; return false;}
                                         break;
                                     case 5: // date
+                                        // if it doesn't have a value, notify the user that this is a required field, and stop the submission
+                                        if (!thisDataRow[i]) {grid_console.text('Date is required!'); validTable = false; return false;}
                                         break;
                                     case 6: // time
+                                        // if it doesn't have a value, notify the user that this is a required field, and stop the submission
+                                        if (!thisDataRow[i]) {grid_console.text('Time is required!'); validTable = false; return false;}
                                         if (thisDataRow[i] !== null && thisDataRow[i] !== "" && thisDataRow[i-1] !== null && thisDataRow[i-1] !== "") {
                                             var changedVal = thisDataRow[i];
                                             var newValue;
@@ -561,22 +576,32 @@
                                         }
                                         break;
                                     case 11: // received date
+                                        // if it doesn't have a value, notify the user that this is a required field, and stop the submission
+                                        if (!thisDataRow[i]) {grid_console.text('Date Received is required!'); validTable = false; return false;}
                                         thisDataObject[objectFields[i]] = thisDataRow[i];
                                         break;
                                     case 12: // processing
                                         thisDataObject[objectFields[i]] = getIdDom(data_processings,'processing',thisDataRow[i]);
                                         break;
                                     case 13: // bottle
+                                        // if it doesn't have a value, notify the user that this is a required field, and stop the submission
+                                        if (!thisDataRow[i]) {grid_console.text('Container ID is required!'); validTable = false; return false;}
                                         // should this eventually point to Sample Bottles, not Bottles?
                                         thisDataObject[objectFields[i]] = thisDataObject[objectFields[i]] = updateValueAjax('/mercuryservices/bottles', 'bottle_unique_name', 'id', thisDataRow[i]);
                                         break;
                                     case 14: // medium
+                                        // if it doesn't have a value, notify the user that this is a required field, and stop the submission
+                                        if (!thisDataRow[i]) {grid_console.text('Medium is required!'); validTable = false; return false;}
                                         thisDataObject[objectFields[i]] = getIdDom(data_mediums,'medium',thisDataRow[i]);
                                         break;
                                     case 15: // constituent
+                                        // if it doesn't have a value, notify the user that this is a required field, and stop the submission
+                                        if (!thisDataRow[i]) {grid_console.text('Analysis is required!'); validTable = false; return false;}
                                         thisDataObject[objectFields[i]] = getIdDom(data_constituents,'constituent',thisDataRow[i]);
                                         break;
                                     case 16: // isotope flag
+                                        // if it doesn't have a value, notify the user that this is a required field, and stop the submission
+                                        if (!thisDataRow[i]) {grid_console.text('Isotope is required!'); validTable = false; return false;}
                                         thisDataObject[objectFields[i]] = getIdDom(data_isotopeflags,'isotope_flag',thisDataRow[i]);
                                         break;
                                     case 17: // filter
@@ -598,36 +623,44 @@
                             // add the new row object to the array
                             changedDataArray.push(thisDataObject);
                         }
+                        // if we made it through the various validations above, then the table must be valid
+                        validTable = true;
                     });
-                    // convert the array to a true JSON object
-                    var changedDataJSON = JSON.stringify(changedDataArray);
-                    // send the entire changed data object to the server via ajax
-                    console.log(changedDataJSON);
-                    grid_console.text('Attempting to save data...');
-                    $.ajax({
-                        url: '/mercurylab/sample_search/save',
-                        data: changedDataJSON,
-                        dataType: 'json',
-                        contentType: "application/json",
-                        type: 'POST',
-                        success: function (data, textStatus, jqXHRequest) {
-                            var content_type = jqXHRequest.getResponseHeader("content-type");
-                            // if the content-type is plain text, then it's a custom message from our Django view
-                            if (content_type.indexOf('text') > -1) {
-                                grid_console.text(data);
-                            }
-                            // otherwise, it's JSON from the REST Services
-                            else if (jqXHRequest.status === 200) {
-                                grid_console.text(textStatus+': Data saved.');
-                            }
-                            else {
-                                grid_console.text(textStatus+': Save error: '+jqXHRequest.statusText+', code: '+jqXHRequest.status+'.');
-                            }
-                        },
-                        error: function (jqXHRequest, textStatus, errorThrown) {
-                            grid_console.text(errorThrown + ": " + textStatus);
+                    // if table is valid, submit the POST request, otherwise skip it (implying table is invalid)
+                    if(validTable) {
+                        // convert the array to a true JSON object
+                        var changedDataJSON = JSON.stringify(changedDataArray);
+                        // send the entire changed data object to the server via ajax
+                        console.log(changedDataJSON);
+                        grid_console.text('Attempting to save data...');
+                        var confirmed = confirm("Are you sure? Saving will make changes to the database.");
+                        if (confirmed == true) {
+                            $.ajax({
+                                url: '/mercurylab/sample_search/save',
+                                data: changedDataJSON,
+                                dataType: 'json',
+                                contentType: "application/json",
+                                type: 'POST',
+                                success: function (data, textStatus, jqXHRequest) {
+                                    var content_type = jqXHRequest.getResponseHeader("content-type");
+                                    // if the content-type is plain text, then it's a custom message from our Django view
+                                    if (content_type.indexOf('text') > -1) {
+                                        grid_console.text(data);
+                                    }
+                                    // otherwise, it's JSON from the REST Services
+                                    else if (jqXHRequest.status === 200) {
+                                        grid_console.text(textStatus + ': Data saved.');
+                                    }
+                                    else {
+                                        grid_console.text(textStatus + ': Save error: ' + jqXHRequest.statusText + ', code: ' + jqXHRequest.status + '.');
+                                    }
+                                },
+                                error: function (jqXHRequest, textStatus, errorThrown) {
+                                    grid_console.text(errorThrown + ": " + textStatus);
+                                }
+                            });
                         }
-                    });
+                    }
                 });
 
             });

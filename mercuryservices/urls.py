@@ -17,6 +17,7 @@ router.register(r'bulksamples', views.SampleBulkCreateUpdateViewSet)
 router.register(r'samplebottles', views.SampleBottleViewSet, 'samplebottles')
 router.register(r'bulksamplebottles', views.SampleBottleBulkCreateUpdateViewSet)
 router.register(r'fullsamplebottles', views.FullSampleBottleViewSet, 'fullsamplebottles')
+router.register(r'bulksamplebottlebrominations', views.SampleBottleBrominationBulkCreateUpdateViewSet, 'bulksamplebottlebrominations')
 router.register(r'samplebottlebrominations', views.SampleBottleBrominationViewSet, 'samplebottlebrominations')
 router.register(r'bottles', views.BottleViewSet, 'bottles')
 router.register(r'bulkbottles', views.BottleBulkCreateUpdateViewSet)
@@ -51,4 +52,5 @@ urlpatterns = patterns('',
                        #url(r'^logout/', views.UserLogoutView.as_view(), name='logout'),
                        url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
                        #url(r'^auth/', include('djoser.urls')),
+                       url(r'^testreport/', views.TestReport.as_view(), name='testreport'),
                        )

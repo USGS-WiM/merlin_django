@@ -2,14 +2,23 @@
 {% block body_block %}
 
     <div style="padding:10px">
-        <p>
-            <button type="button" class="btn btn-default" name="save">Save</button>
-            <button type="button" class="btn btn-default" name="insertRows">Insert 8 Blank Rows</button>
-            <button type="button" class="btn btn-default" name="delete">Delete Selected Rows</button>
-        </p>
         <pre id="grid_console" class="console" style="width:600px"></pre>
         <p><input class="form-control" id="select_field" type="hidden" placeholder="Select for sample name." style="width:600px"/></p>
-        <p><input class="form-control" id="search_field" type="search" placeholder="Find in table." style="width:600px"/></p>
+        <p>
+            <div class="select2-container select2-container-multi" style="width:600px">
+                <ul class="select2-choices">
+                    <li class="select2-search-field">
+                        <label class="select2-offscreen"></label>
+                        <input id="search_field" type="search" placeholder="Highlight in table." class="select2-input select2-default" style="width:593px;height:30px;font-size:14px;"/>
+                    </li>
+                </ul>
+            </div>
+        </p>
+        <p>
+            <button type="button" class="btn btn-primary" name="save">Save</button>
+            <button type="button" class="btn btn-default" name="insertRows">Insert 8 Blank Rows</button>
+            <button type="button" class="btn btn-danger" name="delete">Delete Rows</button>
+        </p>
         <div class="panel-default">
             <form class="form-inline">
                 <div class="form-group">

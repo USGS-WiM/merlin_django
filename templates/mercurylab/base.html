@@ -50,13 +50,13 @@
 {#                        {% if user.is_authenticated %}#}
                         {% if request.session.username %}
                             <li class="navbar-text">Welcome, {{ request.session.username }}!</li>
-                            <li><a href="/mercurylab/logout">Logout</a></li>
+                            <li><a href="/mercurylab/logout/">Logout</a></li>
                         {% else %}
-                            <li><a href="/mercurylab/login">Login</a></li>
+                            <li><a href="/mercurylab/login/">Login</a></li>
                         {% endif %}
                     </ul>
                     <ul class="nav navbar-nav">
-                        <li><a href="/mercurylab/about">About</a></li>
+                        <li><a href="/mercurylab/about/">About</a></li>
                     </ul>
                 </div>
              </div>
