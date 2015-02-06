@@ -87,6 +87,8 @@ class SiteViewSet(viewsets.ModelViewSet):
     #queryset = Site.objects.all()
     serializer_class = SiteSerializer
     paginate_by = 100
+    paginate_by_param = 'project'
+    max_paginate_by = 2000
 
     # override the default queryset to allow filtering by URL arguments
     def get_queryset(self):
