@@ -16,14 +16,16 @@
         <!-- <p><input id="search_field" type="search" placeholder="Highlight in table." style="width:600px; border:1px solid darkgray; height:42px"/></p> -->
         <br /><br />
         <p>
-                    <button type="button" class="btn btn-default" name="load">Reload Table</button>
-                    <button type="button" class="btn btn-default" name="prev">Previous Page</button>
-                    <button type="button" class="btn btn-default" name="next">Next Page</button>
-                </p>
-                <p>
-                    <button type="button" class="btn btn-primary" name="save">Save Changes</button>
-                    <button type="button" class="btn btn-danger" name="delete">Delete Row</button>
-                </p>
+            <button type="button" class="btn btn-default" name="load">Reload Table</button>
+            <button type="button" class="btn btn-default" name="prev">Previous Page</button>
+            <button type="button" class="btn btn-default" name="next">Next Page</button>
+        </p>
+        {% if request.session.is_staff %}
+        <p style="display:none;">
+            <button type="button" class="btn btn-primary" name="save">Save Changes</button>
+            <button type="button" class="btn btn-danger" name="delete">Delete Row</button>
+        </p>
+        {% endif %}
         <div id="grid" data-data="{{ data }}" ></div>
 
         <script>

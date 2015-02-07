@@ -145,3 +145,5 @@ SUIT_CONFIG = {
 }
 
 CORS_ORIGIN_ALLOW_ALL = True
+
+LOGIN_URL = '/mercurylab/login/'
