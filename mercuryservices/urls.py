@@ -42,7 +42,7 @@ router.register(r'bulkblankwaters', views.BlankWaterBulkUpdateViewSet)
 router.register(r'brominations', views.BrominationViewSet, 'brominations')
 router.register(r'bulkbrominations', views.BrominationBulkUpdateViewSet)
 #router.register(r'roles', views.RoleViewSet)
-#router.register(r'users', views.UserViewSet)
+router.register(r'users', views.UserViewSet, 'users')
 router.register(r'statuses', views.StatusTypeViewSet)
 router.register(r'procedures', views.ProcedureTypeViewSet)
 
@@ -52,5 +52,5 @@ urlpatterns = patterns('',
                        #url(r'^logout/', views.UserLogoutView.as_view(), name='logout'),
                        url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
                        #url(r'^auth/', include('djoser.urls')),
-                       url(r'^testreport/', views.TestReport.as_view(), name='testreport'),
+                       #url(r'^testreport/', views.TestReport.as_view(), name='testreport'),
                        )

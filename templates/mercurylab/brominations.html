@@ -50,8 +50,10 @@
                     <button type="button" class="btn btn-default" name="next">Next Page</button>
                 </p>
                 <p>
+                    {% if request.session.is_staff %}
                     <button type="button" class="btn btn-primary" name="save">Save Changes</button>
                     <button type="button" class="btn btn-danger" name="delete">Delete Row</button>
+                    {% endif %}
 					<button type="button" class="btn btn-info" name="gridAdd">Brominate Samples</button>
                 </p>
             </div>

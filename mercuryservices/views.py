@@ -1,3 +1,4 @@
+from djoser import views as djoserViews
 from datetime import datetime
 from rest_framework import views, viewsets, generics, permissions, settings, response
 from rest_framework_bulk import ListBulkCreateUpdateDestroyAPIView, BulkCreateModelMixin, BulkUpdateModelMixin
@@ -593,11 +594,19 @@ class BrominationViewSet(viewsets.ModelViewSet):
 # class RoleViewSet(viewsets.ModelViewSet):
 #     queryset = Role.objects.all()
 #     serializer_class = RoleSerializer
-#
-#
-# class UserViewSet(viewsets.ModelViewSet):
-#     queryset = User.objects.all()
-#     serializer_class = UserSerializer
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    permission_classes = (permissions.IsAuthenticated,)
+    #queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+    def get_queryset(self):
+        queryset = User.objects.all()
+        username = self.request.QUERY_PARAMS.get('username', None)
+        if username is not None:
+            queryset = queryset.filter(username__exact=username)
+        return queryset
 
 
 # class UserLoginView(views.APIView):

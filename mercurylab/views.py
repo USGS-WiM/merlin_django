@@ -26,8 +26,9 @@ SAMPLE_BOTTLE_KEYS = ["sample", "bottle", "filter_type", "volume_filtered",
 SAMPLE_ANALYSIS_KEYS = ["sample_bottle", "constituent", "isotope_flag"]
 BOTTLE_KEYS = ["bottle_unique_name", "created_date", "tare_weight", "bottle_type", "description"]
 
-
 def sample_login(request):
+    if not request.session.get('token'):
+        return HttpResponseRedirect('/mercurylab/')
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     context = RequestContext(request)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'projects/', headers=headers_auth_token)
@@ -217,6 +218,8 @@ def sample_login_save(request):
 
 
 def sample_search(request):
+    if not request.session.get('token'):
+        return HttpResponseRedirect('/mercurylab/')
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     context = RequestContext(request)
@@ -426,6 +429,8 @@ def sample_search_save(request):
 
 
 def result_search(request):
+    if not request.session.get('token'):
+        return HttpResponseRedirect('/mercurylab/')
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     context = RequestContext(request)
@@ -496,6 +501,8 @@ def result_search_cooperators(request):
 
 
 def bottles(request):
+    if not request.session.get('token'):
+        return HttpResponseRedirect('/mercurylab/')
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     context = RequestContext(request)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'bottles/')#, headers=headers_auth_token)
@@ -583,6 +590,8 @@ def bottle_range_add(request):
 
 
 def brominations(request):
+    if not request.session.get('token'):
+        return HttpResponseRedirect('/mercurylab/')
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     context = RequestContext(request)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'brominations/', headers=headers_auth_token)
@@ -666,6 +675,8 @@ def samplebottlebromination_search(request):
 
 
 def blankwaters(request):
+    if not request.session.get('token'):
+        return HttpResponseRedirect('/mercurylab/')
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     context = RequestContext(request)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'blankwaters/', headers=headers_auth_token)
@@ -715,6 +726,8 @@ def blankwater_add(request):
 
 
 def acids(request):
+    if not request.session.get('token'):
+        return HttpResponseRedirect('/mercurylab/')
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     context = RequestContext(request)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'acids/', headers=headers_auth_token)
@@ -764,6 +777,8 @@ def acid_add(request):
 
 
 def sites(request):
+    if not request.session.get('token'):
+        return HttpResponseRedirect('/mercurylab/')
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     context = RequestContext(request)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'sites/', headers=headers_auth_token)
@@ -813,6 +828,8 @@ def site_add(request):
 
 
 def projects(request):
+    if not request.session.get('token'):
+        return HttpResponseRedirect('/mercurylab/')
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     context = RequestContext(request)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'projects/', headers=headers_auth_token)
@@ -862,6 +879,8 @@ def project_add(request):
 
 
 def cooperators(request):
+    if not request.session.get('token'):
+        return HttpResponseRedirect('/mercurylab/')
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     context = RequestContext(request)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'cooperators/', headers=headers_auth_token)
@@ -986,10 +1005,32 @@ def user_login(request):
             # global USER_AUTH
             # USER_AUTH = (username, password)
             token = eval(r.content)['auth_token']
+            print(token)
             request.session['token'] = token
-            request.session['username'] = username
-            request.session['password'] = password
-            return HttpResponseRedirect('/mercurylab/')
+            #request.session['username'] = username
+            #request.session['password'] = password
+
+            params_dict = {"username": username}
+            print(data)
+            headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+            r = requests.request(method='GET', url=REST_SERVICES_URL+'users/', params=params_dict, headers=headers_auth_token)
+
+            if r.status_code == 200:
+                print(r.json())
+                user = r.json()[0]
+                print(user)
+                request.session['username'] = user['username']
+                request.session['first_name'] = user['first_name']
+                request.session['last_name'] = user['last_name']
+                request.session['email'] = user['email']
+                request.session['is_staff'] = user['is_staff']
+                request.session['is_active'] = user['is_active']
+
+                return HttpResponseRedirect('/mercurylab/')
+
+            else:
+                print(r)
+                return render_to_response('mercurylab/login.html', r, context)
 
         else:
             print(r)
@@ -1035,7 +1076,11 @@ def user_logout(request):
     if r.status_code == 200:
         del request.session['token']
         del request.session['username']
-        del request.session['password']
+        del request.session['first_name']
+        del request.session['last_name']
+        del request.session['email']
+        del request.session['is_staff']
+        del request.session['is_active']
         request.session.modified = True
         # global USER_AUTH
         # USER_AUTH = ('guest', 'guest')
@@ -1044,7 +1089,7 @@ def user_logout(request):
         return HttpResponseRedirect('/mercurylab/')
 
     else:
-        return HttpResponse("<h1>Logout wasn't performed. Please contact the administrator.</h1>")
+        return HttpResponse("<h1>"+ str(r.status_code) + ": " + r.reason + "</h1><p>Logout wasn't performed. Please contact the administrator.</p>")
 
 # #force logout by clearing session variables
 # def user_logout(request):
