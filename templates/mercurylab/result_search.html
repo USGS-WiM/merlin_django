@@ -81,26 +81,28 @@
                 var resultPages = 1;
                 var grid = $('#grid');
                 var grid_console = $("#grid_console");
-                var data_data = {};
+                var data_data;
                 grid.css("z-index", "0");
                 var data_projects = JSON.parse(grid.attr('data-projects'));
                 var data_sites;
                 var data_constituents = JSON.parse(grid.attr('data-constituents'));
                 grid_console.text('Loading data...');
                 grid.handsontable({
+                    startRows: 0,
                     data: data_data,
                     columns: [
-                        {title: 'ID', data: 'id', readOnly: true, width: 1},
+                        {title: 'Result ID', data: 'id', readOnly: true, width: 100},
                         {title: 'Bottle', data: 'sample_bottle.bottle.bottle_unique_name', readOnly: true, width: 100},
                         {title: 'Tare Weight', data: 'sample_bottle.bottle.tare_weight', readOnly: true, width: 100, format: '0.0000'},
                         {title: 'Project', data: 'sample_bottle.sample.project.name', readOnly: true, width: 200},
                         {title: 'Site', data: 'sample_bottle.sample.site.name', readOnly: true, width: 200},
-                        {title: 'Date', data: 'sample_bottle.sample.date', readOnly: true, width: 100},
-                        {title: 'Time', data: 'sample_bottle.sample.time', readOnly: true, width: 60},
+                        {title: 'Date', data: 'sample_bottle.sample.sample_date', readOnly: true, width: 100},
+                        {title: 'Time', data: 'sample_bottle.sample.sample_time', readOnly: true, width: 60},
                         {title: 'Constituent', data: 'constituent', readOnly: true, width: 100},
+                        {title: 'Isotope', data: 'isotope_flag', readOnly: true, width: 60},
                         {title: 'Received', data: 'sample_bottle.sample.received_date', readOnly: true, width: 100},
                         {title: 'Comments', data: 'sample_bottle.sample.comment', readOnly: true, width: 200},
-                        {title: 'Result', data: 'final_value', readOnly: true, width: 100, format: '0.00000000'},
+                        {title: 'Result Value', data: 'final_value', readOnly: true, width: 100, format: '0.00000000'},
                         {title: 'Analyzed', data: 'analyzed_date', readOnly: true, width: 140}
                     ],
                     search: true
@@ -207,12 +209,12 @@
                 }
 
                 var date_after = $("#date_after").datepicker({
-                    dateFormat: "yy-mm-dd",
+                    dateFormat: "mm/dd/y",
                     maxDate: 0
                 });
 
                 var date_before = $("#date_before").datepicker({
-                    dateFormat: "yy-mm-dd",
+                    dateFormat: "mm/dd/y",
                     maxDate: 0
                 });
 
@@ -222,8 +224,12 @@
                     thisDataObject['bottle'] = $(select_bottle).val();
                     thisDataObject['project'] = $(select_project).val();
                     thisDataObject['site'] = $(select_site).val();//.slice(0, -1);
-                    thisDataObject['date_after'] = $(date_after).val();
-                    thisDataObject['date_before'] = $(date_before).val();
+                    var baddate_after = $(date_after).val();
+                    var gooddate_after = "20" + baddate_after.substr(6,4) + "-" + baddate_after.substr(0,2) + "-" + baddate_after.substr(3,2);
+                    thisDataObject['date_after'] = (gooddate_after == "20--" ? null : gooddate_after);
+                    var baddate_before = $(date_before).val();
+                    var gooddate_before = "20" + baddate_before.substr(6,4) + "-" + baddate_before.substr(0,2) + "-" + baddate_before.substr(3,2);
+                    thisDataObject['date_before'] = (gooddate_before == "20--" ? null : gooddate_before);
                     thisDataObject['constituent'] = $(select_constituent).val();
                     var dataJSON = JSON.stringify(thisDataObject);
                     $.ajax({

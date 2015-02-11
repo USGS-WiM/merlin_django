@@ -1,3 +1,4 @@
+from datetime import datetime
 from django.db import models
 from django.contrib.auth.models import User, Group
 from django.contrib import admin
@@ -83,10 +84,11 @@ class Bottle(models.Model):
     """Reusable bottles with permanently etched IDs (MLO751AA, WIP010BSH, etc.)."""
 
     bottle_unique_name = models.CharField(max_length=128)
-    created_date = models.DateField()
     tare_weight = models.DecimalField(max_digits=8, decimal_places=4, null=True, blank=True)
     bottle_type = models.ForeignKey('BottleType')
     description = models.TextField(blank=True)
+    created_date = models.DateField(default=datetime.now, blank=True)
+    modified_date = models.DateField(default=datetime.now, blank=True)
     status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
@@ -150,7 +152,7 @@ class MediumType(models.Model):
     status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
-        return self.medium
+        return self.nwis_code
 
 
 class Sample(models.Model):
@@ -166,6 +168,8 @@ class Sample(models.Model):
     replicate = models.IntegerField(null=True, blank=True)
     lab_processing = models.ForeignKey('ProcessingType', null=True, blank=True)
     medium_type = models.ForeignKey('MediumType')
+    created_date = models.DateField(default=datetime.now, blank=True)
+    modified_date = models.DateField(default=datetime.now, blank=True)
     status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
@@ -183,6 +187,8 @@ class SampleBottle(models.Model):
     preservation_volume = models.FloatField(null=True, blank=True)
     preservation_acid = models.ForeignKey('Acid', null=True, blank=True)
     preservation_comment = models.TextField(blank=True)
+    created_date = models.DateField(default=datetime.now, blank=True)
+    modified_date = models.DateField(default=datetime.now, blank=True)
     status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
@@ -208,7 +214,8 @@ class SampleBottleBromination(models.Model):
     bromination = models.ForeignKey('Bromination')
     bromination_event = models.IntegerField(null=True, blank=True)
     bromination_volume = models.FloatField(null=True, blank=True)
-    created_date = models.DateField()
+    created_date = models.DateField(default=datetime.now, blank=True)
+    modified_date = models.DateField(default=datetime.now, blank=True)
     status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
@@ -270,8 +277,11 @@ class Result(models.Model):
     raw_value = models.FloatField(null=True, blank=True)
     final_value = models.FloatField(null=True, blank=True)
     daily_detection_limit = models.FloatField(null=True, blank=True)
+    entry_date = models.DateField(null=True, blank=True)
     analyzed_date = models.DateField(null=True, blank=True)
     analysis_comment = models.TextField(blank=True)
+    created_date = models.DateField(default=datetime.now, blank=True)
+    modified_date = models.DateField(default=datetime.now, blank=True)
     ##
     # ****placeholder for legacy data fields****
     ##
@@ -388,8 +398,9 @@ class Acid(models.Model):
 
     code = models.CharField(max_length=128)
     concentration = models.FloatField(default=-999)
-    created_date = models.DateField()
     comment = models.TextField(blank=True)
+    created_date = models.DateField(default=datetime.now, blank=True)
+    modified_date = models.DateField(default=datetime.now, blank=True)
     status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
@@ -401,8 +412,9 @@ class BlankWater(models.Model):
 
     lot_number = models.CharField(max_length=128)
     concentration = models.FloatField(default=-999)
-    created_date = models.DateField()
     comment = models.TextField(blank=True)
+    created_date = models.DateField(default=datetime.now, blank=True)
+    modified_date = models.DateField(default=datetime.now, blank=True)
     status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
@@ -413,8 +425,9 @@ class Bromination(models.Model):
     """A particular concentration of Bromine Monochloride (BrCl)."""
 
     concentration = models.FloatField()
-    created_date = models.DateField()
     comment = models.TextField(blank=True)
+    created_date = models.DateField(default=datetime.now, blank=True)
+    modified_date = models.DateField(default=datetime.now, blank=True)
     status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):

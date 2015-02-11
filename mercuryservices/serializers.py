@@ -153,6 +153,7 @@ class ConstituentMethodSerializer(serializers.ModelSerializer):
 
 
 class QualityAssuranceSerializer(serializers.ModelSerializer):
+    quality_assurance = serializers.RelatedField(source='quality_assurance')
 
     class Meta:
         model = QualityAssurance
@@ -358,7 +359,14 @@ class ResultSerializer(serializers.ModelSerializer):
                   'final_value', 'daily_detection_limit', 'analyzed_date', 'analysis_comment', 'quality_assurances')
 
 
-class TestResultSerializer(serializers.ModelSerializer):
+######
+##
+## Reports
+##
+######
+
+
+class TestReportResultSerializer(serializers.ModelSerializer):
     analyzed_date = serializers.DateTimeField(format='%Y-%m-%d', source='analyzed_date')
     sample_bottle = serializers.RelatedField(source='sample_bottle')
     constituent = serializers.RelatedField(source='constituent')

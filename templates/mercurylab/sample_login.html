@@ -130,7 +130,7 @@
                         {title: 'Site Name', width: 210, type: 'autocomplete', strict: true, validator: validateRequired},
                         {title: 'Site ID', width: 100, type: 'autocomplete', strict: true},
                         // Date Time as separate columns is temporary until a single column datetime editor can be found for handsontable
-                        {title: 'Date', width: 100, type: 'date', dateFormat: 'yy-mm-dd', validator: validateRequired, maxDate: 0},
+                        {title: 'Date', width: 100, type: 'date', dateFormat: 'mm/dd/y', validator: validateRequired, maxDate: 0},
                         {title: 'Time', width: 55, type: 'numeric', validator: validateTime, allowInvalid: false},
                         {title: 'Depth', width: 45, type: 'numeric', validator: validateRequiredZeroOK, format: '0.00'},
                         {title: 'Length', width: 70, type: 'numeric', format: '0.00'},
@@ -138,7 +138,7 @@
                         {title: 'Sample Comments', width: 130, type: 'text'},
                         {title: 'Container ID', width: 110, type: 'autocomplete', strict: true, validator: validateRequired,  source: function (query, process) {
                             getValuesAjax('/mercuryservices/bottles/', 'bottle_unique_name', query, process)}},
-                        {title: 'Medium', width: 140, type: 'autocomplete', strict: true, validator: validateRequired, source: getValuesDom(data_mediums,"medium")},
+                        {title: 'Medium', width: 80, type: 'autocomplete', strict: true, validator: validateRequired, source: getValuesDom(data_mediums,"nwis_code")},
                         {title: 'Analysis', width: 80, type: 'autocomplete', strict: true, validator: validateRequired},
                         {title: 'Isotope', width: 60, type: 'dropdown', source: data_isotopes}, //type: 'autocomplete', strict: true, source: getValuesDom(data_isotopeflags,"isotope_flag"), validator: validateRequired},
                         {title: 'Filter', width: 130, type: 'autocomplete', strict: true, source: getValuesDom(data_filters,"filter")},
@@ -246,7 +246,7 @@
                                     url: '/mercuryservices/constituents/',
                                     dataType: 'json',
                                     data: {
-                                        medium: changedVal
+                                        nwis_code: changedVal
                                     },
                                     success: function (response) {
                                         // update the local full object collection
@@ -409,7 +409,7 @@
                 });
 
                 $("#date_received").datepicker({
-                    dateFormat: "yy-mm-dd",
+                    dateFormat: "mm/dd/y",
                     maxDate: 0
                 });
 
@@ -456,7 +456,9 @@
                             var thisDataObject = {};
                             // add the sample header object properties to this object
                             thisDataObject['project'] = Number(projectID);
-                            thisDataObject['received_date'] = dateReceived;
+                            var baddate_received = dateReceived;
+                            var gooddate_received = "20" + baddate_received.substr(6,4) + "-" + baddate_received.substr(0,2) + "-" + baddate_received.substr(3,2);
+                            thisDataObject['received_date'] = gooddate_received;
                             if (labProcessing != -1) {thisDataObject['lab_processing'] = labProcessing;}
                             // convert each table cell in this row into an object property and add to this object
                             for (var i = 0; i < thisDataRow.length; i++) {
@@ -501,7 +503,9 @@
                                                     newValue = "00:00";
                                                     break;
                                             }
-                                            thisDataObject[objectFields[i]] = thisDataRow[i - 1] + " " + newValue + ":00";
+                                            var baddate_sample = thisDataRow[i - 1];
+                                            var gooddate_sample = "20" + baddate_sample.substr(6,4) + "-" + baddate_sample.substr(0,2) + "-" + baddate_sample.substr(3,2);
+                                            thisDataObject[objectFields[i]] = gooddate_sample + " " + newValue + ":00";
                                         }
                                         break;
                                     case 8: // bottle
@@ -512,7 +516,7 @@
                                     case 9: // medium
                                         // if it has a value, look up and return the ID, otherwise notify the user that this is a required field, and stop the submission
                                         if (!thisDataRow[i]) {grid_console.text('Medium is required!'); validTable = false; return false;}
-                                        else {thisDataObject[objectFields[i]] = getIdDom(data_mediums,'medium',thisDataRow[i]);}
+                                        else {thisDataObject[objectFields[i]] = getIdDom(data_mediums,'nwis_code',thisDataRow[i]);}
                                         break;
                                     case 10: // constituent
                                         // if it has a value, look up and return the ID, otherwise notify the user that this is a required field, and stop the submission
@@ -544,7 +548,6 @@
                             }
                             // add the new row object to the array
                             changedDataArray.push(thisDataObject);
-                            alert(thisDataObject);
                         }
                         // if we made it through the various validations above, then the table must be valid
                         validTable = true;

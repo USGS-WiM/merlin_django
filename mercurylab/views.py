@@ -51,6 +51,7 @@ def sample_login_save(request):
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     table = json.loads(request.body.decode('utf-8'))
+    row_number = 0
     unique_sample_ids = []
     unique_bottles = []
     non_unique_bottles = []
@@ -63,7 +64,9 @@ def sample_login_save(request):
     ## PARSE ROWS AND VALIDATE ##
     # analyze each submitted row, parsing sample data and sample bottle data
     for row in table:
-        print("for row in table...")
+        row_number += 1
+        row_message = "for row " + str(row_number) + " in table..."
+        print(row_message)
         print(row)
         # grab the data that uniquely identifies each sample
         this_sample_id = str(row.get('project'))+"|"+str(row.get('site'))+"|"+str(row.get('sample_date_time'))+"|"+str(row.get('depth'))+"|"+str(row.get('replicate'))
@@ -88,7 +91,11 @@ def sample_login_save(request):
                 print("count != 0")
                 this_sample_unique_str = str(this_sample_unique)
                 print(this_sample_unique_str)
-                message = "\"This Sample already exists in the database: " + this_sample_unique_str + "\""
+                r = requests.get(REST_SERVICES_URL+'projects/', params={'id': row.get('project')})
+                project_name = r.json()[0]['name']
+                r = requests.get(REST_SERVICES_URL+'sites/', params={'id': row.get('site')})
+                site_name = r.json()['results'][0]['name']
+                message = "\"Error in row " + str(row_number) + ": This Sample already exists in the database: " + project_name + "|" + site_name + "|" + str(row.get('sample_date_time')) + "|" + str(row.get('depth')) + "|" + str(row.get('replicate')) + "\""
                 print(message)
                 return HttpResponse(message, content_type='text/html')
 
@@ -120,7 +127,13 @@ def sample_login_save(request):
             unique_sample_analyses.append(this_analysis)
         else:
             this_analysis_str = str(this_analysis)
-            message = "\"This Analysis appears more than once in this sample: " + this_analysis_str + "\""
+            r = requests.get(REST_SERVICES_URL+'projects/', params={'id': row.get('project')})
+            project_name = r.json()[0]['name']
+            r = requests.get(REST_SERVICES_URL+'sites/', params={'id': row.get('site')})
+            site_name = r.json()['results'][0]['name']
+            r = requests.get(REST_SERVICES_URL+'constituents/', params={'id': row.get('constituent_type')})
+            constituent_name = r.json()[0]['constituent']
+            message = "\"Error in row " + str(row_number) + ": This Analysis (" + constituent_name + ") appears more than once in this sample: " + project_name + "|" + site_name + "|" + str(row.get('sample_date_time')) + "|" + str(row.get('depth')) + "|" + str(row.get('replicate')) + "\""
             print(message)
             return HttpResponse(message, content_type='text/html')
 
@@ -154,7 +167,7 @@ def sample_login_save(request):
             print(response_data)
             bottle_unique_name = response_data['results'][0]['bottle_unique_name']
             print(bottle_unique_name)
-            message = "\"This Container appears in more than one sample: " + bottle_unique_name + "\""
+            message = "\"Error in row " + str(row_number) + ": This Container appears in more than one sample: " + bottle_unique_name + "\""
             print(message)
             return HttpResponse(message, content_type='text/html')
         else:
@@ -277,6 +290,7 @@ def sample_search_save(request):
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     table = json.loads(request.body.decode('utf-8'))
+    row_number = 0
     unique_sample_ids = []
     sample_data = []
     sample_bottle_data = []
@@ -285,7 +299,9 @@ def sample_search_save(request):
     ## PARSE ROWS AND VALIDATE ##
     # analyze each submitted row, parsing sample data and sample bottle data
     for row in table:
-        print("for row in table...")
+        row_number += 1
+        row_message = "for row " + str(row_number) + " in table..."
+        print(row_message)
         print(row)
         # grab the data that uniquely identifies each sample
         this_sample_id = row.get('sample_bottle.sample.id')
@@ -310,7 +326,11 @@ def sample_search_save(request):
                 print("count == 0")
                 this_sample_unique_str = str(this_sample_unique)
                 print(this_sample_unique_str)
-                message = "\"This Sample does not exist in the database: " + this_sample_unique_str + ". Please use the Sample Login form instead.\""
+                r = requests.get(REST_SERVICES_URL+'projects/', params={'id': row.get('project')})
+                project_name = r.json()[0]['name']
+                r = requests.get(REST_SERVICES_URL+'sites/', params={'id': row.get('site')})
+                site_name = r.json()['results'][0]['name']
+                message = "\"Error in row " + str(row_number) + ": This Sample does not exist in the database: " + project_name + "|" + site_name + "|" + str(row.get('sample_date_time')) + "|" + str(row.get('depth')) + "|" + str(row.get('replicate')) + ". Please use the Sample Login tool to add it.\""
                 print(message)
                 return HttpResponse(message, content_type='text/html')
 
@@ -349,13 +369,15 @@ def sample_search_save(request):
     sample_response_data = []
     # using a loop to send data to the single PUT endpoint instead of just using the bulk PUT endpoint
     # because the bulk PUT response time has been over 30 seconds, sometimes several minutes
+    item_number = 0
     for item in sample_data:
+        item_number += 1
         item = json.dumps(item)
         r = requests.request(method='PUT', url=REST_SERVICES_URL+'samples/', data=item, headers=headers)
         print(r)
         if r.status_code != 200 or r.status_code != 201:
             print("ERROR")
-            message = "\"Encountered an error while attempting to save sample " + item["id"] + ": " + r.status_code + "\""
+            message = "\"Error in row " + str(item_number) + ": Encountered an error while attempting to save sample " + item["id"] + ": " + r.status_code + "\""
             print(message)
             return HttpResponse(message, content_type='text/html')
         else:
@@ -381,13 +403,15 @@ def sample_search_save(request):
     sample_bottle_response_data = []
     # using a loop to send data to the single PUT endpoint instead of just using the bulk PUT endpoint
     # because the bulk PUT response time has been over 30 seconds, sometimes several minutes
+    item_number = 0
     for item in sample_bottle_data:
+        item_number += 1
         item = json.dumps(item)
         r = requests.request(method='PUT', url=REST_SERVICES_URL+'samplebottles/', data=item, headers=headers)
         print(r)
         if r.status_code != 200 or r.status_code != 201:
             print("ERROR")
-            message = "\"Encountered an error while attempting to save sample bottle " + item["id"] + ": " + r.status_code + "\""
+            message = "\"Error in row " + str(item_number) + ": Encountered an error while attempting to save sample bottle in sample " + item["id"] + ": " + r.status_code + "\""
             print(message)
             return HttpResponse(message, content_type='text/html')
         else:
@@ -412,13 +436,15 @@ def sample_search_save(request):
     sample_analysis_response_data = []
     # using a loop to send data to the single PUT endpoint instead of just using the bulk PUT endpoint
     # because the bulk PUT response time has been over 30 seconds, sometimes several minutes
+    item_number = 0
     for item in sample_analysis_data:
+        item_number += 1
         item = json.dumps(item)
         r = requests.request(method='PUT', url=REST_SERVICES_URL+'results/', data=item, headers=headers)
         print(r)
         if r.status_code != 200 or r.status_code != 201:
             print("ERROR")
-            message = "\"Encountered an error while attempting to save sample analysis " + item["id"] + ": " + r.status_code + "\""
+            message = "\"Error in row " + str(item_number) + ": Encountered an error while attempting to save sample analysis " + item["id"] + ": " + r.status_code + "\""
             print(message)
             return HttpResponse(message, content_type='text/html')
         else:
@@ -1005,20 +1031,17 @@ def user_login(request):
             # global USER_AUTH
             # USER_AUTH = (username, password)
             token = eval(r.content)['auth_token']
-            print(token)
+            #print(token)
             request.session['token'] = token
             #request.session['username'] = username
             #request.session['password'] = password
 
             params_dict = {"username": username}
-            print(data)
             headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
             r = requests.request(method='GET', url=REST_SERVICES_URL+'users/', params=params_dict, headers=headers_auth_token)
 
             if r.status_code == 200:
-                print(r.json())
                 user = r.json()[0]
-                print(user)
                 request.session['username'] = user['username']
                 request.session['first_name'] = user['first_name']
                 request.session['last_name'] = user['last_name']
