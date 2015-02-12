@@ -253,16 +253,16 @@ class SampleBottleBrominationViewSet(viewsets.ModelViewSet):
     paginate_by = 100
 
     def get_queryset(self):
-        print(self.request.QUERY_PARAMS)
+        #print(self.request.QUERY_PARAMS)
         queryset = SampleBottleBromination.objects.all()
         bottle = self.request.QUERY_PARAMS.get('bottle', None)
         if bottle is not None:
             bottle_list = bottle.split(',')
             # if query values are IDs
             if bottle_list[0].isdigit():
-                print(bottle_list[0])
+                #print(bottle_list[0])
                 queryset = queryset.filter(sample_bottle__bottle__id__in=bottle_list)
-                print(queryset)
+                #print(queryset)
             # if query values are names
             else:
                 queryset = queryset.filter(sample_bottle__bottle__bottle_unique_name__in=bottle_list)
@@ -358,8 +358,18 @@ class UnitTypeViewSet(viewsets.ModelViewSet):
 
 class MethodTypeViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    queryset = MethodType.objects.all()
+    #queryset = MethodType.objects.all()
     serializer_class = MethodTypeSerializer
+
+    def get_queryset(self):
+        queryset = MethodType.objects.all()
+        constituent = self.request.QUERY_PARAMS.get('constituent', None)
+        if constituent is not None:
+            queryset = queryset.filter(constituents__exact=constituent)
+        id = self.request.QUERY_PARAMS.get('id', None)
+        if id is not None:
+            queryset = queryset.filter(id__exact=id)
+        return queryset
 
 
 class ResultBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkUpdateModelMixin, viewsets.ModelViewSet):
@@ -447,6 +457,18 @@ class ConstituentTypeViewSet(viewsets.ModelViewSet):
     # override the default queryset to allow filtering by URL arguments
     def get_queryset(self):
         queryset = ConstituentType.objects.all()
+        method = self.request.QUERY_PARAMS.get('method', None)
+        if method is not None:
+            # if query value is a Method ID
+            if method.isdigit():
+                # get the Constituents related to this Method ID
+                queryset = queryset.filter(methods__exact=method)
+            # if query value is a Method name
+            else:
+                # lookup the Method ID that matches this Method name
+                id = MethodType.objects.get(method__exact=method)
+                # get the Constituents related to this Medium ID
+                queryset = queryset.filter(methods__exact=id)
         medium = self.request.QUERY_PARAMS.get('medium', None)
         if medium is not None:
             # if query value is a Medium ID
@@ -459,9 +481,15 @@ class ConstituentTypeViewSet(viewsets.ModelViewSet):
                 id = MediumType.objects.get(medium__exact=medium)
                 # get the Constituents related to this Medium ID
                 queryset = queryset.filter(mediums__exact=id)
+        nwis_code = self.request.QUERY_PARAMS.get('nwis_code', None)
+        if nwis_code is not None:
+            queryset = queryset.filter(mediums__nwis_code__exact=nwis_code)
         constituent = self.request.QUERY_PARAMS.get('constituent', None)
         if constituent is not None:
             queryset = queryset.filter(constituent__icontains=constituent)
+        id = self.request.QUERY_PARAMS.get('id', None)
+        if id is not None:
+            queryset = queryset.filter(id__exact=id)
         return queryset
 
 
@@ -674,15 +702,17 @@ class ProcedureTypeViewSet(viewsets.ModelViewSet):
 
 
 class TestReport(generics.ListAPIView):
-    renderer_classes = (PaginatedCSVRenderer, )
+    #renderer_classes = (PaginatedCSVRenderer, )
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     queryset = Result.objects.all()
-    serializer_class = TestResultSerializer
+    serializer_class = TestReportResultSerializer
+    paginate_by = 100
 
-    def list(self, request, *args, **kwargs):
-        resp = super(TestReport, self).list(request, *args, **kwargs)
-        filename = "projects" + "_" + datetime.now().strftime("%Y-%m-%d") + ".csv"
-        headers = {'Content-Disposition': 'attachment; filename=' + filename}
-        return response.Response(resp.data, headers=headers, content_type='text/csv')
+    # def list(self, request, *args, **kwargs):
+    #     resp = super(TestReport, self).list(request, *args, **kwargs)
+    #     filename = "projects" + "_" + datetime.now().strftime("%Y-%m-%d") + ".csv"
+    #     headers = {'Content-Disposition': 'attachment; filename=' + filename}
+    #     return response.Response(resp.data, headers=headers, content_type='text/csv')
 
     # def get(self, request, *args, **kwargs):
     #     #cooperator = request.QUERY_PARAMS.get('cooperator', None)

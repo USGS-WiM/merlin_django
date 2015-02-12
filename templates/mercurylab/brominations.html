@@ -139,8 +139,8 @@
                     columns: [
                         {title: "ID", data: "id", readOnly: true, width: 100},
                         {title: "Concentration", data: "concentration", width: 100},
-                        {title: "Date", data: "created_date", width: 100, dateFormat: 'yy-mm-dd'},
-                        {title: "Comment", data: "comment", width: 100}
+                        {title: "Date", data: "created_date", width: 100, dateFormat: 'mm/dd/y'},
+                        {title: "Comment", data: "comment", width: 200}
                     ],
                     search: true,
                     columnSorting: { column: 0 },
@@ -253,7 +253,7 @@
                         {title: "Unique Bottle Name", data: "sample_bottle.bottle", width: 150},
                         {title: "Event Number", data: "bromination_event", width: 100},
                         {title: "Volume Added (mL)", data: "bromination_volume", width: 150},
-                        {title: "Date", data: "created_date", width: 100, dateFormat: 'yy-mm-dd'}
+                        {title: "Date", data: "created_date", width: 100, dateFormat: 'mm/dd/y'}
                     ]
                 });
                 //grid_samples.data('handsontable').sort(0);
@@ -298,17 +298,17 @@
                 });
 
                 $("#created_date").datepicker({
-                    dateFormat: "yy-mm-dd",
+                    dateFormat: "mm/dd/y",
                     maxDate: 0
                 });
 
                 var date_after = $("#date_after").datepicker({
-                    dateFormat: "yy-mm-dd",
+                    dateFormat: "mm/dd/y",
                     maxDate: 0
                 });
 
                 var date_before = $("#date_before").datepicker({
-                    dateFormat: "yy-mm-dd",
+                    dateFormat: "mm/dd/y",
                     maxDate: 0
                 });
 

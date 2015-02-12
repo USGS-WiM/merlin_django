@@ -132,11 +132,11 @@
                     startRows: 0,
                     data: data_data,
                     columns: [
-                        {title: 'Sample ID', data: 'sample_bottle.sample.id', readOnly: true, width: 1},
+                        {title: 'Sample ID', data: 'sample_bottle.sample.id', readOnly: true, width: 80},
                         {title: 'Project Name', data: 'sample_bottle.sample.project.name', width: 100, type: 'autocomplete', strict: true, source: function (query, process) {
                             getValuesAjax('/mercuryservices/projects', 'name', query, process)}
                         },
-                        {title: 'Project ID', data: 'sample_bottle.sample.project.id', width: 70, type: 'autocomplete', strict: true, source: function (query, process) {
+                        {title: 'Project ID', data: 'sample_bottle.sample.project.id', width: 1, type: 'autocomplete', strict: true, source: function (query, process) {
                             getValuesAjax('/mercuryservices/projects', 'id', query, process)}
                         },
                         {title: 'Site Name', data: 'sample_bottle.sample.site.name', width: 75, type: 'autocomplete', strict: true, source: function (query, process) {
@@ -146,20 +146,20 @@
                             getValuesAjax('/mercuryservices/sites', 'id', query, process, ('project=' + grid.handsontable('getInstance').getDataAtCell(grid.handsontable('getInstance').getSelected()[0], 2)))}
                         },
                         // Date, Hour, and Minute as separate columns is temporary until a single column datetime editor can be found for handsontable
-                        {title: 'Date', data: 'sample_bottle.sample.date', width: 100, type: 'date', dateFormat: 'yy-mm-dd', maxDate: 0},
-                        {title: 'Time', data: 'sample_bottle.sample.time', width: 60, type: 'numeric', validator: validateTime},
+                        {title: 'Date', data: 'sample_bottle.sample.sample_date', width: 100, type: 'date', dateFormat: 'mm/dd/y', maxDate: 0},
+                        {title: 'Time', data: 'sample_bottle.sample.sample_time', width: 60, type: 'numeric', validator: validateTime},
                         //{title: 'Hour', width: 50, type: 'autocomplete', source: getRange(24)},
                         //{title: 'Minute', width: 50, type: 'autocomplete', source: getRange(60)},
-                        {title: 'Depth', data: 'sample_bottle.sample.depth', width: 50, type: 'numeric'},
+                        {title: 'Depth', data: 'sample_bottle.sample.depth', width: 50, type: 'numeric', format: '0.00'},
                         {title: 'Length', data: 'sample_bottle.sample.length', width: 50, type: 'numeric'},
                         {title: 'Rep', data: 'sample_bottle.sample.replicate', width: 50, type: 'numeric'},
                         {title: 'Sample Comments', data: 'sample_bottle.sample.comment', width: 130, type: 'text'},
-                        {title: 'Received', data: 'sample_bottle.sample.received_date', width: 100, type: 'date', dateFormat: 'yy-mm-dd', maxDate: 0},
+                        {title: 'Received', data: 'sample_bottle.sample.received_date', width: 100, type: 'date', dateFormat: 'mm/dd/y', maxDate: 0},
                         {title: 'Lab Processing', data: 'sample_bottle.sample.lab_processing', width: 105, type: 'text'/*, type: 'autocomplete', strict: true, source: getValuesDom(data_processings,"processing")*/},
                         //{title: 'Container ID', width: 100, type: 'text'},
                         {title: 'Container ID', data: 'sample_bottle.bottle.bottle_unique_name', width: 90, type: 'autocomplete', strict: true,  source: function (query, process) {
                             getValuesAjax('/mercuryservices/bottles', 'name', query, process)}},
-                        {title: 'Medium', data: 'sample_bottle.sample.medium_type', width: 100, type: 'autocomplete', strict: true, source: getValuesDom(data_mediums,"medium")},
+                        {title: 'Medium', data: 'sample_bottle.sample.medium_type', width: 100, type: 'autocomplete', strict: true, source: getValuesDom(data_mediums,"nwis_code")},
                         {title: 'Analysis', data: 'constituent', width: 70, type: 'autocomplete', strict: true},
                         {title: 'Isotope', data: 'isotope_flag', width: 55, type: 'dropdown', source: data_isotopeflags},
                         {title: 'Filter', data: 'sample_bottle.filter_type', width: 100, type: 'autocomplete', strict: true, source: getValuesDom(data_filters,"filter")},
@@ -281,7 +281,7 @@
                                     url: '/mercuryservices/constituents/',
                                     dataType: 'json',
                                     data: {
-                                        medium: changedVal
+                                        nwis_code: changedVal
                                     },
                                     success: function (response) {
                                         grid_console.text("success");
@@ -411,12 +411,12 @@
                 }
 
                 var date_after = $("#date_after").datepicker({
-                    dateFormat: "yy-mm-dd",
+                    dateFormat: "mm/dd/y",
                     maxDate: 0
                 });
 
                 var date_before = $("#date_before").datepicker({
-                    dateFormat: "yy-mm-dd",
+                    dateFormat: "mm/dd/y",
                     maxDate: 0
                 });
 
@@ -438,7 +438,6 @@
                     thisDataObject['date_after'] = $(date_after).val();
                     thisDataObject['date_before'] = $(date_before).val();
                     var dataJSON = JSON.stringify(thisDataObject);
-                    //alert(dataJSON);
                     $.ajax({
                         url: '/mercurylab/sample_search/search',
                         data: dataJSON,
@@ -574,7 +573,10 @@
                                                     newValue = "00:00";
                                                     break;
                                             }
-                                            thisDataObject[objectFields[i]] = thisDataRow[i-1]+" "+newValue+":00";
+                                            var baddate_sample = thisDataRow[i - 1];
+                                            var gooddate_sample = "20" + baddate_sample.substr(6,4) + "-" + baddate_sample.substr(0,2) + "-" + baddate_sample.substr(3,2);
+                                            thisDataObject[objectFields[i]] = gooddate_sample + " " + newValue + ":00";
+                                            //thisDataObject[objectFields[i]] = thisDataRow[i-1]+" "+newValue+":00";
                                         }
                                         break;
                                     case 11: // received date
@@ -594,7 +596,7 @@
                                     case 14: // medium
                                         // if it doesn't have a value, notify the user that this is a required field, and stop the submission
                                         if (!thisDataRow[i]) {grid_console.text('Medium is required!'); validTable = false; return false;}
-                                        thisDataObject[objectFields[i]] = getIdDom(data_mediums,'medium',thisDataRow[i]);
+                                        thisDataObject[objectFields[i]] = getIdDom(data_mediums,'nwis_code',thisDataRow[i]);
                                         break;
                                     case 15: // constituent
                                         // if it doesn't have a value, notify the user that this is a required field, and stop the submission
