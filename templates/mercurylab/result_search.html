@@ -224,12 +224,8 @@
                     thisDataObject['bottle'] = $(select_bottle).val();
                     thisDataObject['project'] = $(select_project).val();
                     thisDataObject['site'] = $(select_site).val();//.slice(0, -1);
-                    var baddate_after = $(date_after).val();
-                    var gooddate_after = "20" + baddate_after.substr(6,4) + "-" + baddate_after.substr(0,2) + "-" + baddate_after.substr(3,2);
-                    thisDataObject['date_after'] = (gooddate_after == "20--" ? null : gooddate_after);
-                    var baddate_before = $(date_before).val();
-                    var gooddate_before = "20" + baddate_before.substr(6,4) + "-" + baddate_before.substr(0,2) + "-" + baddate_before.substr(3,2);
-                    thisDataObject['date_before'] = (gooddate_before == "20--" ? null : gooddate_before);
+                    thisDataObject['date_after'] = $(date_after).val();
+                    thisDataObject['date_before'] = $(date_before).val();
                     thisDataObject['constituent'] = $(select_constituent).val();
                     var dataJSON = JSON.stringify(thisDataObject);
                     $.ajax({

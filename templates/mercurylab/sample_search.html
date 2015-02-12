@@ -435,12 +435,8 @@
                     thisDataObject['site'] = $(select_site).val();//.slice(0, -1);
                     thisDataObject['depth'] = $("#select_depth").val();
                     thisDataObject['replicate'] = $("#select_replicate").val();
-                    var baddate_after = $(date_after).val();
-                    var gooddate_after = "20" + baddate_after.substr(6,4) + "-" + baddate_after.substr(0,2) + "-" + baddate_after.substr(3,2);
-                    thisDataObject['date_after'] = (gooddate_after == "20--" ? null : gooddate_after);
-                    var baddate_before = $(date_before).val();
-                    var gooddate_before = "20" + baddate_before.substr(6,4) + "-" + baddate_before.substr(0,2) + "-" + baddate_before.substr(3,2);
-                    thisDataObject['date_before'] = (gooddate_before == "20--" ? null : gooddate_before);
+                    thisDataObject['date_after'] = $(date_after).val();
+                    thisDataObject['date_before'] = $(date_before).val();
                     var dataJSON = JSON.stringify(thisDataObject);
                     $.ajax({
                         url: '/mercurylab/sample_search/search',
@@ -577,7 +573,10 @@
                                                     newValue = "00:00";
                                                     break;
                                             }
-                                            thisDataObject[objectFields[i]] = thisDataRow[i-1]+" "+newValue+":00";
+                                            var baddate_sample = thisDataRow[i - 1];
+                                            var gooddate_sample = "20" + baddate_sample.substr(6,4) + "-" + baddate_sample.substr(0,2) + "-" + baddate_sample.substr(3,2);
+                                            thisDataObject[objectFields[i]] = gooddate_sample + " " + newValue + ":00";
+                                            //thisDataObject[objectFields[i]] = thisDataRow[i-1]+" "+newValue+":00";
                                         }
                                         break;
                                     case 11: // received date

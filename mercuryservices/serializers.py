@@ -40,7 +40,7 @@ class SiteSerializer(serializers.ModelSerializer):
 
 
 class BottleSerializer(serializers.ModelSerializer):
-    created_date = serializers.DateTimeField(format='%Y-%m-%d', source='created_date')
+    created_date = serializers.DateTimeField(format='%m/%d/%y', source='created_date')
     bottle_type = serializers.RelatedField(source='bottle_type')
 
     class Meta:
@@ -56,9 +56,9 @@ class BottleTypeSerializer(serializers.ModelSerializer):
 
 
 class SampleSerializer(serializers.ModelSerializer):
-    sample_date = serializers.DateTimeField(format='%Y-%m-%d', source='sample_date_time')
+    sample_date = serializers.DateTimeField(format='%m/%d/%y', source='sample_date_time')
     sample_time = serializers.DateTimeField(format='%H%M', source='sample_date_time')
-    received_date = serializers.DateTimeField(format='%Y-%m-%d', source='received_date')
+    received_date = serializers.DateTimeField(format='%m/%d/%y', source='received_date')
     project = ProjectSerializer(source='project')
     site = SiteSerializer(source='site')
     medium_type = serializers.RelatedField(source='medium_type')
@@ -82,7 +82,7 @@ class SampleBottleSerializer(serializers.ModelSerializer):
 
 class SampleBottleBrominationSerializer(serializers.ModelSerializer):
     sample_bottle = SampleBottleSerializer(source='sample_bottle')
-    created_date = serializers.DateTimeField(format='%Y-%m-%d', source='created_date')
+    created_date = serializers.DateTimeField(format='%m/%d/%y', source='created_date')
 
     class Meta:
         model = SampleBottleBromination
@@ -188,7 +188,7 @@ class IsotopeFlagSerializer(serializers.ModelSerializer):
 
 
 class AcidSerializer(serializers.ModelSerializer):
-    created_date = serializers.DateTimeField(format='%Y-%m-%d', source='created_date')
+    created_date = serializers.DateTimeField(format='%m/%d/%y', source='created_date')
 
     class Meta:
         model = Acid
@@ -196,7 +196,7 @@ class AcidSerializer(serializers.ModelSerializer):
 
 
 class BlankWaterSerializer(serializers.ModelSerializer):
-    created_date = serializers.DateTimeField(format='%Y-%m-%d', source='created_date')
+    created_date = serializers.DateTimeField(format='%m/%d/%y', source='created_date')
 
     class Meta:
         model = BlankWater
@@ -204,7 +204,7 @@ class BlankWaterSerializer(serializers.ModelSerializer):
 
 
 class BrominationSerializer(serializers.ModelSerializer):
-    created_date = serializers.DateTimeField(format='%Y-%m-%d', source='created_date')
+    created_date = serializers.DateTimeField(format='%m/%d/%y', source='created_date')
 
     class Meta:
         model = Bromination
@@ -336,7 +336,7 @@ class MethodTypeSerializer(serializers.ModelSerializer):
 
 
 class FullResultSerializer(serializers.ModelSerializer):
-    analyzed_date = serializers.DateTimeField(format='%Y-%m-%d', source='analyzed_date')
+    analyzed_date = serializers.DateTimeField(format='%m/%d/%y', source='analyzed_date')
     sample_bottle = FullSampleBottleSerializer(source='sample_bottle')
     constituent = serializers.RelatedField(source='constituent')
     isotope_flag = serializers.RelatedField(source='isotope_flag')
@@ -348,7 +348,7 @@ class FullResultSerializer(serializers.ModelSerializer):
 
 
 class ResultSerializer(serializers.ModelSerializer):
-    analyzed_date = serializers.DateTimeField(format='%Y-%m-%d', source='analyzed_date')
+    analyzed_date = serializers.DateTimeField(format='%m/%d/%y', source='analyzed_date')
     sample_bottle = serializers.RelatedField(source='sample_bottle')
     constituent = serializers.RelatedField(source='constituent')
     isotope_flag = serializers.RelatedField(source='isotope_flag')
@@ -367,7 +367,7 @@ class ResultSerializer(serializers.ModelSerializer):
 
 
 class TestReportResultSerializer(serializers.ModelSerializer):
-    analyzed_date = serializers.DateTimeField(format='%Y-%m-%d', source='analyzed_date')
+    analyzed_date = serializers.DateTimeField(format='%m/%d/%y', source='analyzed_date')
     sample_bottle = serializers.RelatedField(source='sample_bottle')
     constituent = serializers.RelatedField(source='constituent')
     isotope_flag = serializers.RelatedField(source='isotope_flag')

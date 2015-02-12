@@ -185,7 +185,7 @@
                         {title: "Bottle Prefix", editor: 'text', width: 100},
                         {title: "Suffix", width: 60},
                         {title: "Bottle Unique Name", type: 'text', width: 160},
-                        {title: "Date", type: 'date', dateFormat: 'yy-mm-dd', width: 100},
+                        {title: "Date", type: 'date', dateFormat: 'mm/dd/y', width: 100},
                         {title: "Tare Weight", type: 'numeric', format: '0.00', width: 100},
                         {title: "Bottle Type", type: 'autocomplete', strict: true, source: getValuesDom(data_bottle_types,"bottle_type"), width: 240},
                         {title: "Description", type: 'text', width: 240}
@@ -414,12 +414,12 @@
                 });
 
                 $("#date_bottle").datepicker({
-                    dateFormat: "yy-mm-dd",
+                    dateFormat: "mm/dd/y",
                     maxDate: 0
                 });
 
                 $("#date_bottle_range").datepicker({
-                    dateFormat: "yy-mm-dd",
+                    dateFormat: "mm/dd/y",
                     maxDate: 0
                 });
 
@@ -447,10 +447,10 @@
                     columns: [
                         {title: "ID", data: "id", readOnly: true, width: 1},
                         {title: "Unique Bottle Name", data: "bottle_unique_name", width: 150},
-                        {title: "Date", data: "created_date", width: 100, dateFormat: 'yy-mm-dd'},
-                        {title: "Description", data: "description", width: 350},
+                        {title: "Date", data: "created_date", width: 100, dateFormat: 'mm/dd/y'},
                         {title: "Tare Weight", data: "tare_weight", width: 100},
-                        {title: "Bottle Type", data: "bottle_type", width: 100}
+                        {title: "Bottle Type", data: "bottle_type", width: 100},
+                        {title: "Description", data: "description", width: 350}
                     ],
                     search: true,
                     columnSorting: { column: 0 },

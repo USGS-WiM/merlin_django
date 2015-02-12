@@ -253,16 +253,16 @@ class SampleBottleBrominationViewSet(viewsets.ModelViewSet):
     paginate_by = 100
 
     def get_queryset(self):
-        print(self.request.QUERY_PARAMS)
+        #print(self.request.QUERY_PARAMS)
         queryset = SampleBottleBromination.objects.all()
         bottle = self.request.QUERY_PARAMS.get('bottle', None)
         if bottle is not None:
             bottle_list = bottle.split(',')
             # if query values are IDs
             if bottle_list[0].isdigit():
-                print(bottle_list[0])
+                #print(bottle_list[0])
                 queryset = queryset.filter(sample_bottle__bottle__id__in=bottle_list)
-                print(queryset)
+                #print(queryset)
             # if query values are names
             else:
                 queryset = queryset.filter(sample_bottle__bottle__bottle_unique_name__in=bottle_list)

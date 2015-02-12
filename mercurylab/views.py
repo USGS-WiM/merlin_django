@@ -1,5 +1,6 @@
 import json
 import requests
+from datetime import datetime
 from itertools import chain
 from collections import Counter
 from django.http import HttpResponse, HttpResponseRedirect
@@ -251,9 +252,9 @@ def sample_search(request):
         if params['replicate']:
             params_dict["replicate"] = str(params['replicate']).strip('[]')
         if params['date_after']:
-            params_dict["date_after"] = str(params['date_after']).strip('[]')
+            params_dict["date_after"] = datetime.strptime(str(params['date_after']).strip('[]'), '%m/%d/%y').strftime('%Y-%m-%d')
         if params['date_before']:
-            params_dict["date_before"] = str(params['date_before']).strip('[]')
+            params_dict["date_before"] = datetime.strptime(str(params['date_before']).strip('[]'), '%m/%d/%y').strftime('%Y-%m-%d')
         #print(params_dict)
 
         # r = requests.request(method='GET', url=REST_SERVICES_URL+'samples/', params=d, headers=headers_auth_token, headers=HEADERS_CONTENT_JSON)
@@ -473,9 +474,9 @@ def result_search(request):
         if params['constituent']:
             params_dict["constituent"] = str(params['constituent']).strip('[]')
         if params['date_after']:
-            params_dict["date_after"] = str(params['date_after']).strip('[]')
+            params_dict["date_after"] = datetime.strptime(str(params['date_after']).strip('[]'), '%m/%d/%y').strftime('%Y-%m-%d')
         if params['date_before']:
-            params_dict["date_before"] = str(params['date_before']).strip('[]')
+            params_dict["date_before"] = datetime.strptime(str(params['date_before']).strip('[]'), '%m/%d/%y').strftime('%Y-%m-%d')
 
         r = requests.request(method='GET', url=REST_SERVICES_URL+'fullresults/', params=params_dict, headers=headers)
         r_dict = r.json()
@@ -506,9 +507,9 @@ def result_search_cooperators(request):
         if params['project']:
             params_dict["project"] = str(params['project']).strip('[]').replace(', ', ',')
         if params['date_after']:
-            params_dict["date_after"] = str(params['date_after']).strip('[]')
+            params_dict["date_after"] = datetime.strptime(str(params['date_after']).strip('[]'), '%m/%d/%y').strftime('%Y-%m-%d')
         if params['date_before']:
-            params_dict["date_before"] = str(params['date_before']).strip('[]')
+            params_dict["date_before"] = datetime.strptime(str(params['date_before']).strip('[]'), '%m/%d/%y').strftime('%Y-%m-%d')
 
         r = requests.request(method='GET', url=REST_SERVICES_URL+'fullresults/', params=params_dict, headers=headers)
         r_dict = r.json()
@@ -688,9 +689,9 @@ def samplebottlebromination_search(request):
         if params['bottle']:
             params_dict["bottle"] = str(params['bottle']).strip('[]').replace(', ', ',')
         if params['date_after']:
-            params_dict["date_after"] = str(params['date_after']).strip('[]')
+            params_dict["date_after"] = datetime.strptime(str(params['date_after']).strip('[]'), '%m/%d/%y').strftime('%Y-%m-%d')
         if params['date_before']:
-            params_dict["date_before"] = str(params['date_before']).strip('[]')
+            params_dict["date_before"] = datetime.strptime(str(params['date_before']).strip('[]'), '%m/%d/%y').strftime('%Y-%m-%d')
         print(params_dict)
 
         r = requests.request(method='GET', url=REST_SERVICES_URL+'samplebottlebrominations/', params=params_dict, headers=headers)

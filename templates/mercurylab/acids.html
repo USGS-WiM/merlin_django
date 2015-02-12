@@ -88,7 +88,7 @@
                         {title: "ID", data: "id", readOnly: true, width: 1},
                         {title: "Code", data: "code", width: 120},
                         {title: "Concentration", data: "concentration", width: 120},
-                        {title: "Date", data: "created_date", width: 300, dateFormat: 'yy-mm-dd'},
+                        {title: "Date", data: "created_date", width: 100, dateFormat: 'mm/dd/y'},
                         {title: "Comment", data: "comment", width: 300}
                     ],
                     search: true,
@@ -123,7 +123,7 @@
                 grid_console.text('Data loaded.');
 
                 $("#created_date").datepicker({
-                    dateFormat: "yy-mm-dd",
+                    dateFormat: "mm/dd/y",
                     maxDate: 0
                 });
 

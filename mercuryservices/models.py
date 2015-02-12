@@ -88,7 +88,7 @@ class Bottle(models.Model):
     bottle_type = models.ForeignKey('BottleType')
     description = models.TextField(blank=True)
     created_date = models.DateField(default=datetime.now, blank=True)
-    modified_date = models.DateField(default=datetime.now, blank=True)
+    modified_date = models.DateField(auto_now=True)
     status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
@@ -169,7 +169,7 @@ class Sample(models.Model):
     lab_processing = models.ForeignKey('ProcessingType', null=True, blank=True)
     medium_type = models.ForeignKey('MediumType')
     created_date = models.DateField(default=datetime.now, blank=True)
-    modified_date = models.DateField(default=datetime.now, blank=True)
+    modified_date = models.DateField(auto_now=True)
     status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
@@ -188,7 +188,7 @@ class SampleBottle(models.Model):
     preservation_acid = models.ForeignKey('Acid', null=True, blank=True)
     preservation_comment = models.TextField(blank=True)
     created_date = models.DateField(default=datetime.now, blank=True)
-    modified_date = models.DateField(default=datetime.now, blank=True)
+    modified_date = models.DateField(auto_now=True)
     status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
@@ -215,7 +215,7 @@ class SampleBottleBromination(models.Model):
     bromination_event = models.IntegerField(null=True, blank=True)
     bromination_volume = models.FloatField(null=True, blank=True)
     created_date = models.DateField(default=datetime.now, blank=True)
-    modified_date = models.DateField(default=datetime.now, blank=True)
+    modified_date = models.DateField(auto_now=True)
     status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
@@ -281,7 +281,7 @@ class Result(models.Model):
     analyzed_date = models.DateField(null=True, blank=True)
     analysis_comment = models.TextField(blank=True)
     created_date = models.DateField(default=datetime.now, blank=True)
-    modified_date = models.DateField(default=datetime.now, blank=True)
+    modified_date = models.DateField(auto_now=True)
     ##
     # ****placeholder for legacy data fields****
     ##
@@ -400,7 +400,7 @@ class Acid(models.Model):
     concentration = models.FloatField(default=-999)
     comment = models.TextField(blank=True)
     created_date = models.DateField(default=datetime.now, blank=True)
-    modified_date = models.DateField(default=datetime.now, blank=True)
+    modified_date = models.DateField(auto_now=True)
     status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
@@ -414,7 +414,7 @@ class BlankWater(models.Model):
     concentration = models.FloatField(default=-999)
     comment = models.TextField(blank=True)
     created_date = models.DateField(default=datetime.now, blank=True)
-    modified_date = models.DateField(default=datetime.now, blank=True)
+    modified_date = models.DateField(auto_now=True)
     status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
@@ -427,7 +427,7 @@ class Bromination(models.Model):
     concentration = models.FloatField()
     comment = models.TextField(blank=True)
     created_date = models.DateField(default=datetime.now, blank=True)
-    modified_date = models.DateField(default=datetime.now, blank=True)
+    modified_date = models.DateField(auto_now=True)
     status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):

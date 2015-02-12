@@ -506,6 +506,7 @@
                                             var baddate_sample = thisDataRow[i - 1];
                                             var gooddate_sample = "20" + baddate_sample.substr(6,4) + "-" + baddate_sample.substr(0,2) + "-" + baddate_sample.substr(3,2);
                                             thisDataObject[objectFields[i]] = gooddate_sample + " " + newValue + ":00";
+                                            //thisDataObject[objectFields[i]] = thisDataRow[i-1]+" "+newValue+":00";
                                         }
                                         break;
                                     case 8: // bottle
