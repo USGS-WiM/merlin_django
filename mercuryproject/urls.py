@@ -8,4 +8,5 @@ urlpatterns = patterns('',
     url(r'^mercuryauth/', include('djoser.urls', namespace="mercuryauth")),
     url(r'^mercurydocs/', include('rest_framework_swagger.urls')),
     url(r'^mercurylab/', include('mercurylab.urls', namespace="mercurylab")),
+    url(r'^mercurybatchupload/', include('mercurybatchupload.urls', namespace="mercurybatchupload")),
 )
