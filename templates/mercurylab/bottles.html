@@ -176,7 +176,11 @@
                 var grid_bottles_add = $('#grid_bottles_add');
                 var data_bottle_types = JSON.parse(grid_bottles_add.attr("data-bottle-types"));
                 var changedRowIndicesBottlesAdd = [];
-                var dateToday = new Date().toISOString().split("T")[0];
+                var dateTodayRaw = new Date(); //toISOString().split("T")[0];
+                var yearToday = dateTodayRaw.getFullYear().toString();
+                var monthToday = (dateTodayRaw.getMonth() + 1).toString();
+                var dayToday = dateTodayRaw.getDate().toString();
+                var dateToday = (monthToday.length < 2 ? ("0" + monthToday) : monthToday) + "/" + (dayToday.length < 2 ? ("0" + dayToday) : dayToday) + "/" + yearToday.substr(2,2);
                 var grid_bottles_add_options = {
                     contextMenu: false,
                     search: true,
@@ -243,7 +247,14 @@
                                     newVal = (prefix != null ? prefix : "") + changedVal;
                                 }
                                 grid_bottles_add.handsontable('setDataAtCell', changedRow, 2, newVal);
-                                grid_bottles_add.handsontable('setDataAtCell', changedRow, 3, dateToday);
+                                if (changedRow != 0) {
+                                    var datePrevRow = grid_bottles_add.handsontable('getDataAtCell', changedRow - 1, 3);
+                                    if (datePrevRow !== null) {
+                                        grid_bottles_add.handsontable('setDataAtCell', changedRow, 3, datePrevRow);
+                                    }
+                                    else {grid_bottles_add.handsontable('setDataAtCell', changedRow, 3, dateToday);}
+                                }
+                                else {grid_bottles_add.handsontable('setDataAtCell', changedRow, 3, dateToday);}
                             }
                             /*if (source == 'autofill') {
                                 var newVal = "1";
@@ -294,6 +305,20 @@
                                     break;
                                 case 1: // suffix
                                     break;
+                                case 3: //date
+                                    var baddate = thisDataRow[i];
+                                    //var gooddate = "20" + baddate.substr(6,4) + "-" + baddate.substr(0,2) + "-" + baddate.substr(3,2);
+                                    //thisDataObject[objectFields[i]] = gooddate;
+                                    if (dateRegEx.test(baddate)) {
+                                        var gooddate;
+                                        if (makeYear(baddate)!= null && makeMonth(baddate)!= null && makeDay(baddate) != null) {
+                                            gooddate = makeYear(baddate) + "-" + makeMonth(baddate) + "-" + makeDay(baddate);
+                                            thisDataObject[objectFields[i]] = gooddate;
+                                        }
+                                        else {grid_console.text('There is a problem with the Date in row ' + (index + 1) + '. Please contact the administrator.'); return false;}
+                                    }
+                                    else {grid_console.text('Date is badly formed in row ' + (index + 1) + '. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); return false;}
+                                    break;
                                 case 5: // bottle type
                                     thisDataObject[objectFieldsAdd[i]] = getIdDom(data_bottle_types,'bottle_type',thisDataRow[i]);
                                     break;
@@ -340,7 +365,17 @@
                 form_bottle_add.find('button[name=bottleAddOK]').click(function() {
                     var thisDataObject = {};
                     thisDataObject['bottle_unique_name'] = form_bottle_add.find('input[name=bottle_unique_name]').val();
-                    thisDataObject['created_date'] = form_bottle_add.find('input[name=date_bottle]').val();
+                    var baddate = form_bottle_add.find('input[name=date_bottle]').val();
+                    //var gooddate = "20" + baddate.substr(6,4) + "-" + baddate.substr(0,2) + "-" + baddate.substr(3,2);
+                    if (dateRegEx.test(baddate)) {
+                        var gooddate;
+                        if (makeYear(baddate)!= null && makeMonth(baddate)!= null && makeDay(baddate) != null) {
+                            gooddate = makeYear(baddate) + "-" + makeMonth(baddate) + "-" + makeDay(baddate);
+                            thisDataObject['created_date'] = gooddate;
+                        }
+                        else {grid_console.text('There is a problem with the Date. Please contact the administrator.'); return false;}
+                    }
+                    else {grid_console.text('Date is badly formed. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); return false;}
                     thisDataObject['tare_weight'] = Number(form_bottle_add.find('input[name=tare_weight]').val());
                     thisDataObject['bottle_type'] = select_bottle_type.val();
                     thisDataObject['description'] = form_bottle_add.find('input[name=description]').val();
@@ -380,7 +415,17 @@
                     thisDataObject['suffix'] = form_range_add.find('input[name=bottle_suffix]').val();
                     thisDataObject['range_start'] = form_range_add.find('input[name=bottle_range_start]').val();
                     thisDataObject['range_end'] = form_range_add.find('input[name=bottle_range_end]').val();
-                    thisDataObject['created_date'] = form_range_add.find('input[name=date_bottle_range]').val();
+                    var baddate = form_range_add.find('input[name=date_bottle_range]').val();
+                    //var gooddate = "20" + baddate.substr(6,4) + "-" + baddate.substr(0,2) + "-" + baddate.substr(3,2);
+                    if (dateRegEx.test(baddate)) {
+                        var gooddate;
+                        if (makeYear(baddate)!= null && makeMonth(baddate)!= null && makeDay(baddate) != null) {
+                            gooddate = makeYear(baddate) + "-" + makeMonth(baddate) + "-" + makeDay(baddate);
+                            thisDataObject['created_date'] = gooddate;
+                        }
+                        else {grid_console.text('There is a problem with the Date. Please contact the administrator.'); return false;}
+                    }
+                    else {grid_console.text('Date is badly formed. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); return false;}
                     thisDataObject['tare_weight'] = Number(form_range_add.find('input[name=tare_weight]').val());
                     thisDataObject['bottle_type'] = select_bottle_type_range.val();
                     thisDataObject['description'] = form_range_add.find('input[name=description]').val();
@@ -651,7 +696,19 @@
                         var thisDataRow = grid_bottles.data('handsontable').getDataAtRow(value);
                         var thisDataObject = {};
                         for (var i = 0; i < thisDataRow.length; i++) {
-                            thisDataObject[objectFields[i]] = thisDataRow[i];
+                            if (thisDataObject[objectFields[i]] == 'created_date') {
+                                var baddate = thisDataRow[i];
+                                if (dateRegEx.test(baddate)) {
+                                    var gooddate;
+                                    if (makeYear(baddate)!= null && makeMonth(baddate)!= null && makeDay(baddate) != null) {
+                                        gooddate = makeYear(baddate) + "-" + makeMonth(baddate) + "-" + makeDay(baddate);
+                                        thisDataObject[objectFields[i]] = gooddate;
+                                    }
+                                    else {grid_console.text('There is a problem with the Date in row ' + (index + 1) + '. Please contact the administrator.'); return false;}
+                                }
+                                else {grid_console.text('Date is badly formed in row ' + (index + 1) + '. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); return false;}
+                            }
+                            else {thisDataObject[objectFields[i]] = thisDataRow[i];}
                         }
                         changedDataArray.push(thisDataObject);
                     });

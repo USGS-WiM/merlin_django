@@ -577,6 +577,7 @@ def bottle_add(request):
     headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     data = request.body
     r = requests.request(method='POST', url=REST_SERVICES_URL+'bulkbottles/', data=data, headers=headers)
+    # check for status code
     return HttpResponse(r, content_type='application/json')
 
 
@@ -608,7 +609,7 @@ def bottle_range_add(request):
     new_bottles = []
     for i in range(start, end+1, 1):
         new_name = params['prefix'] + str(i).rjust(digits, '0') + params['suffix']
-        new_bottle = {'bottle_unique_name': new_name, 'description': params['description'], 'tare_weight': float(params['tare_weight']), 'bottle_type': int(params['bottle_type']), 'time_stamp': params['time_stamp']}
+        new_bottle = {'bottle_unique_name': new_name, 'description': params['description'], 'tare_weight': float(params['tare_weight']), 'bottle_type': int(params['bottle_type']), 'created_date': params['created_date']}
         new_bottles.append(new_bottle)
     new_bottles = json.dumps(new_bottles)
     r = requests.request(method='POST', url=REST_SERVICES_URL+'bulkbottles/', data=new_bottles, headers=headers)

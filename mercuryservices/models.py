@@ -94,6 +94,9 @@ class Bottle(models.Model):
     def __str__(self):
         return self.bottle_unique_name
 
+    class Meta:
+        ordering = ['-created_date']
+
 
 class BottleType(models.Model):
     """Type of bottle (1L Teflon, 250mL Teflon, Glass Jar, etc.)."""
@@ -181,7 +184,7 @@ class SampleBottle(models.Model):
 
     sample = models.ForeignKey('Sample', related_name='sample_bottles')
     bottle = models.ForeignKey('Bottle')
-    filter_type = models.ForeignKey('FilterType')
+    filter_type = models.ForeignKey('FilterType', null=True, blank=True)
     volume_filtered = models.FloatField(null=True, blank=True)
     preservation_type = models.ForeignKey('PreservationType')
     preservation_volume = models.FloatField(null=True, blank=True)
@@ -249,7 +252,8 @@ class MethodType(models.Model):
     method = models.CharField(max_length=128)
     preparation = models.CharField(max_length=128, blank=True)
     description = models.TextField(blank=True)
-    method_detection_limit = models.CharField(max_length=128)
+    #method_detection_limit = models.CharField(max_length=128)
+    method_detection_limit = models.FloatField(null=True, blank=True)
     method_detection_limit_unit = models.ForeignKey('UnitType', null=True, related_name='mdl_unit')
     raw_value_unit = models.ForeignKey('UnitType', null=True, related_name='raw_unit')
     final_value_unit = models.ForeignKey('UnitType', null=True, related_name='final_unit')
@@ -406,6 +410,9 @@ class Acid(models.Model):
     def __str__(self):
         return self.code
 
+    class Meta:
+        ordering = ['-created_date']
+
 
 class BlankWater(models.Model):
     """Water that has none of the chemicals being analyzed."""
@@ -419,6 +426,9 @@ class BlankWater(models.Model):
 
     def __str__(self):
         return self.lot_number
+
+    class Meta:
+        ordering = ['-created_date']
 
 
 class Bromination(models.Model):

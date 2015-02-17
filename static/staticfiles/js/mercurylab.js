@@ -1,3 +1,25 @@
+var dateRegEx = /^(0[1-9]|1[012]|[1-9])[- /.](0[1-9]|[12][0-9]|3[01]|[1-9])[- /.]\d\d$/;
+function makeYear(thisDate) {
+    var indexLastSlash = thisDate.lastIndexOf('/');
+    var thisYear = thisDate.substring(indexLastSlash+1,thisDate.length);
+    if (thisYear.length == 2) {return "20" + thisYear;}
+    else {return null;}
+}
+function makeMonth(thisDate) {
+    var indexFirstSlash = thisDate.indexOf('/');
+    var thisMonth = thisDate.substring(0,indexFirstSlash);
+    if (thisMonth.length == 2) {return thisMonth;}
+    else if (thisMonth.length == 1) {return "0" + thisMonth;}
+    else {return null;}
+}
+function makeDay(thisDate) {
+    var indexFirstSlash = thisDate.indexOf('/');
+    var indexLastSlash = thisDate.lastIndexOf('/');
+    var thisDay = thisDate.substring(indexFirstSlash+1, indexLastSlash);
+    if (thisDay.length == 2) {return thisDay;}
+    else if (thisDay.length == 1) {return "0" + thisDay;}
+    else {return null;}
+}
 function getRange(limit) {
     var values = [];
     for (var i = 0; i < limit; i++){
@@ -113,95 +135,3 @@ function updateListDom(domDataObject, newKey, changedRow, colToChange) {
     var cellProperties = grid.handsontable('getInstance').getCellMeta(changedRow, colToChange);
     cellProperties.source = values;
 }
-
-
-
-// custom combobox JS using jQueryUI Autocomplete, source code found here: http://jqueryui.com/autocomplete/#combobox
-var combobox = $.widget( "custom.combobox", {
-    options: {
-      source: null
-    },
-
-    _create: function() {
-        this.wrapper = $( "<span>" )
-            .addClass( "custom-combobox" )
-            .insertAfter( this.element );
-
-        this.element.hide();
-        this._createAutocomplete();
-    },
-
-    _createAutocomplete: function() {
-        var selected = this.element.children( ":selected" ),
-            value = selected.val() ? selected.text() : "";
-
-        this.input = $( "<input>" )
-            .appendTo( this.wrapper )
-            .val( value )
-            .attr( "title", "" )
-            .addClass( "custom-combobox-input ui-widget ui-widget-content ui-state-default ui-corner-left" )
-            .autocomplete({
-                delay: 0,
-                minLength: 0,
-                source: $.proxy( this, "_source" )
-            })
-            .tooltip({
-                tooltipClass: "ui-state-highlight"
-            });
-
-        this._on( this.input, {
-            autocompleteselect: function (event, ui) {
-                ui.item.option.selected = true;
-                this._trigger("select", event, {
-                    item: ui.item.option
-                });
-            },
-            autocompletechange: "_removeIfInvalid"
-        });
-
-    },
-
-    _source: function() {
-        return this.options.source;
-    },
-
-    _removeIfInvalid: function( event, ui ) {
-
-        // Selected an item, nothing to do
-        if ( ui.item ) {
-            return;
-        }
-
-        // Search for a match (case-insensitive)
-        var value = this.input.val(),
-            valueLowerCase = value.toLowerCase(),
-            valid = false;
-        this.element.children( "option" ).each(function() {
-            if ( $( this ).text().toLowerCase() === valueLowerCase ) {
-                this.selected = valid = true;
-                return false;
-            }
-        });
-
-        // Found a match, nothing to do
-        if ( valid ) {
-            return;
-        }
-
-        // Remove invalid value
-        this.input
-            .val( "" )
-            .attr( "title", value + " didn't match any item" )
-            .tooltip( "open" );
-        this.element.val( "" );
-        this._delay(function() {
-            this.input.tooltip( "close" ).attr( "title", "" );
-        }, 2500 );
-        this.input.autocomplete( "instance" ).term = "";
-    },
-
-    _destroy: function() {
-        this.wrapper.remove();
-        this.element.show();
-    }
-});

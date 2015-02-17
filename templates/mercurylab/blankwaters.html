@@ -133,7 +133,17 @@
                     thisDataObject['lot_number'] = form_add.find('input[name=lot_number]').val();
                     thisDataObject['concentration'] = Number(form_add.find('input[name=concentration]').val());
                     thisDataObject['comment'] = form_add.find('input[name=comment]').val();
-                    thisDataObject['created_date'] = form_add.find('input[name=created_date]').val();
+                    //thisDataObject['created_date'] = form_add.find('input[name=created_date]').val();
+                    var baddate = form_add.find('input[name=created_date]').val();
+                    if (dateRegEx.test(baddate)) {
+                        var gooddate;
+                        if (makeYear(baddate)!= null && makeMonth(baddate)!= null && makeDay(baddate) != null) {
+                            gooddate = makeYear(baddate) + "-" + makeMonth(baddate) + "-" + makeDay(baddate);
+                            thisDataObject['created_date'] = gooddate;
+                        }
+                        else {grid_console.text('There is a problem with the Date. Please contact the administrator.'); return false;}
+                    }
+                    else {grid_console.text('Date is badly formed. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); return false;}
                     var dataJSON = JSON.stringify(thisDataObject);
                     $.ajax({
                         url: '/mercurylab/blankwater_add/',
