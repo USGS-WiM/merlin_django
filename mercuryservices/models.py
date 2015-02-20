@@ -80,12 +80,42 @@ class ProjectSite(models.Model):
 ######
 
 
+class BottleType(models.Model):
+    """Type of bottle (1L Teflon, 250mL Teflon, Glass Jar, etc.)."""
+
+    bottle_type = models.CharField(max_length=128)
+    description = models.TextField(blank=True)
+    status = models.ForeignKey('Status', null=True, blank=True)
+
+    def __str__(self):
+        return self.bottle_type
+
+
+class BottlePrefix(models.Model):
+    """Reusable bottles with permanently etched IDs (MLO755, DSV330, etc.)."""
+
+    bottle_prefix = models.CharField(max_length=128)
+    tare_weight = models.DecimalField(max_digits=8, decimal_places=4)
+    bottle_type = models.ForeignKey('BottleType')
+    description = models.TextField(blank=True)
+    created_date = models.DateField(default=datetime.now, blank=True)
+    modified_date = models.DateField(auto_now=True)
+    status = models.ForeignKey('Status', null=True, blank=True)
+
+    def __str__(self):
+        return self.bottle_prefix
+
+    class Meta:
+        ordering = ['-created_date']
+
+
 class Bottle(models.Model):
-    """Reusable bottles with permanently etched IDs (MLO751AA, WIP010BSH, etc.)."""
+    """Bottles with temporary IDs / "barcodes" consisting of a Bottle Prefix and Suffix,
+     where the prefix is the permanent ID of the bottle being used and the suffix is the
+     indicator of the current use of that bottle prefix (DIS26009, WIP507BWK, etc.)."""
 
     bottle_unique_name = models.CharField(max_length=128)
-    tare_weight = models.DecimalField(max_digits=8, decimal_places=4, null=True, blank=True)
-    bottle_type = models.ForeignKey('BottleType')
+    bottle_prefix = models.ForeignKey('BottlePrefix')
     description = models.TextField(blank=True)
     created_date = models.DateField(default=datetime.now, blank=True)
     modified_date = models.DateField(auto_now=True)
@@ -96,17 +126,6 @@ class Bottle(models.Model):
 
     class Meta:
         ordering = ['-created_date']
-
-
-class BottleType(models.Model):
-    """Type of bottle (1L Teflon, 250mL Teflon, Glass Jar, etc.)."""
-
-    bottle_type = models.CharField(max_length=128)
-    description = models.TextField(blank=True)
-    status = models.ForeignKey('Status', null=True, blank=True)
-
-    def __str__(self):
-        return self.bottle_type
 
 
 class FilterType(models.Model):
@@ -250,14 +269,13 @@ class MethodType(models.Model):
     """Established protocols for analyzing samples."""
 
     method = models.CharField(max_length=128)
+    method_code = models.IntegerField()
     preparation = models.CharField(max_length=128, blank=True)
     description = models.TextField(blank=True)
-    #method_detection_limit = models.CharField(max_length=128)
     method_detection_limit = models.FloatField(null=True, blank=True)
     method_detection_limit_unit = models.ForeignKey('UnitType', null=True, related_name='mdl_unit')
     raw_value_unit = models.ForeignKey('UnitType', null=True, related_name='raw_unit')
     final_value_unit = models.ForeignKey('UnitType', null=True, related_name='final_unit')
-    #unit = models.ForeignKey('UnitType')
     decimal_places = models.IntegerField(null=True, blank=True)
     significant_figures = models.IntegerField(null=True, blank=True)
     standard_operating_procedure = models.TextField(blank=True)
@@ -279,8 +297,12 @@ class Result(models.Model):
     isotope_flag = models.ForeignKey('IsotopeFlag')
     detection_flag = models.ForeignKey('DetectionFlag', null=True, blank=True)
     raw_value = models.FloatField(null=True, blank=True)
-    final_value = models.FloatField(null=True, blank=True)
-    daily_detection_limit = models.FloatField(null=True, blank=True)
+    final_value = models.FloatField(max_length=128, null=True, blank=True)
+    report_value = models.CharField(max_length=128, null=True, blank=True)
+    raw_daily_detection_limit = models.FloatField(null=True, blank=True)
+    final_daily_detection_limit = models.FloatField(null=True, blank=True)
+    sediment_dry_weight = models.FloatField(max_length=128, null=True, blank=True)
+    sample_mass_processed = models.FloatField(max_length=128, null=True, blank=True)
     entry_date = models.DateField(null=True, blank=True)
     analyzed_date = models.DateField(null=True, blank=True)
     analysis_comment = models.TextField(blank=True)

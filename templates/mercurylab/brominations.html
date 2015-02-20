@@ -23,7 +23,7 @@
                 </div>
             </form>
             <br />
-            <button type="button" class="btn btn-primary" name="addOK">OK</button>
+            <button type="button" class="btn btn-primary" name="addSave">Save</button>
         </div>
         <br />
         <pre id="grid_console" class="console" style="width:600px"></pre>
@@ -89,7 +89,7 @@
             <div class="col-md-4" id="grid_add" style="display:none;">
                 <span id="selected_bromination_id">Selected Bromination ID: <strong>NULL</strong></span><br />
                 <span id="selected_bromination_id_warning" style="display:none;color:darkred"><strong>You must select a Bromination ID before you can save!</strong></span><br />
-                <button type="button" class="btn btn-primary" name="sampleOK">OK</button></div>
+                <button type="button" class="btn btn-primary" name="sampleSave">Save</button></div>
             <div class="col-md-4" id="grid_samples" data-samples="{{ samples }}"></div>
         </div>
         <style>
@@ -143,7 +143,7 @@
                         {title: "Comment", data: "comment", width: 200}
                     ],
                     search: true,
-                    columnSorting: { column: 0 },
+                    //columnSorting: { column: 0 },
                     beforeChange: function(changes, source) {
                          // "changes" is a 2D array containing information about each of the edited cells [ [row, col, oldVal, newVal], [row, col, oldVal, newVal], ... ].
                         // "source" is one of the following strings: "alter", "empty", "edit", "populateFromArray", "loadData", "autofill", "paste".
@@ -368,11 +368,11 @@
                             return {results: data.results};
                         }
                     },
-                    sortResults: function(results, container, query) {
+                    /*sortResults: function(results, container, query) {
                         return results.sort(function (a, b) {
                             return a - b;
                         }); //sort by ID, numerically ascending
-                    },
+                    },*/
                     formatResult: formatSelect2,
                     formatSelection: formatSelect2
                 });
@@ -391,7 +391,6 @@
                             grid_console.text("success");
                             data_data = response;
                             grid_brominations.data('handsontable').loadData(data_data.results);
-                            grid_brominations.data('handsontable').sort(0);
                             grid_console.text('Page '+ currentPage +' data reloaded.');
                         },
                         error: function (response) {
@@ -519,7 +518,7 @@
                     }
                 });
 
-                grid_add.find('button[name=sampleOK]').click(function() {
+                grid_add.find('button[name=sampleSave]').click(function() {
                     if (typeof(selectedBrominationRow) === 'undefined' || selectedBrominationRow == null) {$('#selected_bromination_id_warning').show(); return;}
                     else {$('#selected_bromination_id_warning').hide();}
                     var selected_bromination_id = grid_brominations.handsontable('getInstance').getDataAtCell(selectedBrominationRow, 0);
@@ -570,7 +569,7 @@
                 });
 
                 var form_add = $("#form_add");
-                form_add.find('button[name=addOK]').click(function() {
+                form_add.find('button[name=addSave]').click(function() {
                     var thisDataObject = {};
                     thisDataObject['concentration'] = Number(form_add.find('input[name=concentration]').val());
                     thisDataObject['comment'] = form_add.find('input[name=comment]').val();

@@ -133,43 +133,43 @@
                     data: data_data,
                     columns: [
                         {title: 'Sample ID', data: 'sample_bottle.sample.id', readOnly: true, width: 80},
-                        {title: 'Project Name', data: 'sample_bottle.sample.project.name', width: 100, type: 'autocomplete', strict: true, source: function (query, process) {
+                        {title: 'Project Name', data: 'sample_bottle.sample.project.name', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 100, type: 'autocomplete', strict: true, source: function (query, process) {
                             getValuesAjax('/mercuryservices/projects', 'name', query, process)}
                         },
-                        {title: 'Project ID', data: 'sample_bottle.sample.project.id', width: 1, type: 'autocomplete', strict: true, source: function (query, process) {
+                        {title: 'Project ID', data: 'sample_bottle.sample.project.id', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 1, type: 'autocomplete', strict: true, source: function (query, process) {
                             getValuesAjax('/mercuryservices/projects', 'id', query, process)}
                         },
-                        {title: 'Site Name', data: 'sample_bottle.sample.site.name', width: 75, type: 'autocomplete', strict: true, source: function (query, process) {
+                        {title: 'Site Name', data: 'sample_bottle.sample.site.name', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 75, type: 'autocomplete', strict: true, source: function (query, process) {
                             getValuesAjax('/mercuryservices/sites', 'name', query, process, ('project=' + grid.handsontable('getInstance').getDataAtCell(grid.handsontable('getInstance').getSelected()[0], 2)))}
                         },
-                        {title: 'Site ID', data: 'sample_bottle.sample.site.usgs_scode', width: 70, type: 'autocomplete', strict: true, source: function (query, process) {
+                        {title: 'Site ID', data: 'sample_bottle.sample.site.usgs_scode', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 70, type: 'autocomplete', strict: true, source: function (query, process) {
                             getValuesAjax('/mercuryservices/sites', 'id', query, process, ('project=' + grid.handsontable('getInstance').getDataAtCell(grid.handsontable('getInstance').getSelected()[0], 2)))}
                         },
                         // Date, Hour, and Minute as separate columns is temporary until a single column datetime editor can be found for handsontable
-                        {title: 'Date', data: 'sample_bottle.sample.sample_date', width: 100, type: 'date', dateFormat: 'mm/dd/y', maxDate: 0},
-                        {title: 'Time', data: 'sample_bottle.sample.sample_time', width: 60, type: 'numeric', validator: validateTime},
+                        {title: 'Date', data: 'sample_bottle.sample.sample_date', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 100, type: 'date', dateFormat: 'mm/dd/y', maxDate: 0},
+                        {title: 'Time', data: 'sample_bottle.sample.sample_time', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 60, type: 'numeric', validator: validateTime},
                         //{title: 'Hour', width: 50, type: 'autocomplete', source: getRange(24)},
                         //{title: 'Minute', width: 50, type: 'autocomplete', source: getRange(60)},
-                        {title: 'Depth', data: 'sample_bottle.sample.depth', width: 50, type: 'numeric', format: '0.00'},
-                        {title: 'Length', data: 'sample_bottle.sample.length', width: 50, type: 'numeric'},
-                        {title: 'Rep', data: 'sample_bottle.sample.replicate', width: 50, type: 'numeric'},
-                        {title: 'Sample Comments', data: 'sample_bottle.sample.comment', width: 130, type: 'text'},
-                        {title: 'Received', data: 'sample_bottle.sample.received_date', width: 100, type: 'date', dateFormat: 'mm/dd/y', maxDate: 0},
-                        {title: 'Lab Processing', data: 'sample_bottle.sample.lab_processing', width: 105, type: 'text'/*, type: 'autocomplete', strict: true, source: getValuesDom(data_processings,"processing")*/},
+                        {title: 'Depth', data: 'sample_bottle.sample.depth', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 50, type: 'numeric', format: '0.00'},
+                        {title: 'Length', data: 'sample_bottle.sample.length', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 50, type: 'numeric'},
+                        {title: 'Rep', data: 'sample_bottle.sample.replicate', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 50, type: 'numeric'},
+                        {title: 'Sample Comments', data: 'sample_bottle.sample.comment', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 130, type: 'text'},
+                        {title: 'Received', data: 'sample_bottle.sample.received_date', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 100, type: 'date', dateFormat: 'mm/dd/y', maxDate: 0},
+                        {title: 'Lab Processing', data: 'sample_bottle.sample.lab_processing', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 105, type: 'text'/*, type: 'autocomplete', strict: true, source: getValuesDom(data_processings,"processing")*/},
                         //{title: 'Container ID', width: 100, type: 'text'},
-                        {title: 'Container ID', data: 'sample_bottle.bottle.bottle_unique_name', width: 90, type: 'autocomplete', strict: true,  source: function (query, process) {
+                        {title: 'Container ID', data: 'sample_bottle.bottle.bottle_unique_name', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 90, type: 'autocomplete', strict: true,  source: function (query, process) {
                             getValuesAjax('/mercuryservices/bottles', 'name', query, process)}},
-                        {title: 'Medium', data: 'sample_bottle.sample.medium_type', width: 100, type: 'autocomplete', strict: true, source: getValuesDom(data_mediums,"nwis_code")},
-                        {title: 'Analysis', data: 'constituent', width: 70, type: 'autocomplete', strict: true},
-                        {title: 'Isotope', data: 'isotope_flag', width: 55, type: 'dropdown', source: data_isotopeflags},
-                        {title: 'Filter', data: 'sample_bottle.filter_type', width: 100, type: 'autocomplete', strict: true, source: getValuesDom(data_filters,"filter")},
-                        {title: 'Filter Vol.', data: 'sample_bottle.volume_filtered', width: 65, type: 'numeric', format: '0.00'},
-                        {title: 'Preservation', data: 'sample_bottle.preservation_type', width: 100, type: 'autocomplete', strict: true, source: getValuesDom(data_preservations, "preservation")},
+                        {title: 'Medium', data: 'sample_bottle.sample.medium_type', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 100, type: 'autocomplete', strict: true, source: getValuesDom(data_mediums,"nwis_code")},
+                        {title: 'Analysis', data: 'constituent', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 70, type: 'autocomplete', strict: true},
+                        {title: 'Isotope', data: 'isotope_flag', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 55, type: 'dropdown', source: data_isotopeflags},
+                        {title: 'Filter', data: 'sample_bottle.filter_type', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 100, type: 'autocomplete', strict: true, source: getValuesDom(data_filters,"filter")},
+                        {title: 'Filter Vol.', data: 'sample_bottle.volume_filtered', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 65, type: 'numeric', format: '0.00'},
+                        {title: 'Preservation', data: 'sample_bottle.preservation_type', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 100, type: 'autocomplete', strict: true, source: getValuesDom(data_preservations, "preservation")},
                         //{title: 'Acid', width: 100, type: 'autocomplete',  source: getValuesDom(data_acids, "code")},
-                        {title: 'Acid', data: 'sample_bottle.preservation_acid', width: 110, type: 'autocomplete', strict: true,  source: function (query, process) {
+                        {title: 'Acid', data: 'sample_bottle.preservation_acid', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 110, type: 'autocomplete', strict: true,  source: function (query, process) {
                             getValuesAjax('/mercuryservices/acids', 'code', query, process)}},
-                        {title: 'Acid Vol.', data: 'sample_bottle.preservation_volume', width: 60, type: 'numeric', format: '0.00'},
-                        {title: 'Pres. Comments', data: 'sample_bottle.preservation_comment', width: 115, type: 'text'},
+                        {title: 'Acid Vol.', data: 'sample_bottle.preservation_volume', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 60, type: 'numeric', format: '0.00'},
+                        {title: 'Pres. Comments', data: 'sample_bottle.preservation_comment', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 115, type: 'text'},
                         {title: 'Sample Bottle ID', data: 'sample_bottle.id', readOnly: true, width: 1},
                         {title: 'Result ID', data: 'id', readOnly: true, width: 1}
                     ],

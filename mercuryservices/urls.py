@@ -20,6 +20,7 @@ router.register(r'fullsamplebottles', views.FullSampleBottleViewSet, 'fullsample
 router.register(r'bulksamplebottlebrominations', views.SampleBottleBrominationBulkCreateUpdateViewSet, 'bulksamplebottlebrominations')
 router.register(r'samplebottlebrominations', views.SampleBottleBrominationViewSet, 'samplebottlebrominations')
 router.register(r'bottles', views.BottleViewSet, 'bottles')
+router.register(r'bottleprefixes', views.BottlePrefixViewSet, 'bottleprefixes')
 router.register(r'bulkbottles', views.BottleBulkCreateUpdateViewSet)
 router.register(r'bottletypes', views.BottleTypeViewSet, 'bottletypes')
 router.register(r'filters', views.FilterTypeViewSet)

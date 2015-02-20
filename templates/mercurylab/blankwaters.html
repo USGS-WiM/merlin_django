@@ -27,7 +27,7 @@
                 </div>
             </form>
             <br />
-            <button type="button" class="btn btn-primary" name="addOK">OK</button>
+            <button type="button" class="btn btn-primary" name="addSave">Save</button>
         </div>
         <br />
         <pre id="grid_console" class="console" style="width:600px"></pre>
@@ -92,7 +92,7 @@
                         {title: "Comment", data: "comment", width: 300}
                     ],
                     search: true,
-                    columnSorting: { column: 0 },
+                    //columnSorting: { column: 0 },
                     beforeChange: function(changes, source) {
                          // "changes" is a 2D array containing information about each of the edited cells [ [row, col, oldVal, newVal], [row, col, oldVal, newVal], ... ].
                         // "source" is one of the following strings: "alter", "empty", "edit", "populateFromArray", "loadData", "autofill", "paste".
@@ -119,7 +119,7 @@
                         selectionRowIndices[1] = r2;
                     }
                 });
-                grid.data('handsontable').sort(0);
+                //grid.data('handsontable').sort(0);
                 grid_console.text('Data loaded.');
 
                 $("#created_date").datepicker({
@@ -128,7 +128,7 @@
                 });
 
                 var form_add = $("#form_add");
-                form_add.find('button[name=addOK]').click(function() {
+                form_add.find('button[name=addSave]').click(function() {
                     var thisDataObject = {};
                     thisDataObject['lot_number'] = form_add.find('input[name=lot_number]').val();
                     thisDataObject['concentration'] = Number(form_add.find('input[name=concentration]').val());
@@ -200,11 +200,11 @@
                             return {results: data.results};
                         }
                     },
-                    sortResults: function(results, container, query) {
+                    /*sortResults: function(results, container, query) {
                         return results.sort(function (a, b) {
                             return a - b;
                         }); //sort by ID, numerically ascending
-                    },
+                    },*/
                     formatResult: formatSelect2,
                     formatSelection: formatSelect2
                 });
@@ -221,7 +221,6 @@
                             grid_console.text("success");
                             data_data = response;
                             grid.data('handsontable').loadData(data_data.results);
-                            grid.data('handsontable').sort(0);
                             grid_console.text('Page '+ currentPage +' data reloaded.');
                         },
                         error: function (response) {
