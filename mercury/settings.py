@@ -1,5 +1,5 @@
 """
-Django settings for mercuryproject project.
+Django settings for mercury project.
 
 For more information on this file, see
 https://docs.djangoproject.com/en/dev/topics/settings/
@@ -49,7 +49,7 @@ INSTALLED_APPS = (
     'rest_framework_swagger',
     'corsheaders',
     'mercuryservices',
-    'mercurylab',
+    'merlin',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -63,9 +63,9 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-ROOT_URLCONF = 'mercuryproject.urls'
+ROOT_URLCONF = 'mercury.urls'
 
-WSGI_APPLICATION = 'mercuryproject.wsgi.application'
+WSGI_APPLICATION = 'mercury.wsgi.application'
 
 
 # Database
@@ -146,4 +146,4 @@ SUIT_CONFIG = {
 
 CORS_ORIGIN_ALLOW_ALL = True
 
-LOGIN_URL = '/mercurylab/login/'
+LOGIN_URL = '/merlin/login/'

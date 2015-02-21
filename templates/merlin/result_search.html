@@ -1,4 +1,4 @@
-{% extends 'mercurylab/base.html' %}
+{% extends 'merlin/base.html' %}
 {% block body_block %}
 
     <div style="padding:10px">
@@ -230,7 +230,7 @@
                     thisDataObject['constituent'] = $(select_constituent).val();
                     var dataJSON = JSON.stringify(thisDataObject);
                     $.ajax({
-                        url: '/mercurylab/result_search/search',
+                        url: '/merlin/result_search/search',
                         data: dataJSON,
                         dataType: 'json',
                         contentType: "application/json",

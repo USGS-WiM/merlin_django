@@ -1,4 +1,4 @@
-{% extends 'mercurylab/base.html' %}
+{% extends 'merlin/base.html' %}
 {% block body_block %}
 
     <div style="padding:10px">
@@ -317,7 +317,7 @@
                     });
                     var changedDataJSON = JSON.stringify(changedDataArrayBottlesAdd);
                     $.ajax({
-                        url: '/mercurylab/bottles_add/',
+                        url: '/merlin/bottles_add/',
                         data: changedDataJSON,
                         dataType: 'json',
                         contentType: "application/json",
@@ -367,7 +367,7 @@
                     thisDataObject['description'] = form_bottle_prefix_add.find('input[name=description]').val();
                     var dataJSON = JSON.stringify(thisDataObject);
                     $.ajax({
-                        url: '/mercurylab/bottleprefix_add/',
+                        url: '/merlin/bottleprefix_add/',
                         data: dataJSON,
                         dataType: 'json',
                         contentType: "application/json",
@@ -417,7 +417,7 @@
                     thisDataObject['description'] = form_bottle_prefix_range_add.find('input[name=description]').val();
                     var dataJSON = JSON.stringify(thisDataObject);
                     $.ajax({
-                        url: '/mercurylab/bottleprefix_range_add/',
+                        url: '/merlin/bottleprefix_range_add/',
                         data: dataJSON,
                         dataType: 'json',
                         contentType: "application/json",
@@ -761,7 +761,7 @@
                 tools_prefixes.find('button[name=delete]').click(function () {
                     var thisDataRow = grid_prefixes.data('handsontable').getDataAtRow(selectionRowIndices[0]);
                     var thisDataRowID = thisDataRow[0];
-                    window.location = '/mercurylab/bottleprefixes/'+thisDataRowID+'/delete';
+                    window.location = '/merlin/bottleprefixes/'+thisDataRowID+'/delete';
                 });
 
                 tools_prefixes.find('button[name=save]').click(function () {
@@ -790,7 +790,7 @@
                     });
                     var changedDataJSON = JSON.stringify(changedDataArray);
                     $.ajax({
-                        url: '/mercurylab/bottleprefixes/save',
+                        url: '/merlin/bottleprefixes/save',
                         data: changedDataJSON,
                         dataType: 'json',
                         contentType: "application/json",
@@ -884,7 +884,7 @@
                 tools_bottles.find('button[name=delete]').click(function () {
                     var thisDataRow = grid_bottles.data('handsontable').getDataAtRow(selectionRowIndices[0]);
                     var thisDataRowID = thisDataRow[0];
-                    window.location = '/mercurylab/bottles/'+thisDataRowID+'/delete';
+                    window.location = '/merlin/bottles/'+thisDataRowID+'/delete';
                 });
 
                 tools_bottles.find('button[name=save]').click(function () {
@@ -912,7 +912,7 @@
                     });
                     var changedDataJSON = JSON.stringify(changedDataArray);
                     $.ajax({
-                        url: '/mercurylab/bottles/save',
+                        url: '/merlin/bottles/save',
                         data: changedDataJSON,
                         dataType: 'json',
                         contentType: "application/json",

@@ -15,17 +15,17 @@ from mercuryservices.renderers import *
 #     def list(self, request, *args, **kwargs):
 #         self.object = self.get_queryset()
 #         cooperator_form = CooperatorForm()
-#         return Response({'list': self.object, 'cooperator_form': cooperator_form}, template_name='mercurylab/list.html')
+#         return Response({'list': self.object, 'cooperator_form': cooperator_form}, template_name='merlin/list.html')
 #
 #     def retrieve(self, request, *args, **kwargs):
 #         self.object = self.get_object()
-#         return Response({'item': self.object}, template_name='mercurylab/retrieve.html')
+#         return Response({'item': self.object}, template_name='merlin/retrieve.html')
 #
 #     def create(self, request, *args, **kwargs):
 #         form = CooperatorForm(request.POST)
 #         if form.is_valid():
 #             form.save(commit=True)
-#         return Response({'list': self.get_queryset(), 'cooperator_form': CooperatorForm()}, template_name='mercurylab/list.html')
+#         return Response({'list': self.get_queryset(), 'cooperator_form': CooperatorForm()}, template_name='merlin/list.html')
 
 
 ######

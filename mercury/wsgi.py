@@ -8,7 +8,7 @@ https://docs.djangoproject.com/en/dev/howto/deployment/wsgi/
 """
 
 import os
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "mercuryproject.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "mercury.settings")
 
 from django.core.wsgi import get_wsgi_application
 application = get_wsgi_application()

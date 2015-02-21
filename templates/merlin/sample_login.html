@@ -1,4 +1,4 @@
-{% extends 'mercurylab/base.html' %}
+{% extends 'merlin/base.html' %}
 {% block body_block %}
 
     <div style="padding:10px">
@@ -619,7 +619,7 @@
                         //console.log(changedDataJSON);
                         grid_console.text('Attempting to save data...');
                         $.ajax({
-                            url: '/mercurylab/sample_login/save',
+                            url: '/merlin/sample_login/save',
                             data: changedDataJSON,
                             dataType: 'json',
                             contentType: "application/json",

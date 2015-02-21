@@ -1,4 +1,4 @@
-{% extends 'mercurylab/base.html' %}
+{% extends 'merlin/base.html' %}
 {% block body_block %}
 
     <div style="padding:10px">
@@ -146,7 +146,7 @@
                     else {grid_console.text('Date is badly formed. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); return false;}
                     var dataJSON = JSON.stringify(thisDataObject);
                     $.ajax({
-                        url: '/mercurylab/blankwater_add/',
+                        url: '/merlin/blankwater_add/',
                         data: dataJSON,
                         dataType: 'json',
                         contentType: "application/json",
@@ -287,13 +287,13 @@
                 grid.parent().find('button[name=delete]').click(function () {
                     var thisDataRow = grid.data('handsontable').getDataAtRow(selectionRowIndices[0]);
                     var thisDataRowID = thisDataRow[0];
-                    window.location = '/mercurylab/blankwaters/'+thisDataRowID+'/delete';
+                    window.location = '/merlin/blankwaters/'+thisDataRowID+'/delete';
                 });
 
                 grid.parent().find('button[name=edit]').click(function () {
                     var thisDataRow = grid.data('handsontable').getDataAtRow(selectionRowIndices[0]);
                     var thisDataRowID = thisDataRow[0];
-                    window.location = '/mercurylab/blankwaters/'+thisDataRowID+'/edit';
+                    window.location = '/merlin/blankwaters/'+thisDataRowID+'/edit';
                 });
 
                 grid.parent().find('button[name=save]').click(function () {
@@ -308,7 +308,7 @@
                     });
                     var changedDataJSON = JSON.stringify(changedDataArray);
                     $.ajax({
-                        url: '/mercurylab/blankwaters/save',
+                        url: '/merlin/blankwaters/save',
                         data: changedDataJSON,
                         dataType: 'json',
                         contentType: "application/json",

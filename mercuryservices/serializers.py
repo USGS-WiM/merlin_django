@@ -10,6 +10,7 @@ from mercuryservices.models import *
 
 
 class ProjectSerializer(serializers.ModelSerializer):
+    cooperator = serializers.RelatedField(source='cooperator')
 
     class Meta:
         model = Project
