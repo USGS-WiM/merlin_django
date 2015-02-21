@@ -1,4 +1,4 @@
-{% extends 'mercurylab/base.html' %}
+{% extends 'merlin/base.html' %}
 {% block body_block %}
 
     <div style="padding:10px">
@@ -269,7 +269,7 @@
                     thisDataObject['date_before'] = $(date_before).val();
                     var dataJSON = JSON.stringify(thisDataObject);
                     $.ajax({
-                        url: '/mercurylab/samplebottlebromination_search/',
+                        url: '/merlin/samplebottlebromination_search/',
                         data: dataJSON,
                         dataType: 'json',
                         contentType: "application/json",
@@ -446,13 +446,13 @@
                 tools_brominations.find('button[name=delete]').click(function () {
                     var thisDataRow = grid_brominations.data('handsontable').getDataAtRow(selectionRowIndices[0]);
                     var thisDataRowID = thisDataRow[0];
-                    window.location = '/mercurylab/brominations/'+thisDataRowID+'/delete';
+                    window.location = '/merlin/brominations/'+thisDataRowID+'/delete';
                 });
 
                 //grid_brominations.parent().find('button[name=edit]').click(function () {
                 //    var thisDataRow = grid_brominations.data('handsontable').getDataAtRow(selectionRowIndices[0]);
                 //    var thisDataRowID = thisDataRow[0];
-                //    window.location = '/mercurylab/brominations/'+thisDataRowID+'/edit';
+                //    window.location = '/merlin/brominations/'+thisDataRowID+'/edit';
                 //});
 
                 tools_brominations.find('button[name=save]').click(function () {
@@ -479,7 +479,7 @@
                     });
                     var changedDataJSON = JSON.stringify(changedDataArray);
                     $.ajax({
-                        url: '/mercurylab/brominations/save',
+                        url: '/merlin/brominations/save',
                         data: changedDataJSON,
                         dataType: 'json',
                         contentType: "application/json",
@@ -539,7 +539,7 @@
                     });
                     var dataJSON = JSON.stringify(dataArray);
                     $.ajax({
-                        url: '/mercurylab/samplebottlebromination_add/',
+                        url: '/merlin/samplebottlebromination_add/',
                         data: dataJSON,
                         dataType: 'json',
                         contentType: "application/json",
@@ -588,7 +588,7 @@
                     else {grid_console.text('Date is badly formed. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); return false;}
                     var dataJSON = JSON.stringify(thisDataObject);
                     $.ajax({
-                        url: '/mercurylab/bromination_add/',
+                        url: '/merlin/bromination_add/',
                         data: dataJSON,
                         dataType: 'json',
                         contentType: "application/json",

@@ -1,9 +1,37 @@
-{% extends 'mercurylab/base.html' %}
+{% extends 'merlin/base.html' %}
 {% block body_block %}
 
     <div style="padding:10px">
+
+        <p>
+            <button type="button" class="btn btn-default" name="add">Add New Acid</button>
+        </p>
+        <div id="form_add" class="panel-default" style="display:none;">
+            <h3>Create Bottle</h3>
+            <form class="form-inline" style="border:1px solid;width:1000px;padding:4px;">
+                <div class="form-group" style="padding:2px;text-align:center">
+                    <label for="code">Code</label><br />
+                    <input class="input-block-level" name="code" type="text" style="width:400px">
+                </div>
+                <div class="form-group" style="padding:2px;text-align:center">
+                    <label for="concentration">Concentration</label><br />
+                    <input class="input-block-level" name="concentration" type="number">
+                </div>
+                <div class="form-group" style="padding:2px;text-align:center">
+                    <label for="created_date">Date</label><br />
+                    <input class="input-block-level" name="created_date" id="created_date">
+                </div>
+                <div class="form-group" style="padding:2px;text-align:center">
+                    <label for="comment">Comment</label><br />
+                    <input class="input-block-level" name="comment" type="text">
+                </div>
+            </form>
+            <br />
+            <button type="button" class="btn btn-primary" name="addSave">Save</button>
+        </div>
+        <br />
         <pre id="grid_console" class="console" style="width:600px"></pre>
-        <p><input id="select_field" type="hidden" placeholder="Filter by project name." style="width:600px"/></p>
+        <p><input id="select_field" type="hidden" placeholder="Filter by acid code." style="width:600px"/></p>
         <p>
             <div class="select2-container select2-container-multi" style="width:600px">
                 <ul class="select2-choices">
@@ -21,7 +49,7 @@
             <button type="button" class="btn btn-default" name="next">Next Page</button>
         </p>
         {% if request.session.is_staff %}
-        <p style="display:none;">
+        <p>
             <button type="button" class="btn btn-primary" name="save">Save Changes</button>
             <button type="button" class="btn btn-danger" name="delete">Delete Row</button>
         </p>
@@ -44,7 +72,7 @@
                     }
                 });
 
-                var objectFields = ["id", "name", "description", "accounting_code", "cooperator"];
+                var objectFields = ["id", "code", "concentration", "created_date", "comment"];
                 var currentPage = 1;
                 var addClicked = false;
                 var grid = $('#grid');
@@ -55,16 +83,16 @@
                 var selectionRowIndices = [];
                 grid_console.text('Loading data.');
                 grid.handsontable({
-                    data: data_data,
+                    data: data_data.results,
                     columns: [
                         {title: "ID", data: "id", readOnly: true, width: 1},
-                        {title: "Name", data: "name", width: 400},
-                        {title: "Description", data: "description", width: 600},
-                        {title: "Accounting Code", data: "accounting_code", width: 150},
-                        {title: "Cooperator", data: "cooperator", width: 150}
+                        {title: "Code", data: "code", width: 120},
+                        {title: "Concentration", data: "concentration", width: 120},
+                        {title: "Date", data: "created_date", width: 100, dateFormat: 'mm/dd/y'},
+                        {title: "Comment", data: "comment", width: 300}
                     ],
                     search: true,
-                    columnSorting: { column: 0 },
+                    //columnSorting: { column: 0 },
                     beforeChange: function(changes, source) {
                          // "changes" is a 2D array containing information about each of the edited cells [ [row, col, oldVal, newVal], [row, col, oldVal, newVal], ... ].
                         // "source" is one of the following strings: "alter", "empty", "edit", "populateFromArray", "loadData", "autofill", "paste".
@@ -91,8 +119,59 @@
                         selectionRowIndices[1] = r2;
                     }
                 });
-                grid.data('handsontable').sort(0);
+                //grid.data('handsontable').sort(0);
                 grid_console.text('Data loaded.');
+
+                $("#created_date").datepicker({
+                    dateFormat: "mm/dd/y",
+                    maxDate: 0
+                });
+
+                var form_add = $("#form_add");
+                form_add.find('button[name=addSave]').click(function() {
+                    var thisDataObject = {};
+                    thisDataObject['code'] = form_add.find('input[name=code]').val();
+                    thisDataObject['concentration'] = Number(form_add.find('input[name=concentration]').val());
+                    thisDataObject['comment'] = form_add.find('input[name=comment]').val();
+                    //thisDataObject['created_date'] = form_add.find('input[name=created_date]').val();
+                    var baddate = form_add.find('input[name=created_date]').val();
+                    if (dateRegEx.test(baddate)) {
+                        var gooddate;
+                        if (makeYear(baddate)!= null && makeMonth(baddate)!= null && makeDay(baddate) != null) {
+                            gooddate = makeYear(baddate) + "-" + makeMonth(baddate) + "-" + makeDay(baddate);
+                            thisDataObject['created_date'] = gooddate;
+                        }
+                        else {grid_console.text('There is a problem with the Date. Please contact the administrator.'); return false;}
+                    }
+                    else {grid_console.text('Date is badly formed. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); return false;}
+                    var dataJSON = JSON.stringify(thisDataObject);
+                    $.ajax({
+                        url: '/merlin/acid_add/',
+                        data: dataJSON,
+                        dataType: 'json',
+                        contentType: "application/json",
+                        type: 'POST',
+                        success: function (data, textStatus, jqXHRequest) {
+                            var content_type = jqXHRequest.getResponseHeader("content-type");
+                            // if the content-type is plain text, then it's a custom message from our Django view
+                            if (content_type.indexOf('text') > -1) {
+                                grid_console.text(data);
+                            }
+                            // otherwise, it's JSON from the REST Services
+                            else if (jqXHRequest.status === 200) {
+                                $(":input", "#form_add").not(":button").val("");
+                                grid.parent().find('button[name=add]').click();
+                                grid_console.text(textStatus+': Data saved.');
+                            }
+                            else {
+                                grid_console.text(textStatus+': Save error: '+jqXHRequest.statusText+', code: '+jqXHRequest.status+'.');
+                            }
+                        },
+                        error: function (jqXHRequest, textStatus, errorThrown) {
+                            grid_console.text(errorThrown + ": " + textStatus);
+                        }
+                    });
+                });
 
                 $('#search_field').on('keyup', function (event) {
                     grid.handsontable('getInstance').search.query(this.value);
@@ -107,11 +186,11 @@
                     //allowClear: true,
                     minimumInputLength: 1,
                     ajax: {
-                        url: '/mercuryservices/projects/',
+                        url: '/mercuryservices/acids/',
                         dataType: 'json',
                         data: function (term, page) {
                             return {
-                                name: term
+                                code: term
                             };
                         },
                         results: function (data, page) {
@@ -121,29 +200,27 @@
                             return {results: data.results};
                         }
                     },
-                    sortResults: function(results, container, query) {
+                    /*sortResults: function(results, container, query) {
                         return results.sort(function (a, b) {
                             return a - b;
                         }); //sort by ID, numerically ascending
-                    },
+                    },*/
                     formatResult: formatSelect2,
                     formatSelection: formatSelect2
                 });
 
                 function formatSelect2(data) {
-                    return data.name;
+                    return data.code;
                 }
-
 
                 grid.parent().find('button[name=load]').click(function () {
                     $.ajax({
-                        url: '/mercuryservices/projects/?page='+currentPage,
+                        url: '/mercuryservices/acids/?page='+currentPage,
                         dataType: 'json',
                         success: function (response) {
                             grid_console.text("success");
                             data_data = response;
                             grid.data('handsontable').loadData(data_data.results);
-                            grid.data('handsontable').sort(0);
                             grid_console.text('Page '+ currentPage +' data reloaded.');
                         },
                         error: function (response) {
@@ -210,13 +287,13 @@
                 grid.parent().find('button[name=delete]').click(function () {
                     var thisDataRow = grid.data('handsontable').getDataAtRow(selectionRowIndices[0]);
                     var thisDataRowID = thisDataRow[0];
-                    window.location = '/mercurylab/projects/'+thisDataRowID+'/delete';
+                    window.location = '/merlin/acids/'+thisDataRowID+'/delete';
                 });
 
                 grid.parent().find('button[name=edit]').click(function () {
                     var thisDataRow = grid.data('handsontable').getDataAtRow(selectionRowIndices[0]);
                     var thisDataRowID = thisDataRow[0];
-                    window.location = '/mercurylab/projects/'+thisDataRowID+'/edit';
+                    window.location = '/merlin/acids/'+thisDataRowID+'/edit';
                 });
 
                 grid.parent().find('button[name=save]').click(function () {
@@ -231,7 +308,7 @@
                     });
                     var changedDataJSON = JSON.stringify(changedDataArray);
                     $.ajax({
-                        url: '/mercurylab/projects/save',
+                        url: '/merlin/acids/save',
                         data: changedDataJSON,
                         dataType: 'json',
                         contentType: "application/json",

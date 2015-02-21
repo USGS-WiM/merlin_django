@@ -29,7 +29,7 @@ BOTTLE_KEYS = ["bottle_unique_name", "created_date", "tare_weight", "bottle_type
 
 def sample_login(request):
     if not request.session.get('token'):
-        return HttpResponseRedirect('/mercurylab/')
+        return HttpResponseRedirect('/merlin/')
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     context = RequestContext(request)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'projects/', headers=headers_auth_token)
@@ -45,7 +45,7 @@ def sample_login(request):
     r = requests.request(method='GET', url=REST_SERVICES_URL+'isotopeflags/', headers=headers_auth_token)
     isotope_flags = json.dumps(r.json(), sort_keys=True)
     context_dict = {'projects': projects, 'processings': processings, 'mediums': mediums, 'filters': filters, 'preservations': preservations, 'isotope_flags': isotope_flags}
-    return render_to_response('mercurylab/sample_login.html', context_dict, context)
+    return render_to_response('merlin/sample_login.html', context_dict, context)
 
 
 def sample_login_save(request):
@@ -279,7 +279,7 @@ def sample_login_save(request):
 
 def sample_search(request):
     if not request.session.get('token'):
-        return HttpResponseRedirect('/mercurylab/')
+        return HttpResponseRedirect('/merlin/')
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     context = RequestContext(request)
@@ -330,7 +330,7 @@ def sample_search(request):
         isotope_flags = json.dumps(r.json(), sort_keys=True)
         context_dict = {'projects': projects, 'processings': processings, 'constituents': constituents, 'mediums': mediums, 'filters': filters, 'preservations': preservations, 'isotope_flags': isotope_flags}
 
-        return render_to_response('mercurylab/sample_search.html', context_dict, context)
+        return render_to_response('merlin/sample_search.html', context_dict, context)
 
 
 def sample_search_save(request):
@@ -503,7 +503,7 @@ def sample_search_save(request):
 
 def result_search(request):
     if not request.session.get('token'):
-        return HttpResponseRedirect('/mercurylab/')
+        return HttpResponseRedirect('/merlin/')
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     context = RequestContext(request)
@@ -537,7 +537,7 @@ def result_search(request):
         constituents = json.dumps(r.json(), sort_keys=True)
         context_dict = {'projects': projects, 'constituents': constituents}
 
-        return render_to_response('mercurylab/result_search.html', context_dict, context)
+        return render_to_response('merlin/result_search.html', context_dict, context)
 
 
 def result_search_cooperators(request):
@@ -570,12 +570,12 @@ def result_search_cooperators(request):
         constituents = json.dumps(r.json(), sort_keys=True)
         context_dict = {'projects': projects, 'constituents': constituents}
 
-        return render_to_response('mercurylab/result_search.html', context_dict, context)
+        return render_to_response('merlin/result_search.html', context_dict, context)
 
 
 def bottles(request):
     if not request.session.get('token'):
-        return HttpResponseRedirect('/mercurylab/')
+        return HttpResponseRedirect('/merlin/')
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     context = RequestContext(request)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'bottles/')#, headers=headers_auth_token)
@@ -585,7 +585,7 @@ def bottles(request):
     r = requests.request(method='GET', url=REST_SERVICES_URL+'bottletypes/')#, headers=headers_auth_token)
     bottletypes = json.dumps(r.json(), sort_keys=True)
     context_dict = {'bottles': bottles, 'prefixes': prefixes, 'bottletypes': bottletypes}
-    return render_to_response('mercurylab/bottles.html', context_dict, context)
+    return render_to_response('merlin/bottles.html', context_dict, context)
 
 
 def bottles_load(request):
@@ -685,7 +685,7 @@ def bottle_prefix_range_add(request):
         message = "\"Error " + str(r.status_code) + ": " + r.reason + ". Unable to save bottle prefixes. Please contact the administrator.\""
         print(message)
         return HttpResponse(message, content_type='text/html')
-    #return HttpResponseRedirect('/mercurylab/bottles/')
+    #return HttpResponseRedirect('/merlin/bottles/')
     return HttpResponse(r, content_type='application/json')
 
 
@@ -738,7 +738,7 @@ def bottles_add(request):
 
 def brominations(request):
     if not request.session.get('token'):
-        return HttpResponseRedirect('/mercurylab/')
+        return HttpResponseRedirect('/merlin/')
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     context = RequestContext(request)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'brominations/', headers=headers_auth_token)
@@ -746,7 +746,7 @@ def brominations(request):
     r = requests.request(method='GET', url=REST_SERVICES_URL+'samplebottlebrominations/', headers=headers_auth_token)
     samples = json.dumps(r.json(), sort_keys=True)
     context_dict = {'data': data, 'samples': samples}
-    return render_to_response('mercurylab/brominations.html', context_dict, context)
+    return render_to_response('merlin/brominations.html', context_dict, context)
 
 
 def brominations_load(request):
@@ -823,13 +823,13 @@ def samplebottlebromination_search(request):
 
 def blankwaters(request):
     if not request.session.get('token'):
-        return HttpResponseRedirect('/mercurylab/')
+        return HttpResponseRedirect('/merlin/')
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     context = RequestContext(request)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'blankwaters/', headers=headers_auth_token)
     data = json.dumps(r.json(), sort_keys=True)
     context_dict = {'data': data}
-    return render_to_response('mercurylab/blankwaters.html', context_dict, context)
+    return render_to_response('merlin/blankwaters.html', context_dict, context)
 
 
 def blankwaters_load(request):
@@ -874,13 +874,13 @@ def blankwater_add(request):
 
 def acids(request):
     if not request.session.get('token'):
-        return HttpResponseRedirect('/mercurylab/')
+        return HttpResponseRedirect('/merlin/')
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     context = RequestContext(request)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'acids/', headers=headers_auth_token)
     data = json.dumps(r.json(), sort_keys=True)
     context_dict = {'data': data}
-    return render_to_response('mercurylab/acids.html', context_dict, context)
+    return render_to_response('merlin/acids.html', context_dict, context)
 
 
 def acids_load(request):
@@ -925,13 +925,13 @@ def acid_add(request):
 
 def sites(request):
     if not request.session.get('token'):
-        return HttpResponseRedirect('/mercurylab/')
+        return HttpResponseRedirect('/merlin/')
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     context = RequestContext(request)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'sites/', headers=headers_auth_token)
     data = json.dumps(r.json(), sort_keys=True)
     context_dict = {'data': data}
-    return render_to_response('mercurylab/sites.html', context_dict, context)
+    return render_to_response('merlin/sites.html', context_dict, context)
 
 
 def sites_load(request):
@@ -976,13 +976,13 @@ def site_add(request):
 
 def projects(request):
     if not request.session.get('token'):
-        return HttpResponseRedirect('/mercurylab/')
+        return HttpResponseRedirect('/merlin/')
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     context = RequestContext(request)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'projects/', headers=headers_auth_token)
     data = json.dumps(r.json(), sort_keys=True)
     context_dict = {'data': data}
-    return render_to_response('mercurylab/projects.html', context_dict, context)
+    return render_to_response('merlin/projects.html', context_dict, context)
 
 
 def projects_load(request):
@@ -1027,13 +1027,13 @@ def project_add(request):
 
 def cooperators(request):
     if not request.session.get('token'):
-        return HttpResponseRedirect('/mercurylab/')
+        return HttpResponseRedirect('/merlin/')
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     context = RequestContext(request)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'cooperators/', headers=headers_auth_token)
     data = json.dumps(r.json(), sort_keys=True)
     context_dict = {'data': data}
-    return render_to_response('mercurylab/cooperators.html', context_dict, context)
+    return render_to_response('merlin/cooperators.html', context_dict, context)
 
 
 def cooperators_load(request):
@@ -1093,7 +1093,7 @@ def cooperator_add(request):
 #                 login(request, user)
 #                 global USER_AUTH
 #                 USER_AUTH = (username, password)
-#                 return HttpResponseRedirect('/mercurylab/')
+#                 return HttpResponseRedirect('/merlin/')
 #             else:
 #                 return HttpResponse("Your account is disabled.")
 #
@@ -1102,7 +1102,7 @@ def cooperator_add(request):
 #             return HttpResponse("Invalid login details supplied.")
 #
 #     else:
-#         return render_to_response('mercurylab/login.html', {}, context)
+#         return render_to_response('merlin/login.html', {}, context)
 
 
 # #login using Basic Authentication
@@ -1125,14 +1125,14 @@ def cooperator_add(request):
 #             request.session['username'] = r_dict['username']
 #             global USER_AUTH
 #             USER_AUTH = (username, password)
-#             return HttpResponseRedirect('/mercurylab/')
+#             return HttpResponseRedirect('/merlin/')
 #
 #         else:
 #             r_dict = json.loads(r.json())
 #             return HttpResponse("<h1>" + str(r.status_code) + "</h1><h3>" + r_dict['status'] + "</h3><p>" + r_dict['message'] + "</p>")
 #
 #     else:
-#         return render_to_response('mercurylab/login.html', {}, context)
+#         return render_to_response('merlin/login.html', {}, context)
 
 
 #login using Token Authentication
@@ -1170,11 +1170,11 @@ def user_login(request):
                 request.session['is_staff'] = user['is_staff']
                 request.session['is_active'] = user['is_active']
 
-                return HttpResponseRedirect('/mercurylab/')
+                return HttpResponseRedirect('/merlin/')
 
             else:
                 print(r)
-                return render_to_response('mercurylab/login.html', r, context)
+                return render_to_response('merlin/login.html', r, context)
 
         else:
             print(r)
@@ -1185,16 +1185,16 @@ def user_login(request):
             #print(r.request.headers)
             #print(r.request.method)
             #print(r.request.body)
-            return render_to_response('mercurylab/login.html', r, context)
+            return render_to_response('merlin/login.html', r, context)
 
     else:
-        return render_to_response('mercurylab/login.html', {}, context)
+        return render_to_response('merlin/login.html', {}, context)
 
 
 #logout using Session Authentication
 # def user_logout(request):
 #     logout(request)
-#     return HttpResponseRedirect('/mercurylab/')
+#     return HttpResponseRedirect('/merlin/')
 
 
 # #logout using Basic Authentication
@@ -1205,7 +1205,7 @@ def user_login(request):
 #         request.session.modified = True
 #         global USER_AUTH
 #         USER_AUTH = ('guest', 'guest')
-#         return HttpResponseRedirect('/mercurylab/')
+#         return HttpResponseRedirect('/merlin/')
 #
 #     else:
 #         return HttpResponse("<h1>Logout wasn't performed. Please contact the administrator.</h1>")
@@ -1230,7 +1230,7 @@ def user_logout(request):
         # USER_AUTH = ('guest', 'guest')
         # global USER_TOKEN
         # USER_TOKEN = ''
-        return HttpResponseRedirect('/mercurylab/')
+        return HttpResponseRedirect('/merlin/')
 
     else:
         return HttpResponse("<h1>"+ str(r.status_code) + ": " + r.reason + "</h1><p>Logout wasn't performed. Please contact the administrator.</p>")
@@ -1245,7 +1245,7 @@ def user_logout(request):
 #     # USER_AUTH = ('guest', 'guest')
 #     # global USER_TOKEN
 #     # USER_TOKEN = ''
-#     return HttpResponseRedirect('/mercurylab/')
+#     return HttpResponseRedirect('/merlin/')
 
 
 # @login_required
@@ -1255,18 +1255,18 @@ def user_logout(request):
 #     context_dict = {'username': request.user.username, 'fname': request.user.first_name, 'lname': request.user.last_name,
 #                     'initials': request.user.userprofile.initials, 'phone': request.user.userprofile.phone, }
 #
-#     return render_to_response('mercurylab/profile.html', context_dict, context)
+#     return render_to_response('merlin/profile.html', context_dict, context)
 
 
 def about(request):
     context = RequestContext(request)
-    return render_to_response('mercurylab/about.html', {}, context)
+    return render_to_response('merlin/about.html', {}, context)
 
 
 def index(request):
     context = RequestContext(request)
     context_dict = nav()
-    return render_to_response('mercurylab/index.html', context_dict, context)
+    return render_to_response('merlin/index.html', context_dict, context)
 
 
 def nav():

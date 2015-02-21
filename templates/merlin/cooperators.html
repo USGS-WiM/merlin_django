@@ -1,9 +1,61 @@
-{% extends 'mercurylab/base.html' %}
+{% extends 'merlin/base.html' %}
 {% block body_block %}
 
     <div style="padding:10px">
+
+        <p style="display:none;">
+            <button type="button" class="btn btn-default" name="add">Add New Cooperator</button>
+        </p>
+        <div id="form_add" class="panel-default" style="display:none;">
+            <h3>Create Cooperator</h3>
+            <form class="form-inline" style="border:1px solid;width:1000px;padding:4px;">
+                <div class="form-group" style="padding:2px;text-align:center">
+                    <label for="name">Name</label><br />
+                    <input class="input-block-level" name="name" type="text">
+                </div>
+                <div class="form-group" style="padding:2px;text-align:center">
+                    <label for="agency">Agency</label><br />
+                    <input class="input-block-level" name="agency" type="text">
+                </div>
+                <div class="form-group" style="padding:2px;text-align:center">
+                    <label for="email">Email</label><br />
+                    <input class="input-block-level" name="email" type="text">
+                </div>
+                <div class="form-group" style="padding:2px;text-align:center">
+                    <label for="phone">Phone</label><br />
+                    <input class="input-block-level" name="phone" type="text">
+                </div>
+                <div class="form-group" style="padding:2px;text-align:center">
+                    <label for="sec_phone">Secondary Phone</label><br />
+                    <input class="input-block-level" name="sec_phone" type="text">
+                </div>
+                <div class="form-group" style="padding:2px;text-align:center">
+                    <label for="address">Address</label><br />
+                    <input class="input-block-level" name="address" type="text">
+                </div>
+                <div class="form-group" style="padding:2px;text-align:center">
+                    <label for="city">City</label><br />
+                    <input class="input-block-level" name="city" type="text">
+                </div>
+                <div class="form-group" style="padding:2px;text-align:center">
+                    <label for="state">State</label><br />
+                    <input class="input-block-level" name="state" type="text">
+                </div>
+                <div class="form-group" style="padding:2px;text-align:center">
+                    <label for="zipcode">Zipcode</label><br />
+                    <input class="input-block-level" name="zipcode" type="number">
+                </div>
+                <div class="form-group" style="padding:2px;text-align:center">
+                    <label for="country">Country</label><br />
+                    <input class="input-block-level" name="country" type="text">
+                </div>
+            </form>
+            <br />
+            <button type="button" class="btn btn-primary" name="addOK">OK</button>
+        </div>
+        <br />
         <pre id="grid_console" class="console" style="width:600px"></pre>
-        <p><input id="select_field" type="hidden" placeholder="Filter by site name." style="width:600px"/></p>
+        <p><input id="select_field" type="hidden" placeholder="Filter by cooperator name." style="width:600px"/></p>
         <p>
             <div class="select2-container select2-container-multi" style="width:600px">
                 <ul class="select2-choices">
@@ -44,9 +96,23 @@
                     }
                 });
 
-                var objectFields = ["id", "name", "usgs_sid", "usgs_scode", "description", "latitude", "longitude", "datum", "method", "site_status", "nwis_customer_code", "projects"];
+                var objectFields = ["id", "name", "agency", "email", "phone", "sec_phone", "address", "city", "state", "zipcode", "country", "projects"];
                 var currentPage = 1;
                 var addClicked = false;
+                /*function getColumns() {
+                    var cols = [];
+                    var col = {};
+                    for (var i = 0; i < objectFields.length; i++){
+                        if (objectFields[i] == 'id') {
+                            col = {data: objectFields[i], readOnly: true};
+                        }
+                        else {
+                            col = {data: objectFields[i]};
+                        }
+                        cols.push(col);
+                    }
+                    return cols;
+                }*/
                 var grid = $('#grid');
                 var data_data = JSON.parse(grid.attr("data-data"));
                 var resultPages = Math.ceil(data_data['count'] / 100);
@@ -58,16 +124,16 @@
                     data: data_data.results,
                     columns: [
                         {title: "ID", data: "id", readOnly: true, width: 1},
-                        {title: "Name", data: "name", width: 250},
-                        {title: "USGS SID", data: "usgs_sid", width: 250},
-                        {title: "USGS SCode", data: "usgs_scode", width: 100},
-                        {title: "Description", data: "description", width: 440},
-                        {title: "Latitude", data: "latitude", width: 80},
-                        {title: "Longitude", data: "longitude", width: 80},
-                        {title: "Datum", data: "datum", width: 60},
-                        {title: "Method", data: "method", width: 250},
-                        {title: "Site Status", data: "site_status", width: 80},
-                        {title: "NWIS Customer Code", data: "nwis_customer_code", width: 150},
+                        {title: "Name", data: "name", width: 200},
+                        {title: "Agency", data: "agency", width: 200},
+                        {title: "Email", data: "email", width: 240},
+                        {title: "Phone", data: "phone", width: 100},
+                        {title: "Sec. Phone", data: "sec_phone", width: 100},
+                        {title: "Address", data: "address", width: 340},
+                        {title: "City", data: "city", width: 160},
+                        {title: "State", data: "state", width: 40},
+                        {title: "ZIP Code", data: "zipcode", width: 80},
+                        {title: "Country", data: "country", width: 100},
                         {title: "Projects", data: "projects", width: 1}
                     ],
                     search: true,
@@ -101,6 +167,49 @@
                 grid.data('handsontable').sort(0);
                 grid_console.text('Data loaded.');
 
+                var form_add = $("#form_add");
+                form_add.find('button[name=addOK]').click(function() {
+                    alert("addOK");
+                    var thisDataObject = {};
+                    thisDataObject['name'] = form_add.find('input[name=name]').val();
+                    thisDataObject['agency'] = form_add.find('input[name=agency]').val();
+                    thisDataObject['email'] = form_add.find('input[name=email]').val();
+                    thisDataObject['phone'] = form_add.find('input[name=phone]').val();
+                    thisDataObject['sec_phone'] = form_add.find('input[name=sec_phone]').val();
+                    thisDataObject['address'] = form_add.find('input[name=address]').val();
+                    thisDataObject['city'] = form_add.find('input[name=city]').val();
+                    thisDataObject['state'] = form_add.find('input[name=state]').val();
+                    thisDataObject['zipcode'] = Number(form_add.find('input[name=zipcode]').val());
+                    thisDataObject['country'] = form_add.find('input[name=country]').val();
+                    var dataJSON = JSON.stringify(thisDataObject);
+                    $.ajax({
+                        url: '/merlin/cooperator_add/',
+                        data: dataJSON,
+                        dataType: 'json',
+                        contentType: "application/json",
+                        type: 'POST',
+                        success: function (data, textStatus, jqXHRequest) {
+                            var content_type = jqXHRequest.getResponseHeader("content-type");
+                            // if the content-type is plain text, then it's a custom message from our Django view
+                            if (content_type.indexOf('text') > -1) {
+                                grid_console.text(data);
+                            }
+                            // otherwise, it's JSON from the REST Services
+                            else if (jqXHRequest.status === 200) {
+                                $(":input", "#form_add").not(":button").val("");
+                                grid.parent().find('button[name=add]').click();
+                                grid_console.text(textStatus+': Data saved.');
+                            }
+                            else {
+                                grid_console.text(textStatus+': Save error: '+jqXHRequest.statusText+', code: '+jqXHRequest.status+'.');
+                            }
+                        },
+                        error: function (jqXHRequest, textStatus, errorThrown) {
+                            grid_console.text(errorThrown + ": " + textStatus);
+                        }
+                    });
+                });
+
                 $('#search_field').on('keyup', function (event) {
                     grid.handsontable('getInstance').search.query(this.value);
                     grid.handsontable('getInstance').render();
@@ -114,7 +223,7 @@
                     //allowClear: true,
                     minimumInputLength: 1,
                     ajax: {
-                        url: '/mercuryservices/sites/',
+                        url: '/mercuryservices/cooperators/',
                         dataType: 'json',
                         data: function (term, page) {
                             return {
@@ -141,10 +250,9 @@
                     return data.name;
                 }
 
-
                 grid.parent().find('button[name=load]').click(function () {
                     $.ajax({
-                        url: '/mercuryservices/sites/?page='+currentPage,
+                        url: '/mercuryservices/cooperators/?page='+currentPage,
                         dataType: 'json',
                         success: function (response) {
                             grid_console.text("success");
@@ -217,13 +325,13 @@
                 grid.parent().find('button[name=delete]').click(function () {
                     var thisDataRow = grid.data('handsontable').getDataAtRow(selectionRowIndices[0]);
                     var thisDataRowID = thisDataRow[0];
-                    window.location = '/mercurylab/sites/'+thisDataRowID+'/delete';
+                    window.location = '/merlin/cooperators/'+thisDataRowID+'/delete';
                 });
 
                 grid.parent().find('button[name=edit]').click(function () {
                     var thisDataRow = grid.data('handsontable').getDataAtRow(selectionRowIndices[0]);
                     var thisDataRowID = thisDataRow[0];
-                    window.location = '/mercurylab/sites/'+thisDataRowID+'/edit';
+                    window.location = '/merlin/cooperators/'+thisDataRowID+'/edit';
                 });
 
                 grid.parent().find('button[name=save]').click(function () {
@@ -238,7 +346,8 @@
                     });
                     var changedDataJSON = JSON.stringify(changedDataArray);
                     $.ajax({
-                        url: '/mercurylab/sites/save',
+{#                        url: "{% url 'merlin:cooperator_grid_save' pk=data_id %}",#}
+                        url: '/merlin/cooperators/save',
                         data: changedDataJSON,
                         dataType: 'json',
                         contentType: "application/json",
@@ -262,6 +371,41 @@
                         }
                     });
                 });
+
+                /*grid.parent().find('button[name=delete]').click(function () {
+                    var thisDataRow = grid.data('handsontable').getDataAtRow(selectionRowIndices[0]);
+                    var thisDataRowID = thisDataRow[0];
+                    window.location = '/merlin/cooperators_list/'+thisDataRowID+'/delete';
+                });
+
+                grid.parent().find('button[name=edit]').click(function () {
+                    var thisDataRow = grid.data('handsontable').getDataAtRow(selectionRowIndices[0]);
+                    var thisDataRowID = thisDataRow[0];
+                    window.location = '/merlin/cooperators_list/'+thisDataRowID+'/edit';
+                });
+
+                grid.parent().find('button[name=delete]').click(function () {
+                    $.each(selectionRowIndices, function(index, value) {
+                        var thisDataRow = grid.data('handsontable').getDataAtRow(value);
+                        var thisDataRowID = thisDataRow[0];
+                        $.ajax({
+                            url: '/merlin/cooperators_list/'+thisDataRowID+'/delete',
+                            dataType: 'json',
+                            type: 'GET',
+                            success: function (data, outcome, response) {
+                                if (response.status === 200) {
+                                    grid_console.text(outcome+': Data deleted.');
+                                  }
+                                  else {
+                                    grid_console.text(outcome+': Delete error: '+response.statusText+', code: '+response.status+'.');
+                                  }
+                            },
+                            error: function () {
+                                grid_console.text('Delete error. DELETE method is not allowed.');
+                            }
+                        });
+                    });
+                });*/
 
             });
         </script>

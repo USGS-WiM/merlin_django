@@ -1,4 +1,4 @@
-{% extends 'mercurylab/base.html' %}
+{% extends 'merlin/base.html' %}
 {% block body_block %}
 
     <div style="padding:10px">
@@ -439,7 +439,7 @@
                     thisDataObject['date_before'] = $(date_before).val();
                     var dataJSON = JSON.stringify(thisDataObject);
                     $.ajax({
-                        url: '/mercurylab/sample_search/search',
+                        url: '/merlin/sample_search/search',
                         data: dataJSON,
                         dataType: 'json',
                         contentType: "application/json",
@@ -663,7 +663,7 @@
                         var confirmed = confirm("Are you sure? Saving will make changes to the database.");
                         if (confirmed == true) {
                             $.ajax({
-                                url: '/mercurylab/sample_search/save',
+                                url: '/merlin/sample_search/save',
                                 data: changedDataJSON,
                                 dataType: 'json',
                                 contentType: "application/json",
