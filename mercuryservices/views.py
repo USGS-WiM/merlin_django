@@ -297,7 +297,16 @@ class BottleViewSet(viewsets.ModelViewSet):
         bottle_unique_name = self.request.QUERY_PARAMS.get('bottle_unique_name', None)
         if bottle_unique_name is not None:
             queryset = queryset.filter(bottle_unique_name__icontains=bottle_unique_name)
+        constituent = self.request.QUERY_PARAMS.get('constituent', None)
+        if constituent is not None:
+            constituent_list = constituent.split(',')
+            queryset = queryset.filter(sample_bottles__results__constituent_id__in=constituent_list)
         return queryset
+
+
+class BottlePrefixBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkUpdateModelMixin, viewsets.ModelViewSet):
+    model = BottlePrefix
+    permission_classes = (permissions.IsAuthenticated,)
 
 
 class BottlePrefixViewSet(viewsets.ModelViewSet):

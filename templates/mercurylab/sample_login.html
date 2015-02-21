@@ -548,8 +548,8 @@
                                                 //dateTodayLastYear.setTime(dateTodayLastYear.valueOf() - (365 * 24 * 60 * 60 * 1000));
                                                 dateTodayLastYear.setFullYear(dateTodayLastYear.getFullYear() - 1);
                                                 if (dateTodayLastYear > gooddate_sample) {
-                                                    grid_console.text('Sample Date is more than one year before Date Received in row ' + (row + 1) + '!');
-                                                    var confirmOldDate = confirm("Sample Date is more than one year before Date Received in row " + (row + 1) + "!");
+                                                    grid_console.text('Sample Date is more than one year before today in row ' + (row + 1) + '!');
+                                                    var confirmOldDate = confirm("Sample Date is more than one year before today in row " + (row + 1) + "!");
                                                     if (confirmOldDate == false) {validTable = false; return false;}
                                                 }
                                                 thisDataObject[objectFields[i]] = gooddate_sample_string + " " + newValue + ":00";
@@ -557,6 +557,9 @@
                                             else {grid_console.text('There is a problem with Sample Date in row ' + (row + 1) + '. Please contact the administrator.'); validTable = false; return false;}
                                             //thisDataObject[objectFields[i]] = thisDataRow[i-1]+" "+newValue+":00";
                                         }
+                                        break;
+                                    case 4: // depth
+                                        thisDataObject[objectFields[i]] = (thisDataRow[i] % 1 === 0 ? (thisDataRow[i].toFixed(1)) : thisDataRow[i]);
                                         break;
                                     case 8: // bottle
                                         // if it has a value, look up and return the ID, otherwise notify the user that this is a required field, and stop the submission
@@ -580,11 +583,17 @@
                                         break;
                                     case 12: // filter
                                         // if it has a value, look up and return the ID, otherwise skip this field (won't be included in submission to database)
-                                        if (thisDataRow[i] !== null && thisDataRow[i] !== "" && thisDataRow[i] !== 0 && thisDataRow[i] !== 'undefined') {thisDataObject[objectFields[i]]= getIdDom(data_filters,'filter',thisDataRow[i]);}
+                                        if (thisDataRow[i] !== null && thisDataRow[i] !== "" && thisDataRow[i] !== 0 && thisDataRow[i] !== 'undefined') {
+                                            var thisID = getIdDom(data_filters,'filter',thisDataRow[i]);
+                                            thisDataObject[objectFields[i]]= (thisID == -1 ? null : thisID);
+                                        }
                                         break;
                                     case 14: // preservation
                                         // if it has a value, look up and return the ID, otherwise skip this field (won't be included in submission to database)
-                                        if (thisDataRow[i] !== null && thisDataRow[i] !== "" && thisDataRow[i] !== 0 && thisDataRow[i] !== 'undefined') {thisDataObject[objectFields[i]] = getIdDom(data_preservations,'preservation',thisDataRow[i]);}
+                                        if (thisDataRow[i] !== null && thisDataRow[i] !== "" && thisDataRow[i] !== 0 && thisDataRow[i] !== 'undefined') {
+                                            var thisID = getIdDom(data_preservations,'preservation',thisDataRow[i]);
+                                            thisDataObject[objectFields[i]]= (thisID == -1 ? null : thisID);
+                                        }
                                         break;
                                     case 15: // acid
                                         // if it has a value, look up and return the ID, otherwise skip this field (won't be included in submission to database)

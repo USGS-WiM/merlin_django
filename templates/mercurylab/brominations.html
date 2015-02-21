@@ -4,10 +4,10 @@
     <div style="padding:10px">
 
         <p>
-            <button type="button" class="btn btn-default" name="formAdd">Add New Bromination</button>
+            <button type="button" class="btn btn-default" name="formAdd">Add New Bromination Event</button>
         </p>
         <div id="form_add" class="panel-default" style="display:none;">
-            <h3>Create Bromination</h3>
+            <h3>Create Bromination Event</h3>
             <form class="form-inline" style="border:1px solid;width:600px;padding:4px;">
                 <div class="form-group" style="padding:2px;text-align:center">
                     <label for="concentration">Concentration</label><br />
@@ -184,7 +184,7 @@
                     startRows: 8,
                     columns: [
                         {title: "Unique Bottle Name", width: 150, type: 'autocomplete', strict: true, source: function (query, process) {
-                            getValuesAjax('/mercuryservices/bottles', 'bottle_unique_name', query, process)}},
+                            getValuesAjax('/mercuryservices/bottles', 'bottle_unique_name', query, process, ('constituent=39,27'))}},
                         {title: "Event Number", width: 100},
                         {title: "Volume Added (mL)", width: 150}
                     ],
@@ -522,20 +522,22 @@
                     if (typeof(selectedBrominationRow) === 'undefined' || selectedBrominationRow == null) {$('#selected_bromination_id_warning').show(); return;}
                     else {$('#selected_bromination_id_warning').hide();}
                     var selected_bromination_id = grid_brominations.handsontable('getInstance').getDataAtCell(selectedBrominationRow, 0);
-                    var date_today = new Date().toISOString().split("T")[0];
+                    var selected_bromination_date = grid_brominations.handsontable('getInstance').getDataAtCell(selectedBrominationRow, 2);
+                    var gooddate_selected_bromination_date = makeYear(selected_bromination_date) + "-" + makeMonth(selected_bromination_date) + "-" + makeDay(selected_bromination_date);
+                    //var date_today = new Date().toISOString().split("T")[0];
                     var dataArray = [];
                     $.each(gridAdd_changedRowIndices, function(index, value) {
                         var thisDataRow = grid_add.data('handsontable').getDataAtRow(value);
                         var thisDataObject = {};
                         thisDataObject['bromination'] = selected_bromination_id;
-                        thisDataObject['sample_bottle'] = updateValueAjax('/mercuryservices/samplebottles/', 'bottle', 'id', thisDataRow[0]);
+                        var thisBottle = updateValueAjax('/mercuryservices/samplebottles/', 'bottle', 'id', thisDataRow[0]);
+                        thisDataObject['sample_bottle'] = thisBottle;
                         thisDataObject['bromination_event'] = thisDataRow[1];
                         thisDataObject['bromination_volume'] = thisDataRow[2];
-                        thisDataObject['created_date'] = date_today;
+                        thisDataObject['created_date'] = gooddate_selected_bromination_date;
                         dataArray.push(thisDataObject);
                     });
                     var dataJSON = JSON.stringify(dataArray);
-                    alert(dataJSON);
                     $.ajax({
                         url: '/mercurylab/samplebottlebromination_add/',
                         data: dataJSON,

@@ -3,8 +3,8 @@
 
     <div style="padding:10px">
         <p>
-            <button type="button" class="btn btn-default" name="bottle_prefix_add">Add New Bottle</button>
-            <button type="button" class="btn btn-default" name="range_add">Add New Range of Bottles</button>
+            <button type="button" class="btn btn-default" name="bottle_prefix_add">Add New Prefix</button>
+            <button type="button" class="btn btn-default" name="bottle_prefix_range_add">Add New Range of Prefixes</button>
             <button type="button" class="btn btn-default" name="bottles_add">Add New Bottles</button>
         </p>
         <div id="form_bottle_prefix_add" class="panel-default" style="display:none;">
@@ -34,7 +34,7 @@
             <br />
             <button type="button" class="btn btn-primary" name="bottlePrefixAddSave">Save</button>
         </div>
-        <div id="form_range_add" class="panel-default" style="display:none;">
+        <div id="form_bottle_prefix_range_add" class="panel-default" style="display:none;">
             <h3>Create Range of Bottle Prefixes</h3>
             <form class="form-inline" style="border:1px solid;width:800px;padding:4px;">
                 <div class="form-group" style="padding:2px;text-align:center">
@@ -59,8 +59,8 @@
                     <input class="input-block-level" name="tare_weight" type="text">
                 </div>
                 <div class="form-group" style="padding:2px;text-align:center">
-                    <label for="date_bottle_range">Date</label><br />
-                    <input class="input-block-level" name="date_bottle_range" id="date_bottle_range">
+                    <label for="date_bottle_prefix_range">Date</label><br />
+                    <input class="input-block-level" name="date_bottle_prefix_range" id="date_bottle_prefix_range">
                 </div>
                 <div class="form-group" style="padding:2px;text-align:center">
                     <label for="description">Description</label><br />
@@ -157,7 +157,7 @@
                 var bottlesAddClicked = false;
                 var grid_console = $("#grid_console");
 
-                var objectFieldsAdd = ["prefix", "suffix", "bottle_unique_name", "created_date", "tare_weight", "bottle_type", "description"];
+                var objectFieldsAdd = ["bottle_prefix", "suffix", "bottle_unique_name", "created_date", /*"tare_weight", "bottle_type",*/ "description"];
                 var grid_bottles_add = $('#grid_bottles_add');
                 var data_bottle_types = JSON.parse(grid_bottles_add.attr("data-bottle-types"));
                 var changedRowIndicesBottlesAdd = [];
@@ -171,12 +171,12 @@
                     search: true,
                     startRows: 8,
                     columns: [
-                        {title: "Bottle Prefix", editor: 'text', width: 100},
+                        {title: "Bottle Prefix", type: 'autocomplete', strict: true, source: function (query, process) {getValuesAjax('/mercuryservices/bottleprefixes/', 'bottle_prefix', query, process)}, width: 100},
                         {title: "Suffix", width: 60},
                         {title: "Bottle Unique Name", type: 'text', width: 160},
                         {title: "Date", type: 'date', dateFormat: 'mm/dd/y', width: 100},
-                        {title: "Tare Weight", type: 'numeric', format: '0.00', width: 100},
-                        {title: "Bottle Type", type: 'autocomplete', strict: true, source: getValuesDom(data_bottle_types,"bottle_type"), width: 240},
+                        //{title: "Tare Weight", type: 'numeric', format: '0.00', width: 100},
+                        //{title: "Bottle Type", type: 'autocomplete', strict: true, source: getValuesDom(data_bottle_types,"bottle_type"), width: 240},
                         {title: "Description", type: 'text', width: 240}
                     ],
                     /*beforeAutofill: function(start, end, data) {
@@ -287,6 +287,7 @@
                         for (var i = 0; i < thisDataRow.length; i++) {
                             switch(i){
                                 case 0: // prefix
+                                    thisDataObject[objectFieldsAdd[i]] = updateValueAjax('/mercuryservices/bottleprefixes/', 'bottle_prefix', 'id', thisDataRow[i]);
                                     break;
                                 case 1: // suffix
                                     break;
@@ -298,7 +299,7 @@
                                         var gooddate;
                                         if (makeYear(baddate)!= null && makeMonth(baddate)!= null && makeDay(baddate) != null) {
                                             gooddate = makeYear(baddate) + "-" + makeMonth(baddate) + "-" + makeDay(baddate);
-                                            thisDataObject[objectFields[i]] = gooddate;
+                                            thisDataObject[objectFieldsAdd[i]] = gooddate;
                                         }
                                         else {grid_console.text('There is a problem with the Date in row ' + (index + 1) + '. Please contact the administrator.'); return false;}
                                     }
@@ -330,7 +331,7 @@
                             // otherwise, it's JSON from the REST Services
                             else if (jqXHRequest.status === 200) {
                                 grid_console.text(textStatus+': Data saved.');
-                                grid_bottles.parent().find('button[name=bottles_add]').click();
+                                grid_bottles_add.parent().find('button[name=bottles_add]').click();
                                 // the data was saved to the database, so empty the table
                                 var rows = grid_bottles_add.handsontable('getInstance').countRows();
                                 grid_bottles_add.data('handsontable').alter('remove_row', 0, rows);
@@ -366,7 +367,7 @@
                     thisDataObject['description'] = form_bottle_prefix_add.find('input[name=description]').val();
                     var dataJSON = JSON.stringify(thisDataObject);
                     $.ajax({
-                        url: '/mercurylab/bottle_prefix_add/',
+                        url: '/mercurylab/bottleprefix_add/',
                         data: dataJSON,
                         dataType: 'json',
                         contentType: "application/json",
@@ -380,7 +381,7 @@
                             // otherwise, it's JSON from the REST Services
                             else if (jqXHRequest.status === 200) {
                                 $(":input", "#form_bottle_prefix_add").not(":button").val("");
-                                grid_bottles.parent().find('button[name=bottle_prefix_add]').click();
+                                form_bottle_prefix_add.parent().find('button[name=bottle_prefix_add]').click();
                                 grid_console.text(textStatus+': Data saved.');
                             }
                             else {
@@ -393,14 +394,14 @@
                     });
                 });
 
-                var form_range_add = $("#form_range_add");
-                form_range_add.find('button[name=rangePrefixAddSave]').click(function () {
+                var form_bottle_prefix_range_add = $("#form_bottle_prefix_range_add");
+                form_bottle_prefix_range_add.find('button[name=rangePrefixAddSave]').click(function () {
                     var thisDataObject = {};
-                    thisDataObject['prefix'] = form_range_add.find('input[name=bottle_prefix]').val();
-                    thisDataObject['suffix'] = form_range_add.find('input[name=bottle_suffix]').val();
-                    thisDataObject['range_start'] = form_range_add.find('input[name=bottle_range_start]').val();
-                    thisDataObject['range_end'] = form_range_add.find('input[name=bottle_range_end]').val();
-                    var baddate = form_range_add.find('input[name=date_bottle_range]').val();
+                    thisDataObject['prefix'] = form_bottle_prefix_range_add.find('input[name=bottle_prefix]').val();
+                    thisDataObject['suffix'] = form_bottle_prefix_range_add.find('input[name=bottle_suffix]').val();
+                    thisDataObject['range_start'] = form_bottle_prefix_range_add.find('input[name=bottle_range_start]').val();
+                    thisDataObject['range_end'] = form_bottle_prefix_range_add.find('input[name=bottle_range_end]').val();
+                    var baddate = form_bottle_prefix_range_add.find('input[name=date_bottle_prefix_range]').val();
                     //var gooddate = "20" + baddate.substr(6,4) + "-" + baddate.substr(0,2) + "-" + baddate.substr(3,2);
                     if (dateRegEx.test(baddate)) {
                         var gooddate;
@@ -411,12 +412,12 @@
                         else {grid_console.text('There is a problem with the Date. Please contact the administrator.'); return false;}
                     }
                     else {grid_console.text('Date is badly formed. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); return false;}
-                    thisDataObject['tare_weight'] = Number(form_range_add.find('input[name=tare_weight]').val());
+                    thisDataObject['tare_weight'] = Number(form_bottle_prefix_range_add.find('input[name=tare_weight]').val());
                     thisDataObject['bottle_type'] = select_bottle_type_range.val();
-                    thisDataObject['description'] = form_range_add.find('input[name=description]').val();
+                    thisDataObject['description'] = form_bottle_prefix_range_add.find('input[name=description]').val();
                     var dataJSON = JSON.stringify(thisDataObject);
                     $.ajax({
-                        url: '/mercurylab/bottle_prefix_range_add/',
+                        url: '/mercurylab/bottleprefix_range_add/',
                         data: dataJSON,
                         dataType: 'json',
                         contentType: "application/json",
@@ -429,8 +430,8 @@
                             }
                             // otherwise, it's JSON from the REST Services
                             else if (jqXHRequest.status === 200) {
-                                $(":input", "#form_range_add").not(":button").val("");
-                                grid_bottles.parent().find('button[name=range_add]').click();
+                                $(":input", "#form_bottle_prefix_range_add").not(":button").val("");
+                                form_bottle_prefix_range_add.parent().find('button[name=bottle_prefix_range_add]').click();
                                 grid_console.text(textStatus+': Data saved.');
                             }
                             else {
@@ -443,12 +444,12 @@
                     });
                 });
 
-                $("#date_bottle").datepicker({
+                $("#date_bottle_prefix").datepicker({
                     dateFormat: "mm/dd/y",
                     maxDate: 0
                 });
 
-                $("#date_bottle_range").datepicker({
+                $("#date_bottle_prefix_range").datepicker({
                     dateFormat: "mm/dd/y",
                     maxDate: 0
                 });
@@ -463,7 +464,8 @@
                     select_bottle_type_range.append(new Option(data_bottle_types[i].bottle_type, data_bottle_types[i].id));
                 }
 
-                var prefixObjectFields = ["id", "bottle_unique_name", "created_date", "tare_weight", "bottle_type", "description"];
+                var prefixObjectFields = ["id", "bottle_prefix", "created_date", "tare_weight", "bottle_type", "description"];
+                var changedRowIndicesPrefixes = [];
                 var grid_prefixes = $('#grid_prefixes');
                 var data_prefixes = JSON.parse(grid_prefixes.attr("data-prefixes"));
                 grid_prefixes.handsontable({
@@ -475,7 +477,7 @@
                         {title: "Date", data: "created_date", width: 100, dateFormat: 'mm/dd/y'},
                         {title: "Tare Weight", data: "tare_weight", width: 100},
                         {title: "Bottle Type", data: "bottle_type", width: 100},
-                        {title: "Description", data: "description", width: 350}
+                        {title: "Description", data: "description", width: 240}
                     ],
                     search: true,
                     //columnSorting: { column: 0 },
@@ -489,10 +491,10 @@
                         // remember the indices of all changed rows
                         if (source != 'loadData') {
                             // find index of this row in the changed rows array
-                            var changedRowIndex = changedRowIndices.indexOf(changedRow);
+                            var changedRowIndex = changedRowIndicesPrefixes.indexOf(changedRow);
                             // if not in the array (index == -1), add it to the array, otherwise ignore
                             if (changedRowIndex == -1){
-                                changedRowIndices.push(changedRow);
+                                changedRowIndicesPrefixes.push(changedRow);
                             }
                         }
                         //var selectedRows = grid_bottles.handsontable('getInstance').getSelectedRange();
@@ -517,7 +519,7 @@
                 var grid_bottles = $('#grid_bottles');
                 var data_bottles = JSON.parse(grid_bottles.attr("data-bottles"));
                 var resultPages = Math.ceil(data_bottles['count'] / 100);
-                var changedRowIndices = [];
+                var changedRowIndicesBottles = [];
                 var selectionRowIndices = [];
                 grid_console.text('Loading data.');
                 grid_bottles.handsontable({
@@ -526,9 +528,9 @@
                     columns: [
                         {title: "ID", data: "id", readOnly: true, width: 1},
                         {title: "Unique Bottle Name", data: "bottle_unique_name", width: 150},
-                        {title: "Bottle Prefix", data: "bottle_prefix.bottle_prefix", width: 100},
+                        {title: "Bottle Prefix", data: "bottle_prefix", width: 100},
                         {title: "Date", data: "created_date", width: 100, dateFormat: 'mm/dd/y'},
-                        {title: "Description", data: "description", width: 350}
+                        {title: "Description", data: "description", width: 240}
                     ],
                     search: true,
                     //columnSorting: { column: 0 },
@@ -542,10 +544,10 @@
                         // remember the indices of all changed rows
                         if (source != 'loadData') {
                             // find index of this row in the changed rows array
-                            var changedRowIndex = changedRowIndices.indexOf(changedRow);
+                            var changedRowIndex = changedRowIndicesBottles.indexOf(changedRow);
                             // if not in the array (index == -1), add it to the array, otherwise ignore
                             if (changedRowIndex == -1){
-                                changedRowIndices.push(changedRow);
+                                changedRowIndicesBottles.push(changedRow);
                             }
                         }
                         //var selectedRows = grid_bottles.handsontable('getInstance').getSelectedRange();
@@ -654,23 +656,23 @@
                         rangeAddClicked = false;
                         bottleAddClicked = true;
                         bottlesAddClicked = false;
-                        $("#form_range_add").hide();
+                        $("#form_bottle_prefix_range_add").hide();
                         $("#form_bottle_prefix_add").show();
                         $("#grid_bottles_add").hide();
                     }
                 });
 
-                form_range_add.parent().find('button[name=range_add]').click(function () {
+                form_bottle_prefix_range_add.parent().find('button[name=bottle_prefix_range_add]').click(function () {
                     if (rangeAddClicked) {
                         rangeAddClicked = false;
-                        $("#form_range_add").hide();
+                        $("#form_bottle_prefix_range_add").hide();
                     }
                     else {
                         rangeAddClicked = true;
                         bottleAddClicked = false;
                         bottlesAddClicked = false;
                         $("#form_bottle_prefix_add").hide();
-                        $("#form_range_add").show();
+                        $("#form_bottle_prefix_range_add").show();
                         $("#grid_bottles_add").hide();
                     }
                 });
@@ -685,7 +687,7 @@
                         rangeAddClicked = false;
                         bottlesAddClicked = true;
                         $("#form_bottle_prefix_add").hide();
-                        $("#form_range_add").hide();
+                        $("#form_bottle_prefix_range_add").hide();
                         $("#grid_bottles_add").show();
                     }
                 });
@@ -698,7 +700,7 @@
                 
                 tools_prefixes.find('button[name=load]').click(function () {
                     $.ajax({
-                        url: '/mercuryservices/bottleprefixess/?page='+currentPage,
+                        url: '/mercuryservices/bottleprefixes/?page='+currentPage,
                         dataType: 'json',
                         success: function (response) {
                             grid_console.text("success");
@@ -764,23 +766,25 @@
 
                 tools_prefixes.find('button[name=save]').click(function () {
                     var changedDataArray = [];
-                    $.each(changedRowIndices, function(index, value) {
+                    $.each(changedRowIndicesPrefixes, function(index, value) {
                         var thisDataRow = grid_prefixes.data('handsontable').getDataAtRow(value);
                         var thisDataObject = {};
                         for (var i = 0; i < thisDataRow.length; i++) {
-                            if (thisDataObject[objectFields[i]] == 'created_date') {
+                            if (prefixObjectFields[i] == "tare_weight") {thisDataObject[prefixObjectFields[i]] = Number(thisDataRow[i]);}
+                            else if (prefixObjectFields[i] == "bottle_type") {thisDataObject[prefixObjectFields[i]] = updateValueAjax('/mercuryservices/bottletypes/', 'bottle_type', 'id', thisDataRow[i])}
+                            else if (prefixObjectFields[i] == "created_date") {
                                 var baddate = thisDataRow[i];
                                 if (dateRegEx.test(baddate)) {
                                     var gooddate;
                                     if (makeYear(baddate)!= null && makeMonth(baddate)!= null && makeDay(baddate) != null) {
-                                        gooddate = makeYear(baddate) + "-" + makeMonth(baddate) + "-" + makeDay(baddate);
-                                        thisDataObject[objectFields[i]] = gooddate;
+                                        gooddate = makeYear(baddate) + "-" + makeMonth(baddate) + "-" + makeDay(baddate) + " 00:00:00";
+                                        thisDataObject[prefixObjectFields[i]] = gooddate;
                                     }
                                     else {grid_console.text('There is a problem with the Date in row ' + (index + 1) + '. Please contact the administrator.'); return false;}
                                 }
                                 else {grid_console.text('Date is badly formed in row ' + (index + 1) + '. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); return false;}
                             }
-                            else {thisDataObject[objectFields[i]] = thisDataRow[i];}
+                            else {thisDataObject[prefixObjectFields[i]] = thisDataRow[i];}
                         }
                         changedDataArray.push(thisDataObject);
                     });
@@ -885,23 +889,24 @@
 
                 tools_bottles.find('button[name=save]').click(function () {
                     var changedDataArray = [];
-                    $.each(changedRowIndices, function(index, value) {
+                    $.each(changedRowIndicesBottles, function(index, value) {
                         var thisDataRow = grid_bottles.data('handsontable').getDataAtRow(value);
                         var thisDataObject = {};
                         for (var i = 0; i < thisDataRow.length; i++) {
-                            if (thisDataObject[objectFields[i]] == 'created_date') {
+                            if (bottleObjectFields[i] == "bottle_prefix") {thisDataObject[bottleObjectFields[i]] = updateValueAjax('/mercuryservices/bottleprefixes/', 'bottle_prefix', 'id', thisDataRow[i])}
+                            else if (bottleObjectFields[i] == "created_date") {
                                 var baddate = thisDataRow[i];
                                 if (dateRegEx.test(baddate)) {
                                     var gooddate;
                                     if (makeYear(baddate)!= null && makeMonth(baddate)!= null && makeDay(baddate) != null) {
-                                        gooddate = makeYear(baddate) + "-" + makeMonth(baddate) + "-" + makeDay(baddate);
-                                        thisDataObject[objectFields[i]] = gooddate;
+                                        gooddate = makeYear(baddate) + "-" + makeMonth(baddate) + "-" + makeDay(baddate) + " 00:00:00";
+                                        thisDataObject[bottleObjectFields[i]] = gooddate;
                                     }
                                     else {grid_console.text('There is a problem with the Date in row ' + (index + 1) + '. Please contact the administrator.'); return false;}
                                 }
                                 else {grid_console.text('Date is badly formed in row ' + (index + 1) + '. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); return false;}
                             }
-                            else {thisDataObject[objectFields[i]] = thisDataRow[i];}
+                            else {thisDataObject[bottleObjectFields[i]] = thisDataRow[i];}
                         }
                         changedDataArray.push(thisDataObject);
                     });

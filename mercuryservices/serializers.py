@@ -72,6 +72,15 @@ class BottlePrefixSerializer(serializers.ModelSerializer):
 
 class BottleSerializer(serializers.ModelSerializer):
     created_date = serializers.DateTimeField(format='%m/%d/%y', source='created_date')
+    bottle_prefix = serializers.RelatedField(source='bottle_prefix')
+
+    class Meta:
+        model = Bottle
+        fields = ('id', 'bottle_unique_name', 'bottle_prefix', 'created_date', 'description',)
+
+
+class FullBottleSerializer(serializers.ModelSerializer):
+    created_date = serializers.DateTimeField(format='%m/%d/%y', source='created_date')
     bottle_prefix = BottlePrefixSerializer(source='bottle_prefix')
 
     class Meta:
@@ -80,6 +89,7 @@ class BottleSerializer(serializers.ModelSerializer):
 
 
 class SampleSerializer(serializers.ModelSerializer):
+    #sample_date_time = serializers.DateTimeField(format='%Y-%m-%d %H%:M:%S', source='sample_date_time')
     sample_date = serializers.DateTimeField(format='%m/%d/%y', source='sample_date_time')
     sample_time = serializers.DateTimeField(format='%H%M', source='sample_date_time')
     received_date = serializers.DateTimeField(format='%m/%d/%y', source='received_date')
@@ -90,7 +100,7 @@ class SampleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Sample
-        fields = ('id', 'sample_date', 'sample_time', 'depth', 'length', 'comment', 'received_date',
+        fields = ('id', 'sample_date_time', 'sample_date', 'sample_time', 'depth', 'length', 'comment', 'received_date',
                   'replicate', 'medium_type', 'lab_processing', 'sample_bottles', 'site', 'project',)
 
 
@@ -303,7 +313,7 @@ class ProcedureTypeSerializer(serializers.ModelSerializer):
 
 class FullSampleBottleSerializer(serializers.ModelSerializer):
     sample = SampleSerializer(source='sample')
-    bottle = BottleSerializer(source='bottle')
+    bottle = FullBottleSerializer(source='bottle')
     filter_type = serializers.RelatedField(source='filter_type')
     preservation_type = serializers.RelatedField(source='preservation_type')
     preservation_acid = serializers.RelatedField(source='preservation_acid')
