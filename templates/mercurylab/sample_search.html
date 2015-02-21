@@ -133,43 +133,43 @@
                     data: data_data,
                     columns: [
                         {title: 'Sample ID', data: 'sample_bottle.sample.id', readOnly: true, width: 80},
-                        {title: 'Project Name', data: 'sample_bottle.sample.project.name', width: 100, type: 'autocomplete', strict: true, source: function (query, process) {
+                        {title: 'Project Name', data: 'sample_bottle.sample.project.name', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 100, type: 'autocomplete', strict: true, source: function (query, process) {
                             getValuesAjax('/mercuryservices/projects', 'name', query, process)}
                         },
-                        {title: 'Project ID', data: 'sample_bottle.sample.project.id', width: 1, type: 'autocomplete', strict: true, source: function (query, process) {
+                        {title: 'Project ID', data: 'sample_bottle.sample.project.id', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 1, type: 'autocomplete', strict: true, source: function (query, process) {
                             getValuesAjax('/mercuryservices/projects', 'id', query, process)}
                         },
-                        {title: 'Site Name', data: 'sample_bottle.sample.site.name', width: 75, type: 'autocomplete', strict: true, source: function (query, process) {
+                        {title: 'Site Name', data: 'sample_bottle.sample.site.name', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 75, type: 'autocomplete', strict: true, source: function (query, process) {
                             getValuesAjax('/mercuryservices/sites', 'name', query, process, ('project=' + grid.handsontable('getInstance').getDataAtCell(grid.handsontable('getInstance').getSelected()[0], 2)))}
                         },
-                        {title: 'Site ID', data: 'sample_bottle.sample.site.id', width: 70, type: 'autocomplete', strict: true, source: function (query, process) {
-                            getValuesAjax('/mercuryservices/sites', 'id', query, process, ('project=' + grid.handsontable('getInstance').getDataAtCell(grid.handsontable('getInstance').getSelected()[0], 2)))}
+                        {title: 'Site ID', data: 'sample_bottle.sample.site.usgs_scode', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 70, type: 'autocomplete', strict: true, source: function (query, process) {
+                            getValuesAjax('/mercuryservices/sites', 'usgs_scode', query, process, ('project=' + grid.handsontable('getInstance').getDataAtCell(grid.handsontable('getInstance').getSelected()[0], 2)))}
                         },
                         // Date, Hour, and Minute as separate columns is temporary until a single column datetime editor can be found for handsontable
-                        {title: 'Date', data: 'sample_bottle.sample.sample_date', width: 100, type: 'date', dateFormat: 'mm/dd/y', maxDate: 0},
-                        {title: 'Time', data: 'sample_bottle.sample.sample_time', width: 60, type: 'numeric', validator: validateTime},
+                        {title: 'Date', data: 'sample_bottle.sample.sample_date', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 100, type: 'date', dateFormat: 'mm/dd/y', maxDate: 0},
+                        {title: 'Time', data: 'sample_bottle.sample.sample_time', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 60, type: 'numeric', validator: validateTime},
                         //{title: 'Hour', width: 50, type: 'autocomplete', source: getRange(24)},
                         //{title: 'Minute', width: 50, type: 'autocomplete', source: getRange(60)},
-                        {title: 'Depth', data: 'sample_bottle.sample.depth', width: 50, type: 'numeric', format: '0.00'},
-                        {title: 'Length', data: 'sample_bottle.sample.length', width: 50, type: 'numeric'},
-                        {title: 'Rep', data: 'sample_bottle.sample.replicate', width: 50, type: 'numeric'},
-                        {title: 'Sample Comments', data: 'sample_bottle.sample.comment', width: 130, type: 'text'},
-                        {title: 'Received', data: 'sample_bottle.sample.received_date', width: 100, type: 'date', dateFormat: 'mm/dd/y', maxDate: 0},
-                        {title: 'Lab Processing', data: 'sample_bottle.sample.lab_processing', width: 105, type: 'text'/*, type: 'autocomplete', strict: true, source: getValuesDom(data_processings,"processing")*/},
+                        {title: 'Depth', data: 'sample_bottle.sample.depth', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 50, type: 'numeric', format: '0.00'},
+                        {title: 'Length', data: 'sample_bottle.sample.length', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 50, type: 'numeric'},
+                        {title: 'Rep', data: 'sample_bottle.sample.replicate', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 50, type: 'numeric'},
+                        {title: 'Sample Comments', data: 'sample_bottle.sample.comment', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 130, type: 'text'},
+                        {title: 'Received', data: 'sample_bottle.sample.received_date', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 100, type: 'date', dateFormat: 'mm/dd/y', maxDate: 0},
+                        {title: 'Lab Processing', data: 'sample_bottle.sample.lab_processing', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 105, type: 'text'/*, type: 'autocomplete', strict: true, source: getValuesDom(data_processings,"processing")*/},
                         //{title: 'Container ID', width: 100, type: 'text'},
-                        {title: 'Container ID', data: 'sample_bottle.bottle.bottle_unique_name', width: 90, type: 'autocomplete', strict: true,  source: function (query, process) {
+                        {title: 'Container ID', data: 'sample_bottle.bottle.bottle_unique_name', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 90, type: 'autocomplete', strict: true,  source: function (query, process) {
                             getValuesAjax('/mercuryservices/bottles', 'name', query, process)}},
-                        {title: 'Medium', data: 'sample_bottle.sample.medium_type', width: 100, type: 'autocomplete', strict: true, source: getValuesDom(data_mediums,"nwis_code")},
-                        {title: 'Analysis', data: 'constituent', width: 70, type: 'autocomplete', strict: true},
-                        {title: 'Isotope', data: 'isotope_flag', width: 55, type: 'dropdown', source: data_isotopeflags},
-                        {title: 'Filter', data: 'sample_bottle.filter_type', width: 100, type: 'autocomplete', strict: true, source: getValuesDom(data_filters,"filter")},
-                        {title: 'Filter Vol.', data: 'sample_bottle.volume_filtered', width: 65, type: 'numeric', format: '0.00'},
-                        {title: 'Preservation', data: 'sample_bottle.preservation_type', width: 100, type: 'autocomplete', strict: true, source: getValuesDom(data_preservations, "preservation")},
+                        {title: 'Medium', data: 'sample_bottle.sample.medium_type', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 100, type: 'autocomplete', strict: true, source: getValuesDom(data_mediums,"nwis_code")},
+                        {title: 'Analysis', data: 'constituent', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 70, type: 'autocomplete', strict: true},
+                        {title: 'Isotope', data: 'isotope_flag', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 55, type: 'dropdown', source: data_isotopeflags},
+                        {title: 'Filter', data: 'sample_bottle.filter_type', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 100, type: 'autocomplete', strict: true, source: getValuesDom(data_filters,"filter")},
+                        {title: 'Filter Vol.', data: 'sample_bottle.volume_filtered', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 65, type: 'numeric', format: '0.00'},
+                        {title: 'Preservation', data: 'sample_bottle.preservation_type', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 100, type: 'autocomplete', strict: true, source: getValuesDom(data_preservations, "preservation")},
                         //{title: 'Acid', width: 100, type: 'autocomplete',  source: getValuesDom(data_acids, "code")},
-                        {title: 'Acid', data: 'sample_bottle.preservation_acid', width: 110, type: 'autocomplete', strict: true,  source: function (query, process) {
+                        {title: 'Acid', data: 'sample_bottle.preservation_acid', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 110, type: 'autocomplete', strict: true,  source: function (query, process) {
                             getValuesAjax('/mercuryservices/acids', 'code', query, process)}},
-                        {title: 'Acid Vol.', data: 'sample_bottle.preservation_volume', width: 60, type: 'numeric', format: '0.00'},
-                        {title: 'Pres. Comments', data: 'sample_bottle.preservation_comment', width: 115, type: 'text'},
+                        {title: 'Acid Vol.', data: 'sample_bottle.preservation_volume', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 60, type: 'numeric', format: '0.00'},
+                        {title: 'Pres. Comments', data: 'sample_bottle.preservation_comment', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 115, type: 'text'},
                         {title: 'Sample Bottle ID', data: 'sample_bottle.id', readOnly: true, width: 1},
                         {title: 'Result ID', data: 'id', readOnly: true, width: 1}
                     ],
@@ -265,13 +265,13 @@
                             // when site name is changed to a non-null, non-blank value
                             if (changedCol == 'sample_bottle.sample.site.name' && changedVal !== null && changedVal !== "") {
                                 // update site ID to match site name
-                                var newValue = updateValueAjax('/mercuryservices/sites/', 'name', 'id', changedVal);
+                                var newValue = updateValueAjax('/mercuryservices/sites/', 'name', 'usgs_scode', changedVal);
                                 grid.handsontable('setDataAtCell', changedRow, 4, newValue);
                             }
                             // when site ID is changed to a non-null, non-blank value
                             if (changedCol == 'sample_bottle.sample.site.id' && changedVal !== null && changedVal !== "") {
                                 // update site name to match site ID
-                                var newValue = updateValueAjax('/mercuryservices/sites/', 'id', 'name', changedVal);
+                                var newValue = updateValueAjax('/mercuryservices/sites/', 'usgs_scode', 'name', changedVal);
                                 grid.handsontable('setDataAtCell', changedRow, 3, newValue);
                             }
                             // when medium is changed to a non-null, non-blank value
@@ -536,22 +536,29 @@
                                         break;
                                     case 2: // project ID
                                         // if it doesn't have a value, notify the user that this is a required field, and stop the submission
-                                        if (!thisDataRow[i]) {grid_console.text('Project ID is required!'); validTable = false; return false;}
+                                        if (!thisDataRow[i]) {grid_console.text('Project ID is required in row ' + (index + 1) + '!'); validTable = false; return false;}
                                         break;
                                     case 3: // site name
-                                        // do nothing with this column
+                                        // if it doesn't have a value, notify the user that this is a required field, and stop the submission
+                                        if (!thisDataRow[i]) {grid_console.text('Site Name is required in row ' + (row + 1) + '!'); validTable = false; return false;}
+                                        else {thisDataObject[objectFields[i]] = getIdDom(data_sites,'name',thisDataRow[i]);}
                                         break;
                                     case 4: // site ID
-                                        // if it doesn't have a value, notify the user that this is a required field, and stop the submission
-                                        if (!thisDataRow[i]) {grid_console.text('Site ID is required!'); validTable = false; return false;}
+                                        //// if it doesn't have a value, notify the user that this is a required field, and stop the submission
+                                        //if (!thisDataRow[i]) {grid_console.text('Site ID is required!'); validTable = false; return false;}
+                                        //else {thisDataObject[objectFields[i]] = getIdDom(data_sites,'usgs_scode',thisDataRow[i]);}
+
+                                        // do nothing with this column
                                         break;
                                     case 5: // date
                                         // if it doesn't have a value, notify the user that this is a required field, and stop the submission
-                                        if (!thisDataRow[i]) {grid_console.text('Date is required!'); validTable = false; return false;}
+                                        if (!thisDataRow[i]) {grid_console.text('Sample Date is required in row ' + (index + 1) + '!'); validTable = false; return false;}
+                                        // if it has a value but with bad formatting, notify the user, and stop the submission
+                                        if (!(dateRegEx.test(thisDataRow[i]))) {grid_console.text('Sample Date is badly formed in row ' + (index + 1) + '. Expecting a date in mm/dd/yy format but found ' + thisDataRow[i] + '!'); validTable = false; return false;}
                                         break;
                                     case 6: // time
                                         // if it doesn't have a value, notify the user that this is a required field, and stop the submission
-                                        if (!thisDataRow[i]) {grid_console.text('Time is required!'); validTable = false; return false;}
+                                        if (!thisDataRow[i]) {grid_console.text('Time is required in row ' + (index + 1) + '!'); validTable = false; return false;}
                                         if (thisDataRow[i] !== null && thisDataRow[i] !== "" && thisDataRow[i-1] !== null && thisDataRow[i-1] !== "") {
                                             var changedVal = thisDataRow[i];
                                             var newValue;
@@ -574,38 +581,54 @@
                                                     break;
                                             }
                                             var baddate_sample = thisDataRow[i - 1];
-                                            var gooddate_sample = "20" + baddate_sample.substr(6,4) + "-" + baddate_sample.substr(0,2) + "-" + baddate_sample.substr(3,2);
-                                            thisDataObject[objectFields[i]] = gooddate_sample + " " + newValue + ":00";
+                                            var gooddate_sample;
+                                            if (makeYear(baddate_sample)!= null && makeMonth(baddate_sample)!= null && makeDay(baddate_sample) != null) {
+                                                gooddate_sample = makeYear(baddate_sample) + "-" + makeMonth(baddate_sample) + "-" + makeDay(baddate_sample);
+                                                thisDataObject[objectFields[i]] = gooddate_sample + " " + newValue + ":00";
+                                            }
+                                            else {grid_console.text('There is a problem with Sample Date in row ' + (index + 1) + '. Please contact the administrator.'); validTable = false; return false;}
+                                            //var gooddate_sample = "20" + baddate_sample.substr(6,4) + "-" + baddate_sample.substr(0,2) + "-" + baddate_sample.substr(3,2);
+                                            //thisDataObject[objectFields[i]] = gooddate_sample + " " + newValue + ":00";
                                             //thisDataObject[objectFields[i]] = thisDataRow[i-1]+" "+newValue+":00";
                                         }
                                         break;
                                     case 11: // received date
                                         // if it doesn't have a value, notify the user that this is a required field, and stop the submission
-                                        if (!thisDataRow[i]) {grid_console.text('Date Received is required!'); validTable = false; return false;}
-                                        thisDataObject[objectFields[i]] = thisDataRow[i];
+                                        var dateReceived = thisDataRow[i];
+                                        if (dateRegEx.test(dateReceived)) {
+                                            var gooddate_received;
+                                            if (makeYear(dateReceived)!= null && makeMonth(dateReceived)!= null && makeDay(dateReceived) != null) {
+                                                gooddate_received = makeYear(dateReceived) + "-" + makeMonth(dateReceived) + "-" + makeDay(dateReceived);
+                                                thisDataObject[objectFields[i]] = gooddate_received;
+                                            }
+                                            else {grid_console.text('There is a problem with Received Date in row ' + (index + 1) + '. Please contact the administrator.'); validTable = false; return false;}
+                                        }
+                                        else {grid_console.text('Date Received is badly formed in row ' + (index + 1) + '. Expecting a date in mm/dd/yy format but found ' + dateReceived + '!'); validTable = false; return false;}
+                                        //if (!thisDataRow[i]) {grid_console.text('Date Received is required!'); validTable = false; return false;}
+                                        //thisDataObject[objectFields[i]] = thisDataRow[i];
                                         break;
                                     case 12: // processing
                                         thisDataObject[objectFields[i]] = getIdDom(data_processings,'processing',thisDataRow[i]);
                                         break;
                                     case 13: // bottle
                                         // if it doesn't have a value, notify the user that this is a required field, and stop the submission
-                                        if (!thisDataRow[i]) {grid_console.text('Container ID is required!'); validTable = false; return false;}
+                                        if (!thisDataRow[i]) {grid_console.text('Container ID is required in row ' + (index + 1) + '!'); validTable = false; return false;}
                                         // should this eventually point to Sample Bottles, not Bottles?
                                         thisDataObject[objectFields[i]] = thisDataObject[objectFields[i]] = updateValueAjax('/mercuryservices/bottles', 'bottle_unique_name', 'id', thisDataRow[i]);
                                         break;
                                     case 14: // medium
                                         // if it doesn't have a value, notify the user that this is a required field, and stop the submission
-                                        if (!thisDataRow[i]) {grid_console.text('Medium is required!'); validTable = false; return false;}
+                                        if (!thisDataRow[i]) {grid_console.text('Medium is required in row ' + (index + 1) + '!'); validTable = false; return false;}
                                         thisDataObject[objectFields[i]] = getIdDom(data_mediums,'nwis_code',thisDataRow[i]);
                                         break;
                                     case 15: // constituent
                                         // if it doesn't have a value, notify the user that this is a required field, and stop the submission
-                                        if (!thisDataRow[i]) {grid_console.text('Analysis is required!'); validTable = false; return false;}
+                                        if (!thisDataRow[i]) {grid_console.text('Analysis is required in row ' + (index + 1) + '!'); validTable = false; return false;}
                                         thisDataObject[objectFields[i]] = getIdDom(data_constituents,'constituent',thisDataRow[i]);
                                         break;
                                     case 16: // isotope flag
                                         // if it doesn't have a value, notify the user that this is a required field, and stop the submission
-                                        if (!thisDataRow[i]) {grid_console.text('Isotope is required!'); validTable = false; return false;}
+                                        if (!thisDataRow[i]) {grid_console.text('Isotope is required in row ' + (index + 1) + '!'); validTable = false; return false;}
                                         thisDataObject[objectFields[i]] = getIdDom(data_isotopeflags,'isotope_flag',thisDataRow[i]);
                                         break;
                                     case 17: // filter

@@ -77,7 +77,7 @@
                 var data_mediums = JSON.parse(grid.attr('data-mediums'));
                 var data_constituents;
                 var data_isotopeflags = JSON.parse(grid.attr('data-isotopeflags'));
-                var data_isotopes = ['NA', 'A', '198', '199', '200', '201', '202'];
+                var data_isotopes = ['NA', 'A', 'X-198', 'X-199', 'X-200', 'X-201', 'X-202'];
                 var data_filters = JSON.parse(grid.attr('data-filters'));
                 var data_preservations = JSON.parse(grid.attr('data-preservations'));
 
@@ -121,6 +121,16 @@
                             break;
                     }
                 };
+                var validateDate = function(value, callback) {
+
+                };
+
+                var dateToday = new Date(); //.toISOString().split("T")[0];
+                var setDefaultValues = function(row) {
+                    grid.handsontable('setDataAtCell', row, 5, -999);
+                    grid.handsontable('setDataAtCell', row, 6, 1);
+                    grid.handsontable('setDataAtCell', row, 11, 'NA');
+                };
 
                 var grid_options = {
                     contextMenu: false,
@@ -140,7 +150,7 @@
                             getValuesAjax('/mercuryservices/bottles/', 'bottle_unique_name', query, process)}},
                         {title: 'Medium', width: 80, type: 'autocomplete', strict: true, validator: validateRequired, source: getValuesDom(data_mediums,"nwis_code")},
                         {title: 'Analysis', width: 80, type: 'autocomplete', strict: true, validator: validateRequired},
-                        {title: 'Isotope', width: 60, type: 'dropdown', source: data_isotopes}, //type: 'autocomplete', strict: true, source: getValuesDom(data_isotopeflags,"isotope_flag"), validator: validateRequired},
+                        {title: 'Isotope', width: 60, type: 'dropdown', source: getValuesDom(data_isotopeflags,"isotope_flag")}, //type: 'autocomplete', strict: true, source: getValuesDom(data_isotopeflags,"isotope_flag"), validator: validateRequired},
                         {title: 'Filter', width: 130, type: 'autocomplete', strict: true, source: getValuesDom(data_filters,"filter")},
                         {title: 'Filter Vol', width: 65, type: 'numeric', format: '0.00'},
                         {title: 'Preservation', width: 130, type: 'autocomplete', strict: true, source: getValuesDom(data_preservations, "preservation")},
@@ -154,20 +164,25 @@
                         // "changes" is a 2D array containing information about each of the edited cells [ [row, col, oldVal, newVal], [row, col, oldVal, newVal], ... ].
                         // "source" is one of the following strings: "alter", "empty", "edit", "populateFromArray", "loadData", "autofill", "paste".
 
-                        // get index of changed row
+                        // get index of (first) changed row
                         var changedRow = changes[0][0];
-                        // get index of changed column
+                        // get index of (first) changed column
                         var changedCol = changes[0][1];
-                        // get value of changed cell
+                        // get value of (first) changed cell
                         var changedVal = changes[0][3];
 
                         // remember the indices of all changed rows
-                        if (source != 'loadData') {
-                            // find index of this row in the changed rows array
-                            var changedRowIndex = changedRowIndices.indexOf(changedRow);
-                            // if not in the array (index == -1), add it to the array, otherwise ignore
-                            if (changedRowIndex == -1){
-                                changedRowIndices.push(changedRow);
+                        if (typeof source !== 'undefined') {
+                            // for all changed cells, get the changed rows
+                            for (var i = 0; i < changes.length; i++) {
+                                // get the row of this cell
+                                var thisRow = changes[i][0];
+                                // find index of this row in the changed rows array
+                                var changedRowIndex = changedRowIndices.indexOf(thisRow);
+                                // if not in the array (index == -1), add it to the array, otherwise ignore
+                                if (changedRowIndex == -1) {
+                                    changedRowIndices.push(thisRow);
+                                }
                             }
                         }
 
@@ -176,31 +191,20 @@
                             // when site name or site ID is changed to a non-null, non-blank value
                             if ((changedCol == 0 || changedCol == 1) && changedVal !== null && changedVal !== "") {
                                 var siteValue;
-                                if (source == 'edit' || source == 'paste') {
+                                if (source == 'edit'  || source == 'paste') {
                                     // if site name is changed
                                     if (changedCol == 0) {
                                         // update site ID to match site name
-                                        siteValue = updateValueDom(data_sites, 'name', 'usgs_scode', changedVal);
+                                        if (typeof data_sites === 'undefined') {siteValue = updateValueAjax('/mercuryservices/sites/', 'name', 'usgs_scode', changedVal);}
+                                        else {siteValue = updateValueDom(data_sites, 'name', 'usgs_scode', changedVal);}
                                         grid.handsontable('setDataAtCell', changedRow, 1, siteValue);
                                     }
                                     // if site ID is changed
                                     if (changedCol == 1) {
                                         // update site name to match site ID
-                                        siteValue = updateValueDom(data_sites, 'usgs_scode', 'name', changedVal);
+                                        if (typeof data_sites === 'undefined') {siteValue = updateValueAjax('/mercuryservices/sites/', 'usgs_scode', 'name', changedVal);}
+                                        else {siteValue = updateValueDom(data_sites, 'usgs_scode', 'name', changedVal);}
                                         grid.handsontable('setDataAtCell', changedRow, 0, siteValue);
-                                    }
-                                    // if this row hasn't had the default values set (or altered by user)...
-                                    if (grid.handsontable('getDataAtCell', changedRow, 4) == null
-                                            && grid.handsontable('getDataAtCell', changedRow, 5) == null
-                                            && grid.handsontable('getDataAtCell', changedRow, 6) == null
-                                            && grid.handsontable('getDataAtCell', changedRow, 11) == null
-                                            && grid.handsontable('getDataAtCell', changedRow, 13) == null) {
-                                        // ...then set defaults: depth 0, length -999, rep 1, isotope 'NA', filter volume -999
-                                        grid.handsontable('setDataAtCell', changedRow, 4, 0);
-                                        grid.handsontable('setDataAtCell', changedRow, 5, -999);
-                                        grid.handsontable('setDataAtCell', changedRow, 6, 1);
-                                        grid.handsontable('setDataAtCell', changedRow, 11, 'NA');
-                                        grid.handsontable('setDataAtCell', changedRow, 13, -999);
                                     }
                                 }
                                 if (source == 'autofill') {
@@ -213,28 +217,16 @@
                                         // if site name is changed
                                         if (changedCol == 0) {
                                             // update site ID to match site name
-                                            siteValue = updateValueDom(data_sites, 'name', 'usgs_scode', changedVal);
+                                            if (typeof data_sites === 'undefined') {siteValue = updateValueAjax('/mercuryservices/sites/', 'name', 'usgs_scode', changedVal);}
+                                        else {siteValue = updateValueDom(data_sites, 'name', 'usgs_scode', changedVal);}
                                             grid.handsontable('setDataAtCell', i, 1, siteValue);
                                         }
                                         // if site ID is changed
                                         if (changedCol == 1) {
                                             // update site name to match site ID
-                                            siteValue = updateValueDom(data_sites, 'usgs_scode', 'name', changedVal);
+                                            if (typeof data_sites === 'undefined') {siteValue = updateValueAjax('/mercuryservices/sites/', 'usgs_scode', 'name', changedVal);}
+                                            else {siteValue = updateValueDom(data_sites, 'usgs_scode', 'name', changedVal);}
                                             grid.handsontable('setDataAtCell', i, 0, siteValue);
-                                        }
-                                        // if this row hasn't had the default values set (or altered by user)...
-                                        if (grid.handsontable('getDataAtCell', i, 4) == null
-                                            && grid.handsontable('getDataAtCell', i, 5) == null
-                                            && grid.handsontable('getDataAtCell', i, 6) == null
-                                            && grid.handsontable('getDataAtCell', i, 11) == null
-                                            && grid.handsontable('getDataAtCell', i, 13) == null)
-                                        {
-                                            // ...then set defaults: depth 0, length -999, rep 1, isotope 'NA', filter volume -999
-                                            grid.handsontable('setDataAtCell', i, 4, 0);
-                                            grid.handsontable('setDataAtCell', i, 5, -999);
-                                            grid.handsontable('setDataAtCell', i, 6, 1);
-                                            grid.handsontable('setDataAtCell', i, 11, 'NA');
-                                            grid.handsontable('setDataAtCell', i, 13, -999);
                                         }
                                     }
                                 }
@@ -254,20 +246,33 @@
                                         // grab just just the values from the object
                                         var values = getValuesDom(data_constituents, "constituent");
                                         // get range of selected rows
-                                        var selectedRows = grid.handsontable('getInstance').getSelectedRange();
-                                        var firstSelectedRow = selectedRows['from']['row'];
-                                        var lastSelectedRow = selectedRows['to']['row'];
-                                        // for each row in the selection
-                                        for (var i = firstSelectedRow; i <= lastSelectedRow; i++) {
+                                        if (source == 'edit') {
                                             // if there is a previously entered value in this cell, set it to null, otherwise leave it alone (this avoids unnecessary triggering of cell validation)
-                                            if (grid.handsontable('getDataAtCell', i, 10) != null) {
-                                                grid.handsontable('setDataAtCell', i, 10, null);
+                                            if (grid.handsontable('getDataAtCell', changedRow, 10) != null) {
+                                                grid.handsontable('setDataAtCell', changedRow, 10, null);
                                             }
                                             // get the cell object for the constituents column in this row
-                                            var cellProperties = grid.handsontable('getInstance').getCellMeta(i, 10);
+                                            var cellProperties = grid.handsontable('getInstance').getCellMeta(changedRow, 10);
                                             // update the dropdown list of this cell
                                             cellProperties.source = values;
                                         }
+                                        if (source == 'autofill' || source == 'paste') {
+                                            var selectedRows = grid.handsontable('getInstance').getSelectedRange();
+                                            var firstSelectedRow = selectedRows['from']['row'];
+                                            var lastSelectedRow = selectedRows['to']['row'];
+                                            // for each row in the selection
+                                            for (var i = firstSelectedRow; i <= lastSelectedRow; i++) {
+                                                // if there is a previously entered value in this cell, set it to null, otherwise leave it alone (this avoids unnecessary triggering of cell validation)
+                                                if (grid.handsontable('getDataAtCell', i, 10) != null) {
+                                                    grid.handsontable('setDataAtCell', i, 10, null);
+                                                }
+                                                // get the cell object for the constituents column in this row
+                                                var cellProperties = grid.handsontable('getInstance').getCellMeta(i, 10);
+                                                // update the dropdown list of this cell
+                                                cellProperties.source = values;
+                                            }
+                                        }
+
                                     },
                                     error: function (response) {
                                         grid_console.text("error");
@@ -288,6 +293,10 @@
                 grid_console.text('Loading data.');
                 grid.handsontable(grid_options);
                 //grid.data('handsontable').sort(0);
+                var rows = grid.handsontable('getInstance').countRows();
+                for (var i = 0; i < rows; i++) {
+                    setDefaultValues(i);
+                }
                 grid_console.text('Data loaded.');
 
                 $('#search_field').on('keyup', function (event) {
@@ -427,6 +436,12 @@
 
                 grid.parent().find('button[name=insertRows]').click(function () {
                     grid.data('handsontable').alter('insert_row', null, 8);
+                    var rows = grid.handsontable('getInstance').countRows();
+                    for (var i = 0; i < rows; i++) {
+                        if (grid.handsontable('getInstance').isEmptyRow(i)) {
+                            setDefaultValues(i);
+                        }
+                    }
                     grid_console.text('Inserted Rows.');
                 });
 
@@ -442,30 +457,44 @@
                     var projectID = getIdDom(data_projects,'name',$('#project_name').val());
                     if (!projectID) {grid_console.text('Project Name is required!'); validTable = false; return false;}
                     var dateReceived = $('#date_received').val();
+                    var gooddate_received_string;
+                    var gooddate_received;
                     if (!dateReceived) {grid_console.text('Date Received is required!'); validTable = false; return false;}
+                    if (dateRegEx.test(dateReceived)) {
+                        if (makeYear(dateReceived)!= null && makeMonth(dateReceived)!= null && makeDay(dateReceived) != null) {
+                            gooddate_received_string = makeYear(dateReceived) + "-" + makeMonth(dateReceived) + "-" + makeDay(dateReceived);
+                            gooddate_received = new Date(makeYear(dateReceived), makeMonth(dateReceived)-1, makeDay(dateReceived));
+                            if (gooddate_received > dateToday) {
+                                {grid_console.text('Date Received cannot be a future date!'); validTable = false; return false;}
+                            }
+                        }
+                        else {grid_console.text('There is a problem with Received Date. Please contact the administrator.'); validTable = false; return false;}
+                    }
+                    else {grid_console.text('Date Received is badly formed. Expecting a date in mm/dd/yy format but found ' + dateReceived + '!'); validTable = false; return false;}
                     var labProcessing = getIdDom(data_processings,'processing',$('#lab_processing').val());
                     // if there are no changed rows, notify the user and stop the submission
                     if (typeof changedRowIndices == 'undefined' || changedRowIndices.length < 1) {grid_console.text('Table is empty!'); validTable = false; return false;}
-                    // otherwise loop through the list of changed rows
-                    $.each(changedRowIndices, function(index, value) {
+                    // otherwise loop through all rows
+                    var allRows = grid.handsontable('getInstance').countRows();
+                    for (var row = 0; row < allRows; row++) {
                         // grab all the data for this row
-                        var thisDataRow = grid.data('handsontable').getDataAtRow(value);
-                        // check if this row still has data; it's possible the user cleared the row after entering data, in which case we no longer want it
-                        if (thisDataRow[0] !== null && thisDataRow[0] !== "" && thisDataRow[0] !== 0 && thisDataRow[0] !== undefined){
+                        var thisDataRow = grid.data('handsontable').getDataAtRow(row);
+                        // check if this row still has (non-default) data; it's possible the user cleared the row after entering data, in which case we no longer want it
+                        // here, we're only checking for a value in the first column (Site Name), which is a required field; if it is empty, it is safe to assume that any...
+                        // ...possible data in the rest of the row doesn't need to be checked, because the row can't be saved without a valid value in the first column
+                        if (thisDataRow[0] !== null && thisDataRow[0] !== "" && thisDataRow[0] !== 0 && thisDataRow[0] !== 'undefined') {
                             // an object container for the data in this row
                             var thisDataObject = {};
                             // add the sample header object properties to this object
                             thisDataObject['project'] = Number(projectID);
-                            var baddate_received = dateReceived;
-                            var gooddate_received = "20" + baddate_received.substr(6,4) + "-" + baddate_received.substr(0,2) + "-" + baddate_received.substr(3,2);
-                            thisDataObject['received_date'] = gooddate_received;
+                            thisDataObject['received_date'] = gooddate_received_string;
                             if (labProcessing != -1) {thisDataObject['lab_processing'] = labProcessing;}
                             // convert each table cell in this row into an object property and add to this object
                             for (var i = 0; i < thisDataRow.length; i++) {
                                 switch(i){
                                     case 0: // site name
                                         // if it doesn't have a value, notify the user that this is a required field, and stop the submission
-                                        if (!thisDataRow[i]) {grid_console.text('Site Name is required!'); validTable = false; return false;}
+                                        if (!thisDataRow[i]) {grid_console.text('Site Name is required in row ' + (row + 1) + '!'); validTable = false; return false;}
                                         else {thisDataObject[objectFields[i]] = getIdDom(data_sites,'name',thisDataRow[i]);}
                                         break;
                                     case 1: // site ID
@@ -477,11 +506,13 @@
                                         break;
                                     case 2: // date
                                         // if it doesn't have a value, notify the user that this is a required field, and stop the submission
-                                        if (!thisDataRow[i]) {grid_console.text('Date is required!'); validTable = false; return false;}
+                                        if (!thisDataRow[i]) {grid_console.text('Sample Date is required in row ' + (row + 1) + '!'); validTable = false; return false;}
+                                        // if it has a value but with bad formatting, notify the user, and stop the submission
+                                        if (!(dateRegEx.test(thisDataRow[i]))) {grid_console.text('Sample Date is badly formed in row ' + (row + 1) + '. Expecting a date in mm/dd/yy format but found ' + thisDataRow[i] + '!'); validTable = false; return false;}
                                         break;
                                     case 3: // time (used here to combine date and time)
                                         // if it has a value, properly format it as a time, otherwise notify the user that this is a required field, and stop the submission
-                                        if (thisDataRow[i] === null || thisDataRow[i] === "") {grid_console.text('Time is required!'); validTable = false; return false;}
+                                        if (thisDataRow[i] === null || thisDataRow[i] === "") {grid_console.text('Time is required in row ' + (row + 1) + '!'); validTable = false; return false;}
                                         else {
                                             var changedVal = thisDataRow[i].toString();
                                             var newValue;
@@ -504,42 +535,69 @@
                                                     break;
                                             }
                                             var baddate_sample = thisDataRow[i - 1];
-                                            var gooddate_sample = "20" + baddate_sample.substr(6,4) + "-" + baddate_sample.substr(0,2) + "-" + baddate_sample.substr(3,2);
-                                            thisDataObject[objectFields[i]] = gooddate_sample + " " + newValue + ":00";
+                                            if (makeYear(baddate_sample)!= null && makeMonth(baddate_sample)!= null && makeDay(baddate_sample) != null) {
+                                                var gooddate_sample_string = makeYear(baddate_sample) + "-" + makeMonth(baddate_sample) + "-" + makeDay(baddate_sample);
+                                                var gooddate_sample = new Date(makeYear(baddate_sample), makeMonth(baddate_sample)-1, makeDay(baddate_sample));
+                                                if (gooddate_sample > dateToday) {
+                                                    {grid_console.text('Sample Date cannot be a future date!'); validTable = false; return false;}
+                                                }
+                                                if (gooddate_sample > gooddate_received) {
+                                                    {grid_console.text('Sample Date cannot be after Date Received!'); validTable = false; return false;}
+                                                }
+                                                var dateTodayLastYear = new Date();
+                                                //dateTodayLastYear.setTime(dateTodayLastYear.valueOf() - (365 * 24 * 60 * 60 * 1000));
+                                                dateTodayLastYear.setFullYear(dateTodayLastYear.getFullYear() - 1);
+                                                if (dateTodayLastYear > gooddate_sample) {
+                                                    grid_console.text('Sample Date is more than one year before today in row ' + (row + 1) + '!');
+                                                    var confirmOldDate = confirm("Sample Date is more than one year before today in row " + (row + 1) + "!");
+                                                    if (confirmOldDate == false) {validTable = false; return false;}
+                                                }
+                                                thisDataObject[objectFields[i]] = gooddate_sample_string + " " + newValue + ":00";
+                                            }
+                                            else {grid_console.text('There is a problem with Sample Date in row ' + (row + 1) + '. Please contact the administrator.'); validTable = false; return false;}
                                             //thisDataObject[objectFields[i]] = thisDataRow[i-1]+" "+newValue+":00";
                                         }
                                         break;
+                                    case 4: // depth
+                                        thisDataObject[objectFields[i]] = (thisDataRow[i] % 1 === 0 ? (thisDataRow[i].toFixed(1)) : thisDataRow[i]);
+                                        break;
                                     case 8: // bottle
                                         // if it has a value, look up and return the ID, otherwise notify the user that this is a required field, and stop the submission
-                                        if (!thisDataRow[i]) {grid_console.text('Container ID is required!'); validTable = false; return false;}
+                                        if (!thisDataRow[i]) {grid_console.text('Container ID is required in row ' + (row + 1) + '!'); validTable = false; return false;}
                                         else {thisDataObject[objectFields[i]] = updateValueAjax('/mercuryservices/bottles/', 'bottle_unique_name', 'id', thisDataRow[i]);}
                                         break;
                                     case 9: // medium
                                         // if it has a value, look up and return the ID, otherwise notify the user that this is a required field, and stop the submission
-                                        if (!thisDataRow[i]) {grid_console.text('Medium is required!'); validTable = false; return false;}
+                                        if (!thisDataRow[i]) {grid_console.text('Medium is required in row ' + (row + 1) + '!'); validTable = false; return false;}
                                         else {thisDataObject[objectFields[i]] = getIdDom(data_mediums,'nwis_code',thisDataRow[i]);}
                                         break;
                                     case 10: // constituent
                                         // if it has a value, look up and return the ID, otherwise notify the user that this is a required field, and stop the submission
-                                        if (!thisDataRow[i]) {grid_console.text('Analysis is required!'); validTable = false; return false;}
+                                        if (!thisDataRow[i]) {grid_console.text('Analysis is required in row ' + (row + 1) + '!'); validTable = false; return false;}
                                         else {thisDataObject[objectFields[i]] = getIdDom(data_constituents,'constituent',thisDataRow[i]);}
                                         break;
                                     case 11: // isotope
                                         // if it has a value, look up and return the ID, otherwise notify the user that this is a required field, and stop the submission
-                                        if (!thisDataRow[i]) {grid_console.text('Isotope is required!'); validTable = false; return false;}
+                                        if (!thisDataRow[i]) {grid_console.text('Isotope is required in row ' + (row + 1) + '!'); validTable = false; return false;}
                                         else {thisDataObject[objectFields[i]] = getIdDom(data_isotopeflags,'isotope_flag',thisDataRow[i]);}
                                         break;
                                     case 12: // filter
                                         // if it has a value, look up and return the ID, otherwise skip this field (won't be included in submission to database)
-                                        if (thisDataRow[i] !== null && thisDataRow[i] !== "" && thisDataRow[i] !== 0 && thisDataRow[i] !== undefined) {thisDataObject[objectFields[i]]= getIdDom(data_filters,'filter',thisDataRow[i]);}
+                                        if (thisDataRow[i] !== null && thisDataRow[i] !== "" && thisDataRow[i] !== 0 && thisDataRow[i] !== 'undefined') {
+                                            var thisID = getIdDom(data_filters,'filter',thisDataRow[i]);
+                                            thisDataObject[objectFields[i]]= (thisID == -1 ? null : thisID);
+                                        }
                                         break;
                                     case 14: // preservation
                                         // if it has a value, look up and return the ID, otherwise skip this field (won't be included in submission to database)
-                                        if (thisDataRow[i] !== null && thisDataRow[i] !== "" && thisDataRow[i] !== 0 && thisDataRow[i] !== undefined) {thisDataObject[objectFields[i]] = getIdDom(data_preservations,'preservation',thisDataRow[i]);}
+                                        if (thisDataRow[i] !== null && thisDataRow[i] !== "" && thisDataRow[i] !== 0 && thisDataRow[i] !== 'undefined') {
+                                            var thisID = getIdDom(data_preservations,'preservation',thisDataRow[i]);
+                                            thisDataObject[objectFields[i]]= (thisID == -1 ? null : thisID);
+                                        }
                                         break;
                                     case 15: // acid
                                         // if it has a value, look up and return the ID, otherwise skip this field (won't be included in submission to database)
-                                        if (thisDataRow[i] !== null && thisDataRow[i] !== "" && thisDataRow[i] !== 0 && thisDataRow[i] !== undefined) {thisDataObject[objectFields[i]] = updateValueAjax('/mercuryservices/acids/', 'code', 'id', thisDataRow[i]);}
+                                        if (thisDataRow[i] !== null && thisDataRow[i] !== "" && thisDataRow[i] !== 0 && thisDataRow[i] !== 'undefined') {thisDataObject[objectFields[i]] = updateValueAjax('/mercuryservices/acids/', 'code', 'id', thisDataRow[i]);}
                                         break;
                                     default: // all the rest
                                         // if it doesn't have a value, skip the field, otherwise include it
@@ -552,7 +610,7 @@
                         }
                         // if we made it through the various validations above, then the table must be valid
                         validTable = true;
-                    });
+                    }
                     // if table is valid, submit the POST request, otherwise skip it (implying table is invalid)
                     if(validTable) {
                         // convert the array to a true JSON object
@@ -580,6 +638,10 @@
                                     var rows = grid.handsontable('getInstance').countRows();
                                     grid.data('handsontable').alter('remove_row', 0, rows);
                                     grid.data('handsontable').alter('insert_row', null, 8);
+                                    rows = grid.handsontable('getInstance').countRows();
+                                    for (var i = 0; i < rows; i++) {
+                                        setDefaultValues(i);
+                                    }
                                 }
                                 else {
                                     grid_console.text(textStatus+': Save error: '+jqXHRequest.statusText+', code: '+jqXHRequest.status+'.');

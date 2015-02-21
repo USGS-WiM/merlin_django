@@ -21,6 +21,8 @@ router.register(r'bulksamplebottlebrominations', views.SampleBottleBrominationBu
 router.register(r'samplebottlebrominations', views.SampleBottleBrominationViewSet, 'samplebottlebrominations')
 router.register(r'bottles', views.BottleViewSet, 'bottles')
 router.register(r'bulkbottles', views.BottleBulkCreateUpdateViewSet)
+router.register(r'bottleprefixes', views.BottlePrefixViewSet, 'bottleprefixes')
+router.register(r'bulkbottleprefixes', views.BottlePrefixBulkCreateUpdateViewSet)
 router.register(r'bottletypes', views.BottleTypeViewSet, 'bottletypes')
 router.register(r'filters', views.FilterTypeViewSet)
 router.register(r'preservations', views.PreservationTypeViewSet)

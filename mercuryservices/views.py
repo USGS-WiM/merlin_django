@@ -297,6 +297,32 @@ class BottleViewSet(viewsets.ModelViewSet):
         bottle_unique_name = self.request.QUERY_PARAMS.get('bottle_unique_name', None)
         if bottle_unique_name is not None:
             queryset = queryset.filter(bottle_unique_name__icontains=bottle_unique_name)
+        constituent = self.request.QUERY_PARAMS.get('constituent', None)
+        if constituent is not None:
+            constituent_list = constituent.split(',')
+            queryset = queryset.filter(sample_bottles__results__constituent_id__in=constituent_list)
+        return queryset
+
+
+class BottlePrefixBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkUpdateModelMixin, viewsets.ModelViewSet):
+    model = BottlePrefix
+    permission_classes = (permissions.IsAuthenticated,)
+
+
+class BottlePrefixViewSet(viewsets.ModelViewSet):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    #queryset = BottlePrefix.objects.all()
+    serializer_class = BottlePrefixSerializer
+    paginate_by = 100
+
+    def get_queryset(self):
+        queryset = BottlePrefix.objects.all()
+        id = self.request.QUERY_PARAMS.get('id', None)
+        if id is not None:
+            queryset = queryset.filter(id__exact=id)
+        bottle_prefix = self.request.QUERY_PARAMS.get('bottle_prefix', None)
+        if bottle_prefix is not None:
+            queryset = queryset.filter(bottle_prefix__icontains=bottle_prefix)
         return queryset
 
 
@@ -379,7 +405,7 @@ class ResultBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkUpdateModelMixin, 
 
 class ResultViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    #queryset = Result.objects.all()
+    queryset = Result.objects.all()
     serializer_class = ResultSerializer
     paginate_by = 100
 
@@ -413,7 +439,8 @@ class FullResultViewSet(viewsets.ModelViewSet):
                 queryset = queryset.filter(sample_bottle__exact=barcode)
             constituent = self.request.QUERY_PARAMS.get('constituent', None)
             if constituent is not None:
-                queryset = queryset.filter(constituent__exact=constituent)
+                constituent_list = constituent.split(',')
+                queryset = queryset.filter(constituent__in=constituent_list)
             isotope = self.request.QUERY_PARAMS.get('isotope', None)
             if isotope is not None:
                 queryset = queryset.filter(isotope_flag__exact=isotope)

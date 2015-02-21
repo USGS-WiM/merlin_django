@@ -61,10 +61,12 @@ urlpatterns = patterns('',
 
     url(r'^bottles/$', views.bottles, name='bottles'),
     url(r'^bottles/save$', views.bottles_save, name='bottles_save'),
+    url(r'^bottleprefixes/save$', views.bottle_prefixes_save, name='bottle_prefixes_save'),
     url(r'^bottles/load$', views.bottles_load, name='bottles_load'),
-    url(r'^bottle_add/$', views.bottle_add, name='bottle_add'),
+    url(r'^bottleprefix_add/$', views.bottle_prefix_add, name='bottle_prefix_add'),
+    url(r'^bottleprefix_range_add/$', views.bottle_prefix_range_add, name='bottle_prefix_range_add'),
     url(r'^bottles_add/$', views.bottles_add, name='bottles_add'),
-    url(r'^bottle_range_add/$', views.bottle_range_add, name='bottle_range_add'),
+
 
 )
 

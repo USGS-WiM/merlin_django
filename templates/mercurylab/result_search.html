@@ -93,7 +93,7 @@
                     columns: [
                         {title: 'Result ID', data: 'id', readOnly: true, width: 100},
                         {title: 'Bottle', data: 'sample_bottle.bottle.bottle_unique_name', readOnly: true, width: 100},
-                        {title: 'Tare Weight', data: 'sample_bottle.bottle.tare_weight', readOnly: true, width: 100, format: '0.0000'},
+                        {title: 'Tare Weight', data: 'sample_bottle.bottle.bottle_prefix.tare_weight', readOnly: true, width: 100, format: '0.0000'},
                         {title: 'Project', data: 'sample_bottle.sample.project.name', readOnly: true, width: 200},
                         {title: 'Site', data: 'sample_bottle.sample.site.name', readOnly: true, width: 200},
                         {title: 'Date', data: 'sample_bottle.sample.sample_date', readOnly: true, width: 100},
@@ -103,7 +103,8 @@
                         {title: 'Received', data: 'sample_bottle.sample.received_date', readOnly: true, width: 100},
                         {title: 'Comments', data: 'sample_bottle.sample.comment', readOnly: true, width: 200},
                         {title: 'Result Value', data: 'final_value', readOnly: true, width: 100, format: '0.00000000'},
-                        {title: 'Analyzed', data: 'analyzed_date', readOnly: true, width: 140}
+                        {title: 'Detection Flag', data: 'detection_flag', readOnly: true, width: 100},
+                        {title: 'Analyzed Date', data: 'analyzed_date', readOnly: true, width: 100}
                     ],
                     search: true
                 });

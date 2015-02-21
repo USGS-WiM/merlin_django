@@ -55,8 +55,8 @@ def sample_login_save(request):
     row_number = 0
     unique_sample_ids = []
     unique_bottles = []
-    non_unique_bottles = []
-    suspect_sample_bottles = []
+    bottle_filter_volumes = []
+    unique_sample_bottles = []
     unique_sample_analyses = []
     sample_data = []
     sample_bottle_data = []
@@ -114,29 +114,52 @@ def sample_login_save(request):
         this_bottle = row.get('bottle')
         if this_bottle not in unique_bottles:
             unique_bottles.append(this_bottle)
-        else:  # not unique, so compare sample IDs
-            non_unique_bottles.append(this_bottle)
-            this_sample_bottle = (this_bottle, this_sample_id)
-            suspect_sample_bottles.append(this_sample_bottle)
+        this_sample_bottle = (this_bottle, this_sample_id)
+        if this_sample_bottle not in unique_sample_bottles:
+            unique_sample_bottles.append(this_sample_bottle)
 
-        # validate no analysis is used more than once per sample, otherwise notify the user
+        # validate no analysis(+isotope) is used more than once per sample, otherwise notify the user
         print("validate analysis")
-        this_analysis = this_sample_id+"|"+str(row.get('constituent_type'))
+        this_analysis = this_sample_id+"|"+str(row.get('constituent_type'))+"|"+str(row.get('isotope_flag'))
         print(this_analysis)
         if this_analysis not in unique_sample_analyses:
             print("unique sample analysis")
             unique_sample_analyses.append(this_analysis)
         else:
-            this_analysis_str = str(this_analysis)
             r = requests.get(REST_SERVICES_URL+'projects/', params={'id': row.get('project')})
             project_name = r.json()[0]['name']
             r = requests.get(REST_SERVICES_URL+'sites/', params={'id': row.get('site')})
             site_name = r.json()['results'][0]['name']
             r = requests.get(REST_SERVICES_URL+'constituents/', params={'id': row.get('constituent_type')})
             constituent_name = r.json()[0]['constituent']
-            message = "\"Error in row " + str(row_number) + ": This Analysis (" + constituent_name + ") appears more than once in this sample: " + project_name + "|" + site_name + "|" + str(row.get('sample_date_time')) + "|" + str(row.get('depth')) + "|" + str(row.get('replicate')) + "\""
+            r = requests.get(REST_SERVICES_URL+'isotopeflags/', params={'id': row.get('isotope_flag')})
+            isotope_flag = r.json()[0]['isotope_flag']
+            message = "\"Error in row " + str(row_number) + ": This Analysis (" + constituent_name + ") and Isotope (" + isotope_flag + ") combination appears more than once in this sample: " + project_name + "|" + site_name + "|" + str(row.get('sample_date_time')) + "|" + str(row.get('depth')) + "|" + str(row.get('replicate')) + "\""
             print(message)
             return HttpResponse(message, content_type='text/html')
+
+        # validate the filter volume is the same for each unique bottle
+        print("validate bottle filter volume")
+        this_bottle_filter_volume = (row.get('bottle'), row.get('volume_filtered'))
+        bottle_filter_volumes.append(this_bottle_filter_volume)
+        # loop through all bottle-filter volume combinations
+        for bottle_filter_volume in bottle_filter_volumes:
+            # find a matching bottle record
+            if this_bottle_filter_volume[0] == bottle_filter_volume[0]:
+                # check if the filter volume in this bottle record is the same as the matching bottle record
+                # if they don't match, stop the save and return a validation error message, otherwise move on
+                if this_bottle_filter_volume[1] != bottle_filter_volume[1]:
+                    print("bottle filter volume mismatch")
+                    params = {"id": this_bottle_filter_volume[0]}
+                    r = requests.get(REST_SERVICES_URL+'bottles/', params=params)
+                    print(r)
+                    response_data = r.json()
+                    print(response_data)
+                    bottle_unique_name = response_data['results'][0]['bottle_unique_name']
+                    print(bottle_unique_name)
+                    message = "\"Error in row " + str(row_number) + ": This Filter Vol (" +str(this_bottle_filter_volume[1]) + ") does not match a previous Filter Vol (" + str(bottle_filter_volume[1]) + ") for this Container: " + str(bottle_unique_name) + "\""
+                    print(message)
+                    return HttpResponse(message, content_type='text/html')
 
         # create a sample bottle object using the sample bottle data within this row
         sample_bottle_values = [this_sample_id, row.get('bottle'), row.get('filter_type'), row.get('volume_filtered'), row.get('preservation_type'), row.get('preservation_volume'), row.get('preservation_acid'), row.get('preservation_comment')]
@@ -146,22 +169,30 @@ def sample_login_save(request):
         sample_bottle_data.append(this_sample_bottle)
 
         # create a result object using the result data within this row
-        sample_analysis_values = [str(row.get('bottle')), row.get('constituent_type'), row.get('isotope_flag')]
+        sample_analysis_values = [str(row.get('bottle')), row.get('method'), row.get('constituent_type'), row.get('isotope_flag')]
         this_sample_analysis = dict(zip(SAMPLE_ANALYSIS_KEYS, sample_analysis_values))
         # add this new sample bottle object to the list
         sample_analysis_data.append(this_sample_analysis)
 
     print("validate bottle ID part 2")
     # validate this bottle is used in only one sample, otherwise notify the user (it can be used more than once within a sample, though)
-    suspect_sample_bottle_counter = Counter()
-    for suspect_sample_bottle in suspect_sample_bottles:
-        print(suspect_sample_bottle)
-        suspect_sample_bottle_counter[suspect_sample_bottle] += 1
-    for suspect_sample_bottle in suspect_sample_bottles:
+    sample_bottle_counter = Counter()
+    for unique_bottle in unique_bottles:
+        print(unique_bottle)
+        for unique_sample_bottle in unique_sample_bottles:
+            print(unique_sample_bottle)
+            print("check if bottle is in sample bottles")
+            if unique_bottle in unique_sample_bottle:
+                print(unique_bottle)
+                print(unique_sample_bottle)
+                print("bottle is in sample bottles")
+                sample_bottle_counter[unique_bottle] += 1
+
+    for unique_bottle in unique_bottles:
         # if there is only one, then the combination of bottle ID and sample ID is unique, meaning this bottle is used in more than one sample
-        if suspect_sample_bottle_counter[suspect_sample_bottle] == 1:
-            print("==1")
-            params = {"id": suspect_sample_bottle[0]}
+        if sample_bottle_counter[unique_bottle] > 1:
+            print(">1")
+            params = {"id": unique_bottle}
             r = requests.get(REST_SERVICES_URL+'bottles/', params=params)
             print(r)
             response_data = r.json()
@@ -172,7 +203,7 @@ def sample_login_save(request):
             print(message)
             return HttpResponse(message, content_type='text/html')
         else:
-            print(">1")
+            print("==1")
 
     ## SAVING ##
     # save samples first and then get their database IDs, which are required for saving the sample bottles afterward
@@ -184,13 +215,18 @@ def sample_login_save(request):
     print(sample_data)
     r = requests.request(method='POST', url=REST_SERVICES_URL+'bulksamples/', data=sample_data, headers=headers)
     print(r)
+    if r.status_code != 201:
+        message = "\"Error " + str(r.status_code) + ": " + r.reason + ". Unable to save samples. Please contact the administrator.\""
+        print(message)
+        return HttpResponse(message, content_type='text/html')
     response_data = r.json()
     print(len(response_data))
     # store the IDs as an array of dictionaries, where the keys are the combo IDs and the values are the database IDs
     sample_ids = []
     for item in response_data:
         # using a hacky workaround here to handle the "T" in the time_stamp; there's probably a better way to handle this
-        sample_id = {'combo_id': str(item.get('project'))+"|"+str(item.get('site'))+"|"+str(item.get('sample_date_time')).replace("T", " ")+"|"+str(int(item.get('depth')))+"|"+str(item.get('replicate')), 'db_id': item.get('id')}
+        sample_id = {'combo_id': str(item.get('project'))+"|"+str(item.get('site'))+"|"+str(item.get('sample_date_time')).replace("T", " ")+"|"+str(item.get('depth'))+"|"+str(item.get('replicate')), 'db_id': item.get('id')}
+        print(sample_id)
         sample_ids.append(sample_id)
 
     ## SAVE SAMPLE BOTTLES ##
@@ -198,6 +234,8 @@ def sample_login_save(request):
     print("SAVE SAMPLE BOTTLES")
     for sample_id in sample_ids:
         for sample_bottle in sample_bottle_data:
+            print(sample_bottle['sample'])
+            print(sample_id['combo_id'])
             if sample_bottle['sample'] == sample_id['combo_id']:
                 sample_bottle['sample'] = sample_id['db_id']
     # send the sample bottles to the database
@@ -205,6 +243,10 @@ def sample_login_save(request):
     print(sample_bottle_data)
     r = requests.request(method='POST', url=REST_SERVICES_URL+'bulksamplebottles/', data=sample_bottle_data, headers=headers)
     print(r)
+    if r.status_code != 201:
+        message = "\"Error " + str(r.status_code) + ": " + r.reason + ". Samples were saved, but unable to save sample bottles. Please contact the administrator.\""
+        print(message)
+        return HttpResponse(message, content_type='text/html')
     response_data = r.json()
     print(len(response_data))
     # store the IDs as an array of dictionaries, where the keys are the bottle IDs and the values are the sample bottle IDs
@@ -225,6 +267,10 @@ def sample_login_save(request):
     print(sample_analysis_data)
     r = requests.request(method='POST', url=REST_SERVICES_URL+'bulkresults/', data=sample_analysis_data, headers=headers)
     print(r)
+    if r.status_code != 201:
+        message = "\"Error " + str(r.status_code) + ": " + r.reason + ". Samples and sample bottles were saved, but unable to save analyses. Please contact the administrator.\""
+        print(message)
+        return HttpResponse(message, content_type='text/html')
     response_data = r.json()
     print(len(response_data))
     # send the response (data & messages) back to the user interface
@@ -533,10 +579,12 @@ def bottles(request):
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     context = RequestContext(request)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'bottles/')#, headers=headers_auth_token)
-    data = json.dumps(r.json(), sort_keys=True)
+    bottles = json.dumps(r.json(), sort_keys=True)
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'bottleprefixes/')#, headers=headers_auth_token)
+    prefixes = json.dumps(r.json(), sort_keys=True)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'bottletypes/')#, headers=headers_auth_token)
     bottletypes = json.dumps(r.json(), sort_keys=True)
-    context_dict = {'data': data, 'bottletypes': bottletypes}
+    context_dict = {'bottles': bottles, 'prefixes': prefixes, 'bottletypes': bottletypes}
     return render_to_response('mercurylab/bottles.html', context_dict, context)
 
 
@@ -550,40 +598,126 @@ def bottles_load(request):
 def bottles_save(request):
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
-    #data = request.body
-    #r = requests.request(method='PUT', url=REST_SERVICES_URL+'bulkbottles/', data=data, headers=headers)
-    #return HttpResponse(r, content_type='application/json')
     data = json.loads(request.body.decode('utf-8'))
     response_data = []
     # using a loop to send data to the single PUT endpoint instead of just using the bulk PUT endpoint
     # because the bulk PUT response time has been over 30 seconds, sometimes several minutes
     for item in data:
+        thisId = item.pop("id")
         item = json.dumps(item)
-        r = requests.request(method='PUT', url=REST_SERVICES_URL+'bottles/', data=item, headers=headers)
+        url = REST_SERVICES_URL+'bottles/'+str(thisId)+'/'
+        r = requests.request(method='PUT', url=url, data=item, headers=headers)
         print(r)
-        if r.status_code != 200 or r.status_code != 201:
-            print("ERROR")
-            message = "\"Encountered an error while attempting to save bottle " + item["id"] + ": " + r.status_code + "\""
-            print(message)
-            return HttpResponse(message, content_type='text/html')
-        else:
-            this_response_data = r.json()
-            response_data.append(this_response_data)
+        # if r.status_code != 200:# or r.status_code != 201:
+        #     print(r.status_code)
+        #     print("ERROR")
+        #     message = "\"Encountered an error while attempting to save bottle prefix.\""
+        #     print(message)
+        #     return HttpResponse(message, content_type='text/html')
+        # else:
+        #     this_response_data = r.json()
+        #     response_data.append(this_response_data)
+        this_response_data = r.json()
+        response_data.append(this_response_data)
+    response_data = json.dumps(response_data)
     return HttpResponse(response_data, content_type='application/json')
 
 
-def bottle_add(request):
+def bottle_prefixes_save(request):
+    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
+    data = json.loads(request.body.decode('utf-8'))
+    response_data = []
+    # using a loop to send data to the single PUT endpoint instead of just using the bulk PUT endpoint
+    # because the bulk PUT response time has been over 30 seconds, sometimes several minutes
+    for item in data:
+        thisId = item.pop("id")
+        item = json.dumps(item)
+        url = REST_SERVICES_URL+'bottleprefixes/'+str(thisId)+'/'
+        r = requests.request(method='PUT', url=url, data=item, headers=headers)
+        print(r)
+        # if r.status_code != 200:# or r.status_code != 201:
+        #     print(r.status_code)
+        #     print("ERROR")
+        #     message = "\"Encountered an error while attempting to save bottle prefix.\""
+        #     print(message)
+        #     return HttpResponse(message, content_type='text/html')
+        # else:
+        #     this_response_data = r.json()
+        #     response_data.append(this_response_data)
+        this_response_data = r.json()
+        response_data.append(this_response_data)
+    response_data = json.dumps(response_data)
+    return HttpResponse(response_data, content_type='application/json')
+
+
+def bottle_prefix_add(request):
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     data = request.body
-    r = requests.request(method='POST', url=REST_SERVICES_URL+'bulkbottles/', data=data, headers=headers)
+    r = requests.request(method='POST', url=REST_SERVICES_URL+'bulkbottleprefixes/', data=data, headers=headers)
+    print(r)
+    if r.status_code != 201:
+        message = "\"Error " + str(r.status_code) + ": " + r.reason + ". Unable to save bottle prefix. Please contact the administrator.\""
+        print(message)
+        return HttpResponse(message, content_type='text/html')
+    # check for status code
+    return HttpResponse(r, content_type='application/json')
+
+
+def bottle_prefix_range_add(request):
+    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
+    params = json.loads(request.body.decode('utf-8'))
+
+    digits = len(params['range_start'])
+    start = int(params['range_start'])
+    end = int(params['range_end'])
+    new_bottle_prefixes = []
+    for i in range(start, end+1, 1):
+        new_prefix = params['prefix'] + str(i).rjust(digits, '0')
+        new_bottle_prefix = {'bottle_prefix': new_prefix, 'description': params['description'], 'tare_weight': float(params['tare_weight']), 'bottle_type': int(params['bottle_type']), 'created_date': params['created_date']}
+        new_bottle_prefixes.append(new_bottle_prefix)
+    new_bottle_prefixes = json.dumps(new_bottle_prefixes)
+    r = requests.request(method='POST', url=REST_SERVICES_URL+'bulkbottleprefixes/', data=new_bottle_prefixes, headers=headers)
+    print(r)
+    if r.status_code != 201:
+        message = "\"Error " + str(r.status_code) + ": " + r.reason + ". Unable to save bottle prefixes. Please contact the administrator.\""
+        print(message)
+        return HttpResponse(message, content_type='text/html')
+    #return HttpResponseRedirect('/mercurylab/bottles/')
     return HttpResponse(r, content_type='application/json')
 
 
 def bottles_add(request):
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
-    data = request.body
+    data = json.loads(request.body.decode('utf-8'))
+    item_number = 0
+    all_unique_bottle_names = True
+    message = "These Bottles already exist in the database: "
+
+    # validate that the submitted bottle names don't already exist
+    for item in data:
+        item_number += 1
+        this_bottle_name = {'bottle_unique_name': item.get('bottle_unique_name')}
+        r = requests.get(REST_SERVICES_URL+'bottles/', params=this_bottle_name)
+        print(r)
+        response_data = r.json()
+        print("count:")
+        print(response_data['count'])
+        # if response count does not equal zero, then this sample already exists in the database
+        if response_data['count'] != 0:
+            all_unique_bottle_names = False
+            print("count != 0")
+            print(item.get('bottle_unique_name'))
+            this_message = "Row " + str(item_number) + ": " + item.get('bottle_unique_name') + ","
+            print(this_message)
+            message = message + " " + this_message
+    if not all_unique_bottle_names:
+        message = json.dumps(message)
+        return HttpResponse(message, content_type='text/html')
+
     # table = json.loads(request.body.decode('utf-8'))
     # bottle_data = []
     #
@@ -594,25 +728,11 @@ def bottles_add(request):
     #
     # bottle_data = json.dumps(bottle_data)
     r = requests.request(method='POST', url=REST_SERVICES_URL+'bulkbottles/', data=data, headers=headers)
-    return HttpResponse(r, content_type='application/json')
-
-
-def bottle_range_add(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
-    params = json.loads(request.body.decode('utf-8'))
-
-    digits = len(params['range_start'])
-    start = int(params['range_start'])
-    end = int(params['range_end'])
-    new_bottles = []
-    for i in range(start, end+1, 1):
-        new_name = params['prefix'] + str(i).rjust(digits, '0') + params['suffix']
-        new_bottle = {'bottle_unique_name': new_name, 'description': params['description'], 'tare_weight': float(params['tare_weight']), 'bottle_type': int(params['bottle_type']), 'time_stamp': params['time_stamp']}
-        new_bottles.append(new_bottle)
-    new_bottles = json.dumps(new_bottles)
-    r = requests.request(method='POST', url=REST_SERVICES_URL+'bulkbottles/', data=new_bottles, headers=headers)
-    #return HttpResponseRedirect('/mercurylab/bottles/')
+    print(r)
+    if r.status_code != 201:
+        message = "\"Error " + str(r.status_code) + ": " + r.reason + ". Unable to save bottles. Please contact the administrator.\""
+        print(message)
+        return HttpResponse(message, content_type='text/html')
     return HttpResponse(r, content_type='application/json')
 
 
