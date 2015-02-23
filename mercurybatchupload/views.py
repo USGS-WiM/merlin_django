@@ -52,7 +52,7 @@ class BatchUploadSave(views.APIView):
                     continue
 
                 #calculate the result
-                display_value,reported_value, detection_flag, daily_detection_limit,qa_flags = evaluateResult(row,result_id);
+                display_value,reported_value, detection_flag, daily_detection_limit,qa_flags = evaluateResult(row,result_id)
                 raw_value = row["raw_value"]            
 
                 #save the result 
@@ -259,6 +259,7 @@ def validateResult(sample_bottle_id,constituent_id,row):
     #check if final value already exists
     final_value = result_details.final_value
     if final_value is not None:
+        print(result_details.id)
         message = "This result row cannot be updated as a final value already exists"
         return (is_valid,message,result_id)
     
@@ -366,7 +367,7 @@ def getLostSampleResult(raw_value,daily_detection_limit):
 def evaluateResultByMDL(daily_detection_limit,method_detection_limit):   
     if method_detection_limit < 1:
         #add leading zero
-        display_value = '0'+ char(method_detection_limit)
+        display_value = '0'+ chr(method_detection_limit)
     else:
         display_value = char(method_detection_limit)
     reported_value = method_detection_limit
@@ -386,6 +387,8 @@ def evaluateResultBySigfigsDecimals(raw_value,daily_detection_limit,method_detec
         sigfig_value = truncFloat(raw_value,num_behind)
     elif (num_infront+num_behind) != significant_figures+1:
         sigfig_value = truncFloat(raw_value,(num_behind - ((num_infront + num_behind) - (significant_figures + 1))))
+    else:
+        sigfig_value = raw_value
         
     #pad sigfig_value with zeroes
     sigfig_value_str = padValue(sigfig_value,significant_figures+1,decimal_places+1)
@@ -462,29 +465,31 @@ def getRoundedVal(sigfig_value, sigfig_value_str,value):
         rounded_val = round(sigfig_value,ndigits)
     #if last digit is a 5 round off or up based on 2nd last digit 
     elif is_last_digit_five:
-        digit_before_last = getDigitBeforeLast(sigfig_value_str)
+        digit_before_last = getDigitBeforeLast(sigfig_value_str,num_behind)
         #if last digit is a 5 and second to last digit is even, trunc  
         if digit_before_last%2 == 0:
             rounded_val = truncFloat(sigfig_value,ndigits)
         #if last digit is a 5 and second to last digit is odd, round 
         else:
             rounded_val = round(sigfig_value,ndigits)
+    else:
+        rounded_val = sigfig_value
     return rounded_val
         
-def getDigitBeforeLast(value_str):
+def getDigitBeforeLast(value_str,num_behind):
+    length = len(value_str)
     if(num_behind > 0) and num_behind == 1:
-        #if decimal exists and the decimal point is in the second to last position, take the number just before the decimal point
-        length = len(value_str)
+        #if decimal exists and the decimal point is in the second to last position, take the number just before the decimal point        
         digit_before_last = value_str[length-3:length-2]
     else:
         #else take the second to last digit  
         digit_before_last = value_str[length-2:length-1]
-    return int(digit_before_last);
+    return int(digit_before_last)
         
 def getSigfigInfo(val):    
     is_last_digit_five = False
     is_last_digit_zero = False
-    val_str = str(val);
+    val_str = str(val)
     length = len(val_str)    
     last_digit = val_str[length-1:length]
     if last_digit == '5':
@@ -516,7 +521,7 @@ def getMethodType(method_code):
     method_type_details = MethodType.objects.get(id=str(method_code))           
     significant_figures = method_type_details.significant_figures
     decimal_places = method_type_details.decimal_places
-    if method_type_details.method_detection_limit == '':
+    if method_type_details.method_detection_limit is None or method_type_details.method_detection_limit == '':
         method_detection_limit = 0
     else:   
         method_detection_limit = float(method_type_details.method_detection_limit)
