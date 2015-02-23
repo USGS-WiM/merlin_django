@@ -11,11 +11,68 @@ from django.conf.global_settings import TEMPLATE_CONTEXT_PROCESSORS as TCP
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+import logging
+import logging.handlers
+
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 SETTINGS_DIR = os.path.dirname(__file__)
 PROJECT_PATH = os.path.join(SETTINGS_DIR, os.pardir)
 PROJECT_PATH = os.path.abspath(PROJECT_PATH)
 TEMPLATE_PATH = os.path.join(PROJECT_PATH, 'templates')
+
+LOG_FILENAME = os.path.join(PROJECT_PATH, 'logs/mercury.log')
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': "[%(asctime)s] | %(levelname)s [%(name)s:%(lineno)s] | %(message)s",
+            'datefmt': "%Y-%m-%d %H:%M:%S"
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        },
+    },
+    'handlers': {
+        'timedrotatingfile': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': LOG_FILENAME,
+            'formatter': 'verbose',
+            'when': 'midnight',
+            'backupCount': 14
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['timedrotatingfile'],
+            'propagate': True,
+            'level': 'INFO',
+        },
+        'rest_framework': {
+            'handlers': ['timedrotatingfile'],
+            'propagate': True,
+            'level': 'INFO',
+        },
+        'mercury': {
+            'handlers': ['timedrotatingfile'],
+            'level': 'INFO',
+        },
+        'mercuryservices': {
+            'handlers': ['timedrotatingfile'],
+            'level': 'INFO',
+        },
+        'mercurybatchupload': {
+            'handlers': ['timedrotatingfile'],
+            'level': 'INFO',
+        },
+        'merlin': {
+            'handlers': ['timedrotatingfile'],
+            'level': 'INFO',
+        },
+    }
+}
 
 
 # Quick-start development settings - unsuitable for production
@@ -27,9 +84,13 @@ SECRET_KEY = 'j!7+2%t4ks7saoh^s1p)1#vu*p^csz*qex&s*b@rjgf0si^6g+'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-TEMPLATE_DEBUG = True
+TEMPLATE_DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    '127.0.0.1',
+    'localhost',
+    '.usgs.gov'
+]
 
 
 # Application definition
@@ -49,6 +110,7 @@ INSTALLED_APPS = (
     'rest_framework_swagger',
     'corsheaders',
     'mercuryservices',
+    'mercurybatchupload',
     'merlin',
 )
 

@@ -56,6 +56,7 @@
                     {% endif %}
 					<button type="button" class="btn btn-info" name="gridAdd">Brominate Samples</button>
                 </p>
+                <h1>Bromination Events</h1>
             </div>
             <div id="tools_add" class="col-md-4" style="display:none;"></div>
             <div id="tools_samples" class="col-md-4">
@@ -82,6 +83,7 @@
                 <p>
                     <button type="button" class="btn btn-info" name="search">Search</button>
                 </p>
+                <h1>Brominated Samples</h1>
             </div>
         </div>
         <div class="row">
@@ -118,6 +120,7 @@
                     }
                 });
 
+                var dateToday = new Date(); //toISOString().split("T")[0];
                 var objectFields = ["id", "concentration", "created_date", "comment"];
                 var currentPage = 1;
                 var formAddClicked = false;
@@ -143,7 +146,7 @@
                         {title: "Comment", data: "comment", width: 200}
                     ],
                     search: true,
-                    //columnSorting: { column: 0 },
+                    columnSorting: true,
                     beforeChange: function(changes, source) {
                          // "changes" is a 2D array containing information about each of the edited cells [ [row, col, oldVal, newVal], [row, col, oldVal, newVal], ... ].
                         // "source" is one of the following strings: "alter", "empty", "edit", "populateFromArray", "loadData", "autofill", "paste".
@@ -254,7 +257,8 @@
                         {title: "Event Number", data: "bromination_event", width: 100},
                         {title: "Volume Added (mL)", data: "bromination_volume", width: 150},
                         {title: "Date", data: "created_date", width: 100, dateFormat: 'mm/dd/y'}
-                    ]
+                    ],
+                    columnSorting: true
                 });
                 //grid_samples.data('handsontable').sort(0);
                 grid_console.text('Data loaded.');
@@ -461,13 +465,17 @@
                         var thisDataRow = grid_brominations.data('handsontable').getDataAtRow(value);
                         var thisDataObject = {};
                         for (var i = 0; i < thisDataRow.length; i++) {
-                            if (thisDataObject[objectFields[i]] == 'created_date') {
+                            if (objectFields[i] == "concentration") {thisDataObject[objectFields[i]] = Number(thisDataRow[i]);}
+                            else if (objectFields[i] == 'created_date') {
                                 var baddate = thisDataRow[i];
                                 if (dateRegEx.test(baddate)) {
-                                    var gooddate;
                                     if (makeYear(baddate)!= null && makeMonth(baddate)!= null && makeDay(baddate) != null) {
-                                        gooddate = makeYear(baddate) + "-" + makeMonth(baddate) + "-" + makeDay(baddate);
-                                        thisDataObject[objectFields[i]] = gooddate;
+                                        var gooddate_string = makeYear(baddate) + "-" + makeMonth(baddate) + "-" + makeDay(baddate) + " 00:00:00";
+                                        var gooddate = new Date(makeYear(baddate), makeMonth(baddate)-1, makeDay(baddate));
+                                        if (gooddate > dateToday) {
+                                            {grid_console.text('Date cannot be a future date!'); return false;}
+                                        }
+                                        thisDataObject[objectFields[i]] = gooddate_string;
                                     }
                                     else {grid_console.text('There is a problem with the Date in row ' + (index + 1) + '. Please contact the administrator.'); return false;}
                                 }
@@ -559,6 +567,7 @@
                                 grid_add.data('handsontable').alter('insert_row', null, 8);
                                 selectedBrominationRow = null;
                                 $('#selected_bromination_id').html("Selected Bromination ID: <strong>NULL</strong>");
+                                $('#tools_samples').find('button[name=search]').click()
                             }
                             else {
                                 grid_console.text(textStatus+': Save error: '+jqXHRequest.statusText+', code: '+jqXHRequest.status+'.');
@@ -578,10 +587,13 @@
                     //thisDataObject['created_date'] = form_add.find('input[name=created_date]').val();
                     var baddate = form_add.find('input[name=created_date]').val();
                     if (dateRegEx.test(baddate)) {
-                        var gooddate;
                         if (makeYear(baddate)!= null && makeMonth(baddate)!= null && makeDay(baddate) != null) {
-                            gooddate = makeYear(baddate) + "-" + makeMonth(baddate) + "-" + makeDay(baddate);
-                            thisDataObject['created_date'] = gooddate;
+                            var gooddate_string = makeYear(baddate) + "-" + makeMonth(baddate) + "-" + makeDay(baddate) + " 00:00:00";
+                            var gooddate = new Date(makeYear(baddate), makeMonth(baddate)-1, makeDay(baddate));
+                            if (gooddate > dateToday) {
+                                {grid_console.text('Date cannot be a future date!'); return false;}
+                            }
+                            thisDataObject['created_date'] = gooddate_string;
                         }
                         else {grid_console.text('There is a problem with the Date. Please contact the administrator.'); return false;}
                     }
@@ -602,7 +614,8 @@
                             // otherwise, it's JSON from the REST Services
                             else if (jqXHRequest.status === 200) {
                                 $(":input", "#form_add").not(":button").val("");
-                                grid_brominations.parent().find('button[name=add]').click();
+                                form_add.parent().find('button[name=formAdd]').click();
+                                tools_brominations.find('button[name=load]').click();
                                 grid_console.text(textStatus+': Data saved.');
                             }
                             else {

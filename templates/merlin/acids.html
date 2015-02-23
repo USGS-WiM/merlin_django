@@ -72,6 +72,7 @@
                     }
                 });
 
+                var dateToday = new Date(); //toISOString().split("T")[0];
                 var objectFields = ["id", "code", "concentration", "created_date", "comment"];
                 var currentPage = 1;
                 var addClicked = false;
@@ -92,7 +93,7 @@
                         {title: "Comment", data: "comment", width: 300}
                     ],
                     search: true,
-                    //columnSorting: { column: 0 },
+                    columnSorting: true,
                     beforeChange: function(changes, source) {
                          // "changes" is a 2D array containing information about each of the edited cells [ [row, col, oldVal, newVal], [row, col, oldVal, newVal], ... ].
                         // "source" is one of the following strings: "alter", "empty", "edit", "populateFromArray", "loadData", "autofill", "paste".
@@ -136,10 +137,13 @@
                     //thisDataObject['created_date'] = form_add.find('input[name=created_date]').val();
                     var baddate = form_add.find('input[name=created_date]').val();
                     if (dateRegEx.test(baddate)) {
-                        var gooddate;
                         if (makeYear(baddate)!= null && makeMonth(baddate)!= null && makeDay(baddate) != null) {
-                            gooddate = makeYear(baddate) + "-" + makeMonth(baddate) + "-" + makeDay(baddate);
-                            thisDataObject['created_date'] = gooddate;
+                            var gooddate_string = makeYear(baddate) + "-" + makeMonth(baddate) + "-" + makeDay(baddate) + " 00:00:00";
+                            var gooddate = new Date(makeYear(baddate), makeMonth(baddate)-1, makeDay(baddate));
+                            if (gooddate > dateToday) {
+                                {grid_console.text('Date cannot be a future date!'); return false;}
+                            }
+                            thisDataObject['created_date'] = gooddate_string;
                         }
                         else {grid_console.text('There is a problem with the Date. Please contact the administrator.'); return false;}
                     }
@@ -161,6 +165,7 @@
                             else if (jqXHRequest.status === 200) {
                                 $(":input", "#form_add").not(":button").val("");
                                 grid.parent().find('button[name=add]').click();
+                                grid.parent().find('button[name=load]').click();
                                 grid_console.text(textStatus+': Data saved.');
                             }
                             else {
@@ -302,7 +307,23 @@
                         var thisDataRow = grid.data('handsontable').getDataAtRow(value);
                         var thisDataObject = {};
                         for (var i = 0; i < thisDataRow.length; i++) {
-                            thisDataObject[objectFields[i]] = thisDataRow[i];
+                            if (objectFields[i] == "concentration") {thisDataObject[objectFields[i]] = Number(thisDataRow[i]);}
+                            else if (objectFields[i] == 'created_date') {
+                                var baddate = thisDataRow[i];
+                                if (dateRegEx.test(baddate)) {
+                                    if (makeYear(baddate)!= null && makeMonth(baddate)!= null && makeDay(baddate) != null) {
+                                        var gooddate_string = makeYear(baddate) + "-" + makeMonth(baddate) + "-" + makeDay(baddate) + " 00:00:00";
+                                        var gooddate = new Date(makeYear(baddate), makeMonth(baddate)-1, makeDay(baddate));
+                                        if (gooddate > dateToday) {
+                                            {grid_console.text('Date cannot be a future date!'); return false;}
+                                        }
+                                        thisDataObject[objectFields[i]] = gooddate_string;
+                                    }
+                                    else {grid_console.text('There is a problem with the Date in row ' + (index + 1) + '. Please contact the administrator.'); return false;}
+                                }
+                                else {grid_console.text('Date is badly formed in row ' + (index + 1) + '. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); return false;}
+                            }
+                            else {thisDataObject[objectFields[i]] = thisDataRow[i];}
                         }
                         changedDataArray.push(thisDataObject);
                     });

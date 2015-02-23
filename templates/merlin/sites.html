@@ -44,6 +44,7 @@
                     }
                 });
 
+                var dateToday = new Date(); //toISOString().split("T")[0];
                 var objectFields = ["id", "name", "usgs_sid", "usgs_scode", "description", "latitude", "longitude", "datum", "method", "site_status", "nwis_customer_code", "projects"];
                 var currentPage = 1;
                 var addClicked = false;
@@ -227,12 +228,35 @@
                 });
 
                 grid.parent().find('button[name=save]').click(function () {
+                    grid_console.text('Saving is disabled at the moment.');
+                });
+                /*grid.parent().find('button[name=save]').click(function () {
                     var changedDataArray = [];
                     $.each(changedRowIndices, function(index, value) {
                         var thisDataRow = grid.data('handsontable').getDataAtRow(value);
                         var thisDataObject = {};
                         for (var i = 0; i < thisDataRow.length; i++) {
-                            thisDataObject[objectFields[i]] = thisDataRow[i];
+                            //////////
+                            //
+                            //  need to add in checks for numeric data conversion (submitting strings will cause a 400 error)
+                            //
+                            //////////
+                            if (objectFields[i] == 'created_date') {
+                                var baddate = thisDataRow[i];
+                                if (dateRegEx.test(baddate)) {
+                                    if (makeYear(baddate)!= null && makeMonth(baddate)!= null && makeDay(baddate) != null) {
+                                        var gooddate_string = makeYear(baddate) + "-" + makeMonth(baddate) + "-" + makeDay(baddate) + " 00:00:00";
+                                        var gooddate = new Date(makeYear(baddate), makeMonth(baddate)-1, makeDay(baddate));
+                                        if (gooddate > dateToday) {
+                                            {grid_console.text('Date cannot be a future date!'); return false;}
+                                        }
+                                        thisDataObject[objectFields[i]] = gooddate_string;
+                                    }
+                                    else {grid_console.text('There is a problem with the Date in row ' + (index + 1) + '. Please contact the administrator.'); return false;}
+                                }
+                                else {grid_console.text('Date is badly formed in row ' + (index + 1) + '. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); return false;}
+                            }
+                            else {thisDataObject[objectFields[i]] = thisDataRow[i];}
                         }
                         changedDataArray.push(thisDataObject);
                     });
@@ -261,7 +285,7 @@
                             grid_console.text(errorThrown + ": " + textStatus);
                         }
                     });
-                });
+                });*/
 
             });
         </script>
