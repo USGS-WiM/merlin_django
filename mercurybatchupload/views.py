@@ -22,7 +22,7 @@ class BatchUploadSave(views.APIView):
             bottle_name = ""
             for row in data:
                 #validate sample id/bottle bar code
-                is_valid,message,bottle_id,sample = validateBottleBarCode(row)
+                is_valid,message,bottle_id,sample,volume_filtered = validateBottleBarCode(row)
                 if is_valid == False:
                     status.append({"message": message,"success": "false"})                
                     continue
@@ -46,7 +46,7 @@ class BatchUploadSave(views.APIView):
                     status.append({"message": message,"success": "false"})                   
                     continue
                 #validate result
-                is_valid,message,result_id = validateResult(sample,constituent_id,row)
+                is_valid,message,result_id,sediment_dry_weight,sample_mass_processed = validateResult(sample,constituent_id,row)
                 if is_valid == False:
                     status.append({"message": message,"success": "false"})                   
                     continue
@@ -55,14 +55,31 @@ class BatchUploadSave(views.APIView):
                 display_value,reported_value, detection_flag, daily_detection_limit,qa_flags = evaluateResult(row,result_id)
                 raw_value = row["raw_value"]            
 
-                #save the result 
-                status.append({"success":"true","result_id":result_id})            
+                #get method id
+                method_id = row["method_id"]  
+                
+                ###save the result###                                                           
                 result_details = Result.objects.get(id=result_id)
                 result_details.raw_value = float(raw_value)
+                result_details.method_id = method_id
+                
+                #get and process the final_value
                 result_details.final_value = float(display_value)
-                result_details.method_id = row["method_id"]
+                result_details.final_value = processFinalValue(result_details.final_value,method_id,volume_filtered,sediment_dry_weight,sample_mass_processed)
+                
+                #calculate the report value
+                method_detection_limit,significant_figures,decimal_places = getMethodType(method_id)   
+                if(method_detection_limit is not None and result_details.final_value is not None and result_details.final_value < method_detection_limit):
+                    result_details.report_value = method_detection_limit
+                else:
+                    result_details.report_value = result_details.final_value   
+                
                 result_details.detection_flag = DetectionFlag.objects.get(detection_flag=detection_flag)
-                result_details.daily_detection_limit = daily_detection_limit
+                
+                #daily detection limit
+                result_details.raw_daily_detection_limit =  daily_detection_limit   
+                result_details.final_daily_detection_limit =  processDailyDetectionLimit(daily_detection_limit,method_id,volume_filtered,sediment_dry_weight,sample_mass_processed)
+                
                 result_details.entry_date = time.strftime("%Y-%m-%d")
                 try:
                     analysis_comment = row["analysis_comment"]
@@ -80,7 +97,7 @@ class BatchUploadSave(views.APIView):
                 quality_assurance_id_array = quality_assurance_id_array + qa_flags
                 for quality_assurance_id in quality_assurance_id_array:
                     QualityAssurance.objects.create(result_id=result_id, quality_assurance_id=quality_assurance_id)
-
+                status.append({"success":"true","result_id":result_id})
         except BaseException as e:
             if isinstance(data, list) is False:
                 e = "Expecting an array of results"                    
@@ -90,20 +107,21 @@ class BatchUploadSave(views.APIView):
 
 def validateBottleBarCode(row):
     is_valid = False
-    bottle_id = -1   
+    bottle_id = -1  
+    volume_filtered = None
     message = ""
     sample = {}
     try:
         bottle_name = row["bottle_unique_name"]
     except KeyError:
         message = "'bottle_unique_name' is required"
-        return (is_valid,message,bottle_id,sample)
+        return (is_valid,message,bottle_id,sample,volume_filtered)
     
     try:
         bottle_details = Bottle.objects.get(bottle_unique_name=bottle_name)
     except ObjectDoesNotExist:
         message = "The bottle '"+bottle_name+"' does not exist"
-        return (is_valid,message,bottle_id,sample)
+        return (is_valid,message,bottle_id,sample,volume_filtered)
         
     #get bottle id    
     bottle_id = bottle_details.id
@@ -113,13 +131,14 @@ def validateBottleBarCode(row):
         sample_bottle_details = SampleBottle.objects.get(bottle=bottle_id)
     except ObjectDoesNotExist:
         message = "The bottle "+bottle_name+" exists but was not found in the results table"
-        return (is_valid,message,bottle_id,sample)
+        return (is_valid,message,bottle_id,sample,volume_filtered)
     
     is_valid = True
     sample_bottle_id = sample_bottle_details.id
     sample = sample_bottle_details.sample
-        
-    return (is_valid,message,bottle_id,sample_bottle_id)
+    volume_filtered = sample_bottle_details.volume_filtered
+    
+    return (is_valid,message,bottle_id,sample_bottle_id,volume_filtered)
 
 def validateConstituentType(row):
     is_valid = False
@@ -221,6 +240,8 @@ def validateResult(sample_bottle_id,constituent_id,row):
     message = ""
     bottle_name = row["bottle_unique_name"]
     constituent_type = row["constituent"]
+    sediment_dry_weight = None
+    sample_mass_processed = None
     result_details = {}
     #get isotope flag
     try:
@@ -228,7 +249,7 @@ def validateResult(sample_bottle_id,constituent_id,row):
         #make sure that it is numeric
         if isinstance(isotope_flag_id, Number) is False:
             message = "Expecting a numeric value for isotope_flag_id"
-            return (is_valid,message,result_id)
+            return (is_valid,message,result_id,sediment_dry_weight,sample_mass_processed)
     except KeyError:
         isotope_flag_id = None
     
@@ -238,10 +259,10 @@ def validateResult(sample_bottle_id,constituent_id,row):
         #make sure that it is numeric
         if isinstance(raw_value, Number) is False:
             message = "Expecting a numeric value for result"
-            return (is_valid,message,result_id)
+            return (is_valid,message,result_id,sediment_dry_weight,sample_mass_processed)
     except KeyError:
         message = "'raw_value' is required"
-        return (is_valid,message,result_id)
+        return (is_valid,message,result_id,sediment_dry_weight,sample_mass_processed)
     
     #Find the matching record in the Results table, using the unique combination of barcode + constituent { + isotope}        
     try:            
@@ -254,18 +275,20 @@ def validateResult(sample_bottle_id,constituent_id,row):
             message = "There is no matching record in the result table for bottle  '"+str(bottle_name)+"' and constituent type '"+str(constituent_type)
         else:
             message = "There is no matching record in the result table for bottle  '"+str(bottle_name)+"', constituent type '"+str(constituent_type)+"' and isotope flag '"+str(isotope_flag_id)+"'"
-        return (is_valid,message,result_id)
+        return (is_valid,message,result_id,sediment_dry_weight,sample_mass_processed)
     
     #check if final value already exists
     final_value = result_details.final_value
     if final_value is not None:
-        print(result_details.id)
+        #print(result_details.id)
         message = "This result row cannot be updated as a final value already exists"
-        return (is_valid,message,result_id)
+        return (is_valid,message,result_id,sediment_dry_weight,sample_mass_processed)
     
     is_valid = True
-    result_id = result_details.id  
-    return (is_valid,message,result_id)
+    result_id = result_details.id
+    sediment_dry_weight = result_details.sediment_dry_weight
+    sample_mass_processed = result_details.sample_mass_processed
+    return (is_valid,message,result_id,sediment_dry_weight,sample_mass_processed)
 
 #calculations
 def evaluateResult(row,result_id):
@@ -526,3 +549,60 @@ def getMethodType(method_code):
     else:   
         method_detection_limit = float(method_type_details.method_detection_limit)
     return (method_detection_limit,significant_figures,decimal_places)
+
+def processFinalValue(final_value, method_id,volume_filtered, sediment_dry_weight,sample_mass_processed):
+    value = final_value
+    if (method_id is None or final_value is None):
+        value = final_value
+    elif (final_value == -999 or final_value == -888):
+        value = final_value
+    elif (method_id == 86 or method_id == 92 or method_id == 103 or method_id == 104):
+        value = round(final_value * 100, 2)
+    elif (method_id == 42):
+        value = round(final_value / 1000, 4)
+    elif (method_id == 48 or method_id == 49 or method_id == 83	or method_id == 84 or method_id == 85 or method_id == 233 or method_id == 211):
+        if (volumeFiltered is not None):
+            value = round(final_value * 1000 / volumeFiltered, 3)
+    elif (method_id == 52 or method_id == 71):
+        if (sediment_dry_weight is not None and sediment_dry_weight != -999):
+            if (sample_mass_processed is not None and sample_mass_processed != -999):
+                value = round(final_value / sediment_dry_weight/ sample_mass_processed, 2)
+    elif (method_id == 73 or method_id == 127 or method_id == 157 or method_id == 228):
+        if (sample_mass_processed is not None and sample_mass_processed != -999):
+            value = round(final_value / sample_mass_processed, 2)
+    elif (method_id == 50 or method_id == 74 or method_id == 82):
+        if (sediment_dry_weight is not None and sediment_dry_weight != -999):
+            value = round(final_value / sediment_dry_weight, 2)
+    return value
+
+def processDailyDetectionLimit(daily_detection_limit, method_id,volume_filtered, sediment_dry_weight,sample_mass_processed):
+    value = daily_detection_limit
+    if (method_id is None or daily_detection_limit is None or daily_detection_limit == 0):
+        value = daily_detection_limit
+    elif (daily_detection_limit == -999):
+        value = daily_detection_limit
+    elif (method_id == 42):
+        value = daily_detection_limit / 1000;
+    elif (method_id == 48 or method_id == 49 or method_id == 83 or method_id == 84 or method_id == 85 or method_id == 233):
+        if (volume_filtered is not None):
+            value = daily_detection_limit * 1000 / volume_filtered			
+    elif (method_id == 71 or method_id == 211):
+        if (sediment_dry_weight is None or sediment_dry_weight == -999):
+            value = -999
+        else:
+            if (sample_mass_processed is None or sample_mass_processed == -999):
+                value = -999
+            else:
+                value = daily_detection_limit / sediment_dry_weight / sample_mass_processed;
+    elif (method_id == 50 or method_id == 74 or method_id == 82):
+        if (sediment_dry_weight is None or sediment_dry_weight == -999):
+            value = -999
+        else:
+            value = daily_detection_limit / sediment_dry_weight;
+    elif (method_id == 73 or method_id == 127 or  method_id == 157 or method_id == 228):
+        if (sample_mass_processed is None or sample_mass_processed == -999):
+            value = -999
+        else:
+            value = daily_detection_limit / sample_mass_processed;
+    return value;
+	
