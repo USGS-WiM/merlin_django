@@ -1,3 +1,4 @@
+import logging
 import json
 from django.http import HttpResponse, HttpResponseRedirect
 from rest_framework import views, viewsets, permissions, authentication, exceptions, status
@@ -9,6 +10,10 @@ import requests
 from django.db.models.base import ObjectDoesNotExist
 from numbers import Number
 import time
+
+
+logger = logging.getLogger(__name__)
+
 
 #batch_upload_save: validation
 class BatchUploadSave(views.APIView):

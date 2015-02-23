@@ -1,11 +1,11 @@
-from djoser import views as djoserViews
-from datetime import datetime
-from rest_framework import views, viewsets, generics, permissions, settings, response
-from rest_framework_bulk import ListBulkCreateUpdateDestroyAPIView, BulkCreateModelMixin, BulkUpdateModelMixin
-from rest_framework_csv import renderers as rcsv
+import logging
+from rest_framework import viewsets, generics, permissions
+from rest_framework_bulk import BulkCreateModelMixin, BulkUpdateModelMixin
 from mercuryservices.serializers import *
 from mercuryservices.models import *
-from mercuryservices.renderers import *
+
+
+logger = logging.getLogger(__name__)
 
 
 #The following lines were a test to see if Django Rest Framework could return responses to HTML instead of JSON.
@@ -253,16 +253,16 @@ class SampleBottleBrominationViewSet(viewsets.ModelViewSet):
     paginate_by = 100
 
     def get_queryset(self):
-        #print(self.request.QUERY_PARAMS)
+        #logger.info(self.request.QUERY_PARAMS)
         queryset = SampleBottleBromination.objects.all()
         bottle = self.request.QUERY_PARAMS.get('bottle', None)
         if bottle is not None:
             bottle_list = bottle.split(',')
             # if query values are IDs
             if bottle_list[0].isdigit():
-                #print(bottle_list[0])
+                #logger.info(bottle_list[0])
                 queryset = queryset.filter(sample_bottle__bottle__id__in=bottle_list)
-                #print(queryset)
+                #logger.info(queryset)
             # if query values are names
             else:
                 queryset = queryset.filter(sample_bottle__bottle__bottle_unique_name__in=bottle_list)
@@ -425,9 +425,9 @@ class FullResultViewSet(viewsets.ModelViewSet):
             bottle_list = bottle.split(',')
             # if query values are IDs
             if bottle_list[0].isdigit():
-                print(bottle_list[0])
+                #logger.info(bottle_list[0])
                 queryset = queryset.filter(sample_bottle__bottle__id__in=bottle_list)
-                print(queryset)
+                #logger.info(queryset)
             # if query values are names
             else:
                 queryset = queryset.filter(sample_bottle__bottle__bottle_unique_name__in=bottle_list)
@@ -673,16 +673,16 @@ class UserViewSet(viewsets.ModelViewSet):
 #         if user is not None:
 #             if user.is_active:
 #                 login(request, user)
-#                 print("Logged In")
+#                 logger.info("Logged In")
 #                 data = UserSerializer(user).data
 #                 return Response(data, status=status.HTTP_200_OK)
 #             else:
-#                 print("Account is disabled: {0}".format(username))
+#                 logger.info("Account is disabled: {0}".format(username))
 #                 data = json.dumps({"status": "Unauthorized", "message": "Your account is disabled."})
 #                 return Response(data, status=status.HTTP_401_UNAUTHORIZED)
 #
 #         else:
-#             print("Invalid login details: {0}, {1}".format(username, password))
+#             logger.info("Invalid login details: {0}, {1}".format(username, password))
 #             data = json.dumps({"status": "Unauthorized", "message": "Invalid login details supplied."})
 #             return Response(data, status=status.HTTP_401_UNAUTHORIZED)
 #
@@ -692,7 +692,7 @@ class UserViewSet(viewsets.ModelViewSet):
 #
 #     def post(self, request):
 #         logout(request)
-#         print("Logged Out")
+#         logger.info("Logged Out")
 #
 #         return Response({}, status=status.HTTP_204_NO_CONTENT)
 

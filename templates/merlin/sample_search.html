@@ -124,6 +124,7 @@
                             break;
                     }
                 };
+                var dateToday = new Date(); //.toISOString().split("T")[0];
                 var objectFields = ["sample_bottle.sample.id", "project_name", "project", "site_name", "site", "skip_date", "sample_date_time", "depth", "length", "replicate", "comment", "received_date", "lab_processing", "bottle", "medium_type", "constituent_type", "isotope_flag", "filter_type", "volume_filtered", "preservation_type", "preservation_acid", "preservation_volume", "preservation_comment", "sample_bottle.id", "id"];
                 var changedRowIndices = [];
                 var selectionRowIndices = [];
@@ -173,6 +174,7 @@
                         {title: 'Sample Bottle ID', data: 'sample_bottle.id', readOnly: true, width: 1},
                         {title: 'Result ID', data: 'id', readOnly: true, width: 1}
                     ],
+                    columnSorting: true,
                     search: true,
                     // define event handlers
                     beforeChange: function(changes, source) {
@@ -527,6 +529,7 @@
                         if (thisDataRow[0] !== null && thisDataRow[0] !== ""){
                             // an object container for the data in this row
                             var thisDataObject = {};
+                            var gooddate_received;
                             // convert each cell in this row into an object property
                             //["sample_bottle.sample.id", "project_name", "project", "site_name", "site", "skip_date", "time_stamp", "depth", "length", "replicate", "comment", "received_date", "lab_processing", "bottle", "medium_type", "constituent_type", /*"isotopic_analysis",*/ "isotope", "filter_type", "volume_filtered", "preservation_type", "preservation_acid", "preservation_volume", "preservation_comment", "sample_bottle.id", "id"];
                             for (var i = 0; i < thisDataRow.length; i++) {
@@ -580,11 +583,36 @@
                                                     newValue = "00:00";
                                                     break;
                                             }
+                                            var dateReceived = thisDataRow[i + 1];
+                                            if (dateRegEx.test(dateReceived)) {
+                                                if (makeYear(dateReceived)!= null && makeMonth(dateReceived)!= null && makeDay(dateReceived) != null) {
+                                                    gooddate_received = new Date(makeYear(dateReceived), makeMonth(dateReceived)-1, makeDay(dateReceived));
+                                                    if (gooddate_received > dateToday) {
+                                                        {grid_console.text('Date Received cannot be a future date!'); validTable = false; return false;}
+                                                    }
+                                                }
+                                                else {grid_console.text('There is a problem with Received Date. Please contact the administrator.'); validTable = false; return false;}
+                                            }
+                                            else {grid_console.text('Date Received is badly formed in row ' + (index + 1) + '. Expecting a date in mm/dd/yy format but found ' + dateReceived + '!'); validTable = false; return false;}
                                             var baddate_sample = thisDataRow[i - 1];
-                                            var gooddate_sample;
                                             if (makeYear(baddate_sample)!= null && makeMonth(baddate_sample)!= null && makeDay(baddate_sample) != null) {
-                                                gooddate_sample = makeYear(baddate_sample) + "-" + makeMonth(baddate_sample) + "-" + makeDay(baddate_sample);
-                                                thisDataObject[objectFields[i]] = gooddate_sample + " " + newValue + ":00";
+                                                var gooddate_sample_string = makeYear(baddate_sample) + "-" + makeMonth(baddate_sample) + "-" + makeDay(baddate_sample);
+                                                var gooddate_sample = new Date(makeYear(baddate_sample), makeMonth(baddate_sample)-1, makeDay(baddate_sample));
+                                                if (gooddate_sample > dateToday) {
+                                                    {grid_console.text('Sample Date cannot be a future date!'); validTable = false; return false;}
+                                                }
+                                                if (gooddate_sample > gooddate_received) {
+                                                    {grid_console.text('Sample Date cannot be after Date Received!'); validTable = false; return false;}
+                                                }
+                                                var dateTodayLastYear = new Date();
+                                                //dateTodayLastYear.setTime(dateTodayLastYear.valueOf() - (365 * 24 * 60 * 60 * 1000));
+                                                dateTodayLastYear.setFullYear(dateTodayLastYear.getFullYear() - 1);
+                                                if (dateTodayLastYear > gooddate_sample) {
+                                                    grid_console.text('Sample Date is more than one year before today in row ' + (row + 1) + '!');
+                                                    var confirmOldDate = confirm("WARNING: Sample Date is more than one year before today in row " + (row + 1) + "!\nContinue and Save with the date entered, or Cancel?");
+                                                    if (confirmOldDate == false) {validTable = false; return false;}
+                                                }
+                                                thisDataObject[objectFields[i]] = gooddate_sample_string + " " + newValue + ":00";
                                             }
                                             else {grid_console.text('There is a problem with Sample Date in row ' + (index + 1) + '. Please contact the administrator.'); validTable = false; return false;}
                                             //var gooddate_sample = "20" + baddate_sample.substr(6,4) + "-" + baddate_sample.substr(0,2) + "-" + baddate_sample.substr(3,2);
@@ -593,19 +621,9 @@
                                         }
                                         break;
                                     case 11: // received date
-                                        // if it doesn't have a value, notify the user that this is a required field, and stop the submission
-                                        var dateReceived = thisDataRow[i];
-                                        if (dateRegEx.test(dateReceived)) {
-                                            var gooddate_received;
-                                            if (makeYear(dateReceived)!= null && makeMonth(dateReceived)!= null && makeDay(dateReceived) != null) {
-                                                gooddate_received = makeYear(dateReceived) + "-" + makeMonth(dateReceived) + "-" + makeDay(dateReceived);
-                                                thisDataObject[objectFields[i]] = gooddate_received;
-                                            }
-                                            else {grid_console.text('There is a problem with Received Date in row ' + (index + 1) + '. Please contact the administrator.'); validTable = false; return false;}
-                                        }
-                                        else {grid_console.text('Date Received is badly formed in row ' + (index + 1) + '. Expecting a date in mm/dd/yy format but found ' + dateReceived + '!'); validTable = false; return false;}
-                                        //if (!thisDataRow[i]) {grid_console.text('Date Received is required!'); validTable = false; return false;}
-                                        //thisDataObject[objectFields[i]] = thisDataRow[i];
+                                        // validation is being handled in previous case (sample datetime)
+                                        if (!thisDataRow[i]) {grid_console.text('Date Received is required!'); validTable = false; return false;}
+                                        thisDataObject[objectFields[i]] = gooddate_received.toString();
                                         break;
                                     case 12: // processing
                                         thisDataObject[objectFields[i]] = getIdDom(data_processings,'processing',thisDataRow[i]);
@@ -653,8 +671,10 @@
                         // if we made it through the various validations above, then the table must be valid
                         validTable = true;
                     });
+                    // confirm that the user really does want to save
+                    var confirmSave = confirm("WARNING: This will overwrite existing records in the database!\nContinue and Save, or Cancel?");
                     // if table is valid, submit the POST request, otherwise skip it (implying table is invalid)
-                    if(validTable) {
+                    if(validTable && confirmSave) {
                         // convert the array to a true JSON object
                         var changedDataJSON = JSON.stringify(changedDataArray);
                         // send the entire changed data object to the server via ajax
