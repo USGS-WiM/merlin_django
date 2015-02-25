@@ -125,7 +125,7 @@
                     }
                 };
                 var dateToday = new Date(); //.toISOString().split("T")[0];
-                var objectFields = ["sample_bottle.sample.id", "project_name", "project", "site_name", "site", "skip_date", "sample_date_time", "depth", "length", "replicate", "comment", "received_date", "lab_processing", "bottle", "medium_type", "constituent_type", "isotope_flag", "filter_type", "volume_filtered", "preservation_type", "preservation_acid", "preservation_volume", "preservation_comment", "sample_bottle.id", "id"];
+                var objectFields = ["sample_bottle.sample.id", "project", "project_id", "site", "site_id", "skip_date", "sample_date_time", "depth", "length", "replicate", "comment", "received_date", "lab_processing", "bottle", "medium_type", "constituent_type", "isotope_flag", "filter_type", "volume_filtered", "preservation_type", "preservation_acid", "preservation_volume", "preservation_comment", "sample_bottle.id", "id"];
                 var changedRowIndices = [];
                 var selectionRowIndices = [];
                 grid_console.text('Loading data...');
@@ -156,7 +156,7 @@
                         {title: 'Rep', data: 'sample_bottle.sample.replicate', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 50, type: 'numeric'},
                         {title: 'Sample Comments', data: 'sample_bottle.sample.comment', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 130, type: 'text'},
                         {title: 'Received', data: 'sample_bottle.sample.received_date', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 100, type: 'date', dateFormat: 'mm/dd/y', maxDate: 0},
-                        {title: 'Lab Processing', data: 'sample_bottle.sample.lab_processing', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 105, type: 'text'/*, type: 'autocomplete', strict: true, source: getValuesDom(data_processings,"processing")*/},
+                        {title: 'Lab Processing', data: 'sample_bottle.sample.lab_processing', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 105, type: 'autocomplete', strict: true, source: getValuesDom(data_processings,"processing")},
                         //{title: 'Container ID', width: 100, type: 'text'},
                         {title: 'Container ID', data: 'sample_bottle.bottle.bottle_unique_name', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 90, type: 'autocomplete', strict: true,  source: function (query, process) {
                             getValuesAjax('/mercuryservices/bottles', 'name', query, process)}},
@@ -535,16 +535,17 @@
                             for (var i = 0; i < thisDataRow.length; i++) {
                                 switch(i){
                                     case 1: // project name
-                                        // do nothing with this column
+                                        // if it doesn't have a value, notify the user that this is a required field, and stop the submission
+                                        if (!thisDataRow[i]) {grid_console.text('Project Name is required in row ' + (index + 1) + '!'); validTable = false; return false;}
+                                        else {thisDataObject[objectFields[i]] = updateValueAjax('/mercuryservices/projects/', 'name', 'id', thisDataRow[i]);}
                                         break;
                                     case 2: // project ID
-                                        // if it doesn't have a value, notify the user that this is a required field, and stop the submission
-                                        if (!thisDataRow[i]) {grid_console.text('Project ID is required in row ' + (index + 1) + '!'); validTable = false; return false;}
+                                        // do nothing with this column
                                         break;
                                     case 3: // site name
                                         // if it doesn't have a value, notify the user that this is a required field, and stop the submission
-                                        if (!thisDataRow[i]) {grid_console.text('Site Name is required in row ' + (row + 1) + '!'); validTable = false; return false;}
-                                        else {thisDataObject[objectFields[i]] = getIdDom(data_sites,'name',thisDataRow[i]);}
+                                        if (!thisDataRow[i]) {grid_console.text('Site Name is required in row ' + (index + 1) + '!'); validTable = false; return false;}
+                                        else {thisDataObject[objectFields[i]] = updateValueAjax('/mercuryservices/sites/', 'name', 'id', thisDataRow[i]);}
                                         break;
                                     case 4: // site ID
                                         //// if it doesn't have a value, notify the user that this is a required field, and stop the submission
@@ -583,7 +584,7 @@
                                                     newValue = "00:00";
                                                     break;
                                             }
-                                            var dateReceived = thisDataRow[i + 1];
+                                            var dateReceived = thisDataRow[11];
                                             if (dateRegEx.test(dateReceived)) {
                                                 if (makeYear(dateReceived)!= null && makeMonth(dateReceived)!= null && makeDay(dateReceived) != null) {
                                                     gooddate_received = new Date(makeYear(dateReceived), makeMonth(dateReceived)-1, makeDay(dateReceived));
@@ -623,7 +624,7 @@
                                     case 11: // received date
                                         // validation is being handled in previous case (sample datetime)
                                         if (!thisDataRow[i]) {grid_console.text('Date Received is required!'); validTable = false; return false;}
-                                        thisDataObject[objectFields[i]] = gooddate_received.toString();
+                                        thisDataObject[objectFields[i]] = makeYear(dateReceived) + "-" + makeMonth(dateReceived) + "-" + makeDay(dateReceived) + " 00:00:00";
                                         break;
                                     case 12: // processing
                                         thisDataObject[objectFields[i]] = getIdDom(data_processings,'processing',thisDataRow[i]);
@@ -632,7 +633,7 @@
                                         // if it doesn't have a value, notify the user that this is a required field, and stop the submission
                                         if (!thisDataRow[i]) {grid_console.text('Container ID is required in row ' + (index + 1) + '!'); validTable = false; return false;}
                                         // should this eventually point to Sample Bottles, not Bottles?
-                                        thisDataObject[objectFields[i]] = thisDataObject[objectFields[i]] = updateValueAjax('/mercuryservices/bottles', 'bottle_unique_name', 'id', thisDataRow[i]);
+                                        thisDataObject[objectFields[i]] = thisDataObject[objectFields[i]] = updateValueAjax('/mercuryservices/bottles/', 'bottle_unique_name', 'id', thisDataRow[i]);
                                         break;
                                     case 14: // medium
                                         // if it doesn't have a value, notify the user that this is a required field, and stop the submission
@@ -656,7 +657,7 @@
                                         thisDataObject[objectFields[i]] = thisDataObject[objectFields[i]] = getIdDom(data_preservations,'preservation',thisDataRow[i]);
                                         break;
                                     case 20: // acid
-                                        thisDataObject[objectFields[i]] = thisDataObject[objectFields[i]] = updateValueAjax('/mercuryservices/acids', 'code', 'id', thisDataRow[i]);
+                                        thisDataObject[objectFields[i]] = thisDataObject[objectFields[i]] = updateValueAjax('/mercuryservices/acids/', 'code', 'id', thisDataRow[i]);
                                         break;
                                     default: // all the rest
                                         if (thisDataRow[i] !== null && thisDataRow[i] !== "") {
@@ -671,16 +672,15 @@
                         // if we made it through the various validations above, then the table must be valid
                         validTable = true;
                     });
-                    // confirm that the user really does want to save
-                    var confirmSave = confirm("WARNING: This will overwrite existing records in the database!\nContinue and Save, or Cancel?");
                     // if table is valid, submit the POST request, otherwise skip it (implying table is invalid)
-                    if(validTable && confirmSave) {
+                    if(validTable) {
                         // convert the array to a true JSON object
                         var changedDataJSON = JSON.stringify(changedDataArray);
                         // send the entire changed data object to the server via ajax
                         console.log(changedDataJSON);
                         grid_console.text('Attempting to save data...');
-                        var confirmed = confirm("Are you sure? Saving will make changes to the database.");
+                        // confirm that the user really does want to save
+                        var confirmed = confirm("WARNING: This will overwrite existing records in the database!\nContinue and Save, or Cancel?");
                         if (confirmed == true) {
                             $.ajax({
                                 url: '/merlin/sample_search/save',

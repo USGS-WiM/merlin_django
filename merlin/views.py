@@ -40,13 +40,15 @@ def sample_login(request):
     processings = json.dumps(r.json(), sort_keys=True)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'mediums/', headers=headers_auth_token)
     mediums = json.dumps(r.json(), sort_keys=True)
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'constituents/', headers=headers_auth_token)
+    constituents = json.dumps(r.json(), sort_keys=True)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'filters/', headers=headers_auth_token)
     filters = json.dumps(r.json(), sort_keys=True)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'preservations/', headers=headers_auth_token)
     preservations = json.dumps(r.json(), sort_keys=True)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'isotopeflags/', headers=headers_auth_token)
     isotope_flags = json.dumps(r.json(), sort_keys=True)
-    context_dict = {'projects': projects, 'processings': processings, 'mediums': mediums, 'filters': filters, 'preservations': preservations, 'isotope_flags': isotope_flags}
+    context_dict = {'projects': projects, 'processings': processings, 'mediums': mediums, 'constituents': constituents, 'filters': filters, 'preservations': preservations, 'isotope_flags': isotope_flags}
     return render_to_response('merlin/sample_login.html', context_dict, context)
 
 
@@ -423,18 +425,23 @@ def sample_search_save(request):
     item_number = 0
     for item in sample_data:
         item_number += 1
+        this_id = item.pop("id")
         item = json.dumps(item)
         logger.info("Item #" + str(item_number) + ": " + item)
-        r = requests.request(method='PUT', url=REST_SERVICES_URL+'samples/', data=item, headers=headers)
-        logger.info(r.request.method + " " + r.request.url + " " + r.reason + " " + str(r.status_code))
-        if r.status_code != 200 or r.status_code != 201:
-            message = "\"Error in row " + str(item_number) + ": Encountered an error while attempting to save sample " + item["id"] + ": " + r.status_code + "\""
-            logger.error(message)
-            return HttpResponse(message, content_type='text/html')
-        else:
-            this_response_data = r.json()
-            logger.info(str(len(this_response_data)) + " samples saved")
-            sample_response_data.append(this_response_data)
+        url = REST_SERVICES_URL+'samples/'+str(this_id)+'/'
+        r = requests.request(method='PUT', url=url, data=item, headers=headers)
+        logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
+        # if r.status_code != 200 or r.status_code != 201:
+        #     message = "\"Error in row " + str(item_number) + ": Encountered an error while attempting to save sample " + str(this_id) + ": " + str(r.status_code) + "\""
+        #     logger.error(message)
+        #     return HttpResponse(message, content_type='text/html')
+        # else:
+        #     this_response_data = r.json()
+        #     logger.info(str(len(this_response_data)) + " samples saved")
+        #     sample_response_data.append(this_response_data)
+        this_response_data = r.json()
+        logger.info("1 samples saved")
+        sample_response_data.append(this_response_data)
     # store the IDs as an array of dictionaries, where the keys are the combo IDs and the values are the database IDs
     sample_ids = []
     for item in sample_response_data:
@@ -445,17 +452,6 @@ def sample_search_save(request):
     ## SAVE SAMPLE BOTTLES ##
     # update the sample bottles with the database IDs, rather than the combo IDs
     logger.info("SAVE Sample Bottles in Search Save")
-    for sample_id in sample_ids:
-        for sample_bottle in sample_bottle_data:
-            logger.info("Sample ID: " + str(sample_bottle['sample']))
-            logger.info("Combo ID:  " + sample_id['combo_id'])
-            if sample_bottle['sample'] == sample_id['combo_id']:
-                sample_bottle['sample'] = sample_id['db_id']
-            else:
-                logger.warning("Could not match sample and combo IDs!")
-                message = "\"Error: Samples were saved, but unable to save sample bottles. Please contact the administrator.\""
-                logger.error(message)
-                return HttpResponse(message, content_type='text/html')
     # send the sample bottles to the database
     #sample_bottle_data = json.dumps(sample_bottle_data)
     logger.info(str(sample_bottle_data))
@@ -465,18 +461,25 @@ def sample_search_save(request):
     item_number = 0
     for item in sample_bottle_data:
         item_number += 1
+        this_id = item.pop("id")
         item = json.dumps(item)
         logger.info("Item #" + str(item_number) + ": " + item)
-        r = requests.request(method='PUT', url=REST_SERVICES_URL+'samplebottles/', data=item, headers=headers)
+        url = REST_SERVICES_URL+'samplebottles/'+str(this_id)+'/'
+        r = requests.request(method='PUT', url=url, data=item, headers=headers)
         logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
-        if r.status_code != 200 or r.status_code != 201:
-            message = "\"Error in row " + str(item_number) + ": Encountered an error while attempting to save sample bottle in sample " + item["id"] + ": " + r.status_code + "\""
-            logger.error(message)
-            return HttpResponse(message, content_type='text/html')
-        else:
-            this_response_data = r.json()
-            logger.info(str(len(this_response_data)) + " sample bottles saved")
-            sample_bottle_response_data.append(this_response_data)
+        # if r.status_code != 200 or r.status_code != 201:
+        #     message = "\"Error in row " + str(item_number) + ": Encountered an error while attempting to save sample bottle in sample " + str(this_id) + ": " + str(r.status_code) + "\""
+        #     logger.error(message)
+        #     return HttpResponse(message, content_type='text/html')
+        # else:
+        #     this_response_data = r.json()
+        #     logger.info(str(len(this_response_data)) + " sample bottles saved")
+        #     sample_bottle_response_data.append(this_response_data)
+        this_response_data = r.json()
+        logger.info(r.request.body)
+        logger.info(this_response_data)
+        logger.info("1 sample bottles saved")
+        sample_bottle_response_data.append(this_response_data)
     # store the IDs as an array of dictionaries, where the keys are the bottle IDs and the values are the sample bottle IDs
     sample_bottle_ids = []
     for item in sample_bottle_response_data:
@@ -485,18 +488,6 @@ def sample_search_save(request):
 
     ## SAVE SAMPLE ANALYSES (placeholder records in Results table) ##
     # update the sample analyses with the sample bottle IDs, rather than the bottle IDs
-    logger.info("SAVE Sample Analyses in Search Save")
-    for sample_bottle_id in sample_bottle_ids:
-        for sample_analysis in sample_analysis_data:
-            logger.info("Sample Bottle ID: " + str(sample_analysis['sample_bottle']))
-            logger.info("Combo Bottle ID:  " + sample_bottle_id['combo_id'])
-            if sample_analysis['sample_bottle'] == sample_bottle_id['bottle_id']:
-                sample_analysis['sample_bottle'] = sample_bottle_id['db_id']
-            else:
-                logger.warning("Could not match sample bottle and combo bottle IDs!")
-                message = "\"Error: Samples and sample bottles were saved, but unable to save analyses. Please contact the administrator.\""
-                logger.error(message)
-                return HttpResponse(message, content_type='text/html')
     # send the sample analyses to the database
     #sample_analysis_data = json.dumps(sample_analysis_data)
     logger.info(str(sample_analysis_data))
@@ -506,18 +497,24 @@ def sample_search_save(request):
     item_number = 0
     for item in sample_analysis_data:
         item_number += 1
+        this_id = item.pop("id")
         item = json.dumps(item)
         logger.info("Item #" + str(item_number) + ": " + item)
-        r = requests.request(method='PUT', url=REST_SERVICES_URL+'results/', data=item, headers=headers)
-        logger.info(r.request.method + " " + r.request.url + " " + r.reason + " " + str(r.status_code))
-        if r.status_code != 200 or r.status_code != 201:
-            message = "\"Error in row " + str(item_number) + ": Encountered an error while attempting to save sample analysis " + item["id"] + ": " + r.status_code + "\""
-            logger.error(message)
-            return HttpResponse(message, content_type='text/html')
-        else:
-            this_response_data = r.json()
-            logger.info(str(len(this_response_data)) + " sample analyses saved")
-            sample_analysis_response_data.append(this_response_data)
+        url = REST_SERVICES_URL+'results/'+str(this_id)+'/'
+        r = requests.request(method='PUT', url=url, data=item, headers=headers)
+        logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
+        # if r.status_code != 200 or r.status_code != 201:
+        #     message = "\"Error in row " + str(item_number) + ": Encountered an error while attempting to save sample analysis " + str(this_id) + ": " + str(r.status_code) + "\""
+        #     logger.error(message)
+        #     return HttpResponse(message, content_type='text/html')
+        # else:
+        #     this_response_data = r.json()
+        #     logger.info(str(len(this_response_data)) + " sample analyses saved")
+        #     sample_analysis_response_data.append(this_response_data)
+        this_response_data = r.json()
+        logger.info("1 sample analyses saved")
+        sample_analysis_response_data.append(this_response_data)
+    sample_analysis_response_data = json.dumps(sample_analysis_response_data)
     # send the response (data & messages) back to the user interface
     return HttpResponse(sample_analysis_response_data, content_type='application/json')
 
@@ -657,7 +654,7 @@ def bottle_prefix_add(request):
         logger.error(message)
         return HttpResponse(message, content_type='text/html')
     else:
-        logger.info(str(len(r.json())) + " bottle prefixes saved")
+        logger.info("1 bottle prefixes saved")
         return HttpResponse(r, content_type='application/json')
 
 
@@ -673,6 +670,7 @@ def bottle_prefix_range_add(request):
     for i in range(start, end+1, 1):
         new_prefix = params['prefix'] + str(i).rjust(digits, '0')
         new_bottle_prefix = {'bottle_prefix': new_prefix, 'description': params['description'], 'tare_weight': float(params['tare_weight']), 'bottle_type': int(params['bottle_type']), 'created_date': params['created_date']}
+        logger.info(str(new_bottle_prefix))
         new_bottle_prefixes.append(new_bottle_prefix)
     new_bottle_prefixes = json.dumps(new_bottle_prefixes)
     r = requests.request(method='POST', url=REST_SERVICES_URL+'bulkbottleprefixes/', data=new_bottle_prefixes, headers=headers)
@@ -682,7 +680,7 @@ def bottle_prefix_range_add(request):
         logger.error(message)
         return HttpResponse(message, content_type='text/html')
     else:
-        logger.info(str(len(r.json())) + " bottles saved")
+        logger.info("range of bottle prefixes saved")
         return HttpResponse(r, content_type='application/json')
 
 
@@ -690,12 +688,15 @@ def bottles_add(request):
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     data = json.loads(request.body.decode('utf-8'))
-    item_number = 0
+    print(data)
     all_unique_bottle_names = True
+    all_existing_bottle_prefixes = True
     message_exist = "These Bottles already exist in the database: "
+    message_not_exist = "These Bottle Prefixes do not exist in the database: "
 
     # validate that the submitted bottle names don't already exist
     logging.info("VALIDATE Bottles Add")
+    item_number = 0
     for item in data:
         item_number += 1
         this_bottle_name = {'bottle_unique_name': item.get('bottle_unique_name')}
@@ -706,12 +707,32 @@ def bottles_add(request):
         # if response count does not equal zero, then this sample already exists in the database
         if response_data['count'] != 0:
             all_unique_bottle_names = False
-            logger.info("count != 0")
-            logger.info(item.get('bottle_unique_name'))
+            logger.warning("Validation Warning: " + item.get('bottle_unique_name') + " count != 0")
             this_message = "Row " + str(item_number) + ": " + item.get('bottle_unique_name') + ","
             message_exist = message_exist + " " + this_message
     if not all_unique_bottle_names:
         message = json.dumps(message_exist)
+        logger.warning("Validation Warning: " + message)
+        return HttpResponse(message, content_type='text/html')
+
+    # validate that the submitted bottle prefixes already exist
+    logging.info("VALIDATE Bottles Add Prefixes")
+    item_number = 0
+    for item in data:
+        item_number += 1
+        this_bottle_prefix = item.get('bottle_prefix')
+        r = requests.get(REST_SERVICES_URL+'bottleprefixes/', params={'bottle_prefix': this_bottle_prefix})
+        logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
+        response_data = r.json()
+        logger.info("bottles count: " + str(response_data['count']))
+        # if response count equals zero, then this sample does not exist in the database
+        if response_data['count'] == 0:
+            all_existing_bottle_prefixes = False
+            logger.warning("Validation Warning: " + str(this_bottle_prefix) + " count == 0")
+            this_message = "Row " + str(item_number) + ": " + str(this_bottle_prefix) + ","
+            message_not_exist = message_not_exist + " " + this_message
+    if not all_existing_bottle_prefixes:
+        message = json.dumps(message_not_exist)
         logger.warning("Validation Warning: " + message)
         return HttpResponse(message, content_type='text/html')
 
@@ -733,7 +754,7 @@ def bottles_add(request):
         logger.error(message)
         return HttpResponse(message, content_type='text/html')
     else:
-        logger.info(str(len(r.json())) + " bottles saved")
+        logger.info("bottles saved")
         return HttpResponse(r, content_type='application/json')
 
 
@@ -770,12 +791,13 @@ def brominations_save(request):
     # item_number = 0
     # for item in data:
     #     item_number += 1
+    #     item_id = item["id"]
     #     item = json.dumps(item)
     #     logger.info("Item #" + str(item_number) + ": " + item)
     #     r = requests.request(method='PUT', url=REST_SERVICES_URL+'brominations/', data=item, headers=headers)
     #     logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
     #     if r.status_code != 200 or r.status_code != 201:
-    #         message = "\"Encountered an error while attempting to save bromination " + item["id"] + ": " + r.status_code + "\""
+    #         message = "\"Encountered an error while attempting to save bromination " + str(item_id) + ": " + str(r.status_code) + "\""
     #         logger.error(message)
     #         return HttpResponse(message, content_type='text/html')
     #     else:
@@ -1012,12 +1034,13 @@ def sites_save(request):
     # item_number = 0
     # for item in data:
     #     item_number += 1
+    #     item_id = item["id"]
     #     item = json.dumps(item)
     #     logger.info("Item #" + str(item_number) + ": " + item)
     #     r = requests.request(method='PUT', url=REST_SERVICES_URL+'sites/', data=item, headers=headers)
     #     logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
     #     if r.status_code != 200 or r.status_code != 201:
-    #         message = "\"Encountered an error while attempting to save site " + item["id"] + ": " + r.status_code + "\""
+    #         message = "\"Encountered an error while attempting to save site " + str(item_id) + ": " + str(r.status_code) + "\""
     #         logger.error(message)
     #         return HttpResponse(message, content_type='text/html')
     #     else:
@@ -1086,12 +1109,13 @@ def projects_save(request):
     # item_number = 0
     # for item in data:
     #     item_number += 1
+    #     item_id = item["id"]
     #     item = json.dumps(item)
     #     logger.info("Item #" + str(item_number) + ": " + item)
     #     r = requests.request(method='PUT', url=REST_SERVICES_URL+'projects/', data=item, headers=headers)
     #     logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
     #     if r.status_code != 200 or r.status_code != 201:
-    #         message = "\"Encountered an error while attempting to save project " + item["id"] + ": " + r.status_code + "\""
+    #         message = "\"Encountered an error while attempting to save project " + str(item_id) + ": " + str(r.status_code) + "\""
     #         logger.error(message)
     #         return HttpResponse(message, content_type='text/html')
     #     else:
@@ -1160,12 +1184,13 @@ def cooperators_save(request):
     # item_number = 0
     # for item in data:
     #     item_number += 1
+    #     item_id = item["id"]
     #     item = json.dumps(item)
     #     logger.info("Item #" + str(item_number) + ": " + item)
     #     r = requests.request(method='PUT', url=REST_SERVICES_URL+'cooperators/', data=item, headers=headers)
     #     logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
     #     if r.status_code != 200 or r.status_code != 201:
-    #         message = "\"Encountered an error while attempting to save cooperator " + item["id"] + ": " + r.status_code + "\""
+    #         message = "\"Encountered an error while attempting to save cooperator " + item_id + ": " + str(r.status_code) + "\""
     #         logger.error(message)
     #         return HttpResponse(message, content_type='text/html')
     #     else:

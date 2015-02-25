@@ -1,3 +1,15 @@
+function convert2dArrayToCsv(arr){
+    return arr.reduce(function(csvString, row){
+        csvString += row.join(',');
+        csvString += ';';
+        return csvString;
+    }, '');
+}
+function pad(n, width, z) {
+  z = z || '0';
+  n = n + '';
+  return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
+}
 var dateRegEx = /^(0[1-9]|1[012]|[1-9])[- /.](0[1-9]|[12][0-9]|3[01]|[1-9])[- /.]\d\d$/;
 function makeYear(thisDate) {
     var indexLastSlash = thisDate.lastIndexOf('/');
