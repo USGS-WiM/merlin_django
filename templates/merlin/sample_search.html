@@ -90,11 +90,18 @@
                 grid.css("z-index", "0");
                 var data_processings = JSON.parse(grid.attr('data-processings'));
                 var data_mediums = JSON.parse(grid.attr('data-mediums'));
+                for (var key in data_mediums) {
+                        var item = data_mediums[key];
+                        item.display_text = item.nwis_code + " - " + item.medium;
+                    }
                 var data_filters = JSON.parse(grid.attr('data-filters'));
                 var data_preservations = JSON.parse(grid.attr('data-preservations'));
-                // temporary array until isotopes get figured out
-                //var data_isotopes = ['', 'A', '198', '199', '200', '201', '202'];
                 var data_isotopeflags = JSON.parse(grid.attr('data-isotopeflags'));
+                data_isotopeflags.sort(function (a, b) {
+                    var textA = a.isotope_flag.toUpperCase();
+                    var textB = b.isotope_flag.toUpperCase();
+                    return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
+                }); //sort alphabetically
                 var data_acids;
                 var data_projects = JSON.parse(grid.attr('data-projects'));
                 var data_sites;
@@ -160,7 +167,7 @@
                         //{title: 'Container ID', width: 100, type: 'text'},
                         {title: 'Container ID', data: 'sample_bottle.bottle.bottle_unique_name', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 90, type: 'autocomplete', strict: true,  source: function (query, process) {
                             getValuesAjax('/mercuryservices/bottles', 'name', query, process)}},
-                        {title: 'Medium', data: 'sample_bottle.sample.medium_type', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 100, type: 'autocomplete', strict: true, source: getValuesDom(data_mediums,"nwis_code")},
+                        {title: 'Medium', data: 'sample_bottle.sample.medium_type', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 100, type: 'autocomplete', strict: true, source: getValuesDom(data_mediums,"display_text")},
                         {title: 'Analysis', data: 'constituent', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 70, type: 'autocomplete', strict: true},
                         {title: 'Isotope', data: 'isotope_flag', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 55, type: 'dropdown', source: data_isotopeflags},
                         {title: 'Filter', data: 'sample_bottle.filter_type', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 100, type: 'autocomplete', strict: true, source: getValuesDom(data_filters,"filter")},
@@ -278,12 +285,13 @@
                             }
                             // when medium is changed to a non-null, non-blank value
                             if (changedCol == 'sample_bottle.sample.medium_type' && changedVal !== null && changedVal !== "") {
+                                var thisVal = updateValueDom(data_mediums, 'display_text', 'nwis_code', changedVal);
                                 // update list of constituents filtered by the selected medium value
                                 $.ajax({
                                     url: '/mercuryservices/constituents/',
                                     dataType: 'json',
                                     data: {
-                                        nwis_code: changedVal
+                                        nwis_code: thisVal
                                     },
                                     success: function (response) {
                                         grid_console.text("success");
@@ -638,7 +646,7 @@
                                     case 14: // medium
                                         // if it doesn't have a value, notify the user that this is a required field, and stop the submission
                                         if (!thisDataRow[i]) {grid_console.text('Medium is required in row ' + (index + 1) + '!'); validTable = false; return false;}
-                                        thisDataObject[objectFields[i]] = getIdDom(data_mediums,'nwis_code',thisDataRow[i]);
+                                        thisDataObject[objectFields[i]] = getIdDom(data_mediums,'display_text',thisDataRow[i]);
                                         break;
                                     case 15: // constituent
                                         // if it doesn't have a value, notify the user that this is a required field, and stop the submission

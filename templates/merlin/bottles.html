@@ -38,15 +38,15 @@
             <h3>Create Range of Bottle Prefixes</h3>
             <form class="form-inline" style="border:1px solid;width:800px;padding:4px;">
                 <div class="form-group" style="padding:2px;text-align:center">
-                    <label for="bottle_prefix">Bottle Prefix</label><br />
+                    <label for="bottle_prefix">Prefix Letters</label><br />
                     <input class="input-block-level" name="bottle_prefix" type="text">
                 </div>
                 <div class="form-group" style="padding:2px;text-align:center">
-                    <label for="bottle_range_start">Range Start</label><br />
+                    <label for="bottle_range_start">Number Range Start</label><br />
                     <input class="input-block-level" name="bottle_range_start" type="text">
                 </div>
                 <div class="form-group" style="padding:2px;text-align:center">
-                    <label for="bottle_range_end">Range End</label><br />
+                    <label for="bottle_range_end">Number Range End</label><br />
                     <input class="input-block-level" name="bottle_range_end" type="text">
                 </div>
                 <br />
@@ -353,6 +353,9 @@
                                     break;
                                 case 1: // suffix
                                     break;
+                                case 2: // bottle unique name
+                                    thisDataObject[objectFieldsAdd[i]] = thisDataRow[i].toUpperCase();
+                                    break;
                                 case 3: //date
                                     var baddate = thisDataRow[i];
                                     //var gooddate = "20" + baddate.substr(6,4) + "-" + baddate.substr(0,2) + "-" + baddate.substr(3,2);
@@ -414,7 +417,7 @@
                 var form_bottle_prefix_add = $("#form_bottle_prefix_add");
                 form_bottle_prefix_add.find('button[name=bottlePrefixAddSave]').click(function() {
                     var thisDataObject = {};
-                    thisDataObject['bottle_prefix'] = form_bottle_prefix_add.find('input[name=bottle_prefix]').val();
+                    thisDataObject['bottle_prefix'] = form_bottle_prefix_add.find('input[name=bottle_prefix]').val().toUpperCase();
                     var baddate = form_bottle_prefix_add.find('input[name=date_bottle_prefix]').val();
                     //var gooddate = "20" + baddate.substr(6,4) + "-" + baddate.substr(0,2) + "-" + baddate.substr(3,2);
                     if (dateRegEx.test(baddate)) {
@@ -465,8 +468,8 @@
                 var form_bottle_prefix_range_add = $("#form_bottle_prefix_range_add");
                 form_bottle_prefix_range_add.find('button[name=rangePrefixAddSave]').click(function () {
                     var thisDataObject = {};
-                    thisDataObject['prefix'] = form_bottle_prefix_range_add.find('input[name=bottle_prefix]').val();
-                    thisDataObject['suffix'] = form_bottle_prefix_range_add.find('input[name=bottle_suffix]').val();
+                    thisDataObject['prefix'] = form_bottle_prefix_range_add.find('input[name=bottle_prefix]').val().toUpperCase();
+                    thisDataObject['suffix'] = form_bottle_prefix_range_add.find('input[name=bottle_suffix]').val().toUpperCase();
                     thisDataObject['range_start'] = form_bottle_prefix_range_add.find('input[name=bottle_range_start]').val();
                     thisDataObject['range_end'] = form_bottle_prefix_range_add.find('input[name=bottle_range_end]').val();
                     var baddate = form_bottle_prefix_range_add.find('input[name=date_bottle_prefix_range]').val();
@@ -538,9 +541,11 @@
 
                 var validTablePrefix = false;
                 var prefixObjectFields = ["id", "bottle_prefix", "created_date", "tare_weight", "bottle_type", "description"];
+                var currentPagePrefixes = 1;
                 var changedRowIndicesPrefixes = [];
                 var grid_prefixes = $('#grid_prefixes');
                 var data_prefixes = JSON.parse(grid_prefixes.attr("data-prefixes"));
+                var resultPagesPrefixes = Math.ceil(data_prefixes['count'] / 100);
                 grid_prefixes.handsontable({
                     //minSpareRows: 1,
                     data: data_prefixes.results,
@@ -586,15 +591,15 @@
                     }
                 });
                 //grid_prefixes.data('handsontable').sort(0);
-                $('#page_prefixes').html("Page " + currentPage + " of " + resultPages);
+                $('#page_prefixes').html("Page " + currentPagePrefixes + " of " + resultPagesPrefixes);
                 grid_console.text('Data loaded.');
 
                 var validTableBottle = false;
                 var bottleObjectFields = ["id", "bottle_unique_name", "bottle_prefix", "created_date", "description"];
-                var currentPage = 1;
+                var currentPageBottles = 1;
                 var grid_bottles = $('#grid_bottles');
                 var data_bottles = JSON.parse(grid_bottles.attr("data-bottles"));
-                var resultPages = Math.ceil(data_bottles['count'] / 100);
+                var resultPagesBottles = Math.ceil(data_bottles['count'] / 100);
                 var changedRowIndicesBottles = [];
                 var selectionRowIndices = [];
                 grid_console.text('Loading data.');
@@ -643,7 +648,7 @@
                     }
                 });
                 //grid_bottles.data('handsontable').sort(0);
-                $('#page_bottles').html("Page " + currentPage + " of " + resultPages);
+                $('#page_bottles').html("Page " + currentPageBottles + " of " + resultPagesBottles);
                 grid_console.text('Data loaded.');
 
                 $('#search_field_prefixes').on('keyup', function (event) {
@@ -786,14 +791,14 @@
                 
                 tools_prefixes.find('button[name=load]').click(function () {
                     $.ajax({
-                        url: '/mercuryservices/bottleprefixes/?page='+currentPage,
+                        url: '/mercuryservices/bottleprefixes/?page='+currentPagePrefixes,
                         dataType: 'json',
                         success: function (response) {
                             grid_console.text("success");
                             data_prefixes = response;
                             grid_prefixes.data('handsontable').loadData(data_prefixes.results);
-                            $('#page_prefixes').html("Page " + currentPage + " of " + resultPages);
-                            grid_console.text('Page '+ currentPage +' data reloaded.');
+                            $('#page_prefixes').html("Page " + currentPagePrefixes + " of " + resultPagesPrefixes);
+                            grid_console.text('Page '+ currentPagePrefixes +' data reloaded.');
                         },
                         error: function (jqXHRequest, textStatus, errorThrown) {
                             grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve page to reload.");
@@ -802,7 +807,7 @@
                 });
 
                 tools_prefixes.find('button[name=next]').click(function () {
-                    if (currentPage != resultPages) {
+                    if (currentPagePrefixes != resultPagesPrefixes) {
                         $.ajax({
                             url: data_prefixes.next,
                             dataType: 'json',
@@ -810,9 +815,9 @@
                                 grid_console.text("success");
                                 data_prefixes = response;
                                 grid_prefixes.data('handsontable').loadData(data_prefixes.results);
-                                currentPage++;
-                                $('#page_prefixes').html("Page " + currentPage + " of " + resultPages);
-                                grid_console.text('Page ' + currentPage + ' of ' + resultPages + ' loaded.');
+                                currentPagePrefixes++;
+                                $('#page_prefixes').html("Page " + currentPagePrefixes + " of " + resultPagesPrefixes);
+                                grid_console.text('Page ' + currentPagePrefixes + ' of ' + resultPagesPrefixes + ' loaded.');
                             },
                             error: function (jqXHRequest, textStatus, errorThrown) {
                                 grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve next page.");
@@ -820,12 +825,12 @@
                         });
                     }
                     else {
-                        grid_console.text("End of results, there are no pages after Page " + resultPages + ".");
+                        grid_console.text("End of results, there are no pages after Page " + resultPagesPrefixes + ".");
                     }
                 });
 
                 tools_prefixes.find('button[name=prev]').click(function () {
-                    if (currentPage != 1) {
+                    if (currentPagePrefixes != 1) {
                         $.ajax({
                             url: data_prefixes.previous,
                             dataType: 'json',
@@ -833,9 +838,9 @@
                                 grid_console.text("success");
                                 data_prefixes = response;
                                 grid_prefixes.data('handsontable').loadData(data_prefixes.results);
-                                currentPage--;
-                                $('#page_prefixes').html("Page " + currentPage + " of " + resultPages);
-                                grid_console.text('Page ' + currentPage + ' of ' + resultPages + ' loaded.');
+                                currentPagePrefixes--;
+                                $('#page_prefixes').html("Page " + currentPagePrefixes + " of " + resultPagesPrefixes);
+                                grid_console.text('Page ' + currentPagePrefixes + ' of ' + resultPagesPrefixes + ' loaded.');
                             },
                             error: function (jqXHRequest, textStatus, errorThrown) {
                                 grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve previous page.");
@@ -939,14 +944,14 @@
                 
                 tools_bottles.find('button[name=load]').click(function () {
                     $.ajax({
-                        url: '/mercuryservices/bottles/?page='+currentPage,
+                        url: '/mercuryservices/bottles/?page='+currentPageBottles,
                         dataType: 'json',
                         success: function (response) {
                             grid_console.text("success");
                             data_bottles = response;
                             grid_bottles.data('handsontable').loadData(data_bottles.results);
-                            $('#page_bottles').html("Page " + currentPage + " of " + resultPages);
-                            grid_console.text('Page '+ currentPage +' data reloaded.');
+                            $('#page_bottles').html("Page " + currentPageBottles + " of " + resultPagesBottles);
+                            grid_console.text('Page '+ currentPageBottles +' data reloaded.');
                         },
                         error: function (jqXHRequest, textStatus, errorThrown) {
                             grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve page to reload.");
@@ -955,7 +960,7 @@
                 });
 
                 tools_bottles.find('button[name=next]').click(function () {
-                    if (currentPage != resultPages) {
+                    if (currentPageBottles != resultPagesBottles) {
                         $.ajax({
                             url: data_bottles.next,
                             dataType: 'json',
@@ -963,9 +968,9 @@
                                 grid_console.text("success");
                                 data_bottles = response;
                                 grid_bottles.data('handsontable').loadData(data_bottles.results);
-                                currentPage++;
-                                $('#page_bottles').html("Page " + currentPage + " of " + resultPages);
-                                grid_console.text('Page ' + currentPage + ' of ' + resultPages + ' loaded.');
+                                currentPageBottles++;
+                                $('#page_bottles').html("Page " + currentPageBottles + " of " + resultPagesBottles);
+                                grid_console.text('Page ' + currentPageBottles + ' of ' + resultPagesBottles + ' loaded.');
                             },
                             error: function (jqXHRequest, textStatus, errorThrown) {
                                 grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve next page.");
@@ -973,12 +978,12 @@
                         });
                     }
                     else {
-                        grid_console.text("End of results, there are no pages after Page " + resultPages + ".");
+                        grid_console.text("End of results, there are no pages after Page " + resultPagesBottles + ".");
                     }
                 });
 
                 tools_bottles.find('button[name=prev]').click(function () {
-                    if (currentPage != 1) {
+                    if (currentPageBottles != 1) {
                         $.ajax({
                             url: data_bottles.previous,
                             dataType: 'json',
@@ -986,9 +991,9 @@
                                 grid_console.text("success");
                                 data_bottles = response;
                                 grid_bottles.data('handsontable').loadData(data_bottles.results);
-                                currentPage--;
-                                $('#page_bottles').html("Page " + currentPage + " of " + resultPages);
-                                grid_console.text('Page ' + currentPage + ' of ' + resultPages + ' loaded.');
+                                currentPageBottles--;
+                                $('#page_bottles').html("Page " + currentPageBottles + " of " + resultPagesBottles);
+                                grid_console.text('Page ' + currentPageBottles + ' of ' + resultPagesBottles + ' loaded.');
                             },
                             error: function (jqXHRequest, textStatus, errorThrown) {
                                 grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve previous.");

@@ -134,7 +134,7 @@
                 var form_add = $("#form_add");
                 form_add.find('button[name=addSave]').click(function() {
                     var thisDataObject = {};
-                    thisDataObject['lot_number'] = form_add.find('input[name=lot_number]').val();
+                    thisDataObject['lot_number'] = form_add.find('input[name=lot_number]').val().toUpperCase();
                     thisDataObject['concentration'] = Number(form_add.find('input[name=concentration]').val());
                     thisDataObject['comment'] = form_add.find('input[name=comment]').val();
                     //thisDataObject['created_date'] = form_add.find('input[name=created_date]').val();
