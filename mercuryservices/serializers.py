@@ -64,7 +64,7 @@ class BottleTypeSerializer(serializers.ModelSerializer):
 
 class BottlePrefixSerializer(serializers.ModelSerializer):
     created_date = serializers.DateTimeField(format='%m/%d/%y', source='created_date')
-    bottle_type = serializers.RelatedField(source='bottle_type')
+    #bottle_type = serializers.RelatedField(source='bottle_type')
 
     class Meta:
         model = BottlePrefix
@@ -91,11 +91,11 @@ class FullBottleSerializer(serializers.ModelSerializer):
 
 class SampleSerializer(serializers.ModelSerializer):
     #sample_date_time = serializers.DateTimeField(format='%Y-%m-%d %H%:M:%S', source='sample_date_time')
-    sample_date = serializers.DateTimeField(format='%m/%d/%y', source='sample_date_time')
-    sample_time = serializers.DateTimeField(format='%H%M', source='sample_date_time')
+    sample_date = serializers.DateTimeField(format='%m/%d/%y', source='sample_date_time', read_only=True)
+    sample_time = serializers.DateTimeField(format='%H%M', source='sample_date_time', read_only=True)
     received_date = serializers.DateTimeField(format='%m/%d/%y', source='received_date')
-    project = SimpleProjectSerializer(source='project')
-    site = SimpleSiteSerializer(source='site')
+    project = SimpleProjectSerializer(source='project', read_only=True)
+    site = SimpleSiteSerializer(source='site', read_only=True)
     medium_type = serializers.RelatedField(source='medium_type')
     lab_processing = serializers.RelatedField(source='lab_processing')
 
@@ -106,7 +106,7 @@ class SampleSerializer(serializers.ModelSerializer):
 
 
 class SampleBottleSerializer(serializers.ModelSerializer):
-    sample = serializers.RelatedField(source='sample')
+    #sample = serializers.RelatedField(source='sample')
     bottle = serializers.RelatedField(source='bottle')
 
     class Meta:
@@ -372,9 +372,9 @@ class MethodTypeSerializer(serializers.ModelSerializer):
 
 
 class FullResultSerializer(serializers.ModelSerializer):
-    entry_date = serializers.DateTimeField(format='%m/%d/%y', source='entry_date')
-    analyzed_date = serializers.DateTimeField(format='%m/%d/%y', source='analyzed_date')
-    created_date = serializers.DateTimeField(format='%m/%d/%y', source='created_date')
+    entry_date = serializers.DateTimeField(format='%m/%d/%y', source='entry_date', read_only=True)
+    analyzed_date = serializers.DateTimeField(format='%m/%d/%y', source='analyzed_date', read_only=True)
+    created_date = serializers.DateTimeField(format='%m/%d/%y', source='created_date', read_only=True)
     sample_bottle = FullSampleBottleSerializer(source='sample_bottle')
     constituent = serializers.RelatedField(source='constituent')
     isotope_flag = serializers.RelatedField(source='isotope_flag')
@@ -389,9 +389,9 @@ class FullResultSerializer(serializers.ModelSerializer):
 
 
 class ResultSerializer(serializers.ModelSerializer):
-    entry_date = serializers.DateTimeField(format='%m/%d/%y', source='entry_date')
-    analyzed_date = serializers.DateTimeField(format='%m/%d/%y', source='analyzed_date')
-    created_date = serializers.DateTimeField(format='%m/%d/%y', source='created_date')
+    entry_date = serializers.DateTimeField(format='%m/%d/%y', source='entry_date', read_only=True)
+    analyzed_date = serializers.DateTimeField(format='%m/%d/%y', source='analyzed_date', read_only=True)
+    created_date = serializers.DateTimeField(format='%m/%d/%y', source='created_date', read_only=True)
     sample_bottle = serializers.RelatedField(source='sample_bottle')
     constituent = serializers.RelatedField(source='constituent')
     isotope_flag = serializers.RelatedField(source='isotope_flag')

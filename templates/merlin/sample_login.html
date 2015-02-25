@@ -75,7 +75,7 @@
                 var data_processings = JSON.parse(grid.attr('data-processings'));
                 var data_sites;
                 var data_mediums = JSON.parse(grid.attr('data-mediums'));
-                var data_constituents;
+                var data_constituents = JSON.parse(grid.attr('data-constituents'));
                 var data_isotopeflags = JSON.parse(grid.attr('data-isotopeflags'));
                 var data_isotopes = ['NA', 'A', 'X-198', 'X-199', 'X-200', 'X-201', 'X-202'];
                 var data_filters = JSON.parse(grid.attr('data-filters'));
@@ -241,10 +241,8 @@
                                         nwis_code: changedVal
                                     },
                                     success: function (response) {
-                                        // update the local full object collection
-                                        data_constituents = response;
                                         // grab just just the values from the object
-                                        var values = getValuesDom(data_constituents, "constituent");
+                                        var values = getValuesDom(response, "constituent");
                                         // get range of selected rows
                                         if (source == 'edit') {
                                             // if there is a previously entered value in this cell, set it to null, otherwise leave it alone (this avoids unnecessary triggering of cell validation)
@@ -274,8 +272,8 @@
                                         }
 
                                     },
-                                    error: function (response) {
-                                        grid_console.text("error");
+                                    error: function (jqXHRequest, textStatus, errorThrown) {
+                                        grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve constituents.");
                                     }
                                 });
                             }
@@ -363,8 +361,8 @@
                                         grid.handsontable('getInstance').render();
                                     }*/
                                 },
-                                error: function (response) {
-                                    grid_console.text("error");
+                                error: function (jqXHRequest, textStatus, errorThrown) {
+                                    grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve sites.");
                                 }
                             });
                         }
@@ -409,8 +407,8 @@
                                         cellProperties.source = values;
                                     }
                                 },
-                                error: function (response) {
-                                    grid_console.text("error");
+                                error: function (jqXHRequest, textStatus, errorThrown) {
+                                    grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve sites.");
                                 }
                             });
                         }
@@ -472,7 +470,8 @@
                         else {grid_console.text('There is a problem with Received Date. Please contact the administrator.'); validTable = false; return false;}
                     }
                     else {grid_console.text('Date Received is badly formed. Expecting a date in mm/dd/yy format but found ' + dateReceived + '!'); validTable = false; return false;}
-                    var labProcessing = getIdDom(data_processings,'processing',$('#lab_processing').val());
+                    //var labProcessing = getIdDom(data_processings,'processing',$('#lab_processing').val());
+                    var labProcessing = Number($('#lab_processing').val());
                     // if there are no changed rows, notify the user and stop the submission
                     if (typeof changedRowIndices == 'undefined' || changedRowIndices.length < 1) {grid_console.text('Table is empty!'); validTable = false; return false;}
                     // otherwise loop through all rows
@@ -560,7 +559,9 @@
                                         }
                                         break;
                                     case 4: // depth
-                                        if (!thisDataRow[i]) {grid_console.text('Depth is required in row ' + (row + 1) + '!'); validTable = false; return false;}
+                                        if (thisDataRow[i] !== 0) {
+                                            if (!thisDataRow[i]) {grid_console.text('Depth is required in row ' + (row + 1) + '!'); validTable = false; return false;}
+                                        }
                                         thisDataObject[objectFields[i]] = (thisDataRow[i] % 1 === 0 ? (thisDataRow[i].toFixed(1)) : thisDataRow[i]);
                                         break;
                                     case 8: // bottle
@@ -577,8 +578,6 @@
                                         // if it has a value, look up and return the ID, otherwise notify the user that this is a required field, and stop the submission
                                         if (!thisDataRow[i]) {grid_console.text('Analysis is required in row ' + (row + 1) + '!'); validTable = false; return false;}
                                         else {thisDataObject[objectFields[i]] = getIdDom(data_constituents,'constituent',thisDataRow[i]);}
-                                        alert(thisDataRow[i]);
-                                        alert(thisDataObject[objectFields[i]]);
                                         break;
                                     case 11: // isotope
                                         // if it has a value, look up and return the ID, otherwise notify the user that this is a required field, and stop the submission
@@ -619,7 +618,6 @@
                     if(validTable) {
                         // convert the array to a true JSON object
                         var changedDataJSON = JSON.stringify(changedDataArray);
-                        alert(changedDataJSON);
                         // send the entire changed data object to the server via ajax
                         //console.log(changedDataJSON);
                         grid_console.text('Attempting to save data...');
@@ -653,7 +651,7 @@
                                 }
                             },
                             error: function (jqXHRequest, textStatus, errorThrown) {
-                                grid_console.text(errorThrown + ": " + textStatus);
+                                grid_console.text(errorThrown + ": " + textStatus + ": Couldn't save the table.");
                             }
                         });
                     }

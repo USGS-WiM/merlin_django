@@ -9,7 +9,7 @@
         </p>
         <div id="form_bottle_prefix_add" class="panel-default" style="display:none;">
             <h3>Create Bottle Prefix</h3>
-            <form class="form-inline" style="border:1px solid;width:1200px;padding:4px;">
+            <form class="form-inline" style="border:1px solid;width:1000px;padding:4px;">
                 <div class="form-group" style="padding:2px;text-align:center">
                     <label for="bottle_prefix">Bottle Prefix</label><br />
                     <input class="input-block-level" name="bottle_prefix" type="text" style="width:200px">
@@ -73,9 +73,19 @@
         <div id="grid_bottles_add" data-bottle-types="{{ bottletypes }}" style="display:none" >
             <br />
             <button type="button" class="btn btn-primary" name="bottlesAddSave">Save</button>
+            <button type="button" class="btn btn-default" name="insertRange">Insert Range</button>
+            <button type="button" class="btn btn-info" name="exportCSV">Export CSV</button>
             <button type="button" class="btn btn-default" name="insertRows">Insert 8 Blank Rows</button>
             <button type="button" class="btn btn-danger" name="deleteRows">Delete Rows</button>
         </div>
+        <div id="bottle_range_add" style="display:none" >
+            <br />
+            <p>Enter the last number sequence of the bottle range: </p>
+            <input id="grid_bottle_range_end" style="width:80px">
+            <button type="button" class="btn btn-primary" name="insertRangeOK">OK</button>
+        </div>
+        <br />
+        <pre id="csv" style="display:none"></pre>
         <br />
 
         <pre id="grid_console" class="console" style="width:600px"></pre>
@@ -97,10 +107,11 @@
                     <button type="button" class="btn btn-default" name="load">Reload Table</button>
                     <button type="button" class="btn btn-default" name="prev">Previous Page</button>
                     <button type="button" class="btn btn-default" name="next">Next Page</button>
+                    <span id="page_prefixes"></span>
                 </p>
                 {% if request.session.is_staff %}
                 <p>
-                    <button type="button" class="btn btn-primary" name="save">Save Changes</button>
+                    <button type="button" class="btn btn-warning" name="save">Save</button>
                     <button type="button" class="btn btn-danger" name="delete">Delete Row</button>
                 </p>
                 {% endif %}
@@ -123,10 +134,11 @@
                     <button type="button" class="btn btn-default" name="load">Reload Table</button>
                     <button type="button" class="btn btn-default" name="prev">Previous Page</button>
                     <button type="button" class="btn btn-default" name="next">Next Page</button>
+                    <span id="page_bottles"></span>
                 </p>
                 {% if request.session.is_staff %}
                 <p>
-                    <button type="button" class="btn btn-primary" name="save">Save Changes</button>
+                    <button type="button" class="btn btn-warning" name="save">Save</button>
                     <button type="button" class="btn btn-danger" name="delete">Delete Row</button>
                 </p>
                 {% endif %}
@@ -158,6 +170,7 @@
                 var rangeAddClicked = false;
                 var bottlesAddClicked = false;
                 var grid_console = $("#grid_console");
+                var bottleRangeAddClicked = false;
 
                 var objectFieldsAdd = ["bottle_prefix", "suffix", "bottle_unique_name", "created_date", "description"];
                 var grid_bottles_add = $('#grid_bottles_add');
@@ -268,6 +281,54 @@
 
                 grid_bottles_add.handsontable(grid_bottles_add_options);
 
+                grid_bottles_add.parent().find('button[name=insertRange]').click(function () {
+                    if (bottleRangeAddClicked) {
+                        bottleRangeAddClicked = false;
+                        $("#bottle_range_add").hide();
+                    }
+                    else {
+                        bottleRangeAddClicked = true;
+                        $("#bottle_range_add").show();
+                    }
+                });
+
+                grid_bottles_add.parent().find('button[name=insertRangeOK]').click(function () {
+                    var initialDataRow = grid_bottles_add.data('handsontable').getDataAtRow(0);
+                    if (!initialDataRow[0]) {grid_console.text('Prefix is required in the first row!'); return false;}
+                    var prefix = initialDataRow[0].substring(0,3);
+                    var start = initialDataRow[0].substring(3);
+                    var endVal = $('#grid_bottle_range_end').val();
+                    //if (!endVal || !($.isNumeric(endVal)) || !(Math.floor(endVal) == endVal)) {grid_console.text('Last number sequence is required (and must be an integer)!'); return false;}
+                    var end = Number(endVal);
+                    var digits = start.length;
+                    if (!initialDataRow[1]) {grid_console.text('Suffix is required in the first row!'); return false;}
+                    var suffix = initialDataRow[1];
+                    var date = initialDataRow[3];
+                    var description = initialDataRow[4];
+                    var new_bottles = [];
+                    for (var i = (Number(start)+1); i <= end; i++) {
+                        var this_prefix = prefix + (pad(i, digits, '0').toString());
+                        var this_bottle_code = this_prefix + suffix;
+                        var thisDataArray = [this_prefix, suffix, this_bottle_code, date, description];
+                        new_bottles.push(thisDataArray)
+                    }
+                    //grid_bottles_add.data('handsontable').alter('insert_row', null, (end-1));
+                    grid_bottles_add.data('handsontable').populateFromArray(1, 0, new_bottles, (end-1), 3, 'populateFromArray', 'shift_down');
+                    grid_bottles_add.parent().find('button[name=insertRange]').click();
+                    grid_console.text('Inserted Range.');
+                });
+
+                grid_bottles_add.parent().find('button[name=exportCSV]').click(function() {
+                    /*$('#csv').show();
+                    var tableData = grid_bottles_add.handsontable('getData');
+                    var csv = convert2dArrayToCsv(tableData);
+                    console.log(csv);
+                    $('#csv').text(csv);*/
+                    var table = grid_bottles_add.handsontable('getInstance');
+                    var csv_filename = "bottle_codes_" + yearToday + "-" + monthToday + "-" + dayToday + ".csv";
+                    handsontable2csv.download(table, csv_filename);
+                });
+
                 grid_bottles_add.parent().find('button[name=insertRows]').click(function () {
                     grid_bottles_add.data('handsontable').alter('insert_row', null, 8);
                     grid_console.text('Inserted Rows.');
@@ -298,7 +359,7 @@
                                     //thisDataObject[objectFields[i]] = gooddate;
                                     if (dateRegEx.test(baddate)) {
                                         if (makeYear(baddate)!= null && makeMonth(baddate)!= null && makeDay(baddate) != null) {
-                                            var gooddate_string = makeYear(baddate) + "-" + makeMonth(baddate) + "-" + makeDay(baddate) + " 00:00:00";
+                                            var gooddate_string = makeYear(baddate) + "-" + makeMonth(baddate) + "-" + makeDay(baddate);
                                             var gooddate = new Date(makeYear(baddate), makeMonth(baddate)-1, makeDay(baddate));
                                             if (gooddate > dateToday) {
                                                 {grid_console.text('Date cannot be a future date!'); return false;}
@@ -331,12 +392,14 @@
                             }
                             // otherwise, it's JSON from the REST Services
                             else if (jqXHRequest.status === 200) {
-                                grid_console.text(textStatus+': Data saved.');
-                                grid_bottles_add.parent().find('button[name=bottles_add]').click();
                                 // the data was saved to the database, so empty the table
+                                //tools_bottles.find('button[name=load]').click();
                                 var rows = grid_bottles_add.handsontable('getInstance').countRows();
+                                $(":input", "#bottle_range_add").not(":button").val("");
                                 grid_bottles_add.data('handsontable').alter('remove_row', 0, rows);
                                 grid_bottles_add.data('handsontable').alter('insert_row', null, 8);
+                                grid_bottles_add.parent().find('button[name=bottles_add]').click();
+                                grid_console.text(textStatus+': Data saved.');
                             }
                             else {
                                 grid_console.text(textStatus+': Save error: '+jqXHRequest.statusText+', code: '+jqXHRequest.status+'.');
@@ -386,6 +449,7 @@
                             else if (jqXHRequest.status === 200) {
                                 $(":input", "#form_bottle_prefix_add").not(":button").val("");
                                 form_bottle_prefix_add.parent().find('button[name=bottle_prefix_add]').click();
+                                //tools_prefixes.find('button[name=load]').click();
                                 grid_console.text(textStatus+': Data saved.');
                             }
                             else {
@@ -403,13 +467,13 @@
                     var thisDataObject = {};
                     thisDataObject['prefix'] = form_bottle_prefix_range_add.find('input[name=bottle_prefix]').val();
                     thisDataObject['suffix'] = form_bottle_prefix_range_add.find('input[name=bottle_suffix]').val();
-                    thisDataObject['range_start'] = Number(form_bottle_prefix_range_add.find('input[name=bottle_range_start]').val());
-                    thisDataObject['range_end'] = Number(form_bottle_prefix_range_add.find('input[name=bottle_range_end]').val());
+                    thisDataObject['range_start'] = form_bottle_prefix_range_add.find('input[name=bottle_range_start]').val();
+                    thisDataObject['range_end'] = form_bottle_prefix_range_add.find('input[name=bottle_range_end]').val();
                     var baddate = form_bottle_prefix_range_add.find('input[name=date_bottle_prefix_range]').val();
                     //var gooddate = "20" + baddate.substr(6,4) + "-" + baddate.substr(0,2) + "-" + baddate.substr(3,2);
                     if (dateRegEx.test(baddate)) {
                         if (makeYear(baddate)!= null && makeMonth(baddate)!= null && makeDay(baddate) != null) {
-                            var gooddate_string = makeYear(baddate) + "-" + makeMonth(baddate) + "-" + makeDay(baddate) + " 00:00:00";
+                            var gooddate_string = makeYear(baddate) + "-" + makeMonth(baddate) + "-" + makeDay(baddate);
                             var gooddate = new Date(makeYear(baddate), makeMonth(baddate)-1, makeDay(baddate));
                             if (gooddate > dateToday) {
                                 {grid_console.text('Date cannot be a future date!'); return false;}
@@ -439,6 +503,7 @@
                             else if (jqXHRequest.status === 200) {
                                 $(":input", "#form_bottle_prefix_range_add").not(":button").val("");
                                 form_bottle_prefix_range_add.parent().find('button[name=bottle_prefix_range_add]').click();
+                                //tools_prefixes.find('button[name=load]').click();
                                 grid_console.text(textStatus+': Data saved.');
                             }
                             else {
@@ -521,8 +586,10 @@
                     }
                 });
                 //grid_prefixes.data('handsontable').sort(0);
+                $('#page_prefixes').html("Page " + currentPage + " of " + resultPages);
                 grid_console.text('Data loaded.');
 
+                var validTableBottle = false;
                 var bottleObjectFields = ["id", "bottle_unique_name", "bottle_prefix", "created_date", "description"];
                 var currentPage = 1;
                 var grid_bottles = $('#grid_bottles');
@@ -575,6 +642,7 @@
                     }
                 });
                 //grid_bottles.data('handsontable').sort(0);
+                $('#page_bottles').html("Page " + currentPage + " of " + resultPages);
                 grid_console.text('Data loaded.');
 
                 $('#search_field_prefixes').on('keyup', function (event) {
@@ -666,9 +734,11 @@
                         rangeAddClicked = false;
                         bottleAddClicked = true;
                         bottlesAddClicked = false;
+                        bottleRangeAddClicked = false;
                         $("#form_bottle_prefix_range_add").hide();
                         $("#form_bottle_prefix_add").show();
                         $("#grid_bottles_add").hide();
+                        $("#bottle_range_add").hide();
                     }
                 });
 
@@ -681,9 +751,11 @@
                         rangeAddClicked = true;
                         bottleAddClicked = false;
                         bottlesAddClicked = false;
+                        bottleRangeAddClicked = false;
                         $("#form_bottle_prefix_add").hide();
                         $("#form_bottle_prefix_range_add").show();
                         $("#grid_bottles_add").hide();
+                        $("#bottle_range_add").hide();
                     }
                 });
 
@@ -691,14 +763,17 @@
                     if (bottlesAddClicked) {
                         bottlesAddClicked = false;
                         $("#grid_bottles_add").hide();
+                        $("#bottle_range_add").hide();
                     }
                     else {
                         bottleAddClicked = false;
                         rangeAddClicked = false;
                         bottlesAddClicked = true;
+                        bottleRangeAddClicked = false;
                         $("#form_bottle_prefix_add").hide();
                         $("#form_bottle_prefix_range_add").hide();
                         $("#grid_bottles_add").show();
+                        $("#bottle_range_add").hide();
                     }
                 });
                 
@@ -716,10 +791,11 @@
                             grid_console.text("success");
                             data_prefixes = response;
                             grid_prefixes.data('handsontable').loadData(data_prefixes.results);
+                            $('#page_prefixes').html("Page " + currentPage + " of " + resultPages);
                             grid_console.text('Page '+ currentPage +' data reloaded.');
                         },
-                        error: function (response) {
-                            grid_console.text("error");
+                        error: function (jqXHRequest, textStatus, errorThrown) {
+                            grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve page to reload.");
                         }
                     });
                 });
@@ -734,10 +810,11 @@
                                 data_prefixes = response;
                                 grid_prefixes.data('handsontable').loadData(data_prefixes.results);
                                 currentPage++;
+                                $('#page_prefixes').html("Page " + currentPage + " of " + resultPages);
                                 grid_console.text('Page ' + currentPage + ' of ' + resultPages + ' loaded.');
                             },
-                            error: function (response) {
-                                grid_console.text("error");
+                            error: function (jqXHRequest, textStatus, errorThrown) {
+                                grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve next page.");
                             }
                         });
                     }
@@ -756,10 +833,11 @@
                                 data_prefixes = response;
                                 grid_prefixes.data('handsontable').loadData(data_prefixes.results);
                                 currentPage--;
+                                $('#page_prefixes').html("Page " + currentPage + " of " + resultPages);
                                 grid_console.text('Page ' + currentPage + ' of ' + resultPages + ' loaded.');
                             },
-                            error: function (response) {
-                                grid_console.text("error");
+                            error: function (jqXHRequest, textStatus, errorThrown) {
+                                grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve previous page.");
                             }
                         });
                     }
@@ -771,14 +849,31 @@
                 tools_prefixes.find('button[name=delete]').click(function () {
                     var thisDataRow = grid_prefixes.data('handsontable').getDataAtRow(selectionRowIndices[0]);
                     var thisDataRowID = thisDataRow[0];
-                    window.location = '/merlin/bottleprefixes/'+thisDataRowID+'/delete';
+                    $.ajax({
+                        url: '/mercuryservices/bottleprefixes/'+thisDataRowID+'/',
+                        type: 'DELETE',
+                        success: function (data, textStatus, jqXHRequest) {
+                            var content_type = jqXHRequest.getResponseHeader("content-type");
+                            if (jqXHRequest.status === 200) {
+                                grid_console.text(textStatus + ': Data deleted.');
+                            }
+                            else {
+                                grid_console.text(textStatus + ': Delete error: ' + jqXHRequest.statusText + ', code: ' + jqXHRequest.status + '.');
+                            }
+                        },
+                        error: function (jqXHRequest, textStatus, errorThrown) {
+                            grid_console.text(errorThrown + ": " + textStatus);
+                        }
+                    });
                 });
 
                 tools_prefixes.find('button[name=save]').click(function () {
                     var changedDataArray = [];
+                    // if there are no changed rows, notify the user and stop the submission
+                    if (typeof changedRowIndicesPrefixes == 'undefined' || changedRowIndicesPrefixes.length < 1) {grid_console.text('Table is empty!'); validTablePrefix = false; return false;}
+                    // otherwise loop through all changed rows
                     $.each(changedRowIndicesPrefixes, function(index, value) {
                         var thisDataRow = grid_prefixes.data('handsontable').getDataAtRow(value);
-                        alert(thisDataRow);
                         var thisDataObject = {};
                         for (var i = 0; i < thisDataRow.length; i++) {
                             if (prefixObjectFields[i] == "tare_weight") {thisDataObject[prefixObjectFields[i]] = Number(thisDataRow[i]);}
@@ -794,18 +889,19 @@
                                         }
                                         thisDataObject[prefixObjectFields[i]] = gooddate_string;
                                     }
-                                    else {grid_console.text('There is a problem with the Date in row ' + (index + 1) + '. Please contact the administrator.'); return false;}
+                                    else {grid_console.text('There is a problem with the Date in row ' + (index + 1) + '. Please contact the administrator.');  validTablePrefix = false; return false;}
                                 }
-                                else {grid_console.text('Date is badly formed in row ' + (index + 1) + '. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); return false;}
+                                else {grid_console.text('Date is badly formed in row ' + (index + 1) + '. Expecting a date in mm/dd/yy format but found ' + baddate + '!');  validTablePrefix = false; return false;}
                             }
                             else {thisDataObject[prefixObjectFields[i]] = thisDataRow[i];}
                         }
                         changedDataArray.push(thisDataObject);
+                        // if we made it through the various validations above, then the table must be valid
+                        validTablePrefix = true;
                     });
-                    validTablePrefix = true;
+                    // if table is valid, submit the POST request, otherwise skip it (implying table is invalid)
                     if(validTablePrefix) {
                         var changedDataJSON = JSON.stringify(changedDataArray);
-                        alert(changedDataJSON);
                         $.ajax({
                             url: '/merlin/bottleprefixes/save',
                             data: changedDataJSON,
@@ -847,10 +943,11 @@
                             grid_console.text("success");
                             data_bottles = response;
                             grid_bottles.data('handsontable').loadData(data_bottles.results);
+                            $('#page_bottles').html("Page " + currentPage + " of " + resultPages);
                             grid_console.text('Page '+ currentPage +' data reloaded.');
                         },
-                        error: function (response) {
-                            grid_console.text("error");
+                        error: function (jqXHRequest, textStatus, errorThrown) {
+                            grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve page to reload.");
                         }
                     });
                 });
@@ -865,10 +962,11 @@
                                 data_bottles = response;
                                 grid_bottles.data('handsontable').loadData(data_bottles.results);
                                 currentPage++;
+                                $('#page_bottles').html("Page " + currentPage + " of " + resultPages);
                                 grid_console.text('Page ' + currentPage + ' of ' + resultPages + ' loaded.');
                             },
-                            error: function (response) {
-                                grid_console.text("error");
+                            error: function (jqXHRequest, textStatus, errorThrown) {
+                                grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve next page.");
                             }
                         });
                     }
@@ -887,10 +985,11 @@
                                 data_bottles = response;
                                 grid_bottles.data('handsontable').loadData(data_bottles.results);
                                 currentPage--;
+                                $('#page_bottles').html("Page " + currentPage + " of " + resultPages);
                                 grid_console.text('Page ' + currentPage + ' of ' + resultPages + ' loaded.');
                             },
-                            error: function (response) {
-                                grid_console.text("error");
+                            error: function (jqXHRequest, textStatus, errorThrown) {
+                                grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve previous.");
                             }
                         });
                     }
@@ -902,12 +1001,30 @@
                 tools_bottles.find('button[name=delete]').click(function () {
                     var thisDataRow = grid_bottles.data('handsontable').getDataAtRow(selectionRowIndices[0]);
                     var thisDataRowID = thisDataRow[0];
-                    window.location = '/merlin/bottles/'+thisDataRowID+'/delete';
+                    $.ajax({
+                        url: '/mercuryservices/bottles/'+thisDataRowID+'/',
+                        type: 'DELETE',
+                        success: function (data, textStatus, jqXHRequest) {
+                            var content_type = jqXHRequest.getResponseHeader("content-type");
+                            if (jqXHRequest.status === 200) {
+                                grid_console.text(textStatus + ': Data deleted.');
+                            }
+                            else {
+                                grid_console.text(textStatus + ': Delete error: ' + jqXHRequest.statusText + ', code: ' + jqXHRequest.status + '.');
+                            }
+                        },
+                        error: function (jqXHRequest, textStatus, errorThrown) {
+                            grid_console.text(errorThrown + ": " + textStatus);
+                        }
+                    });
                 });
 
                 tools_bottles.find('button[name=save]').click(function () {
                     var changedDataArray = [];
-                    $.each(changedRowIndicesBottles, function(index, value) {
+                    // if there are no changed rows, notify the user and stop the submission
+                    if (typeof changedRowIndicesBottles == 'undefined' || changedRowIndicesBottles.length < 1) {grid_console.text('Table is empty!'); validTableBottle = false; return false;}
+                    // otherwise loop through all changed rows
+                    $.each(changedRowIndicesPrefixes, function(index, value) {
                         var thisDataRow = grid_bottles.data('handsontable').getDataAtRow(value);
                         var thisDataObject = {};
                         for (var i = 0; i < thisDataRow.length; i++) {
@@ -919,43 +1036,48 @@
                                         var gooddate_string = makeYear(baddate) + "-" + makeMonth(baddate) + "-" + makeDay(baddate) + " 00:00:00";
                                         var gooddate = new Date(makeYear(baddate), makeMonth(baddate)-1, makeDay(baddate));
                                         if (gooddate > dateToday) {
-                                            {grid_console.text('Bottle Date cannot be a future date!'); return false;}
+                                            {grid_console.text('Bottle Date cannot be a future date!'); validTableBottle = false; return false;}
                                         }
                                         thisDataObject[bottleObjectFields[i]] = gooddate_string;
                                     }
-                                    else {grid_console.text('There is a problem with the Date in row ' + (index + 1) + '. Please contact the administrator.'); return false;}
+                                    else {grid_console.text('There is a problem with the Date in row ' + (index + 1) + '. Please contact the administrator.'); validTableBottle = false; return false;}
                                 }
-                                else {grid_console.text('Date is badly formed in row ' + (index + 1) + '. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); return false;}
+                                else {grid_console.text('Date is badly formed in row ' + (index + 1) + '. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); validTableBottle = false; return false;}
                             }
                             else {thisDataObject[bottleObjectFields[i]] = thisDataRow[i];}
                         }
                         changedDataArray.push(thisDataObject);
+                        // if we made it through the various validations above, then the table must be valid
+                        validTableBottle = true;
                     });
-                    var changedDataJSON = JSON.stringify(changedDataArray);
-                    $.ajax({
-                        url: '/merlin/bottles/save',
-                        data: changedDataJSON,
-                        dataType: 'json',
-                        contentType: "application/json",
-                        type: 'POST',
-                        success: function (data, textStatus, jqXHRequest) {
-                            var content_type = jqXHRequest.getResponseHeader("content-type");
-                            // if the content-type is plain text, then it's a custom message from our Django view
-                            if (content_type.indexOf('text') > -1) {
-                                grid_console.text(data);
+                    // if table is valid, submit the POST request, otherwise skip it (implying table is invalid)
+                    if(validTableBottle) {
+                        var changedDataJSON = JSON.stringify(changedDataArray);
+                        $.ajax({
+                            url: '/merlin/bottles/save',
+                            data: changedDataJSON,
+                            dataType: 'json',
+                            contentType: "application/json",
+                            type: 'POST',
+                            success: function (data, textStatus, jqXHRequest) {
+                                var content_type = jqXHRequest.getResponseHeader("content-type");
+                                // if the content-type is plain text, then it's a custom message from our Django view
+                                if (content_type.indexOf('text') > -1) {
+                                    grid_console.text(data);
+                                }
+                                // otherwise, it's JSON from the REST Services
+                                else if (jqXHRequest.status === 200) {
+                                    grid_console.text(textStatus + ': Data saved.');
+                                }
+                                else {
+                                    grid_console.text(textStatus + ': Save error: ' + jqXHRequest.statusText + ', code: ' + jqXHRequest.status + '.');
+                                }
+                            },
+                            error: function (jqXHRequest, textStatus, errorThrown) {
+                                grid_console.text(errorThrown + ": " + textStatus);
                             }
-                            // otherwise, it's JSON from the REST Services
-                            else if (jqXHRequest.status === 200) {
-                                grid_console.text(textStatus+': Data saved.');
-                            }
-                            else {
-                                grid_console.text(textStatus+': Save error: '+jqXHRequest.statusText+', code: '+jqXHRequest.status+'.');
-                            }
-                        },
-                        error: function (jqXHRequest, textStatus, errorThrown) {
-                            grid_console.text(errorThrown + ": " + textStatus);
-                        }
-                    });
+                        });
+                    }
                 });
 
             });

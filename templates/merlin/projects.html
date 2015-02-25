@@ -19,10 +19,11 @@
             <button type="button" class="btn btn-default" name="load">Reload Table</button>
             <button type="button" class="btn btn-default" name="prev">Previous Page</button>
             <button type="button" class="btn btn-default" name="next">Next Page</button>
+            <span id="page"></span>
         </p>
         {% if request.session.is_staff %}
         <p style="display:none;">
-            <button type="button" class="btn btn-primary" name="save">Save Changes</button>
+            <button type="button" class="btn btn-warning" name="save">Save</button>
             <button type="button" class="btn btn-danger" name="delete">Delete Row</button>
         </p>
         {% endif %}
@@ -44,6 +45,7 @@
                     }
                 });
 
+                var validTable = false;
                 var dateToday = new Date(); //toISOString().split("T")[0];
                 var objectFields = ["id", "name", "description", "accounting_code", "cooperator"];
                 var currentPage = 1;
@@ -93,6 +95,7 @@
                     }
                 });
                 grid.data('handsontable').sort(0);
+                $('#page').html("Page " + currentPage + " of " + resultPages);
                 grid_console.text('Data loaded.');
 
                 $('#search_field').on('keyup', function (event) {
@@ -145,10 +148,11 @@
                             data_data = response;
                             grid.data('handsontable').loadData(data_data.results);
                             grid.data('handsontable').sort(0);
+                            $('#page').html("Page " + currentPage + " of " + resultPages);
                             grid_console.text('Page '+ currentPage +' data reloaded.');
                         },
-                        error: function (response) {
-                            grid_console.text("error");
+                        error: function (jqXHRequest, textStatus, errorThrown) {
+                            grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve page to reload.");
                         }
                     });
                 });
@@ -163,10 +167,11 @@
                                 data_data = response;
                                 grid.data('handsontable').loadData(data_data.results);
                                 currentPage++;
+                                $('#page').html("Page " + currentPage + " of " + resultPages);
                                 grid_console.text('Page ' + currentPage + ' of ' + resultPages + ' loaded.');
                             },
-                            error: function (response) {
-                                grid_console.text("error");
+                            error: function (jqXHRequest, textStatus, errorThrown) {
+                                grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve next page.");
                             }
                         });
                     }
@@ -185,10 +190,11 @@
                                 data_data = response;
                                 grid.data('handsontable').loadData(data_data.results);
                                 currentPage--;
+                                $('#page').html("Page " + currentPage + " of " + resultPages);
                                 grid_console.text('Page ' + currentPage + ' of ' + resultPages + ' loaded.');
                             },
-                            error: function (response) {
-                                grid_console.text("error");
+                            error: function (jqXHRequest, textStatus, errorThrown) {
+                                grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve previous page.");
                             }
                         });
                     }
@@ -211,7 +217,22 @@
                 grid.parent().find('button[name=delete]').click(function () {
                     var thisDataRow = grid.data('handsontable').getDataAtRow(selectionRowIndices[0]);
                     var thisDataRowID = thisDataRow[0];
-                    window.location = '/merlin/projects/'+thisDataRowID+'/delete';
+                    $.ajax({
+                        url: '/mercuryservices/projects/'+thisDataRowID+'/',
+                        type: 'DELETE',
+                        success: function (data, textStatus, jqXHRequest) {
+                            var content_type = jqXHRequest.getResponseHeader("content-type");
+                            if (jqXHRequest.status === 200) {
+                                grid_console.text(textStatus + ': Data deleted.');
+                            }
+                            else {
+                                grid_console.text(textStatus + ': Delete error: ' + jqXHRequest.statusText + ', code: ' + jqXHRequest.status + '.');
+                            }
+                        },
+                        error: function (jqXHRequest, textStatus, errorThrown) {
+                            grid_console.text(errorThrown + ": " + textStatus);
+                        }
+                    });
                 });
 
                 grid.parent().find('button[name=edit]').click(function () {
@@ -225,6 +246,9 @@
                 });
                 /*grid.parent().find('button[name=save]').click(function () {
                     var changedDataArray = [];
+                    // if there are no changed rows, notify the user and stop the submission
+                    if (typeof changedRowIndices == 'undefined' || changedRowIndices.length < 1) {grid_console.text('Table is empty!'); validTable = false; return false;}
+                    // otherwise loop through all changed rows
                     $.each(changedRowIndices, function(index, value) {
                         var thisDataRow = grid.data('handsontable').getDataAtRow(value);
                         var thisDataObject = {};
@@ -234,50 +258,55 @@
                             //  need to add in checks for numeric data conversion (submitting strings will cause a 400 error)
                             //
                             //////////
-                            if (objectFields[i] == 'created_date') {
+                            else if (objectFields[i] == 'created_date') {
                                 var baddate = thisDataRow[i];
                                 if (dateRegEx.test(baddate)) {
                                     if (makeYear(baddate)!= null && makeMonth(baddate)!= null && makeDay(baddate) != null) {
                                         var gooddate_string = makeYear(baddate) + "-" + makeMonth(baddate) + "-" + makeDay(baddate) + " 00:00:00";
                                         var gooddate = new Date(makeYear(baddate), makeMonth(baddate)-1, makeDay(baddate));
                                         if (gooddate > dateToday) {
-                                            {grid_console.text('Date cannot be a future date!'); return false;}
+                                            {grid_console.text('Date cannot be a future date!'); validTable = false; return false;}
                                         }
                                         thisDataObject[objectFields[i]] = gooddate_string;
                                     }
-                                    else {grid_console.text('There is a problem with the Date in row ' + (index + 1) + '. Please contact the administrator.'); return false;}
+                                    else {grid_console.text('There is a problem with the Date in row ' + (index + 1) + '. Please contact the administrator.'); validTable = false; return false;}
                                 }
-                                else {grid_console.text('Date is badly formed in row ' + (index + 1) + '. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); return false;}
+                                else {grid_console.text('Date is badly formed in row ' + (index + 1) + '. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); validTable = false; return false;}
                             }
                             else {thisDataObject[objectFields[i]] = thisDataRow[i];}
                         }
                         changedDataArray.push(thisDataObject);
+                        // if we made it through the various validations above, then the table must be valid
+                        validTable = true;
                     });
-                    var changedDataJSON = JSON.stringify(changedDataArray);
-                    $.ajax({
-                        url: '/merlin/projects/save',
-                        data: changedDataJSON,
-                        dataType: 'json',
-                        contentType: "application/json",
-                        type: 'POST',
-                        success: function (data, textStatus, jqXHRequest) {
-                            var content_type = jqXHRequest.getResponseHeader("content-type");
-                            // if the content-type is plain text, then it's a custom message from our Django view
-                            if (content_type.indexOf('text') > -1) {
-                                grid_console.text(data);
+                    // if table is valid, submit the POST request, otherwise skip it (implying table is invalid)
+                    if(validTable) {
+                        var changedDataJSON = JSON.stringify(changedDataArray);
+                        $.ajax({
+                            url: '/merlin/projects/save',
+                            data: changedDataJSON,
+                            dataType: 'json',
+                            contentType: "application/json",
+                            type: 'POST',
+                            success: function (data, textStatus, jqXHRequest) {
+                                var content_type = jqXHRequest.getResponseHeader("content-type");
+                                // if the content-type is plain text, then it's a custom message from our Django view
+                                if (content_type.indexOf('text') > -1) {
+                                    grid_console.text(data);
+                                }
+                                // otherwise, it's JSON from the REST Services
+                                else if (jqXHRequest.status === 200) {
+                                    grid_console.text(textStatus + ': Data saved.');
+                                }
+                                else {
+                                    grid_console.text(textStatus + ': Save error: ' + jqXHRequest.statusText + ', code: ' + jqXHRequest.status + '.');
+                                }
+                            },
+                            error: function (jqXHRequest, textStatus, errorThrown) {
+                                grid_console.text(errorThrown + ": " + textStatus);
                             }
-                            // otherwise, it's JSON from the REST Services
-                            else if (jqXHRequest.status === 200) {
-                                grid_console.text(textStatus+': Data saved.');
-                            }
-                            else {
-                                grid_console.text(textStatus+': Save error: '+jqXHRequest.statusText+', code: '+jqXHRequest.status+'.');
-                            }
-                        },
-                        error: function (jqXHRequest, textStatus, errorThrown) {
-                            grid_console.text(errorThrown + ": " + textStatus);
-                        }
-                    });
+                        });
+                    }
                 });*/
 
             });
