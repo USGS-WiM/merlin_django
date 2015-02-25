@@ -64,7 +64,7 @@ class BottleTypeSerializer(serializers.ModelSerializer):
 
 class BottlePrefixSerializer(serializers.ModelSerializer):
     created_date = serializers.DateTimeField(format='%m/%d/%y', source='created_date')
-    #bottle_type = serializers.RelatedField(source='bottle_type')
+    bottle_type = serializers.RelatedField(source='bottle_type')
 
     class Meta:
         model = BottlePrefix

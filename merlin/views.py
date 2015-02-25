@@ -12,8 +12,12 @@ logger = logging.getLogger(__name__)
 
 REST_SERVICES_URL = 'http://localhost:8000/mercuryservices/'
 REST_AUTH_URL = 'http://localhost:8000/mercuryauth/'
+## WIM5
 #REST_SERVICES_URL = 'http://130.11.161.159/mercuryservices/'
 #REST_AUTH_URL = 'http://130.11.161.159/mercuryauth/'
+## WIM2
+#REST_SERVICES_URL = 'http://130.11.161.247/mercuryservices/'
+#REST_AUTH_URL = 'http://130.11.161.247/mercuryauth/'
 
 USER_AUTH = ('admin', 'admin')
 #USER_TOKEN = ''
@@ -614,7 +618,6 @@ def bottles_save(request):
 def bottle_prefixes_save(request):
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
-    print(request.body)
     data = json.loads(request.body.decode('utf-8'))
     response_data = []
     # using a loop to send data to the single PUT endpoint instead of just using the bulk PUT endpoint
@@ -646,8 +649,7 @@ def bottle_prefix_add(request):
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     data = request.body
-    print(data)
-    r = requests.request(method='POST', url=REST_SERVICES_URL+'bottleprefixes/', data=data, headers=headers)
+    r = requests.request(method='POST', url=REST_SERVICES_URL+'bulkbottleprefixes/', data=data, headers=headers)
     logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
     if r.status_code != 201:
         message = "\"Error " + str(r.status_code) + ": " + r.reason + ". Unable to save bottle prefix. Please contact the administrator.\""
@@ -688,7 +690,6 @@ def bottles_add(request):
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     data = json.loads(request.body.decode('utf-8'))
-    print(data)
     all_unique_bottle_names = True
     all_existing_bottle_prefixes = True
     message_exist = "These Bottles already exist in the database: "

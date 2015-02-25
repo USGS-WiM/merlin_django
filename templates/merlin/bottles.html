@@ -419,7 +419,7 @@
                     //var gooddate = "20" + baddate.substr(6,4) + "-" + baddate.substr(0,2) + "-" + baddate.substr(3,2);
                     if (dateRegEx.test(baddate)) {
                         if (makeYear(baddate)!= null && makeMonth(baddate)!= null && makeDay(baddate) != null) {
-                            var gooddate_string = makeYear(baddate) + "-" + makeMonth(baddate) + "-" + makeDay(baddate) + " 00:00:00";
+                            var gooddate_string = makeYear(baddate) + "-" + makeMonth(baddate) + "-" + makeDay(baddate);
                             var gooddate = new Date(makeYear(baddate), makeMonth(baddate)-1, makeDay(baddate));
                             if (gooddate > dateToday) {
                                 {grid_console.text('Date cannot be a future date!'); return false;}
@@ -549,7 +549,7 @@
                         {title: "Prefix", data: "bottle_prefix", width: 150},
                         {title: "Date", data: "created_date", width: 100, dateFormat: 'mm/dd/y'},
                         {title: "Tare Weight", data: "tare_weight", width: 100},
-                        {title: "Bottle Type", data: "bottle_type", width: 100},
+                        {title: "Bottle Type", data: "bottle_type", type: 'autocomplete', strict: true, source: getValuesDom(data_bottle_types,"bottle_type"), width: 100},
                         {title: "Description", data: "description", width: 240}
                     ],
                     columnSorting: true,
@@ -604,7 +604,8 @@
                     columns: [
                         {title: "ID", data: "id", readOnly: true, width: 1},
                         {title: "Unique Bottle Name", data: "bottle_unique_name", width: 150},
-                        {title: "Bottle Prefix", data: "bottle_prefix", width: 100},
+                        {title: "Bottle Prefix", data: "bottle_prefix", width: 100, type: 'autocomplete', strict: true, source: function (query, process) {
+                            getValuesAjax('/mercuryservices/bottleprefixes/', 'bottle_prefix', query, process)}},
                         {title: "Date", data: "created_date", width: 100, dateFormat: 'mm/dd/y'},
                         {title: "Description", data: "description", width: 240}
                     ],
@@ -868,6 +869,7 @@
                 });
 
                 tools_prefixes.find('button[name=save]').click(function () {
+                    alert("click p");
                     var changedDataArray = [];
                     // if there are no changed rows, notify the user and stop the submission
                     if (typeof changedRowIndicesPrefixes == 'undefined' || changedRowIndicesPrefixes.length < 1) {grid_console.text('Table is empty!'); validTablePrefix = false; return false;}
@@ -1024,7 +1026,7 @@
                     // if there are no changed rows, notify the user and stop the submission
                     if (typeof changedRowIndicesBottles == 'undefined' || changedRowIndicesBottles.length < 1) {grid_console.text('Table is empty!'); validTableBottle = false; return false;}
                     // otherwise loop through all changed rows
-                    $.each(changedRowIndicesPrefixes, function(index, value) {
+                    $.each(changedRowIndicesBottles, function(index, value) {
                         var thisDataRow = grid_bottles.data('handsontable').getDataAtRow(value);
                         var thisDataObject = {};
                         for (var i = 0; i < thisDataRow.length; i++) {
