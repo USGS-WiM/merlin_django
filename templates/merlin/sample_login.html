@@ -46,7 +46,7 @@
             </form>
         </div>
         <br />
-        <div id="grid" data-projects="{{ projects }}" data-processings="{{ processings }}" data-mediums="{{ mediums }}" data-isotopeflags="{{ isotope_flags }}" data-filters="{{ filters }}" data-preservations="{{ preservations }}" ></div>
+        <div id="grid" data-projects="{{ projects }}" data-processings="{{ processings }}" data-mediums="{{ mediums }}" data-constituents="{{ constituents }}" data-isotopeflags="{{ isotope_flags }}" data-filters="{{ filters }}" data-preservations="{{ preservations }}" ></div>
 
         <script>
             $(document).ready(function() {
@@ -75,9 +75,17 @@
                 var data_processings = JSON.parse(grid.attr('data-processings'));
                 var data_sites;
                 var data_mediums = JSON.parse(grid.attr('data-mediums'));
+                for (var key in data_mediums) {
+                    var item = data_mediums[key];
+                    item.display_text = item.nwis_code + " - " + item.medium;
+                }
                 var data_constituents = JSON.parse(grid.attr('data-constituents'));
                 var data_isotopeflags = JSON.parse(grid.attr('data-isotopeflags'));
-                var data_isotopes = ['NA', 'A', 'X-198', 'X-199', 'X-200', 'X-201', 'X-202'];
+                data_isotopeflags.sort(function (a, b) {
+                    var textA = a.isotope_flag.toUpperCase();
+                    var textB = b.isotope_flag.toUpperCase();
+                    return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
+                }); //sort alphabetically
                 var data_filters = JSON.parse(grid.attr('data-filters'));
                 var data_preservations = JSON.parse(grid.attr('data-preservations'));
 
@@ -148,9 +156,9 @@
                         {title: 'Sample Comments', width: 130, type: 'text'},
                         {title: 'Container ID', width: 110, type: 'autocomplete', strict: true, validator: validateRequired,  source: function (query, process) {
                             getValuesAjax('/mercuryservices/bottles/', 'bottle_unique_name', query, process)}},
-                        {title: 'Medium', width: 80, type: 'autocomplete', strict: true, validator: validateRequired, source: getValuesDom(data_mediums,"nwis_code")},
-                        {title: 'Analysis', width: 80, type: 'autocomplete', strict: true, validator: validateRequired},
-                        {title: 'Isotope', width: 60, type: 'dropdown', source: getValuesDom(data_isotopeflags,"isotope_flag")}, //type: 'autocomplete', strict: true, source: getValuesDom(data_isotopeflags,"isotope_flag"), validator: validateRequired},
+                        {title: 'Medium', width: 80, type: 'autocomplete', strict: true, validator: validateRequired, source: getValuesDom(data_mediums,"display_text")},
+                        {title: 'Analysis', width: 80, type: 'autocomplete', strict: true, validator: validateRequired, source: getValuesDom(data_constituents,"constituent")},
+                        {title: 'Isotope', width: 60, type: 'dropdown', validator: validateRequired, source: getValuesDom(data_isotopeflags,"isotope_flag")}, //type: 'autocomplete', strict: true, validator: validateRequired, source: getValuesDom(data_isotopeflags,"isotope_flag"), validator: validateRequired},
                         {title: 'Filter', width: 130, type: 'autocomplete', strict: true, source: getValuesDom(data_filters,"filter")},
                         {title: 'Filter Vol', width: 65, type: 'numeric', format: '0.00'},
                         {title: 'Preservation', width: 130, type: 'autocomplete', strict: true, source: getValuesDom(data_preservations, "preservation")},
@@ -188,20 +196,20 @@
 
                         // update dependent columns when a value in a parent column is changed
                         if (source == 'edit' || source == 'paste' || source == 'autofill') {
-                            // when site name or site ID is changed to a non-null, non-blank value
+                            // when site name or site code is changed to a non-null, non-blank value
                             if ((changedCol == 0 || changedCol == 1) && changedVal !== null && changedVal !== "") {
                                 var siteValue;
                                 if (source == 'edit'  || source == 'paste') {
                                     // if site name is changed
                                     if (changedCol == 0) {
-                                        // update site ID to match site name
+                                        // update site code to match site name
                                         if (typeof data_sites === 'undefined') {siteValue = updateValueAjax('/mercuryservices/sites/', 'name', 'usgs_scode', changedVal);}
                                         else {siteValue = updateValueDom(data_sites, 'name', 'usgs_scode', changedVal);}
                                         grid.handsontable('setDataAtCell', changedRow, 1, siteValue);
                                     }
                                     // if site ID is changed
                                     if (changedCol == 1) {
-                                        // update site name to match site ID
+                                        // update site name to match site code
                                         if (typeof data_sites === 'undefined') {siteValue = updateValueAjax('/mercuryservices/sites/', 'usgs_scode', 'name', changedVal);}
                                         else {siteValue = updateValueDom(data_sites, 'usgs_scode', 'name', changedVal);}
                                         grid.handsontable('setDataAtCell', changedRow, 0, siteValue);
@@ -216,14 +224,14 @@
                                     for (var i = firstSelectedRow; i <= lastSelectedRow; i++) {
                                         // if site name is changed
                                         if (changedCol == 0) {
-                                            // update site ID to match site name
+                                            // update site code to match site name
                                             if (typeof data_sites === 'undefined') {siteValue = updateValueAjax('/mercuryservices/sites/', 'name', 'usgs_scode', changedVal);}
                                         else {siteValue = updateValueDom(data_sites, 'name', 'usgs_scode', changedVal);}
                                             grid.handsontable('setDataAtCell', i, 1, siteValue);
                                         }
                                         // if site ID is changed
                                         if (changedCol == 1) {
-                                            // update site name to match site ID
+                                            // update site name to match site code
                                             if (typeof data_sites === 'undefined') {siteValue = updateValueAjax('/mercuryservices/sites/', 'usgs_scode', 'name', changedVal);}
                                             else {siteValue = updateValueDom(data_sites, 'usgs_scode', 'name', changedVal);}
                                             grid.handsontable('setDataAtCell', i, 0, siteValue);
@@ -233,12 +241,13 @@
                             }
                             // when medium is changed to a non-null, non-blank value
                             if (changedCol == 9 && changedVal !== null && changedVal !== "") {
+                                var thisVal = updateValueDom(data_mediums, 'display_text', 'nwis_code', changedVal);
                                 // update list of constituents filtered by the selected medium value
                                 $.ajax({
                                     url: '/mercuryservices/constituents/',
                                     dataType: 'json',
                                     data: {
-                                        nwis_code: changedVal
+                                        nwis_code: thisVal
                                     },
                                     success: function (response) {
                                         // grab just just the values from the object
@@ -495,7 +504,11 @@
                                     case 0: // site name
                                         // if it doesn't have a value, notify the user that this is a required field, and stop the submission
                                         if (!thisDataRow[i]) {grid_console.text('Site Name is required in row ' + (row + 1) + '!'); validTable = false; return false;}
-                                        else {thisDataObject[objectFields[i]] = getIdDom(data_sites,'name',thisDataRow[i]);}
+                                        else {
+                                            thisID = getIdDom(data_sites,'name',thisDataRow[i]);
+                                            if (thisID == -1) {grid_console.text('Site Name must be a valid choice in row ' + (row + 1) + '!'); validTable = false; return false;}
+                                            thisDataObject[objectFields[i]] = thisID;
+                                        }
                                         break;
                                     case 1: // site ID
                                         //// if it doesn't have a value, notify the user that this is a required field, and stop the submission
@@ -567,40 +580,62 @@
                                     case 8: // bottle
                                         // if it has a value, look up and return the ID, otherwise notify the user that this is a required field, and stop the submission
                                         if (!thisDataRow[i]) {grid_console.text('Container ID is required in row ' + (row + 1) + '!'); validTable = false; return false;}
-                                        else {thisDataObject[objectFields[i]] = updateValueAjax('/mercuryservices/bottles/', 'bottle_unique_name', 'id', thisDataRow[i]);}
+                                        else {
+                                            thisID = updateValueAjax('/mercuryservices/bottles/', 'bottle_unique_name', 'id', thisDataRow[i]);
+                                            if (thisID === null || typeof thisID === 'undefined') {grid_console.text('Container ID must be a valid choice in row ' + (row + 1) + '!'); validTable = false; return false;}
+                                            thisDataObject[objectFields[i]] = thisID;
+                                        }
                                         break;
                                     case 9: // medium
                                         // if it has a value, look up and return the ID, otherwise notify the user that this is a required field, and stop the submission
                                         if (!thisDataRow[i]) {grid_console.text('Medium is required in row ' + (row + 1) + '!'); validTable = false; return false;}
-                                        else {thisDataObject[objectFields[i]] = getIdDom(data_mediums,'nwis_code',thisDataRow[i]);}
+                                        else {
+                                            thisID = getIdDom(data_mediums,'display_text',thisDataRow[i]);
+                                            if (thisID == -1) {grid_console.text('Medium must be a valid choice in row ' + (row + 1) + '!'); validTable = false; return false;}
+                                            thisDataObject[objectFields[i]] = thisID;
+                                        }
                                         break;
                                     case 10: // constituent
                                         // if it has a value, look up and return the ID, otherwise notify the user that this is a required field, and stop the submission
                                         if (!thisDataRow[i]) {grid_console.text('Analysis is required in row ' + (row + 1) + '!'); validTable = false; return false;}
-                                        else {thisDataObject[objectFields[i]] = getIdDom(data_constituents,'constituent',thisDataRow[i]);}
+                                        else {
+                                            thisID = getIdDom(data_constituents,'constituent',thisDataRow[i]);
+                                            if (thisID == -1) {grid_console.text('Analysis must be a valid choice in row ' + (row + 1) + '!'); validTable = false; return false;}
+                                            thisDataObject[objectFields[i]] = thisID;
+                                        }
                                         break;
                                     case 11: // isotope
                                         // if it has a value, look up and return the ID, otherwise notify the user that this is a required field, and stop the submission
                                         if (!thisDataRow[i]) {grid_console.text('Isotope is required in row ' + (row + 1) + '!'); validTable = false; return false;}
-                                        else {thisDataObject[objectFields[i]] = getIdDom(data_isotopeflags,'isotope_flag',thisDataRow[i]);}
+                                        else {
+                                            thisID = getIdDom(data_isotopeflags,'isotope_flag',thisDataRow[i]);
+                                            if (thisID == -1) {grid_console.text('Isotope must be a valid choice in row ' + (row + 1) + '!'); validTable = false; return false;}
+                                            thisDataObject[objectFields[i]] = thisID;
+                                        }
                                         break;
                                     case 12: // filter
                                         // if it has a value, look up and return the ID, otherwise skip this field (won't be included in submission to database)
                                         if (thisDataRow[i] !== null && thisDataRow[i] !== "" && thisDataRow[i] !== 0 && thisDataRow[i] !== 'undefined') {
-                                            var thisID = getIdDom(data_filters,'filter',thisDataRow[i]);
-                                            thisDataObject[objectFields[i]]= (thisID == -1 ? null : thisID);
+                                            thisID = getIdDom(data_filters,'filter',thisDataRow[i]);
+                                            if (thisID == -1) {grid_console.text('Filter must be a valid choice, or empty, in row ' + (row + 1) + '!'); validTable = false; return false;}
+                                            thisDataObject[objectFields[i]] = thisID;
                                         }
                                         break;
                                     case 14: // preservation
                                         // if it has a value, look up and return the ID, otherwise skip this field (won't be included in submission to database)
                                         if (thisDataRow[i] !== null && thisDataRow[i] !== "" && thisDataRow[i] !== 0 && thisDataRow[i] !== 'undefined') {
-                                            var thisID = getIdDom(data_preservations,'preservation',thisDataRow[i]);
-                                            thisDataObject[objectFields[i]]= (thisID == -1 ? null : thisID);
+                                            thisID = getIdDom(data_preservations,'preservation',thisDataRow[i]);
+                                            if (thisID == -1) {grid_console.text('Preservation must be a valid choice, or empty, in row ' + (row + 1) + '!'); validTable = false; return false;}
+                                            thisDataObject[objectFields[i]] = thisID;
                                         }
                                         break;
                                     case 15: // acid
                                         // if it has a value, look up and return the ID, otherwise skip this field (won't be included in submission to database)
-                                        if (thisDataRow[i] !== null && thisDataRow[i] !== "" && thisDataRow[i] !== 0 && thisDataRow[i] !== 'undefined') {thisDataObject[objectFields[i]] = updateValueAjax('/mercuryservices/acids/', 'code', 'id', thisDataRow[i]);}
+                                        if (thisDataRow[i] !== null && thisDataRow[i] !== "" && thisDataRow[i] !== 0 && thisDataRow[i] !== 'undefined') {
+                                            thisID = updateValueAjax('/mercuryservices/acids/', 'code', 'id', thisDataRow[i]);
+                                            if (thisID === null || typeof thisID === 'undefined') {grid_console.text('Acid must be a valid choice, or empty, in row ' + (row + 1) + '!'); validTable = false; return false;}
+                                            thisDataObject[objectFields[i]] = thisID;
+                                        }
                                         break;
                                     default: // all the rest
                                         // if it doesn't have a value, skip the field, otherwise include it

@@ -137,10 +137,10 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'mercurydev',
+        #'NAME': 'mercurytest',
+        #'NAME': 'mercury',
         'USER': 'mercury_admin',
         'PASSWORD': 'm3rcury@dm1n',
-        #'HOST': 'IGSARMEWVSWIM5.gs.doi.net',
-        #'HOST': '130.11.161.159',
         'HOST': 'localhost',
         'PORT': '5432',
     }
