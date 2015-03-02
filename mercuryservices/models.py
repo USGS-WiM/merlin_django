@@ -239,7 +239,7 @@ class SampleBottle(models.Model):
     bottle = models.ForeignKey('Bottle', related_name='sample_bottles', null=True)
     filter_type = models.ForeignKey('FilterType', null=True, blank=True)
     volume_filtered = models.FloatField(null=True, blank=True)
-    preservation_type = models.ForeignKey('PreservationType', null=True)
+    preservation_type = models.ForeignKey('PreservationType', null=True, blank=True)
     preservation_volume = models.FloatField(null=True, blank=True)
     preservation_acid = models.ForeignKey('Acid', null=True, blank=True)
     preservation_comment = models.TextField(blank=True)

@@ -172,6 +172,7 @@
                 var grid_console = $("#grid_console");
                 var bottleRangeAddClicked = false;
 
+                var validTableAdd = false;
                 var objectFieldsAdd = ["bottle_prefix", "suffix", "bottle_unique_name", "created_date", "description"];
                 var grid_bottles_add = $('#grid_bottles_add');
                 var data_bottle_types = JSON.parse(grid_bottles_add.attr("data-bottle-types"));
@@ -184,6 +185,10 @@
                 var grid_bottles_add_options = {
                     contextMenu: false,
                     startRows: 8,
+                    manualColumnResize: true,
+                    manualRowResize: true,
+                    invalidCellClassName: 'customHtInvalid',
+                    search: {searchResultClass: 'customHtSearchResult'},
                     columns: [
                         {title: "Bottle Prefix", type: 'autocomplete', strict: true, source: function (query, process) {getValuesAjax('/mercuryservices/bottleprefixes/', 'bottle_prefix', query, process)}, width: 100},
                         {title: "Suffix", width: 60},
@@ -349,7 +354,9 @@
                         for (var i = 0; i < thisDataRow.length; i++) {
                             switch(i){
                                 case 0: // prefix
-                                    thisDataObject[objectFieldsAdd[i]] = updateValueAjax('/mercuryservices/bottleprefixes/', 'bottle_prefix', 'id', thisDataRow[i]);
+                                    var thisID = updateValueAjax('/mercuryservices/bottleprefixes/', 'bottle_prefix', 'id', thisDataRow[i]);
+                                    if (thisID === null || typeof thisID === 'undefined') {grid_console.text('Bottle Prefix must be a valid choice in row ' + (index + 1) + '!'); validTableAdd = false; return false;}
+                                    thisDataObject[objectFieldsAdd[i]] = thisID;
                                     break;
                                 case 1: // suffix
                                     break;
@@ -379,39 +386,43 @@
                             }
                         }
                         changedDataArrayBottlesAdd.push(thisDataObject);
+                        // if we made it through the various validations above, then the table must be valid
+                        validTable = true;
                     });
-                    var changedDataJSON = JSON.stringify(changedDataArrayBottlesAdd);
-                    $.ajax({
-                        url: '/merlin/bottles_add/',
-                        data: changedDataJSON,
-                        dataType: 'json',
-                        contentType: "application/json",
-                        type: 'POST',
-                        success: function (data, textStatus, jqXHRequest) {
-                            var content_type = jqXHRequest.getResponseHeader("content-type");
-                            // if the content-type is plain text, then it's a custom message from our Django view
-                            if (content_type.indexOf('text') > -1) {
-                                grid_console.text(data);
+                    if(validTableAdd) {
+                        var changedDataJSON = JSON.stringify(changedDataArrayBottlesAdd);
+                        $.ajax({
+                            url: '/merlin/bottles_add/',
+                            data: changedDataJSON,
+                            dataType: 'json',
+                            contentType: "application/json",
+                            type: 'POST',
+                            success: function (data, textStatus, jqXHRequest) {
+                                var content_type = jqXHRequest.getResponseHeader("content-type");
+                                // if the content-type is plain text, then it's a custom message from our Django view
+                                if (content_type.indexOf('text') > -1) {
+                                    grid_console.text(data);
+                                }
+                                // otherwise, it's JSON from the REST Services
+                                else if (jqXHRequest.status === 200) {
+                                    // the data was saved to the database, so empty the table
+                                    //tools_bottles.find('button[name=load]').click();
+                                    var rows = grid_bottles_add.handsontable('getInstance').countRows();
+                                    $(":input", "#bottle_range_add").not(":button").val("");
+                                    grid_bottles_add.data('handsontable').alter('remove_row', 0, rows);
+                                    grid_bottles_add.data('handsontable').alter('insert_row', null, 8);
+                                    grid_bottles_add.parent().find('button[name=bottles_add]').click();
+                                    grid_console.text(textStatus + ': Data saved.');
+                                }
+                                else {
+                                    grid_console.text(textStatus + ': Save error: ' + jqXHRequest.statusText + ', code: ' + jqXHRequest.status + '.');
+                                }
+                            },
+                            error: function (jqXHRequest, textStatus, errorThrown) {
+                                grid_console.text(errorThrown + ": " + textStatus);
                             }
-                            // otherwise, it's JSON from the REST Services
-                            else if (jqXHRequest.status === 200) {
-                                // the data was saved to the database, so empty the table
-                                //tools_bottles.find('button[name=load]').click();
-                                var rows = grid_bottles_add.handsontable('getInstance').countRows();
-                                $(":input", "#bottle_range_add").not(":button").val("");
-                                grid_bottles_add.data('handsontable').alter('remove_row', 0, rows);
-                                grid_bottles_add.data('handsontable').alter('insert_row', null, 8);
-                                grid_bottles_add.parent().find('button[name=bottles_add]').click();
-                                grid_console.text(textStatus+': Data saved.');
-                            }
-                            else {
-                                grid_console.text(textStatus+': Save error: '+jqXHRequest.statusText+', code: '+jqXHRequest.status+'.');
-                            }
-                        },
-                        error: function (jqXHRequest, textStatus, errorThrown) {
-                            grid_console.text(errorThrown + ": " + textStatus);
-                        }
-                    });
+                        });
+                    }
                 });
 
                 var form_bottle_prefix_add = $("#form_bottle_prefix_add");
@@ -549,6 +560,10 @@
                 grid_prefixes.handsontable({
                     //minSpareRows: 1,
                     data: data_prefixes.results,
+                    manualColumnResize: true,
+                    manualRowResize: true,
+                    invalidCellClassName: 'customHtInvalid',
+                    search: {searchResultClass: 'customHtSearchResult'},
                     columns: [
                         {title: "ID", data: "id", readOnly: true, width: 1},
                         {title: "Prefix", data: "bottle_prefix", width: 150},
@@ -558,7 +573,6 @@
                         {title: "Description", data: "description", width: 240}
                     ],
                     columnSorting: true,
-                    search: true,
                     //columnSorting: { column: 0 },
                     beforeChange: function(changes, source) {
                         // "changes" is a 2D array containing information about each of the edited cells [ [row, col, oldVal, newVal], [row, col, oldVal, newVal], ... ].
@@ -606,6 +620,10 @@
                 grid_bottles.handsontable({
                     //minSpareRows: 1,
                     data: data_bottles.results,
+                    manualColumnResize: true,
+                    manualRowResize: true,
+                    invalidCellClassName: 'customHtInvalid',
+                    search: {searchResultClass: 'customHtSearchResult'},
                     columns: [
                         {title: "ID", data: "id", readOnly: true, width: 1},
                         {title: "Unique Bottle Name", data: "bottle_unique_name", width: 150},
@@ -615,7 +633,6 @@
                         {title: "Description", data: "description", width: 240}
                     ],
                     columnSorting: true,
-                    search: true,
                     //columnSorting: { column: 0 },
                     beforeChange: function(changes, source) {
                         // "changes" is a 2D array containing information about each of the edited cells [ [row, col, oldVal, newVal], [row, col, oldVal, newVal], ... ].
@@ -874,7 +891,6 @@
                 });
 
                 tools_prefixes.find('button[name=save]').click(function () {
-                    alert("click p");
                     var changedDataArray = [];
                     // if there are no changed rows, notify the user and stop the submission
                     if (typeof changedRowIndicesPrefixes == 'undefined' || changedRowIndicesPrefixes.length < 1) {grid_console.text('Table is empty!'); validTablePrefix = false; return false;}
@@ -884,7 +900,13 @@
                         var thisDataObject = {};
                         for (var i = 0; i < thisDataRow.length; i++) {
                             if (prefixObjectFields[i] == "tare_weight") {thisDataObject[prefixObjectFields[i]] = Number(thisDataRow[i]);}
-                            else if (prefixObjectFields[i] == "bottle_type") {thisDataObject[prefixObjectFields[i]] = updateValueAjax('/mercuryservices/bottletypes/', 'bottle_type', 'id', thisDataRow[i])}
+                            else if (prefixObjectFields[i] == "bottle_type") {
+                                if (prefixObjectFields[i] == "bottle_prefix") {
+                                    var thisID = updateValueAjax('/mercuryservices/bottletypes/', 'bottle_type', 'id', thisDataRow[i]);
+                                    if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Bottle Type must be a valid choice in row ' + (index + 1) + '!'); validTablePrefix = false; return false;}
+                                    thisDataObject[prefixObjectFields[i]] = thisID;
+                                }
+                            }
                             else if (prefixObjectFields[i] == "created_date") {
                                 var baddate = thisDataRow[i];
                                 if (dateRegEx.test(baddate)) {
@@ -1035,7 +1057,11 @@
                         var thisDataRow = grid_bottles.data('handsontable').getDataAtRow(value);
                         var thisDataObject = {};
                         for (var i = 0; i < thisDataRow.length; i++) {
-                            if (bottleObjectFields[i] == "bottle_prefix") {thisDataObject[bottleObjectFields[i]] = updateValueAjax('/mercuryservices/bottleprefixes/', 'bottle_prefix', 'id', thisDataRow[i])}
+                            if (bottleObjectFields[i] == "bottle_prefix") {
+                                var thisID = updateValueAjax('/mercuryservices/bottleprefixes/', 'bottle_prefix', 'id', thisDataRow[i]);
+                                if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Bottle Prefix must be a valid choice in row ' + (index + 1) + '!'); validTableBottle = false; return false;}
+                                thisDataObject[bottleObjectFields[i]] = thisID;
+                            }
                             else if (bottleObjectFields[i] == "created_date") {
                                 var baddate = thisDataRow[i];
                                 if (dateRegEx.test(baddate)) {

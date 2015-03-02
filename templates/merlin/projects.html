@@ -59,6 +59,10 @@
                 grid_console.text('Loading data.');
                 grid.handsontable({
                     data: data_data,
+                    manualColumnResize: true,
+                    manualRowResize: true,
+                    invalidCellClassName: 'customHtInvalid',
+                    search: {searchResultClass: 'customHtSearchResult'},
                     columns: [
                         {title: "ID", data: "id", readOnly: true, width: 1},
                         {title: "Name", data: "name", width: 400},
@@ -66,7 +70,6 @@
                         {title: "Accounting Code", data: "accounting_code", width: 150},
                         {title: "Cooperator", data: "cooperator", width: 200}
                     ],
-                    search: true,
                     columnSorting: { column: 0 },
                     beforeChange: function(changes, source) {
                          // "changes" is a 2D array containing information about each of the edited cells [ [row, col, oldVal, newVal], [row, col, oldVal, newVal], ... ].

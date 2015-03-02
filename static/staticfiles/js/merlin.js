@@ -45,7 +45,7 @@ function getRange(limit) {
     return values;
 }
 function getIdDom(domDataObject, key, value) {
-    var objectID = -1;
+    var objectID = null;
     for (var index in domDataObject) {
         if (value == domDataObject[index][key]) {
             objectID = domDataObject[index]['id'];
@@ -101,7 +101,7 @@ function updateValueDom(domDataObject, searchKey, resultKey, searchVal) {
     return returnVal;
 }
 function updateValueAjax(url, arg, newKey, searchVal, filterParam) {
-    var newValue;
+    var newValue = "";
     var dataParams;
     if (filterParam) {dataParams = filterParam + "&" + arg + "=" + searchVal}
     else {dataParams = arg + "=" + searchVal}
@@ -113,10 +113,20 @@ function updateValueAjax(url, arg, newKey, searchVal, filterParam) {
         success: function (response) {
             //console.log("success: updateValueAjax");
             if ("results" in response) {
-                newValue = response['results'][0][newKey];
+                if (response['count'] != 1) {
+                    newValue = "";
+                }
+                else {
+                    newValue = response['results'][0][newKey];
+                }
             }
             else {
-                newValue = response[0][newKey];
+                if (response.length != 1) {
+                    newValue = "";
+                }
+                else {
+                    newValue = response[0][newKey];
+                }
             }
         },
         error: function (response) {

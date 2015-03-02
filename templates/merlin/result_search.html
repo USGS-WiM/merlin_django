@@ -90,6 +90,9 @@
                 grid.handsontable({
                     startRows: 0,
                     data: data_data,
+                    manualColumnResize: true,
+                    manualRowResize: true,
+                    search: {searchResultClass: 'customHtSearchResult'},
                     columns: [
                         {title: 'Result ID', data: 'id', readOnly: true, width: 100},
                         {title: 'Bottle', data: 'sample_bottle.bottle.bottle_unique_name', readOnly: true, width: 100},
@@ -106,8 +109,7 @@
                         {title: 'Detection Flag', data: 'detection_flag', readOnly: true, width: 100},
                         {title: 'Analyzed Date', data: 'analyzed_date', readOnly: true, width: 100}
                     ],
-                    columnSorting: true,
-                    search: true
+                    columnSorting: true
                 });
                 grid_console.text('Data loaded.');
 

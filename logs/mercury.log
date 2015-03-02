@@ -1,0 +1,4 @@
+[2015-03-01 20:36:03] | WARNING [django.request:143] | Not Found: /browserConnection/buildInfo
+[2015-03-01 20:36:13] | WARNING [django.request:143] | Not Found: /startTime
+[2015-03-01 20:37:08] | INFO [merlin.views:1347] | POST http://localhost:8000/mercuryauth/login OK 200
+[2015-03-01 20:37:09] | INFO [merlin.views:1364] | GET http://localhost:8000/mercuryservices/users/?username=admin OK 200
