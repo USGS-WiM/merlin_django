@@ -1,3 +1,20 @@
+.customCurrentRow {
+  background-color: #c8ebff !important; /*gives priority over td.area selection background*/
+}
+
+.customCurrentCol {
+  background-color: #ebf5fa !important; /*gives priority over td.area selection background*/
+}
+
+.customHtInvalid {
+    background-color: #f0ad4e !important; /*gives priority over td.area selection background*/
+}
+
+.customHtSearchResult {
+    background: #51BCDC !important; /*gives priority over td.area selection background*/
+    color: #583707;
+}
+
 #expander {
     height: 150%;
     background-color: #333333;

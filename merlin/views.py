@@ -223,27 +223,31 @@ def sample_login_save(request):
         return HttpResponse(message, content_type='text/html')
     response_data = r.json()
     logger.info(str(len(response_data)) + " samples saved")
+    logger.info(response_data)
     # store the IDs as an array of dictionaries, where the keys are the combo IDs and the values are the database IDs
     sample_ids = []
+    item_number = 0
     for item in response_data:
+        item_number += 1
         # using a hacky workaround here to handle the "T" in the time_stamp; there's probably a better way to handle this
         sample_id = {'combo_id': str(item.get('project'))+"|"+str(item.get('site'))+"|"+str(item.get('sample_date_time')).replace("T", " ")+"|"+str(item.get('depth'))+"|"+str(item.get('replicate')), 'db_id': item.get('id')}
+        logger.info("item " + str(item_number) + ": " + str(sample_id))
         sample_ids.append(sample_id)
 
     ## SAVE SAMPLE BOTTLES ##
     # update the sample bottles with the database IDs, rather than the combo IDs
     logger.info("SAVE Sample Bottles")
-    for sample_id in sample_ids:
-        for sample_bottle in sample_bottle_data:
+    for sample_bottle in sample_bottle_data:
+        for sample_id in sample_ids:
             logger.info("Sample Bottle Sample ID: " + str(sample_bottle['sample']))
-            logger.info("Combo ID: " + sample_id['combo_id'])
+            logger.info("Combo ID:                " + sample_id['combo_id'])
             if sample_bottle['sample'] == sample_id['combo_id']:
                 sample_bottle['sample'] = sample_id['db_id']
-            else:
-                logger.warning("Could not match sample and combo IDs!")
-                message = "\"Error: Samples were saved, but unable to save sample bottles. Please contact the administrator.\""
-                logger.error(message)
-                return HttpResponse(message, content_type='text/html')
+        if not isinstance(sample_bottle['sample'], int):
+            logger.warning("Could not match sample and combo IDs!")
+            message = "\"Error: Samples were saved, but unable to save sample bottles. Please contact the administrator.\""
+            logger.error(message)
+            return HttpResponse(message, content_type='text/html')
     # send the sample bottles to the database
     sample_bottle_data = json.dumps(sample_bottle_data)
     logger.info(sample_bottle_data)
@@ -264,17 +268,17 @@ def sample_login_save(request):
     ## SAVE SAMPLE ANALYSES (placeholder records in Results table) ##
     # update the sample analyses with the sample bottle IDs, rather than the bottle IDs
     logger.info("SAVE Sample Analyses")
-    for sample_bottle_id in sample_bottle_ids:
-        for sample_analysis in sample_analysis_data:
+    for sample_analysis in sample_analysis_data:
+        for sample_bottle_id in sample_bottle_ids:
             logger.info("Sample Analysis Bottle ID: " + str(sample_analysis['sample_bottle']))
-            logger.info("Sample Bottle ID: " + str(sample_bottle_id['bottle_id']))
+            logger.info("Sample Bottle ID:          " + str(sample_bottle_id['bottle_id']))
             if sample_analysis['sample_bottle'] == sample_bottle_id['bottle_id']:
                 sample_analysis['sample_bottle'] = sample_bottle_id['db_id']
-            else:
-                logger.warning("Could not match sample bottle and combo bottle IDs!")
-                message = "\"Error: Samples and sample bottles were saved, but unable to save analyses. Please contact the administrator.\""
-                logger.error(message)
-                return HttpResponse(message, content_type='text/html')
+        if not isinstance(sample_analysis['sample_bottle'], int):
+            logger.warning("Could not match sample bottle and combo bottle IDs!")
+            message = "\"Error: Samples and sample bottles were saved, but unable to save analyses. Please contact the administrator.\""
+            logger.error(message)
+            return HttpResponse(message, content_type='text/html')
     # send the sample analyses to the database
     sample_analysis_data = json.dumps(sample_analysis_data)
     logger.info(sample_analysis_data)
@@ -446,12 +450,6 @@ def sample_search_save(request):
         this_response_data = r.json()
         logger.info("1 samples saved")
         sample_response_data.append(this_response_data)
-    # store the IDs as an array of dictionaries, where the keys are the combo IDs and the values are the database IDs
-    sample_ids = []
-    for item in sample_response_data:
-        # using a hacky workaround here to handle the "T" in the time_stamp; there's probably a better way to handle this
-        sample_id = {'combo_id': str(item.get('project'))+"|"+str(item.get('site'))+"|"+str(item.get('sample_date_time')).replace("T", " ")+"|"+str(int(item.get('depth')))+"|"+str(item.get('replicate')), 'db_id': item.get('id')}
-        sample_ids.append(sample_id)
 
     ## SAVE SAMPLE BOTTLES ##
     # update the sample bottles with the database IDs, rather than the combo IDs
@@ -484,11 +482,6 @@ def sample_search_save(request):
         logger.info(this_response_data)
         logger.info("1 sample bottles saved")
         sample_bottle_response_data.append(this_response_data)
-    # store the IDs as an array of dictionaries, where the keys are the bottle IDs and the values are the sample bottle IDs
-    sample_bottle_ids = []
-    for item in sample_bottle_response_data:
-        sample_bottle_id = {'bottle_id': str(item['bottle']), 'db_id': item['id']}
-        sample_bottle_ids.append(sample_bottle_id)
 
     ## SAVE SAMPLE ANALYSES (placeholder records in Results table) ##
     # update the sample analyses with the sample bottle IDs, rather than the bottle IDs
@@ -839,9 +832,51 @@ def bromination_add(request):
 def samplebottlebromination_add(request):
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
-    data = request.body
-    r = requests.request(method='POST', url=REST_SERVICES_URL+'bulksamplebottlebrominations/', data=data, headers=headers)
-    return HttpResponse(r, content_type='application/json')
+    data = json.loads(request.body.decode('utf-8'))
+    all_valid_sample_bottles = True
+    message_not_valid = "These Sample Bottles are not for UTHG or FTHG: "
+
+    # validate that the submitted sample bottles have samples with constituents of UTHG or FTHG
+    logging.info("VALIDATE Sample Bottles Brominations")
+    item_number = 0
+    for item in data:
+        item_number += 1
+        params = {'id': item.get('sample_bottle'), 'constituent': [39,27]}
+        r = requests.get(REST_SERVICES_URL+'bottles/', params=params)
+        logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
+        response_data = r.json()
+        logger.info("bottles count: " + str(response_data['count']))
+        # if response count does not equal one, then this sample bottle is not valid
+        if response_data['count'] != 1:
+            all_valid_sample_bottles = False
+            logger.warning("Validation Warning: " + item.get('sample_bottle') + " count != 1")
+            this_message = "Row " + str(item_number) + ","
+            message_not_valid = message_not_valid + " " + this_message
+    if not all_valid_sample_bottles:
+        message = json.dumps(message_not_valid)
+        logger.warning("Validation Warning: " + message)
+        return HttpResponse(message, content_type='text/html')
+
+
+    ## SAVE Sample Bottle Brominations ##
+    # send the sample bottle brominations to the database
+    logger.info("SAVE Sample Bottle Brominations")
+    table = json.loads(request.body.decode('utf-8'))
+    brom_data = []
+    for row in table:
+        this_brom = {'bromination': row.get('bromination'), 'sample_bottle': row.get('sample_bottle'), 'bromination_event': row.get('bromination_event'), 'bromination_volume': row.get('bromination_volume'), 'created_date': row.get('created_date')}
+        brom_data.append(this_brom)
+    brom_data = json.dumps(brom_data)
+    logger.info(brom_data)
+    r = requests.request(method='POST', url=REST_SERVICES_URL+'bulksamplebottlebrominations/', data=brom_data, headers=headers)
+    logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
+    if r.status_code != 201:
+        message = "\"Error " + str(r.status_code) + ": " + r.reason + ". Unable to save sample bottle brominations. Please contact the administrator.\""
+        logger.error(message)
+        return HttpResponse(message, content_type='text/html')
+    else:
+        logger.info("sample bottle brominations saved")
+        return HttpResponse(r, content_type='application/json')
 
 
 def samplebottlebromination_search(request):

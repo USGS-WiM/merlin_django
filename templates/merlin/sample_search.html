@@ -48,6 +48,8 @@
                     <button type="button" class="btn btn-info" name="search">Search</button>
                     <button type="button" class="btn btn-default" name="prev">Previous Page</button>
                     <button type="button" class="btn btn-default" name="next">Next Page</button>
+                    <label for="lookupContainers" style="margin-left:75px">Lookup Container IDs</label>
+                    <input type="checkbox" name="lookupContainers" id="lookupContainers" />
                 </p>
             </form>
         </div>
@@ -139,6 +141,10 @@
                 grid.handsontable({
                     startRows: 0,
                     data: data_data,
+                    manualColumnResize: true,
+                    manualRowResize: true,
+                    invalidCellClassName: 'customHtInvalid',
+                    search: {searchResultClass: 'customHtSearchResult'},
                     columns: [
                         {title: 'Sample ID', data: 'sample_bottle.sample.id', readOnly: true, width: 80},
                         {title: 'Project Name', data: 'sample_bottle.sample.project.name', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 100, type: 'autocomplete', strict: true, source: function (query, process) {
@@ -164,9 +170,9 @@
                         {title: 'Sample Comments', data: 'sample_bottle.sample.comment', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 130, type: 'text'},
                         {title: 'Received', data: 'sample_bottle.sample.received_date', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 100, type: 'date', dateFormat: 'mm/dd/y', maxDate: 0},
                         {title: 'Lab Processing', data: 'sample_bottle.sample.lab_processing', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 105, type: 'autocomplete', strict: true, source: getValuesDom(data_processings,"processing")},
-                        //{title: 'Container ID', width: 100, type: 'text'},
-                        {title: 'Container ID', data: 'sample_bottle.bottle.bottle_unique_name', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 90, type: 'autocomplete', strict: true,  source: function (query, process) {
-                            getValuesAjax('/mercuryservices/bottles', 'name', query, process)}},
+                        //{title: 'Container ID', width: 110, type: 'autocomplete', strict: true, validator: validateRequired,  source: function (query, process) {
+                        //    getValuesAjax('/mercuryservices/bottles/', 'bottle_unique_name', query, process)}},
+                        {title: 'Container ID', width: 110, type: 'text'},
                         {title: 'Medium', data: 'sample_bottle.sample.medium_type', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 100, type: 'autocomplete', strict: true, source: getValuesDom(data_mediums,"display_text")},
                         {title: 'Analysis', data: 'constituent', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 70, type: 'autocomplete', strict: true},
                         {title: 'Isotope', data: 'isotope_flag', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 55, type: 'dropdown', source: data_isotopeflags},
@@ -182,7 +188,6 @@
                         {title: 'Result ID', data: 'id', readOnly: true, width: 1}
                     ],
                     columnSorting: true,
-                    search: true,
                     // define event handlers
                     beforeChange: function(changes, source) {
                         // "changes" is a 2D array containing information about each of the edited cells [ [row, col, oldVal, newVal], [row, col, oldVal, newVal], ... ].
@@ -521,6 +526,19 @@
                     }
                 });
 
+                $('#lookupContainers').change(function () {
+                    var settings = grid.handsontable('getInstance').getSettings();
+                    if (this.checked) {
+                        settings.columns[8] = {title: 'Container ID', width: 110, type: 'autocomplete', strict: true, validator: validateRequired,  source: function (query, process) {
+                            getValuesAjax('/mercuryservices/bottles/', 'bottle_unique_name', query, process)}};
+                        grid.handsontable('getInstance').updateSettings(settings);
+                    }
+                    else {
+                        settings.columns[8] = {title: 'Container ID', width: 110, type: 'text', validator: validateRequired};
+                        grid.handsontable('getInstance').updateSettings(settings);
+                    }
+                });
+
                 // when the save button is clicked, loop through the list of changed rows and build a JSON object containing the changed rows
                 //grid.parent().find('button[name=save]').click(function () {
                 //    grid_console.text('Saving is disabled at the moment.');
@@ -538,22 +556,31 @@
                             // an object container for the data in this row
                             var thisDataObject = {};
                             var gooddate_received;
+                            var thisID;
                             // convert each cell in this row into an object property
                             //["sample_bottle.sample.id", "project_name", "project", "site_name", "site", "skip_date", "time_stamp", "depth", "length", "replicate", "comment", "received_date", "lab_processing", "bottle", "medium_type", "constituent_type", /*"isotopic_analysis",*/ "isotope", "filter_type", "volume_filtered", "preservation_type", "preservation_acid", "preservation_volume", "preservation_comment", "sample_bottle.id", "id"];
                             for (var i = 0; i < thisDataRow.length; i++) {
                                 switch(i){
                                     case 1: // project name
-                                        // if it doesn't have a value, notify the user that this is a required field, and stop the submission
+                                        // if it has a value, look up and return the ID, otherwise notify the user that this is a required field, and stop the submission
                                         if (!thisDataRow[i]) {grid_console.text('Project Name is required in row ' + (index + 1) + '!'); validTable = false; return false;}
-                                        else {thisDataObject[objectFields[i]] = updateValueAjax('/mercuryservices/projects/', 'name', 'id', thisDataRow[i]);}
+                                        else {
+                                            thisID = updateValueAjax('/mercuryservices/projects/', 'name', 'id', thisDataRow[i]);
+                                            if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Project Name must be a valid choice in row ' + (index + 1) + '!'); validTable = false; return false;}
+                                            thisDataObject[objectFields[i]] = thisID;
+                                        }
                                         break;
                                     case 2: // project ID
                                         // do nothing with this column
                                         break;
                                     case 3: // site name
-                                        // if it doesn't have a value, notify the user that this is a required field, and stop the submission
+                                        // if it has a value, look up and return the ID, otherwise notify the user that this is a required field, and stop the submission
                                         if (!thisDataRow[i]) {grid_console.text('Site Name is required in row ' + (index + 1) + '!'); validTable = false; return false;}
-                                        else {thisDataObject[objectFields[i]] = updateValueAjax('/mercuryservices/sites/', 'name', 'id', thisDataRow[i]);}
+                                        else {
+                                            thisID = updateValueAjax('/mercuryservices/sites/', 'name', 'id', thisDataRow[i]);
+                                            if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Site Name must be a valid choice in row ' + (index + 1) + '!'); validTable = false; return false;}
+                                            thisDataObject[objectFields[i]] = thisID;
+                                        }
                                         break;
                                     case 4: // site ID
                                         //// if it doesn't have a value, notify the user that this is a required field, and stop the submission
@@ -617,8 +644,8 @@
                                                 //dateTodayLastYear.setTime(dateTodayLastYear.valueOf() - (365 * 24 * 60 * 60 * 1000));
                                                 dateTodayLastYear.setFullYear(dateTodayLastYear.getFullYear() - 1);
                                                 if (dateTodayLastYear > gooddate_sample) {
-                                                    grid_console.text('Sample Date is more than one year before today in row ' + (row + 1) + '!');
-                                                    var confirmOldDate = confirm("WARNING: Sample Date is more than one year before today in row " + (row + 1) + "!\nContinue and Save with the date entered, or Cancel?");
+                                                    grid_console.text('Sample Date is more than one year before today in row ' + (index + 1) + '!');
+                                                    var confirmOldDate = confirm("WARNING: Sample Date is more than one year before today in row " + (index + 1) + "!\nContinue and Save with the date entered, or Cancel?");
                                                     if (confirmOldDate == false) {validTable = false; return false;}
                                                 }
                                                 thisDataObject[objectFields[i]] = gooddate_sample_string + " " + newValue + ":00";
@@ -629,43 +656,84 @@
                                             //thisDataObject[objectFields[i]] = thisDataRow[i-1]+" "+newValue+":00";
                                         }
                                         break;
+                                    case 7: // depth
+                                        if (thisDataRow[i] !== 0) {
+                                            if (!thisDataRow[i]) {grid_console.text('Depth is required in row ' + (index + 1) + '!'); validTable = false; return false;}
+                                        }
+                                        thisDataObject[objectFields[i]] = (thisDataRow[i] % 1 === 0 ? (thisDataRow[i].toFixed(1)) : thisDataRow[i]);
+                                        break;
                                     case 11: // received date
                                         // validation is being handled in previous case (sample datetime)
                                         if (!thisDataRow[i]) {grid_console.text('Date Received is required!'); validTable = false; return false;}
                                         thisDataObject[objectFields[i]] = makeYear(dateReceived) + "-" + makeMonth(dateReceived) + "-" + makeDay(dateReceived) + " 00:00:00";
                                         break;
                                     case 12: // processing
-                                        thisDataObject[objectFields[i]] = getIdDom(data_processings,'processing',thisDataRow[i]);
+                                        // if it has a value, look up and return the ID, otherwise skip this field (won't be included in submission to database)
+                                        if (thisDataRow[i] !== null && thisDataRow[i] !== "" && thisDataRow[i] !== 0 && typeof thisDataRow[i] !== 'undefined') {
+                                            thisID = getIdDom(data_processings,'processing',thisDataRow[i]);
+                                            if (thisID === null) {grid_console.text('Lab Processing must be a valid choice, or empty, in row ' + (index + 1) + '!'); validTable = false; return false;}
+                                            thisDataObject[objectFields[i]] = thisID;
+                                        }
                                         break;
-                                    case 13: // bottle
-                                        // if it doesn't have a value, notify the user that this is a required field, and stop the submission
+                                    case 13: // bottle (container)
+                                        // if it has a value, look up and return the ID, otherwise notify the user that this is a required field, and stop the submission
                                         if (!thisDataRow[i]) {grid_console.text('Container ID is required in row ' + (index + 1) + '!'); validTable = false; return false;}
-                                        // should this eventually point to Sample Bottles, not Bottles?
-                                        thisDataObject[objectFields[i]] = thisDataObject[objectFields[i]] = updateValueAjax('/mercuryservices/bottles/', 'bottle_unique_name', 'id', thisDataRow[i]);
+                                        else {
+                                            thisID = updateValueAjax('/mercuryservices/bottles/', 'bottle_unique_name', 'id', thisDataRow[i]);
+                                            if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Container ID must be a valid choice in row ' + (index + 1) + '!'); validTable = false; return false;}
+                                            thisDataObject[objectFields[i]] = thisID;
+                                        }
                                         break;
                                     case 14: // medium
-                                        // if it doesn't have a value, notify the user that this is a required field, and stop the submission
+                                        // if it has a value, look up and return the ID, otherwise notify the user that this is a required field, and stop the submission
                                         if (!thisDataRow[i]) {grid_console.text('Medium is required in row ' + (index + 1) + '!'); validTable = false; return false;}
-                                        thisDataObject[objectFields[i]] = getIdDom(data_mediums,'display_text',thisDataRow[i]);
+                                        else {
+                                            thisID = getIdDom(data_mediums,'display_text',thisDataRow[i]);
+                                            if (thisID === null) {grid_console.text('Medium must be a valid choice in row ' + (index + 1) + '!'); validTable = false; return false;}
+                                            thisDataObject[objectFields[i]] = thisID;
+                                        }
                                         break;
-                                    case 15: // constituent
-                                        // if it doesn't have a value, notify the user that this is a required field, and stop the submission
+                                    case 15: // constituent (analysis)
+                                        // if it has a value, look up and return the ID, otherwise notify the user that this is a required field, and stop the submission
                                         if (!thisDataRow[i]) {grid_console.text('Analysis is required in row ' + (index + 1) + '!'); validTable = false; return false;}
-                                        thisDataObject[objectFields[i]] = getIdDom(data_constituents,'constituent',thisDataRow[i]);
+                                        else {
+                                            thisID = getIdDom(data_constituents,'constituent',thisDataRow[i]);
+                                            if (thisID === null) {grid_console.text('Analysis must be a valid choice in row ' + (index + 1) + '!'); validTable = false; return false;}
+                                            thisDataObject[objectFields[i]] = thisID;
+                                        }
                                         break;
                                     case 16: // isotope flag
-                                        // if it doesn't have a value, notify the user that this is a required field, and stop the submission
+                                        // if it has a value, look up and return the ID, otherwise notify the user that this is a required field, and stop the submission
                                         if (!thisDataRow[i]) {grid_console.text('Isotope is required in row ' + (index + 1) + '!'); validTable = false; return false;}
-                                        thisDataObject[objectFields[i]] = getIdDom(data_isotopeflags,'isotope_flag',thisDataRow[i]);
+                                        else {
+                                            thisID = getIdDom(data_isotopeflags,'isotope_flag',thisDataRow[i]);
+                                            if (thisID === null) {grid_console.text('Isotope must be a valid choice in row ' + (index + 1) + '!'); validTable = false; return false;}
+                                            thisDataObject[objectFields[i]] = thisID;
+                                        }
                                         break;
                                     case 17: // filter
-                                        thisDataObject[objectFields[i]] = thisDataObject[objectFields[i]] = getIdDom(data_filters,'filter',thisDataRow[i]);
+                                        // if it has a value, look up and return the ID, otherwise skip this field (won't be included in submission to database)
+                                        if (thisDataRow[i] !== null && thisDataRow[i] !== "" && thisDataRow[i] !== 0 && typeof thisDataRow[i] !== 'undefined') {
+                                            thisID = getIdDom(data_filters,'filter',thisDataRow[i]);
+                                            if (thisID === null) {grid_console.text('Filter must be a valid choice, or empty, in row ' + (index + 1) + '!'); validTable = false; return false;}
+                                            thisDataObject[objectFields[i]] = thisID;
+                                        }
                                         break;
                                     case 19: // preservation
-                                        thisDataObject[objectFields[i]] = thisDataObject[objectFields[i]] = getIdDom(data_preservations,'preservation',thisDataRow[i]);
+                                        // if it has a value, look up and return the ID, otherwise skip this field (won't be included in submission to database)
+                                        if (thisDataRow[i] !== null && thisDataRow[i] !== "" && thisDataRow[i] !== 0 && typeof thisDataRow[i] !== 'undefined') {
+                                            thisID = getIdDom(data_preservations,'preservation',thisDataRow[i]);
+                                            if (thisID === null) {grid_console.text('Preservation must be a valid choice, or empty, in row ' + (index + 1) + '!'); validTable = false; return false;}
+                                            thisDataObject[objectFields[i]] = thisID;
+                                        }
                                         break;
                                     case 20: // acid
-                                        thisDataObject[objectFields[i]] = thisDataObject[objectFields[i]] = updateValueAjax('/mercuryservices/acids/', 'code', 'id', thisDataRow[i]);
+                                        // if it has a value, look up and return the ID, otherwise skip this field (won't be included in submission to database)
+                                        if (thisDataRow[i] !== null && thisDataRow[i] !== "" && thisDataRow[i] !== 0 && typeof thisDataRow[i] !== 'undefined') {
+                                            thisID = updateValueAjax('/mercuryservices/acids/', 'code', 'id', thisDataRow[i]);
+                                            if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Acid must be a valid choice, or empty, in row ' + (index + 1) + '!'); validTable = false; return false;}
+                                            thisDataObject[objectFields[i]] = thisID;
+                                        }
                                         break;
                                     default: // all the rest
                                         if (thisDataRow[i] !== null && thisDataRow[i] !== "") {

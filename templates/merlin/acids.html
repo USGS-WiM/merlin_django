@@ -87,6 +87,10 @@
                 grid_console.text('Loading data.');
                 grid.handsontable({
                     data: data_data.results,
+                    manualColumnResize: true,
+                    manualRowResize: true,
+                    invalidCellClassName: 'customHtInvalid',
+                    search: {searchResultClass: 'customHtSearchResult'},
                     columns: [
                         {title: "ID", data: "id", readOnly: true, width: 1},
                         {title: "Code", data: "code", width: 120},
@@ -94,7 +98,6 @@
                         {title: "Date", data: "created_date", width: 100, dateFormat: 'mm/dd/y'},
                         {title: "Comment", data: "comment", width: 300}
                     ],
-                    search: true,
                     columnSorting: true,
                     beforeChange: function(changes, source) {
                          // "changes" is a 2D array containing information about each of the edited cells [ [row, col, oldVal, newVal], [row, col, oldVal, newVal], ... ].
