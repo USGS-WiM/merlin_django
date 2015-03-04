@@ -362,10 +362,13 @@ class UnitTypeSerializer(serializers.ModelSerializer):
 
 
 class MethodTypeSerializer(serializers.ModelSerializer):
+    raw_value_unit = serializers.RelatedField(source='raw_value_unit')
+    final_value_unit = serializers.RelatedField(source='final_value_unit')
+    method_detection_limit_unit = serializers.RelatedField(source='method_detection_limit_unit')
 
     class Meta:
         model = MethodType
-        fields = ('id', 'method', 'preparation', 'description', 'method_detection_limit',
+        fields = ('id', 'method_code', 'method', 'preparation', 'description', 'method_detection_limit',
                   'method_detection_limit_unit', 'raw_value_unit', 'final_value_unit',
                   'decimal_places', 'significant_figures', 'standard_operating_procedure',
                   'nwis_parameter_code', 'nwis_parameter_name', 'nwis_method_code',)
@@ -376,16 +379,17 @@ class FullResultSerializer(serializers.ModelSerializer):
     analyzed_date = serializers.DateTimeField(format='%m/%d/%y', source='analyzed_date', read_only=True)
     created_date = serializers.DateTimeField(format='%m/%d/%y', source='created_date', read_only=True)
     sample_bottle = FullSampleBottleSerializer(source='sample_bottle')
+    method = MethodTypeSerializer(source='method')
     constituent = serializers.RelatedField(source='constituent')
     isotope_flag = serializers.RelatedField(source='isotope_flag')
     detection_flag = serializers.RelatedField(source='detection_flag')
 
     class Meta:
         model = Result
-        fields = ('id', 'method', 'constituent', 'isotope_flag', 'raw_value', 'final_value', 'report_value',
+        fields = ('id', 'constituent', 'isotope_flag', 'raw_value', 'final_value', 'report_value',
                   'detection_flag', 'raw_daily_detection_limit', 'final_daily_detection_limit',
                   'sediment_dry_weight', 'sample_mass_processed', 'entry_date', 'analyzed_date', 'created_date',
-                  'analysis_comment', 'quality_assurances', 'sample_bottle',)
+                  'analysis_comment', 'quality_assurances', 'method', 'sample_bottle',)
 
 
 class ResultSerializer(serializers.ModelSerializer):

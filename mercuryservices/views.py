@@ -470,7 +470,7 @@ class FullResultViewSet(viewsets.ModelViewSet):
             if date_after is not None and date_before is not None:
                 queryset = queryset.filter(sample_bottle__sample__sample_date_time__range=(date_after, date_before))
             elif date_after is not None:
-                    queryset = queryset.filter(sample_bottle__sample__sample_date_time__gt=date_after)
+                queryset = queryset.filter(sample_bottle__sample__sample_date_time__gt=date_after)
             elif date_before is not None:
                 queryset = queryset.filter(sample_bottle__sample__sample_date_time__lt=date_before)
             return queryset

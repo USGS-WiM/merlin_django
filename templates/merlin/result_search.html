@@ -106,6 +106,7 @@
                         {title: 'Received', data: 'sample_bottle.sample.received_date', readOnly: true, width: 100},
                         {title: 'Comments', data: 'sample_bottle.sample.comment', readOnly: true, width: 200},
                         {title: 'Result Value', data: 'final_value', readOnly: true, width: 100, format: '0.00000000'},
+                        {title: 'Unit', readOnly: true, width: 60},
                         {title: 'Detection Flag', data: 'detection_flag', readOnly: true, width: 100},
                         {title: 'Analyzed Date', data: 'analyzed_date', readOnly: true, width: 100}
                     ],
@@ -250,6 +251,9 @@
                                 resultPages = Math.ceil(data_data['count'] / 100);
                                 grid_console.text(textStatus+': Retrieved '+ data_data['count'] +' results across ' + resultPages + ' pages. Showing first 100 results.');
                                 grid.data('handsontable').loadData(data_data.results);
+                                for (var i = 0; i < data_data['results'].length; i++) {
+                                    grid.data('handsontable').setDataAtCell(i,12,(data_data['results'][i]['method'] === null ? null : data_data['results'][i]['method']['final_value_unit']));
+                                }
                             }
                             else {
                                 grid_console.text(textStatus+': Search error: '+jqXHRequest.statusText+', code: '+jqXHRequest.status+'.');
