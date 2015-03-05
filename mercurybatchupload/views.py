@@ -8,9 +8,11 @@ from mercuryservices.models import *
 from datetime import datetime as dt
 import requests
 from django.db.models.base import ObjectDoesNotExist
+from django.core.exceptions import MultipleObjectsReturned
 from numbers import Number
 import time
-
+import traceback
+import math
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +42,11 @@ class BatchUploadSave(views.APIView):
                 is_valid,message,constituent_method_id = validateConstituentMethod(constituent_id,row)
                 if is_valid == False:
                     status.append({"message": message,"success": "false"})                   
-                    continue                
+                    continue
+                is_valid,message = validateIsotopeFlag(row)
+                if is_valid == False:
+                    status.append({"message": message,"success": "false"})                   
+                    continue
                 #validate quality assurance
                 is_valid,message,quality_assurance_id_array = validateQualityAssurance(row)
                 if is_valid == False:
@@ -51,7 +57,9 @@ class BatchUploadSave(views.APIView):
                     status.append({"message": message,"success": "false"})                   
                     continue
                 #validate result
-                is_valid,message,result_id,sediment_dry_weight,sample_mass_processed = validateResult(sample,constituent_id,row)
+                #get method id
+                method_id = row["method_id"]  
+                is_valid,message,result_id,sediment_dry_weight,sample_mass_processed = validateResult(sample,constituent_id,method_id,row)
                 if is_valid == False:
                     status.append({"message": message,"success": "false"})                   
                     continue
@@ -60,9 +68,6 @@ class BatchUploadSave(views.APIView):
                 display_value,reported_value, detection_flag, daily_detection_limit,qa_flags = evaluateResult(row,result_id)
                 raw_value = row["raw_value"]            
 
-                #get method id
-                method_id = row["method_id"]  
-                
                 ###save the result###                                                           
                 result_details = Result.objects.get(id=result_id)
                 result_details.raw_value = float(raw_value)
@@ -107,7 +112,7 @@ class BatchUploadSave(views.APIView):
             if isinstance(data, list) is False:
                 e = "Expecting an array of results"                    
             status.append({"success":"false","message":str(e)})                       
-                
+            #traceback.print_exc()    
         return HttpResponse(json.dumps(status), content_type='application/json')
 
 def validateBottleBarCode(row):
@@ -167,6 +172,32 @@ def validateConstituentType(row):
     return (is_valid,message,constituent_id)
 
 
+def validateIsotopeFlag(row):
+    is_valid = False    
+    message = ""
+    
+    #get isotope flag
+    try:
+        isotope_flag_id = row["isotope_flag_id"]
+        #make sure that it is numeric
+        if isinstance(isotope_flag_id, Number) is False:
+            message = "Expecting a numeric value for isotope_flag_id"
+            return (is_valid,message)
+    except KeyError:
+        message = "'isotope_flag_id' is required"
+        return (is_valid,message)
+    
+    #get constituent id
+    try:
+        isotope_flag_details = IsotopeFlag.objects.get(id=isotope_flag_id)
+    except ObjectDoesNotExist:
+        message = "The isotope flag '"+str(isotope_flag_id)+"' does not exist"
+        return (is_valid,message)
+        
+    is_valid = True
+    return (is_valid,message)
+
+
 def validateConstituentMethod(constituent_id,row):
     is_valid = False
     constituent_method_id = -1   
@@ -197,17 +228,18 @@ def validateQualityAssurance(row):
     is_valid = False       
     message = ""
     quality_assurance_id_array = []
+    quality_assurance_array = []
     try:
-        quality_assurance_id_array = row["quality_assurance"]
+        quality_assurance_array = row["quality_assurance"]
         #check if it's an array
-        if isinstance(quality_assurance_id_array, list) is False:
+        if isinstance(quality_assurance_array, list) is False:
             message = "'quality_assurance' needs to be a list of values"                   
             return (is_valid,message,quality_assurance_id_array)    
     except KeyError:
         is_valid = True
         
     #check that the given quality assurance exists
-    for quality_assurance in quality_assurance_id_array:
+    for quality_assurance in quality_assurance_array:
         try:
             quality_assurance_type_details = QualityAssuranceType.objects.get(quality_assurance=quality_assurance)
         except ObjectDoesNotExist:
@@ -239,24 +271,17 @@ def validateAnalyzedDate(row):
             is_valid = False
             return (is_valid,"The analyzed_date '"+str(analyzed_date)+"' does not match the format mm/dd/YYYY. For eg. 2/02/2014.")
 
-def validateResult(sample_bottle_id,constituent_id,row):
+def validateResult(sample_bottle_id,constituent_id,method_id,row):
     is_valid = False
     result_id = -1   
     message = ""
     bottle_name = row["bottle_unique_name"]
-    constituent_type = row["constituent"]
+    constituent_type = row["constituent"]    
     sediment_dry_weight = None
     sample_mass_processed = None
     result_details = {}
-    #get isotope flag
-    try:
-        isotope_flag_id = row["isotope_flag_id"]
-        #make sure that it is numeric
-        if isinstance(isotope_flag_id, Number) is False:
-            message = "Expecting a numeric value for isotope_flag_id"
-            return (is_valid,message,result_id,sediment_dry_weight,sample_mass_processed)
-    except KeyError:
-        isotope_flag_id = None
+    #get isotope flag    
+    isotope_flag_id = row["isotope_flag_id"]
     
     #make sure that a result is given
     try:
@@ -269,19 +294,15 @@ def validateResult(sample_bottle_id,constituent_id,row):
         message = "'raw_value' is required"
         return (is_valid,message,result_id,sediment_dry_weight,sample_mass_processed)
     
-    #Find the matching record in the Results table, using the unique combination of barcode + constituent { + isotope}        
-    try:            
-        if isotope_flag_id is None:
-            result_details = Result.objects.get(constituent=str(constituent_id),sample_bottle=str(sample_bottle_id))
-        else:
-            result_details = Result.objects.get(constituent=str(constituent_id),sample_bottle=str(sample_bottle_id),isotope_flag=isotope_flag_id)
+    #Find the matching record in the Results table, using the unique combination of barcode + constituent { + isotope}  
+    try:        
+        result_details = Result.objects.get(constituent=str(constituent_id),sample_bottle=str(sample_bottle_id),isotope_flag=isotope_flag_id,method=method_id)
     except ObjectDoesNotExist:            
-        if isotope_flag_id is None:
-            message = "There is no matching record in the result table for bottle  '"+str(bottle_name)+"' and constituent type '"+str(constituent_type)
-        else:
-            message = "There is no matching record in the result table for bottle  '"+str(bottle_name)+"', constituent type '"+str(constituent_type)+"' and isotope flag '"+str(isotope_flag_id)+"'"
+        message = "There is no matching record in the result table for bottle  '"+str(bottle_name)+"', constituent type '"+str(constituent_type)+"' isotope flag '"+str(isotope_flag_id)+"' and method "+str(method_id)+"'"
         return (is_valid,message,result_id,sediment_dry_weight,sample_mass_processed)
-    
+    except MultipleObjectsReturned:
+        message = "There are more than one matching records in the result table for bottle  '"+str(bottle_name)+"', constituent type '"+str(constituent_type)+"' isotope flag '"+str(isotope_flag_id)+"' and method "+str(method_id)+"'"
+        return (is_valid,message,result_id,sediment_dry_weight,sample_mass_processed)
     #check if final value already exists
     final_value = result_details.final_value
     if final_value is not None:
@@ -332,23 +353,23 @@ def evaluateResult(row,result_id):
             #set DDL to -999 for DTHG because it does not have a DDL  
             if constituent_type == 'DTHG':
                 daily_detection_limit = -999
-            #set MDL to DDL  
-            method_detection_limit = daily_detection_limit
-            #all isotopes should use a decplaces of 3 despite what is in the
-            if isotope_flag in ['X-198','X-199','X-200','X-201','X-202']:
-                decimal_places = 3            
+            #set MDL to DDL                                  
             method_detection_limit,significant_figures,decimal_places = getMethodType(method_code)            
+            method_detection_limit = daily_detection_limit
             if raw_value < method_detection_limit:
                 #evaluate according to MDL
                 display_value,reported_value,detection_flag,daily_detection_limit,qa_flags = evaluateResultByMDL(daily_detection_limit,method_detection_limit)
             else:
+                #all isotopes should use a decplaces of 3 despite what is in the
+                if isotope_flag in ['X-198','X-199','X-200','X-201','X-202']:
+                    decimal_places = 3    
                 #evaluate according to significant_figures & decimal_places
                 display_value,reported_value,detection_flag,daily_detection_limit,qa_flags = evaluateResultBySigfigsDecimals(raw_value,daily_detection_limit,method_detection_limit,significant_figures,decimal_places)
         else:
-            if raw_value < 1:        
-                display_value = '0'+ str(raw_value)
-            else:
-                display_value = str(raw_value)
+            #if raw_value < 1:        
+            #display_value = '0'+ str(raw_value)
+            #else:
+            display_value = str(raw_value)
             detection_flag = 'NONE'
             reported_value = display_value
     return (display_value,reported_value, detection_flag, daily_detection_limit,qa_flags)
@@ -393,11 +414,11 @@ def getLostSampleResult(raw_value,daily_detection_limit):
     return (display_value,reported_value, detection_flag, daily_detection_limit,qa_flags)
 
 def evaluateResultByMDL(daily_detection_limit,method_detection_limit):   
-    if method_detection_limit < 1:
+    #if method_detection_limit < 1:
         #add leading zero
-        display_value = '0'+ chr(method_detection_limit)
-    else:
-        display_value = char(method_detection_limit)
+    #    display_value = '0'+ str(method_detection_limit)
+    #else:
+    display_value = str(method_detection_limit)
     reported_value = method_detection_limit
     detection_flag = '<'
     return (display_value,reported_value, detection_flag, daily_detection_limit,[])
@@ -441,8 +462,8 @@ def evaluateResultBySigfigsDecimals(raw_value,daily_detection_limit,method_detec
     #Pad the reported_value with trailing zeros if length < sigfigs + 1 (and decimal point)
     display_value_str = padValue(reported_value,significant_figures,decimal_places)
     #pad a leading zero if the value is less than 1  
-    if reported_value < 1 and reported_value > 0:
-        display_value_str = '0'+display_value_str
+    #if reported_value < 1 and reported_value > 0:
+    #    display_value_str = '0'+display_value_str
         
     return (display_value_str,reported_value, detection_flag, daily_detection_limit,[])
 
@@ -495,11 +516,11 @@ def getRoundedVal(sigfig_value, sigfig_value_str,value):
     elif is_last_digit_five:
         digit_before_last = getDigitBeforeLast(sigfig_value_str,num_behind)
         #if last digit is a 5 and second to last digit is even, trunc  
-        if digit_before_last%2 == 0:
+        if digit_before_last%2 == 0:            
             rounded_val = truncFloat(sigfig_value,ndigits)
         #if last digit is a 5 and second to last digit is odd, round 
         else:
-            rounded_val = round(sigfig_value,ndigits)
+            rounded_val = math.ceil(sigfig_value*pow(10,ndigits))/pow(10,ndigits)
     else:
         rounded_val = sigfig_value
     return rounded_val
@@ -566,8 +587,8 @@ def processFinalValue(final_value, method_id,volume_filtered, sediment_dry_weigh
     elif (method_id == 42):
         value = round(final_value / 1000, 4)
     elif (method_id == 48 or method_id == 49 or method_id == 83	or method_id == 84 or method_id == 85 or method_id == 233 or method_id == 211):
-        if (volumeFiltered is not None):
-            value = round(final_value * 1000 / volumeFiltered, 3)
+        if (volume_filtered is not None):
+            value = round(final_value * 1000 / volume_filtered, 3)
     elif (method_id == 52 or method_id == 71):
         if (sediment_dry_weight is not None and sediment_dry_weight != -999):
             if (sample_mass_processed is not None and sample_mass_processed != -999):
