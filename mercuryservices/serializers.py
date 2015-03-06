@@ -415,13 +415,8 @@ class ResultSerializer(serializers.ModelSerializer):
 ######
 
 
-class TestReportResultSerializer(serializers.ModelSerializer):
-    analyzed_date = serializers.DateTimeField(format='%m/%d/%y', source='analyzed_date')
-    sample_bottle = serializers.RelatedField(source='sample_bottle')
-    constituent = serializers.RelatedField(source='constituent')
-    isotope_flag = serializers.RelatedField(source='isotope_flag')
-
-    class Meta:
-        model = Result
-        fields = ('id', 'sample_bottle', 'method', 'constituent', 'isotope_flag', 'detection_flag', 'raw_value',
-                  'final_value', 'daily_detection_limit', 'analyzed_date', 'analysis_comment', 'quality_assurances',)
+class TestReportSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    project = serializers.CharField()
+    sample_bottles = serializers.RelatedField(many=True)
+    results = ResultSerializer(source='get_results', read_only=True)

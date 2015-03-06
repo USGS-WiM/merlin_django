@@ -54,4 +54,6 @@ router.register(r'bulksites', views.SiteBulkUpdateViewSet)
 urlpatterns = patterns('',
                        url(r'^', include(router.urls)),
                        url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+                       url(r'^batchupload', views.BatchUpload.as_view(), name='batchupload'),
+                       url(r'^testreport/', views.TestReport.as_view(), name='testreport'),
                        )

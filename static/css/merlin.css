@@ -16,9 +16,9 @@
 }
 
 #expander {
-    height: 150%;
+    height: 100%;
     background-color: #333333;
-    position: absolute;
+    position: fixed;
     width:2em;
     float: left;
     left: auto;
@@ -37,24 +37,4 @@
 #expander:hover {
   box-shadow: 3px 3px 15px #666;
   cursor: pointer;
-}
-
-
-/* custom combobox CSS using jQueryUI Autocomplete, source code found here: http://jqueryui.com/autocomplete/#combobox */
-.custom-combobox {
-  position: relative;
-  display: inline-block;
-}
-
-.custom-combobox-toggle {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  margin-left: -1px;
-  padding: 0;
-}
-
-.custom-combobox-input {
-  margin: 0;
-  padding: 5px 10px;
 }
