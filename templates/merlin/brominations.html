@@ -75,7 +75,7 @@
                             <br />
                             <div class="form-group">
                                 <label for="select_bottle">Bottle ID</label><br />
-                                <input id="select_bottle" class="select2-container select2-container-multi" style="width:397px;height:34px;font-size:14px;"/>
+                                <input id="select_bottle" type="hidden" style="width:400px" />  <!-- class="select2-container select2-container-multi" style="width:397px;height:34px;font-size:14px;"/> -->
                             </div>
                         </form>
                     </div>
@@ -559,18 +559,30 @@
                     var gooddate_selected_bromination_date = makeYear(selected_bromination_date) + "-" + makeMonth(selected_bromination_date) + "-" + makeDay(selected_bromination_date);
                     //var date_today = new Date().toISOString().split("T")[0];
                     var dataArray = [];
-                    $.each(gridAdd_changedRowIndices, function(index, value) {
-                        var thisDataRow = grid_add.data('handsontable').getDataAtRow(value);
-                        var thisDataObject = {};
-                        thisDataObject['bromination'] = selected_bromination_id;
-                        var thisID = updateValueAjax('/mercuryservices/samplebottles/', 'bottle', 'id', thisDataRow[0]);
-                        if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Sample Bottle must be a valid choice in row ' + (index + 1) + '!'); validTable = false; return false;}
-                        thisDataObject['sample_bottle'] = thisID;
-                        thisDataObject['bromination_event'] = thisDataRow[1];
-                        thisDataObject['bromination_volume'] = thisDataRow[2];
-                        thisDataObject['created_date'] = gooddate_selected_bromination_date;
-                        dataArray.push(thisDataObject);
-                    });
+                    //$.each(gridAdd_changedRowIndices, function(index, value) {
+                    // if there are no changed rows, notify the user and stop the submission
+                    if (typeof gridAdd_changedRowIndices == 'undefined' || gridAdd_changedRowIndices.length < 1) {grid_console.text('Table is empty!'); validTable = false; return false;}
+                    // otherwise loop through all rows
+                    var allRows = grid_add.handsontable('getInstance').countRows();
+                    for (var row = 0; row < allRows; row++) {
+                        var thisDataRow = grid_add.data('handsontable').getDataAtRow(row);
+                        // check if this row still has (non-default) data; it's possible the user cleared the row after entering data, in which case we no longer want it
+                        // here, we're only checking for a value in the first column (Sample Bottle ID), which is a required field; if it is empty, it is safe to assume that any...
+                        // ...possible data in the rest of the row doesn't need to be checked, because the row can't be saved without a valid value in the first column
+                        if (thisDataRow[0] !== null && thisDataRow[0] !== "" && thisDataRow[0] !== 0 && typeof thisDataRow[0] !== 'undefined') {
+                            var thisDataObject = {};
+                            thisDataObject['bromination'] = selected_bromination_id;
+                            var thisID = updateValueAjax('/mercuryservices/samplebottles/', 'bottle', 'id', thisDataRow[0]);
+                            if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Sample Bottle must be a valid choice in row ' + (row + 1) + '!'); validTable = false; return false;}
+                            thisDataObject['sample_bottle'] = thisID;
+                            thisDataObject['bromination_event'] = thisDataRow[1];
+                            thisDataObject['bromination_volume'] = thisDataRow[2];
+                            thisDataObject['created_date'] = gooddate_selected_bromination_date;
+                            dataArray.push(thisDataObject);
+                        }
+                        // if we made it through the various validations above, then the table must be valid
+                        validTable = true;
+                    }
                     if (validTable) {
                         var dataJSON = JSON.stringify(dataArray);
                         $.ajax({

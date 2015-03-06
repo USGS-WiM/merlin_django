@@ -348,47 +348,75 @@
 
                 grid_bottles_add.parent().find('button[name=bottlesAddSave]').click(function () {
                     var changedDataArrayBottlesAdd = [];
-                    $.each(changedRowIndicesBottlesAdd, function(index, value) {
-                        var thisDataRow = grid_bottles_add.data('handsontable').getDataAtRow(value);
-                        var thisDataObject = {};
-                        for (var i = 0; i < thisDataRow.length; i++) {
-                            switch(i){
-                                case 0: // prefix
-                                    var thisID = updateValueAjax('/mercuryservices/bottleprefixes/', 'bottle_prefix', 'id', thisDataRow[i]);
-                                    if (thisID === null || typeof thisID === 'undefined') {grid_console.text('Bottle Prefix must be a valid choice in row ' + (index + 1) + '!'); validTableAdd = false; return false;}
-                                    thisDataObject[objectFieldsAdd[i]] = thisID;
-                                    break;
-                                case 1: // suffix
-                                    break;
-                                case 2: // bottle unique name
-                                    thisDataObject[objectFieldsAdd[i]] = thisDataRow[i].toUpperCase();
-                                    break;
-                                case 3: //date
-                                    var baddate = thisDataRow[i];
-                                    //var gooddate = "20" + baddate.substr(6,4) + "-" + baddate.substr(0,2) + "-" + baddate.substr(3,2);
-                                    //thisDataObject[objectFields[i]] = gooddate;
-                                    if (dateRegEx.test(baddate)) {
-                                        if (makeYear(baddate)!= null && makeMonth(baddate)!= null && makeDay(baddate) != null) {
-                                            var gooddate_string = makeYear(baddate) + "-" + makeMonth(baddate) + "-" + makeDay(baddate);
-                                            var gooddate = new Date(makeYear(baddate), makeMonth(baddate)-1, makeDay(baddate));
-                                            if (gooddate > dateToday) {
-                                                {grid_console.text('Date cannot be a future date!'); return false;}
-                                            }
-                                            thisDataObject[objectFieldsAdd[i]] = gooddate_string;
+                    //$.each(changedRowIndicesBottlesAdd, function(index, value) {
+                    //    var thisDataRow = grid_bottles_add.data('handsontable').getDataAtRow(value);
+                    //    var thisDataObject = {};
+                    // if there are no changed rows, notify the user and stop the submission
+                    if (typeof changedRowIndicesBottlesAdd == 'undefined' || changedRowIndicesBottlesAdd.length < 1) {grid_console.text('Table is empty!'); validTableAdd = false; return false;}
+                    // otherwise loop through all rows
+                    var allRows = grid_bottles_add.handsontable('getInstance').countRows();
+                    for (var row = 0; row < allRows; row++) {
+                        // grab all the data for this row
+                        var thisDataRow = grid_bottles_add.data('handsontable').getDataAtRow(row);
+                        // check if this row still has (non-default) data; it's possible the user cleared the row after entering data, in which case we no longer want it
+                        // here, we're only checking for a value in the first column (Bottle Prefix), which is a required field; if it is empty, it is safe to assume that any...
+                        // ...possible data in the rest of the row doesn't need to be checked, because the row can't be saved without a valid value in the first column
+                        if (thisDataRow[0] !== null && thisDataRow[0] !== "" && thisDataRow[0] !== 0 && typeof thisDataRow[0] !== 'undefined') {
+                            // an object container for the data in this row
+                            var thisDataObject = {};
+                            for (var i = 0; i < thisDataRow.length; i++) {
+                                switch (i) {
+                                    case 0: // prefix
+                                        var thisID = updateValueAjax('/mercuryservices/bottleprefixes/', 'bottle_prefix', 'id', thisDataRow[i]);
+                                        if (thisID === null || typeof thisID === 'undefined') {
+                                            grid_console.text('Bottle Prefix must be a valid choice in row ' + (row + 1) + '!');
+                                            validTableAdd = false;
+                                            return false;
                                         }
-                                        else {grid_console.text('There is a problem with the Date in row ' + (index + 1) + '. Please contact the administrator.'); return false;}
-                                    }
-                                    else {grid_console.text('Date is badly formed in row ' + (index + 1) + '. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); return false;}
-                                    break;
-                                default:
-                                    thisDataObject[objectFieldsAdd[i]] = thisDataRow[i];
-                                    break;
+                                        thisDataObject[objectFieldsAdd[i]] = thisID;
+                                        break;
+                                    case 1: // suffix
+                                        break;
+                                    case 2: // bottle unique name
+                                        thisDataObject[objectFieldsAdd[i]] = thisDataRow[i].toUpperCase();
+                                        break;
+                                    case 3: //date
+                                        var baddate = thisDataRow[i];
+                                        //var gooddate = "20" + baddate.substr(6,4) + "-" + baddate.substr(0,2) + "-" + baddate.substr(3,2);
+                                        //thisDataObject[objectFields[i]] = gooddate;
+                                        if (dateRegEx.test(baddate)) {
+                                            if (makeYear(baddate) != null && makeMonth(baddate) != null && makeDay(baddate) != null) {
+                                                var gooddate_string = makeYear(baddate) + "-" + makeMonth(baddate) + "-" + makeDay(baddate);
+                                                var gooddate = new Date(makeYear(baddate), makeMonth(baddate) - 1, makeDay(baddate));
+                                                if (gooddate > dateToday) {
+                                                    {
+                                                        grid_console.text('Date cannot be a future date!');
+                                                        return false;
+                                                    }
+                                                }
+                                                thisDataObject[objectFieldsAdd[i]] = gooddate_string;
+                                            }
+                                            else {
+                                                grid_console.text('There is a problem with the Date in row ' + (row + 1) + '. Please contact the administrator.');
+                                                return false;
+                                            }
+                                        }
+                                        else {
+                                            grid_console.text('Date is badly formed in row ' + (row + 1) + '. Expecting a date in mm/dd/yy format but found ' + baddate + '!');
+                                            return false;
+                                        }
+                                        break;
+                                    default:
+                                        thisDataObject[objectFieldsAdd[i]] = thisDataRow[i];
+                                        break;
+                                }
                             }
+                            // add the new row object to the array
+                            changedDataArrayBottlesAdd.push(thisDataObject);
                         }
-                        changedDataArrayBottlesAdd.push(thisDataObject);
                         // if we made it through the various validations above, then the table must be valid
-                        validTable = true;
-                    });
+                        validTableAdd = true;
+                    }
                     if(validTableAdd) {
                         var changedDataJSON = JSON.stringify(changedDataArrayBottlesAdd);
                         $.ajax({

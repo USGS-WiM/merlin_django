@@ -225,6 +225,11 @@ class Sample(models.Model):
     modified_date = models.DateField(auto_now=True, null=True, blank=True)
     status = models.ForeignKey('Status', null=True, blank=True)
 
+    def get_results(self):
+        sample_bottles = SampleBottle.objects.filter(sample=self)
+        results = Result.objects.filter(sample_bottle__in=sample_bottles)
+        return results
+
     def __str__(self):
         return str(self.id)
 
