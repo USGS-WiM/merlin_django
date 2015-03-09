@@ -1,0 +1,342 @@
+﻿<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Mercury Lab Results Uploader</title>
+
+    <!--css ref-->
+    <link rel="stylesheet" href="Content/bootstrap.css" />
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" /> 
+    <link rel="stylesheet" href="Content/simple-sidebar.css" />
+    <link rel="stylesheet" href="Content/datepicker3.css" />
+    <link rel="stylesheet" href="Content/Main.css" />
+    <link rel="stylesheet" href="Content/toastr.css" />
+
+    <!--configuration-->
+    <script src="web.config.js" type="text/javascript"></script>
+
+    <!-- I cannot get these to work with requireJS -->
+    <script src="Scripts/js-xlsx/jszip.js"></script>
+    <script src="Scripts/js-xlsx/xlsx.js"></script>
+    <!-- I cannot get these to work with requireJS -->  
+
+</head>
+<body id="MainApp" style="display:none">
+
+    <h1>USGS WI Mercury Lab Results Batch Uploader</h1>
+    <div class="modal fade" tabindex="-1" data-bind="modal:Authorization.ShowLogin, template:{name:'LoginTemplate', data:Authorization}"></div>
+    <div class="modal fade" tabindex="-1" data-bind="modal:QAViewModel.Show, template:{name:'QATemplate', if: QAViewModel, data:QAViewModel}"></div>
+    <section id="wrapper">
+        <div id='loadingWrapper'>
+            <i id="loadingSpinner" data-bind="loading: IsLoading" class="fa fa-spinner fa-5x fa-spin"></i>
+        </div>
+        <section id ="sidebar-wrapper">            
+            <button type="button" data-bind="attr: { 'class' : SelectedProcedure() === 1 ? 'btn btn-arrow-right' :'btn' },
+                                             click: SetProcedureType(1)">Import</button>
+            <button type="button" data-bind="attr: { 'class' : SelectedProcedure() === 2 ? 'btn btn-arrow-right' :'btn' },
+                                             click: SetProcedureType(2)">Validate</button>
+            <button type="button" data-bind="attr: { 'class' : SelectedProcedure() === 3 ? 'btn btn-arrow-right' :'btn' },
+                                             click: SetProcedureType(3)"> Submit</button>
+            <button type="button" data-bind="attr: { 'class' : SelectedProcedure() === 4 ? 'btn btn-arrow-right' :'btn' },
+                                             click: SetProcedureType(4)">Log File</button>
+            <button type="button" class="btn" onclick="window.location.reload()">Reset</button>
+        </section>   
+        <section id="page-content-wrapper">
+                <section id="importPanel" data-bind="fadeVisible:SelectedProcedure() === 1">
+                    <label for="fileselect">To import, browse for Mercury-Template file:</label>
+                    <input type="file" id="fileselect" data-bind="event:{change:function(data, e){ $root.HandleFileSelect(e, $data);}}" name="files" multiple="multiple" />
+                    <div id="dropZone" data-bind="event:{
+                                 dragover: function(data, e){ $root.HandleDrag(e);},
+                                 drop: function(data, e){ $root.HandleFileSelect(e, $data);},
+                                 dragenter: function(data, e){ $root.HandleDrag(e);},
+                                 dragleave: function(data, e){ $root.HandleDrag(e);}
+                                 }, visible: AllowDrop">
+                        or Drop Mercury-Template file here!
+                    </div>
+                </section>
+                <section id="validatePanel" style="display:flex" class="column" data-bind="fadeVisible:(SelectedProcedure()===2 || SelectedProcedure() ===3)">
+                    <ul data-bind="template:{name: 'SampleListView', foreach: SampleList}"></ul>
+                    <div class="sample col-sm-6" data-bind="template:{name:'SampleView', if:SelectedSample, data:SelectedSample}"></div>
+                    <div class="sample col-sm-6" data-bind="template:{name:'ResultView', if:SelectedSample, data:SelectedSample}"></div>
+                </section>
+                <div id="logPanel" data-bind="fadeVisible:SelectedProcedure()===4">
+                    <ul data-bind="template:{name: 'LogView', foreach: NotificationList}"></ul>
+                </div>
+            </section>        
+    </section>
+
+    <!--main requirejs configuration file-->
+    <script data-main="configuration" src="Scripts/require.js" type="text/javascript"></script>  
+
+    <script type="text/html" id="SampleListView">
+        <li data-bind="attr:{'class': (Result().HasErrors()) ? 'danger' :'' }">
+            <button id="sampleItem" data-bind="attr:{class:$data === $root.SelectedSample()? 'btn btn-arrow-right' :'btn'}, click:$root.SelectSample($data)"><span data-bind="text: bottle.bottle_unique_name"> </span></button>
+        </li>
+    </script>
+    <script type="text/html" id="LogView">
+        <li data-bind="attr:{'class': type == 'error' ? 'text-danger' :'' }">
+            <span data-bind="text: displayedMSG"></span>
+        </li>
+    </script>
+    <script type="text/html" id="SampleView">
+        <table class="WiMtable table">
+            <thead>
+                <tr>
+                    <th colspan="3">Project Information</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Name :</td>
+                    <td><label data-bind="text: project.name"></label></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td><label data-bind="text: project.description"></label></td>
+                </tr>
+                <tr>
+                    <td>Site :</td>
+                    <td><label data-bind="text: site.name"></label></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td><label data-bind="text: site.description"></label></td>
+                </tr>
+            </tbody>
+        </table>
+        <!--Sample Summary-->
+        <table class="WiMtable table">
+            <thead>
+                <tr>
+                    <th colspan="3">Summary</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Unique Identifier :</td>
+                    <td><label data-bind="text: bottle.bottle_unique_name"></label></td>
+                </tr>
+                <tr>
+                    <td>Bottle Type :</td>
+                    <td><label readonly data-bind="text: bottle.bottle_type"></label></td>
+                </tr>
+                <tr>
+                    <td>Bottle Description :</td>
+                    <td><label readonly data-bind="text: bottle.description"></label></td>
+                </tr>
+                <tr>
+                    <td>Sampled Date :</td>
+                    <td><label readonly data-bind="text: sampling_date"></label></td>
+                </tr>
+                <tr>
+                    <td>Medium Type :</td>
+                    <td><label readonly data-bind="text: mediumType"></label></td>
+                </tr>                
+                <tr>
+                    <td>Preservation Comment :</td>
+                    <td><label readonly data-bind="text: preservation_comment"></label></td>
+                </tr>
+            </tbody>
+        </table>
+    </script>
+    <script id="ResultView" type="text/html">
+        <!--Results-->
+        <table class="WiMtable table" data-bind=" with:Result">
+            <thead>
+                <tr>
+                    <th colspan="3">Results</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Constituent Row -->
+                <tr data-bind="attr:{'class': constituent.hasWarning() ? 'danger' :'' }">
+                    <td>Constituent :</td>
+                    <td>
+                        <select class="form-control" data-bind=" options: $root.ConstituentList,
+                           optionsText: 'constituent',
+                           value: constituent,
+                           optionsCaption: 'Choose...',
+                           event : {change: $root.SetConstituentMethods}"></select>
+                    </td>
+
+                </tr>
+                <tr class="danger" style="padding:6px;font-size:10px;" data-bind="visible: constituent.hasWarning()">
+                    <td colspan="3">
+                        <i class="text-danger glyphicon glyphicon-warning-sign"></i><span class="text-danger" data-bind='text: constituent.validationMessage()'></span>
+                    </td>
+                </tr>
+                <!-- Isotope flag Row -->
+                <tr data-bind="attr:{'class': isotope_flag.hasWarning() ? 'danger' :'' }">
+                    <td>Isotope Flag :</td>
+                    <td>
+                        <select class="form-control" data-bind=" options: $root.IsotopeFlagList,
+                           optionsText: 'isotope_flag',
+                           value: isotope_flag,
+                           optionsCaption: 'Choose...'"></select>
+                    </td>
+
+                </tr>
+                <tr class="danger" style="padding:6px;font-size:10px;" data-bind="visible: isotope_flag.hasWarning()">
+                    <td colspan="3">
+                        <i class="text-danger glyphicon glyphicon-warning-sign"></i><span class="text-danger" data-bind='text: isotope_flag.validationMessage()'></span>
+                    </td>
+                </tr>
+                <!-- Method Row -->
+                <tr data-bind="attr:{'class': method.hasWarning() ? 'danger' :'' }">
+                    <td>Method Type :</td>
+                    <td>
+                        <select class="form-control" data-bind="options: constituentMethods,
+                           optionsText: 'displayMethod',
+                           value: method,
+                           optionsCaption: 'Choose...'"></select>
+                    </td>
+                </tr>
+               <tr class="danger" style="padding:6px;font-size:10px;" data-bind="visible: method.hasWarning()">
+                    <td colspan="3">
+                        <i class="text-danger glyphicon glyphicon-warning-sign"></i><span class="text-danger" data-bind='text: method.validationMessage()'></span>
+                    </td>
+                </tr>
+                <!-- Reported Value Row -->
+                <tr data-bind="attr:{'class': unit.hasWarning() ? 'danger' :'' }">
+                    <td>Reported Value :</td>
+                    <td>
+                        <div style="width:100%" class="input-group">
+                            <input style="width:50%" class="form-control" type="text" data-bind="numeric, value: reported_value">
+                            <select style="width:50%" class="form-control" data-bind="options: $root.UnitList,
+                                           optionsText: 'unit',
+                                           value: unit,
+                                           optionsCaption: 'Choose...'"></select>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="danger" style="padding:6px;font-size:10px;" data-bind="visible: unit.hasWarning()">
+                    <td colspan="3">
+                        <i class="text-danger glyphicon glyphicon-warning-sign"></i><span class="text-danger" data-bind='text: unit.validationMessage()'></span>
+                    </td>
+                </tr>
+                <tr class="danger" style="padding:6px;font-size:10px;" data-bind="visible: reported_value.hasWarning()">
+                    <td colspan="3">
+                        <i class="text-danger glyphicon glyphicon-warning-sign"></i><span class="text-danger" data-bind='text: reported_value.validationMessage()'></span>
+                    </td>
+                </tr>
+                <!-- Detection Limit Row -->
+                <tr data-bind="attr:{'class': daily_detection_limit.hasWarning() ? 'danger' :'' }">
+                    <td>Detection Limit :</td>
+                    <td><input type="text" class="form-control" data-bind="numeric, value: daily_detection_limit"></td>
+                </tr>
+                <tr class="danger" style="padding:6px;font-size:10px;" data-bind="visible: daily_detection_limit.hasWarning()">
+                    <td colspan="3">
+                        <i class="text-danger glyphicon glyphicon-warning-sign"></i><span class="text-danger" data-bind='text: daily_detection_limit.validationMessage()'></span>
+                    </td>
+                </tr>
+                <!-- Analysis Date Row -->
+                <tr data-bind="attr:{'class': analyzed_date.hasWarning() ? 'danger' :'' }">
+                    <td>Analysis Date :</td>
+                    <td><input class="form-control" type="text" data-bind="datepicker: analyzed_date, datepickerOptions: { autoclose: true, todayHighlight:true}" /></td>
+                </tr>
+                <tr class="danger" style="padding:6px;font-size:10px;" data-bind="visible: analyzed_date.hasWarning()">
+                    <td colspan="3">
+                        <i class="text-danger glyphicon glyphicon-warning-sign"></i><span class="text-danger" data-bind='text: analyzed_date.validationMessage()'></span>
+                    </td>
+                </tr>
+                <!-- Comment Row -->
+                <tr>
+                    <td>Analysis Comment :</td>
+                    <td><input type="text" class="form-control" data-bind="value: analysis_comment"></td>
+                </tr>
+                <!-- QA Row -->
+                <tr>
+                    <td>Quality Assurance :</td>
+                    <td>
+                        <table class ="WiMtable table">
+                            <thead>
+                                <tr><th>QA code</th><th>description</th></tr>
+                            </thead>
+                            <tbody data-bind="foreach: qualityAssuranceList">
+                                <tr>
+                                    <td data-bind="text: quality_assurance"></td>
+                                    <td data-bind="text: description"></td>
+                                    <td><a href="#" data-bind="click: $parent.RemoveQA">Remove</a></td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td>
+                                        <button id="addQA" class="btn" data-bind="click:$root.ShowQAPopup"><span> Add QA </span></button> 
+                                    </td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </script>
+    <script type="text/html" id="LoginTemplate">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title">Login</h4>
+                </div>
+                <div class="modal-body">
+                    Enter username and password to confirm submit.
+                    <div class="form-horizontal">
+                        <div class="form-group">
+                            <label class="col-xs-3 control-label">Username</label>
+                            <div class="col-xs-5">
+                                <input type="text" autofocus placeholder="Username"
+                                       data-bind="value: User.UserName, attr:{'class':User.UserName.IsValid()? 'form-control': 'form-control alert-danger'}" />
+                                <span style="padding:6px;font-size:10px;color: #a94442;" data-bind="fadeVisible: !User.UserName.IsValid()">Invalid Username</span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="col-xs-3 control-label">Password</label>
+                            <div class="col-xs-5">
+                                <input type="password" class="form-control" placeholder="Password" 
+                                       data-bind="value: User.Password, attr:{'class':User.Password.IsValid()? 'form-control':'form-control alert-danger'}" />
+                                <span style="padding:6px;font-size:10px;color: #a94442;" data-bind="fadeVisible: !User.Password.IsValid()">Invalid Password</span>
+                                
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-xs-5 col-xs-offset-3">
+                                <button class="btn btn-default" data-bind="click:AuthenticateUser()">Login</button>
+                            </div>
+                        </div>
+                        <div style="padding:6px;font-size:10px;color: #a94442;" role="alert" data-bind="fadeVisible: LoginMSG() != ''">
+                            <i class="glyphicon glyphicon-warning-sign"></i><span data-bind="text: LoginMSG"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </script>
+    <script type="text/html" id="QATemplate">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title">Login</h4>
+                </div>
+                <div class="modal-body">
+                    Select a "Quality Assurance" to add to selected sample.
+                    <div class="form-horizontal">
+                        <select id="ddQA" class="form-control" data-bind="options: QualityAssuranceList,
+                                               optionsText: 'quality_assurance',
+                                               value: SelectedQualityAssurance,
+                                               optionsCaption: 'Choose...'"></select>
+                        <button class="btn" data-bind="click:$root.AddQAToSelectedSample"><span> Add QA </span></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </script>
+</body>
+</html>
+
+
