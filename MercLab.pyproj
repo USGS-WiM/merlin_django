@@ -1,0 +1,185 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{09d156f5-c251-40f2-b7b7-b69eee997684}</ProjectGuid>
+    <ProjectHome />
+    <StartupFile>manage.py</StartupFile>
+    <SearchPath />
+    <WorkingDirectory>.</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <ProjectTypeGuids>{5F0BE9CA-D677-4A4D-8806-6076C0FAAD37};{349c5851-65df-11da-9384-00065b846f21};{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
+    <LaunchProvider>Django launcher</LaunchProvider>
+    <InterpreterId>{2af0f10d-7135-4994-9156-5d01c9c11b7e}</InterpreterId>
+    <InterpreterVersion>3.4</InterpreterVersion>
+    <UseIISExpress>true</UseIISExpress>
+    <IsWindowsApplication>False</IsWindowsApplication>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
+  <PropertyGroup>
+    <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="requirements.txt" />
+    <Content Include="static\staticfiles\css\bootstrap-theme.css" />
+    <Content Include="static\staticfiles\css\bootstrap-theme.min.css" />
+    <Content Include="static\staticfiles\css\bootstrap.css" />
+    <Content Include="static\staticfiles\css\bootstrap.min.css" />
+    <Content Include="static\staticfiles\css\dashboard.css" />
+    <Content Include="static\staticfiles\css\images\ui-bg_flat_0_aaaaaa_40x100.png" />
+    <Content Include="static\staticfiles\css\images\ui-bg_flat_0_eeeeee_40x100.png" />
+    <Content Include="static\staticfiles\css\images\ui-bg_flat_55_c0402a_40x100.png" />
+    <Content Include="static\staticfiles\css\images\ui-bg_flat_55_eeeeee_40x100.png" />
+    <Content Include="static\staticfiles\css\images\ui-bg_glass_100_f8f8f8_1x400.png" />
+    <Content Include="static\staticfiles\css\images\ui-bg_glass_35_dddddd_1x400.png" />
+    <Content Include="static\staticfiles\css\images\ui-bg_glass_60_eeeeee_1x400.png" />
+    <Content Include="static\staticfiles\css\images\ui-bg_inset-hard_75_999999_1x100.png" />
+    <Content Include="static\staticfiles\css\images\ui-bg_inset-soft_50_c9c9c9_1x100.png" />
+    <Content Include="static\staticfiles\css\images\ui-icons_3383bb_256x240.png" />
+    <Content Include="static\staticfiles\css\images\ui-icons_454545_256x240.png" />
+    <Content Include="static\staticfiles\css\images\ui-icons_70b2e1_256x240.png" />
+    <Content Include="static\staticfiles\css\images\ui-icons_999999_256x240.png" />
+    <Content Include="static\staticfiles\css\images\ui-icons_fbc856_256x240.png" />
+    <Content Include="static\staticfiles\css\jquery-ui.min.css" />
+    <Content Include="static\staticfiles\css\jquery.handsontable.css" />
+    <Content Include="static\staticfiles\css\mercurylab.css" />
+    <Content Include="static\staticfiles\css\select2-bootstrap.css" />
+    <Content Include="static\staticfiles\css\select2-spinner.gif" />
+    <Content Include="static\staticfiles\css\select2.css" />
+    <Content Include="static\staticfiles\css\select2.png" />
+    <Content Include="static\staticfiles\css\select2x2.png" />
+    <Content Include="static\staticfiles\css\simple-sidebar.css" />
+    <Content Include="static\staticfiles\fonts\glyphicons-halflings-regular.svg" />
+    <Content Include="static\staticfiles\img\Arthur-Pyle_The_Enchanter_Merlin.jpg" />
+    <Content Include="static\staticfiles\img\glyphicons-halflings-white.png" />
+    <Content Include="static\staticfiles\img\glyphicons-halflings.png" />
+    <Content Include="static\staticfiles\img\mercury_statue.jpg" />
+    <Content Include="static\staticfiles\js\bootstrap.js" />
+    <Content Include="static\staticfiles\js\bootstrap.min.js" />
+    <Content Include="static\staticfiles\js\jquery-2.1.1.min.js" />
+    <Content Include="static\staticfiles\js\jquery-ui.min.js" />
+    <Content Include="static\staticfiles\js\jquery.handsontable.full.js" />
+    <Content Include="static\staticfiles\js\mercurylab.js" />
+    <Content Include="static\staticfiles\js\select2.min.js" />
+    <Content Include="templates\mercurylab\about.html" />
+    <Content Include="templates\mercurylab\acids.html" />
+    <Content Include="templates\mercurylab\acid_add.html" />
+    <Content Include="templates\mercurylab\base.html" />
+    <Content Include="templates\mercurylab\blankwaters.html" />
+    <Content Include="templates\mercurylab\bottles.html" />
+    <Content Include="templates\mercurylab\brominations.html" />
+    <Content Include="templates\mercurylab\category.html" />
+    <Content Include="templates\mercurylab\cooperator.html" />
+    <Content Include="templates\mercurylab\cooperators.html" />
+    <Content Include="templates\mercurylab\cooperators_formset.html" />
+    <Content Include="templates\mercurylab\cooperators_list.html" />
+    <Content Include="templates\mercurylab\cooperators_old.html" />
+    <Content Include="templates\mercurylab\cooperator_add.html" />
+    <Content Include="templates\mercurylab\cooperator_detail.html" />
+    <Content Include="templates\mercurylab\cooperator_edit.html" />
+    <Content Include="templates\mercurylab\create.html" />
+    <Content Include="templates\mercurylab\error.html" />
+    <Content Include="templates\mercurylab\index.html" />
+    <Content Include="templates\mercurylab\list.html" />
+    <Content Include="templates\mercurylab\login.html" />
+    <Content Include="templates\mercurylab\nav.html" />
+    <Content Include="templates\mercurylab\nav_old.html" />
+    <Content Include="templates\mercurylab\profile.html" />
+    <Content Include="templates\mercurylab\projects.html" />
+    <Content Include="templates\mercurylab\register.html" />
+    <Content Include="templates\mercurylab\restricted.html" />
+    <Content Include="templates\mercurylab\retrieve.html" />
+    <Content Include="templates\mercurylab\sample_bottles.html" />
+    <Content Include="templates\mercurylab\sample_login_a.html" />
+    <Content Include="templates\mercurylab\sample_login_b.html" />
+    <Content Include="templates\mercurylab\search.html" />
+    <Content Include="templates\mercurylab\sites.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="manage.py" />
+    <Compile Include="mercurylab\admin.py" />
+    <Compile Include="mercurylab\forms.py" />
+    <Compile Include="mercurylab\migrations\__init__.py" />
+    <Compile Include="mercurylab\models.py" />
+    <Compile Include="mercurylab\tests.py" />
+    <Compile Include="mercurylab\urls.py" />
+    <Compile Include="mercurylab\views.alt.py" />
+    <Compile Include="mercurylab\views.py" />
+    <Compile Include="mercurylab\__init__.py" />
+    <Compile Include="mercuryproject\settings.py" />
+    <Compile Include="mercuryproject\urls.py" />
+    <Compile Include="mercuryproject\wsgi.py" />
+    <Compile Include="mercuryproject\__init__.py" />
+    <Compile Include="mercuryservices\admin.py" />
+    <Compile Include="mercuryservices\migrations\0001_initial.py" />
+    <Compile Include="mercuryservices\migrations\__init__.py" />
+    <Compile Include="mercuryservices\models.py" />
+    <Compile Include="mercuryservices\serializers.py" />
+    <Compile Include="mercuryservices\tests.py" />
+    <Compile Include="mercuryservices\urls.py" />
+    <Compile Include="mercuryservices\views.py" />
+    <Compile Include="mercuryservices\__init__.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="mercurylab" />
+    <Folder Include="mercurylab\migrations" />
+    <Folder Include="mercuryproject" />
+    <Folder Include="mercuryservices" />
+    <Folder Include="mercuryservices\migrations" />
+    <Folder Include="static\" />
+    <Folder Include="static\staticfiles\" />
+    <Folder Include="static\staticfiles\css" />
+    <Folder Include="static\staticfiles\css\images" />
+    <Folder Include="static\staticfiles\fonts" />
+    <Folder Include="static\staticfiles\img" />
+    <Folder Include="static\staticfiles\js" />
+    <Folder Include="templates\" />
+    <Folder Include="templates\mercurylab" />
+  </ItemGroup>
+  <ItemGroup>
+    <InterpreterReference Include="{2af0f10d-7135-4994-9156-5d01c9c11b7e}\2.7" />
+    <InterpreterReference Include="{2af0f10d-7135-4994-9156-5d01c9c11b7e}\3.4" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.Django.targets" />
+  <ProjectExtensions>
+    <VisualStudio>
+      <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
+        <WebProjectProperties>
+          <UseIIS>True</UseIIS>
+          <AutoAssignPort>True</AutoAssignPort>
+          <DevelopmentServerPort>0</DevelopmentServerPort>
+          <DevelopmentServerVPath>/</DevelopmentServerVPath>
+          <IISUrl>http://localhost:18789/</IISUrl>
+          <NTLMAuthentication>False</NTLMAuthentication>
+          <UseCustomServer>False</UseCustomServer>
+          <CustomServerUrl>
+          </CustomServerUrl>
+          <SaveServerSettingsInUserFile>False</SaveServerSettingsInUserFile>
+        </WebProjectProperties>
+      </FlavorProperties>
+      <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}" User="">
+        <WebProjectProperties>
+          <StartPageUrl>
+          </StartPageUrl>
+          <StartAction>CurrentPage</StartAction>
+          <AspNetDebugging>True</AspNetDebugging>
+          <SilverlightDebugging>False</SilverlightDebugging>
+          <NativeDebugging>False</NativeDebugging>
+          <SQLDebugging>False</SQLDebugging>
+          <ExternalProgram>
+          </ExternalProgram>
+          <StartExternalURL>
+          </StartExternalURL>
+          <StartCmdLineArguments>
+          </StartCmdLineArguments>
+          <StartWorkingDirectory>
+          </StartWorkingDirectory>
+          <EnableENC>True</EnableENC>
+          <AlwaysStartWebServerOnDebug>False</AlwaysStartWebServerOnDebug>
+        </WebProjectProperties>
+      </FlavorProperties>
+    </VisualStudio>
+  </ProjectExtensions>
+</Project>
