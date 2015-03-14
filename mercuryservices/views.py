@@ -329,6 +329,10 @@ class BottlePrefixViewSet(viewsets.ModelViewSet):
         id = self.request.QUERY_PARAMS.get('id', None)
         if id is not None:
             queryset = queryset.filter(id__exact=id)
+        bottle_prefix_exact = self.request.QUERY_PARAMS.get('bottle_prefix_exact', None)
+        if bottle_prefix_exact is not None:
+            # get the Bottle Prefix
+            queryset = queryset.filter(bottle_prefix__exact=bottle_prefix_exact)
         bottle_prefix = self.request.QUERY_PARAMS.get('bottle_prefix', None)
         if bottle_prefix is not None:
             # if query value is a Bottle Prefix ID

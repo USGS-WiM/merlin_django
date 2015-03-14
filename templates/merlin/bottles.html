@@ -367,8 +367,8 @@
                             for (var i = 0; i < thisDataRow.length; i++) {
                                 switch (i) {
                                     case 0: // prefix
-                                        var thisID = updateValueAjax('/mercuryservices/bottleprefixes/', 'bottle_prefix', 'id', thisDataRow[i]);
-                                        if (thisID === null || typeof thisID === 'undefined') {
+                                        var thisID = updateValueAjax('/mercuryservices/bottleprefixes/', 'bottle_prefix_exact', 'id', thisDataRow[i]);
+                                        if (thisID == "" || thisID === null || typeof thisID === 'undefined') {
                                             grid_console.text('Bottle Prefix must be a valid choice in row ' + (row + 1) + '!');
                                             validTableAdd = false;
                                             return false;
