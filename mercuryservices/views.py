@@ -606,6 +606,9 @@ class AcidViewSet(viewsets.ModelViewSet):
     # override the default queryset to allow filtering by URL arguments
     def get_queryset(self):
         queryset = Acid.objects.all()
+        code_exact = self.request.QUERY_PARAMS.get('code_exact', None)
+        if code_exact is not None:
+            queryset = queryset.filter(code__exact=code_exact)
         code = self.request.QUERY_PARAMS.get('code', None)
         if code is not None:
             queryset = queryset.filter(code__icontains=code)
