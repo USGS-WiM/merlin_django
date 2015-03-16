@@ -673,7 +673,7 @@
                                     case 15: // acid
                                         // if it has a value, look up and return the ID, otherwise skip this field (won't be included in submission to database)
                                         if (thisDataRow[i] !== null && thisDataRow[i] !== "" && thisDataRow[i] !== 0 && typeof thisDataRow[i] !== 'undefined') {
-                                            thisID = updateValueAjax('/mercuryservices/acids/', 'code', 'id', thisDataRow[i]);
+                                            thisID = updateValueAjax('/mercuryservices/acids/', 'code_exact', 'id', thisDataRow[i]);
                                             if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Acid must be a valid choice, or empty, in row ' + (row + 1) + '!'); validTable = false; return false;}
                                             thisDataObject[objectFields[i]] = thisID;
                                         }

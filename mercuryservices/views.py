@@ -329,6 +329,10 @@ class BottlePrefixViewSet(viewsets.ModelViewSet):
         id = self.request.QUERY_PARAMS.get('id', None)
         if id is not None:
             queryset = queryset.filter(id__exact=id)
+        bottle_prefix_exact = self.request.QUERY_PARAMS.get('bottle_prefix_exact', None)
+        if bottle_prefix_exact is not None:
+            # get the Bottle Prefix
+            queryset = queryset.filter(bottle_prefix__exact=bottle_prefix_exact)
         bottle_prefix = self.request.QUERY_PARAMS.get('bottle_prefix', None)
         if bottle_prefix is not None:
             # if query value is a Bottle Prefix ID
@@ -602,6 +606,9 @@ class AcidViewSet(viewsets.ModelViewSet):
     # override the default queryset to allow filtering by URL arguments
     def get_queryset(self):
         queryset = Acid.objects.all()
+        code_exact = self.request.QUERY_PARAMS.get('code_exact', None)
+        if code_exact is not None:
+            queryset = queryset.filter(code__exact=code_exact)
         code = self.request.QUERY_PARAMS.get('code', None)
         if code is not None:
             queryset = queryset.filter(code__icontains=code)

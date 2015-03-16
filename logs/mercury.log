@@ -1,1 +1,3 @@
-[2015-03-06 11:02:51] | WARNING [django.request:143] | Not Found: /favicon.ico
+[2015-03-16 11:34:51] | WARNING [django.request:143] | Not Found: /browserConnection/buildInfo
+[2015-03-16 11:35:00] | WARNING [django.request:143] | Not Found: /favicon.ico
+[2015-03-16 11:35:01] | WARNING [django.request:143] | Not Found: /startTime
