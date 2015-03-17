@@ -318,7 +318,7 @@
                         new_bottles.push(thisDataArray)
                     }
                     //grid_bottles_add.data('handsontable').alter('insert_row', null, (end-1));
-                    grid_bottles_add.data('handsontable').populateFromArray(1, 0, new_bottles, (end-1), 3, 'populateFromArray', 'shift_down');
+                    grid_bottles_add.data('handsontable').populateFromArray(1, 0, new_bottles); //, (end-1), 3, 'populateFromArray', 'shift_down');
                     grid_bottles_add.parent().find('button[name=insertRange]').click();
                     grid_console.text('Inserted Range.');
                 });
