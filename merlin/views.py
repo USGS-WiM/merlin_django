@@ -77,7 +77,10 @@ def sample_login_save(request):
         row_message = "for row " + str(row_number) + " in table..."
         logger.info(row_message)
         # grab the data that uniquely identifies each sample
-        this_sample_id = str(row.get('project'))+"|"+str(row.get('site'))+"|"+str(row.get('sample_date_time'))+"|"+str(row.get('depth'))+"|"+str(row.get('replicate'))
+        this_depth = str(row.get('depth'))
+        if -1 < float(str(row.get('depth'))) < 1:
+            this_depth = "0" + this_depth
+        this_sample_id = str(row.get('project'))+"|"+str(row.get('site'))+"|"+str(row.get('sample_date_time'))+"|"+this_depth+"|"+str(row.get('replicate'))
         logger.info("this sample id: " + this_sample_id)
         # if this sample ID is not already in the unique list, add it, otherwise skip the sample data for this row
         if this_sample_id not in unique_sample_ids:
@@ -245,7 +248,14 @@ def sample_login_save(request):
                 sample_bottle['sample'] = sample_id['db_id']
         if not isinstance(sample_bottle['sample'], int):
             logger.warning("Could not match sample and combo IDs!")
-            message = "\"Error: Samples were saved, but unable to save sample bottles. Please contact the administrator.\""
+            logger.warning("Deleting samples that were just saved.")
+            for sample_id in sample_ids:
+                r = requests.request(method='DELETE', url=REST_SERVICES_URL+'samples/' + sample_id['db_id'], headers=headers)
+                if r.status_code != 204:
+                    message = "\"Error: Able to save samples, but unable to save sample bottles. Encountered problem reversing saved samples (specificaly sample ID " + str(sample_id['db_id']) + "). Please contact the administrator.\""
+                    logger.error(message)
+                    return HttpResponse(message, content_type='text/html')
+            message = "\"Error: Able to save samples, but unable to save sample bottles. Please contact the administrator.\""
             logger.error(message)
             return HttpResponse(message, content_type='text/html')
     # send the sample bottles to the database
@@ -254,7 +264,15 @@ def sample_login_save(request):
     r = requests.request(method='POST', url=REST_SERVICES_URL+'bulksamplebottles/', data=sample_bottle_data, headers=headers)
     logger.info(r.request.method + " " + r.request.url + " " + r.reason + " " + str(r.status_code))
     if r.status_code != 201:
-        message = "\"Error " + str(r.status_code) + ": " + r.reason + ". Samples were saved, but unable to save sample bottles. Please contact the administrator.\""
+        logger.warning("Could not save sample bottles!")
+        logger.warning("Deleting samples that were just saved.")
+        for sample_id in sample_ids:
+            r = requests.request(method='DELETE', url=REST_SERVICES_URL+'samples/' + sample_id['db_id'], headers=headers)
+            if r.status_code != 204:
+                message = "\"Error: Able to save samples, but unable to save sample bottles. Encountered problem reversing saved samples (specificaly sample ID " + str(sample_id['db_id']) + "). Please contact the administrator.\""
+                logger.error(message)
+                return HttpResponse(message, content_type='text/html')
+        message = "\"Error " + str(r.status_code) + ": " + r.reason + ". Able to save samples, but unable to save sample bottles. Please contact the administrator.\""
         logger.error(message)
         return HttpResponse(message, content_type='text/html')
     response_data = r.json()
@@ -276,7 +294,21 @@ def sample_login_save(request):
                 sample_analysis['sample_bottle'] = sample_bottle_id['db_id']
         if not isinstance(sample_analysis['sample_bottle'], int):
             logger.warning("Could not match sample bottle and combo bottle IDs!")
-            message = "\"Error: Samples and sample bottles were saved, but unable to save analyses. Please contact the administrator.\""
+            logger.warning("Deleting sample bottles that were just saved.")
+            for sample_bottle_id in sample_bottle_ids:
+                r = requests.request(method='DELETE', url=REST_SERVICES_URL+'samplebottles/' + sample_bottle_id['db_id'], headers=headers)
+                if r.status_code != 204:
+                    message = "\"Error: Able to save samples and sample bottles, but unable to save analyses. Encountered problem reversing saved sample bottles (specificaly sample bottle ID " + str(sample_bottle_id['db_id']) + "). Please contact the administrator.\""
+                    logger.error(message)
+                    return HttpResponse(message, content_type='text/html')
+            logger.warning("Deleting samples that were just saved.")
+            for sample_id in sample_ids:
+                r = requests.request(method='DELETE', url=REST_SERVICES_URL+'samples/' + sample_id['db_id'], headers=headers)
+                if r.status_code != 204:
+                    message = "\"Error: Able to save samples and sample bottles, but unable to save analyses. Encountered problem reversing saved samples (specificaly sample ID " + str(sample_id['db_id']) + "). Please contact the administrator.\""
+                    logger.error(message)
+                    return HttpResponse(message, content_type='text/html')
+            message = "\"Error: Able to save samples and sample bottles, but unable to save analyses. Please contact the administrator.\""
             logger.error(message)
             return HttpResponse(message, content_type='text/html')
     # send the sample analyses to the database
