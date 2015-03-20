@@ -63,10 +63,6 @@ LOGGING = {
             'handlers': ['timedrotatingfile'],
             'level': 'INFO',
         },
-        'mercurybatchupload': {
-            'handlers': ['timedrotatingfile'],
-            'level': 'INFO',
-        },
         'merlin': {
             'handlers': ['timedrotatingfile'],
             'level': 'INFO',

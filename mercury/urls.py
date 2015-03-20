@@ -2,7 +2,6 @@ from django.conf.urls import patterns, include, url
 from django.contrib import admin
 
 urlpatterns = patterns('',
-
     url(r'^mercuryadmin/', include(admin.site.urls)),
     url(r'^mercuryservices/', include('mercuryservices.urls')),# namespace="mercuryservices")),
     url(r'^mercuryauth/', include('djoser.urls', namespace="mercuryauth")),

@@ -92,7 +92,10 @@
             <div class="col-md-4" id="grid_add" style="display:none;">
                 <span id="selected_bromination_id">Selected Bromination ID: <strong>NULL</strong></span><br />
                 <span id="selected_bromination_id_warning" style="display:none;color:darkred"><strong>You must select a Bromination ID before you can save!</strong></span><br />
-                <button type="button" class="btn btn-primary" name="sampleSave">Save</button></div>
+                <button type="button" class="btn btn-primary" name="sampleSave">Save</button>
+                <button type="button" class="btn btn-default" name="insertRows">Insert 8 Blank Rows</button>
+                <button type="button" class="btn btn-danger" name="deleteRows">Delete Rows</button>
+            </div>
             <div class="col-md-4" id="grid_samples" data-samples="{{ samples }}"></div>
         </div>
 
@@ -113,7 +116,7 @@
                 });
 
                 //Handsontable.Search.global.setDefaultSearchResultClass('customHtSearchResult');
-                var validTable = false;
+                var validTableBrominations = false;
                 var dateToday = new Date(); //toISOString().split("T")[0];
                 var objectFields = ["id", "concentration", "created_date", "comment"];
                 var currentPage = 1;
@@ -179,6 +182,7 @@
 
                 var grid_add = $('#grid_add');
                 grid_add.css("z-index", "0");
+                var validTableAdd = false;
                 var gridAdd_changedRowIndices = [];
                 grid_add.handsontable({
                     //minSpareRows: 1,
@@ -479,7 +483,7 @@
                 tools_brominations.find('button[name=save]').click(function () {
                     var changedDataArray = [];
                     // if there are no changed rows, notify the user and stop the submission
-                    if (typeof changedRowIndices == 'undefined' || changedRowIndices.length < 1) {grid_console.text('Table is empty!'); validTable = false; return false;}
+                    if (typeof changedRowIndices == 'undefined' || changedRowIndices.length < 1) {grid_console.text('Table is empty!'); validTableBrominations = false; return false;}
                     // otherwise loop through all changed rows
                     $.each(changedRowIndices, function(index, value) {
                         var thisDataRow = grid_brominations.data('handsontable').getDataAtRow(value);
@@ -493,22 +497,22 @@
                                         var gooddate_string = makeYear(baddate) + "-" + makeMonth(baddate) + "-" + makeDay(baddate) + " 00:00:00";
                                         var gooddate = new Date(makeYear(baddate), makeMonth(baddate)-1, makeDay(baddate));
                                         if (gooddate > dateToday) {
-                                            {grid_console.text('Date cannot be a future date!'); validTable = false; return false;}
+                                            {grid_console.text('Date cannot be a future date!'); validTableBrominations = false; return false;}
                                         }
                                         thisDataObject[objectFields[i]] = gooddate_string;
                                     }
-                                    else {grid_console.text('There is a problem with the Date in row ' + (index + 1) + '. Please contact the administrator.'); validTable = false; return false;}
+                                    else {grid_console.text('There is a problem with the Date in row ' + (index + 1) + '. Please contact the administrator.'); validTableBrominations = false; return false;}
                                 }
-                                else {grid_console.text('Date is badly formed in row ' + (index + 1) + '. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); validTable = false; return false;}
+                                else {grid_console.text('Date is badly formed in row ' + (index + 1) + '. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); validTableBrominations = false; return false;}
                             }
                             else {thisDataObject[objectFields[i]] = thisDataRow[i];}
                         }
                         changedDataArray.push(thisDataObject);
                         // if we made it through the various validations above, then the table must be valid
-                        validTable = true;
+                        validTableBrominations = true;
                     });
                     // if table is valid, submit the POST request, otherwise skip it (implying table is invalid)
-                    if(validTable) {
+                    if(validTableBrominations) {
                         var changedDataJSON = JSON.stringify(changedDataArray);
                         $.ajax({
                             url: '/merlin/brominations/save',
@@ -551,6 +555,18 @@
                     }
                 });
 
+                grid_add.parent().find('button[name=insertRows]').click(function () {
+                    grid_add.data('handsontable').alter('insert_row', null, 8);
+                    grid_console.text('Inserted Rows.');
+                });
+
+                grid_add.parent().find('button[name=deleteRows]').click(function () {
+                    var selectedRows = grid_add.handsontable('getInstance').getSelectedRange();
+                    var firstSelectedRow = selectedRows['from']['row'];
+                    var lastSelectedRow = selectedRows['to']['row'];
+                    grid_add.data('handsontable').alter('remove_row', firstSelectedRow, (lastSelectedRow != firstSelectedRow ? (lastSelectedRow - firstSelectedRow) + 1 : 1));
+                });
+
                 grid_add.find('button[name=sampleSave]').click(function() {
                     if (typeof(selectedBrominationRow) === 'undefined' || selectedBrominationRow == null) {$('#selected_bromination_id_warning').show(); return;}
                     else {$('#selected_bromination_id_warning').hide();}
@@ -561,7 +577,7 @@
                     var dataArray = [];
                     //$.each(gridAdd_changedRowIndices, function(index, value) {
                     // if there are no changed rows, notify the user and stop the submission
-                    if (typeof gridAdd_changedRowIndices == 'undefined' || gridAdd_changedRowIndices.length < 1) {grid_console.text('Table is empty!'); validTable = false; return false;}
+                    if (typeof gridAdd_changedRowIndices == 'undefined' || gridAdd_changedRowIndices.length < 1) {grid_console.text('Table is empty!'); validTableAdd = false; return false;}
                     // otherwise loop through all rows
                     var allRows = grid_add.handsontable('getInstance').countRows();
                     for (var row = 0; row < allRows; row++) {
@@ -572,8 +588,8 @@
                         if (thisDataRow[0] !== null && thisDataRow[0] !== "" && thisDataRow[0] !== 0 && typeof thisDataRow[0] !== 'undefined') {
                             var thisDataObject = {};
                             thisDataObject['bromination'] = selected_bromination_id;
-                            var thisID = updateValueAjax('/mercuryservices/samplebottles/', 'bottle', 'id', thisDataRow[0]);
-                            if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Sample Bottle must be a valid choice in row ' + (row + 1) + '!'); validTable = false; return false;}
+                            var thisID = updateValueAjax('/mercuryservices/samplebottles/', 'bottle', 'id', thisDataRow[0], 'constituent=39,27');
+                            if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Sample Bottle must be a valid choice in row ' + (row + 1) + '!'); validTableAdd = false; return false;}
                             thisDataObject['sample_bottle'] = thisID;
                             thisDataObject['bromination_event'] = thisDataRow[1];
                             thisDataObject['bromination_volume'] = thisDataRow[2];
@@ -581,9 +597,9 @@
                             dataArray.push(thisDataObject);
                         }
                         // if we made it through the various validations above, then the table must be valid
-                        validTable = true;
+                        validTableAdd = true;
                     }
-                    if (validTable) {
+                    if (validTableAdd) {
                         var dataJSON = JSON.stringify(dataArray);
                         $.ajax({
                             url: '/merlin/samplebottlebromination_add/',
