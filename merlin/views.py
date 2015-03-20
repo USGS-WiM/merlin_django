@@ -78,7 +78,7 @@ def sample_login_save(request):
         logger.info(row_message)
         # grab the data that uniquely identifies each sample
         this_depth = str(row.get('depth'))
-        if -1 < float(str(row.get('depth'))) < 1:
+        if this_depth.startswith("."):
             this_depth = "0" + this_depth
         this_sample_id = str(row.get('project'))+"|"+str(row.get('site'))+"|"+str(row.get('sample_date_time'))+"|"+this_depth+"|"+str(row.get('replicate'))
         logger.info("this sample id: " + this_sample_id)
@@ -250,7 +250,7 @@ def sample_login_save(request):
             logger.warning("Could not match sample and combo IDs!")
             logger.warning("Deleting samples that were just saved.")
             for sample_id in sample_ids:
-                r = requests.request(method='DELETE', url=REST_SERVICES_URL+'samples/' + sample_id['db_id'], headers=headers)
+                r = requests.request(method='DELETE', url=REST_SERVICES_URL+'samples/' + str(sample_id['db_id']), headers=headers)
                 if r.status_code != 204:
                     message = "\"Error: Able to save samples, but unable to save sample bottles. Encountered problem reversing saved samples (specificaly sample ID " + str(sample_id['db_id']) + "). Please contact the administrator.\""
                     logger.error(message)
@@ -267,7 +267,7 @@ def sample_login_save(request):
         logger.warning("Could not save sample bottles!")
         logger.warning("Deleting samples that were just saved.")
         for sample_id in sample_ids:
-            r = requests.request(method='DELETE', url=REST_SERVICES_URL+'samples/' + sample_id['db_id'], headers=headers)
+            r = requests.request(method='DELETE', url=REST_SERVICES_URL+'samples/' + str(sample_id['db_id']), headers=headers)
             if r.status_code != 204:
                 message = "\"Error: Able to save samples, but unable to save sample bottles. Encountered problem reversing saved samples (specificaly sample ID " + str(sample_id['db_id']) + "). Please contact the administrator.\""
                 logger.error(message)
@@ -296,14 +296,14 @@ def sample_login_save(request):
             logger.warning("Could not match sample bottle and combo bottle IDs!")
             logger.warning("Deleting sample bottles that were just saved.")
             for sample_bottle_id in sample_bottle_ids:
-                r = requests.request(method='DELETE', url=REST_SERVICES_URL+'samplebottles/' + sample_bottle_id['db_id'], headers=headers)
+                r = requests.request(method='DELETE', url=REST_SERVICES_URL+'samplebottles/' + str(sample_bottle_id['db_id']), headers=headers)
                 if r.status_code != 204:
                     message = "\"Error: Able to save samples and sample bottles, but unable to save analyses. Encountered problem reversing saved sample bottles (specificaly sample bottle ID " + str(sample_bottle_id['db_id']) + "). Please contact the administrator.\""
                     logger.error(message)
                     return HttpResponse(message, content_type='text/html')
             logger.warning("Deleting samples that were just saved.")
             for sample_id in sample_ids:
-                r = requests.request(method='DELETE', url=REST_SERVICES_URL+'samples/' + sample_id['db_id'], headers=headers)
+                r = requests.request(method='DELETE', url=REST_SERVICES_URL+'samples/' + str(sample_id['db_id']), headers=headers)
                 if r.status_code != 204:
                     message = "\"Error: Able to save samples and sample bottles, but unable to save analyses. Encountered problem reversing saved samples (specificaly sample ID " + str(sample_id['db_id']) + "). Please contact the administrator.\""
                     logger.error(message)
@@ -317,8 +317,23 @@ def sample_login_save(request):
     r = requests.request(method='POST', url=REST_SERVICES_URL+'bulkresults/', data=sample_analysis_data, headers=headers)
     logger.info(r.request.method + " " + r.request.url + " " + r.reason + " " + str(r.status_code))
     if r.status_code != 201:
-        message = "\"Error " + str(r.status_code) + ": " + r.reason + ". Samples and sample bottles were saved, but unable to save analyses. Please contact the administrator.\""
-        logger.info(message)
+        logger.warning("Could not save sample analyses!")
+        logger.warning("Deleting sample bottles that were just saved.")
+        for sample_bottle_id in sample_bottle_ids:
+            r = requests.request(method='DELETE', url=REST_SERVICES_URL+'samplebottles/' + str(sample_bottle_id['db_id']), headers=headers)
+            if r.status_code != 204:
+                message = "\"Error: Able to save samples and sample bottles, but unable to save analyses. Encountered problem reversing saved sample bottles (specificaly sample bottle ID " + str(sample_bottle_id['db_id']) + "). Please contact the administrator.\""
+                logger.error(message)
+                return HttpResponse(message, content_type='text/html')
+        logger.warning("Deleting samples that were just saved.")
+        for sample_id in sample_ids:
+            r = requests.request(method='DELETE', url=REST_SERVICES_URL+'samples/' + str(sample_id['db_id']), headers=headers)
+            if r.status_code != 204:
+                message = "\"Error: Able to save samples and sample bottles, but unable to save analyses. Encountered problem reversing saved samples (specificaly sample ID " + str(sample_id['db_id']) + "). Please contact the administrator.\""
+                logger.error(message)
+                return HttpResponse(message, content_type='text/html')
+        message = "\"Error: Able to save samples and sample bottles, but unable to save analyses. Please contact the administrator.\""
+        logger.error(message)
         return HttpResponse(message, content_type='text/html')
     response_data = r.json()
     logger.info(str(len(response_data)) + " sample analyses saved")
@@ -566,10 +581,15 @@ def result_search(request):
             params_dict["site"] = str(params['site']).strip('[]').replace(', ', ',')
         if params['constituent']:
             params_dict["constituent"] = str(params['constituent']).strip('[]')
-        if params['date_after']:
-            params_dict["date_after"] = datetime.strptime(str(params['date_after']).strip('[]'), '%m/%d/%y').strftime('%Y-%m-%d')
-        if params['date_before']:
-            params_dict["date_before"] = datetime.strptime(str(params['date_before']).strip('[]'), '%m/%d/%y').strftime('%Y-%m-%d')
+        if params['date_after_sample']:
+            params_dict["date_after_sample"] = datetime.strptime(str(params['date_after_sample']).strip('[]'), '%m/%d/%y').strftime('%Y-%m-%d')
+        if params['date_before_sample']:
+            params_dict["date_before_sample"] = datetime.strptime(str(params['date_before_sample']).strip('[]'), '%m/%d/%y').strftime('%Y-%m-%d')
+        if params['date_after_entry']:
+            params_dict["date_after_entry"] = datetime.strptime(str(params['date_after_entry']).strip('[]'), '%m/%d/%y').strftime('%Y-%m-%d')
+        if params['date_before_entry']:
+            params_dict["date_before_entry"] = datetime.strptime(str(params['date_before_entry']).strip('[]'), '%m/%d/%y').strftime('%Y-%m-%d')
+        params_dict["final_value_null"] = "False"
 
         r = requests.request(method='GET', url=REST_SERVICES_URL+'fullresults/', params=params_dict, headers=headers)
         logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
@@ -674,6 +694,22 @@ def bottle_prefix_add(request):
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     data = request.body
+
+    # validate that the submitted bottle prefix doesn't already exist
+    logging.info("VALIDATE Bottle Prefix Add")
+    this_bottle_prefix = {'bottle_prefix': data.get('bottle_prefix')}
+    r = requests.get(REST_SERVICES_URL+'bottleprefixes/', params=this_bottle_prefix)
+    logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
+    response_data = r.json()
+    logger.info("bottle prefix count: " + str(response_data['count']))
+    # if response count does not equal zero, then this sample already exists in the database
+    if response_data['count'] != 0:
+        logger.warning("Validation Warning: " + data.get('bottle_prefix') + " count != 0")
+        message = "This Bottle Prefix already exists in the database: "
+        return HttpResponse(message, content_type='text/html')
+
+    ## SAVE Bottle Prefixes ##
+    # send the bottle prefixes to the database
     r = requests.request(method='POST', url=REST_SERVICES_URL+'bulkbottleprefixes/', data=data, headers=headers)
     logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
     if r.status_code != 201:
@@ -689,6 +725,8 @@ def bottle_prefix_range_add(request):
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     params = json.loads(request.body.decode('utf-8'))
+    all_unique_bottle_prefixes = True
+    message_exist = "No new Bottle Prefixes were saved because these Bottle Prefixes already exist in the database: "
 
     digits = len(params['range_start'])
     start = int(params['range_start'])
@@ -700,6 +738,28 @@ def bottle_prefix_range_add(request):
         logger.info(str(new_bottle_prefix))
         new_bottle_prefixes.append(new_bottle_prefix)
     new_bottle_prefixes = json.dumps(new_bottle_prefixes)
+
+    # validate that the submitted bottle prefixes don't already exist
+    logging.info("VALIDATE Bottle Prefix Range")
+    for item in new_bottle_prefixes:
+        this_bottle_prefix = item.get('bottle_prefix')
+        r = requests.get(REST_SERVICES_URL+'bottleprefixes/', params={'bottle_prefix': this_bottle_prefix})
+        logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
+        response_data = r.json()
+        logger.info("bottles count: " + str(response_data['count']))
+        # if response count does not equal zero, then this sample already exists in the database
+        if response_data['count'] != 0:
+            all_unique_bottle_prefixes = False
+            logger.warning("Validation Warning: " + str(this_bottle_prefix) + " count == 0")
+            this_message = str(this_bottle_prefix) + ","
+            message_exist = message_exist + " " + this_message
+    if not all_unique_bottle_prefixes:
+        message = json.dumps(message_exist)
+        logger.warning("Validation Warning: " + message)
+        return HttpResponse(message, content_type='text/html')
+
+    ## SAVE Bottle Prefixes ##
+    # send the bottle prefixes to the database
     r = requests.request(method='POST', url=REST_SERVICES_URL+'bulkbottleprefixes/', data=new_bottle_prefixes, headers=headers)
     logger.info(r.request.method + " " + r.request.url + " " + r.reason + " " + str(r.status_code))
     if r.status_code != 201:
@@ -717,8 +777,8 @@ def bottles_add(request):
     data = json.loads(request.body.decode('utf-8'))
     all_unique_bottle_names = True
     all_existing_bottle_prefixes = True
-    message_exist = "These Bottles already exist in the database: "
-    message_not_exist = "These Bottle Prefixes do not exist in the database: "
+    message_exist = "No new Bottles were saved because these Bottles already exist in the database: "
+    message_not_exist = "No new Bottles were saved because these Bottle Prefixes do not exist in the database: "
 
     # validate that the submitted bottle names don't already exist
     logging.info("VALIDATE Bottles Add")
@@ -881,7 +941,7 @@ def samplebottlebromination_add(request):
         # if response count does not equal one, then this sample bottle is not valid
         if response_data['count'] != 1:
             all_valid_sample_bottles = False
-            logger.warning("Validation Warning: " + item.get('sample_bottle') + " count != 1")
+            logger.warning("Validation Warning: " + str(item.get('sample_bottle')) + " count != 1")
             this_message = "Row " + str(item_number) + ","
             message_not_valid = message_not_valid + " " + this_message
     if not all_valid_sample_bottles:

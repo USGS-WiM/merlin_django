@@ -209,6 +209,10 @@ class SampleBottleViewSet(viewsets.ModelViewSet):
         if bottle is not None:
             bottle_list = bottle.split(',')
             queryset = queryset.filter(bottle__bottle_unique_name__in=bottle_list)
+        constituent = self.request.QUERY_PARAMS.get('constituent', None)
+        if constituent is not None:
+            constituent_list = constituent.split(',')
+            queryset = queryset.filter(results__constituent_id__in=constituent_list)
         date_after = self.request.QUERY_PARAMS.get('date_after', None)
         date_before = self.request.QUERY_PARAMS.get('date_before', None)
         if date_after is not None and date_before is not None:
@@ -239,6 +243,10 @@ class FullSampleBottleViewSet(viewsets.ModelViewSet):
         if bottle is not None:
             bottle_list = bottle.split(',')
             queryset = queryset.filter(bottle__bottle_unique_name__in=bottle_list)
+        constituent = self.request.QUERY_PARAMS.get('constituent', None)
+        if constituent is not None:
+            constituent_list = constituent.split(',')
+            queryset = queryset.filter(results__constituent_id__in=constituent_list)
         date_after = self.request.QUERY_PARAMS.get('date_after', None)
         date_before = self.request.QUERY_PARAMS.get('date_before', None)
         if date_after is not None and date_before is not None:
@@ -457,6 +465,12 @@ class FullResultViewSet(viewsets.ModelViewSet):
             barcode = self.request.QUERY_PARAMS.get('barcode', None)
             if barcode is not None:
                 queryset = queryset.filter(sample_bottle__exact=barcode)
+            final_value_null = self.request.QUERY_PARAMS.get('final_value_null')
+            if final_value_null is not None:
+                if final_value_null == 'False' or final_value_null == 'false':
+                    queryset = queryset.filter(final_value__isnull=False)
+                elif final_value_null == 'True' or final_value_null == 'true':
+                    queryset = queryset.filter(final_value__isnull=True)
             constituent = self.request.QUERY_PARAMS.get('constituent', None)
             if constituent is not None:
                 constituent_list = constituent.split(',')
@@ -478,14 +492,22 @@ class FullResultViewSet(viewsets.ModelViewSet):
             replicate = self.request.QUERY_PARAMS.get('replicate', None)
             if replicate is not None:
                 queryset = queryset.filter(sample_bottle__sample__replicate__exact=replicate)
-            date_after = self.request.QUERY_PARAMS.get('date_after', None)
-            date_before = self.request.QUERY_PARAMS.get('date_before', None)
-            if date_after is not None and date_before is not None:
-                queryset = queryset.filter(sample_bottle__sample__sample_date_time__range=(date_after, date_before))
-            elif date_after is not None:
-                queryset = queryset.filter(sample_bottle__sample__sample_date_time__gt=date_after)
-            elif date_before is not None:
-                queryset = queryset.filter(sample_bottle__sample__sample_date_time__lt=date_before)
+            date_after_sample = self.request.QUERY_PARAMS.get('date_after_sample', None)
+            date_before_sample = self.request.QUERY_PARAMS.get('date_before_sample', None)
+            if date_after_sample is not None and date_before_sample is not None:
+                queryset = queryset.filter(sample_bottle__sample__sample_date_time__range=(date_after_sample, date_before_sample))
+            elif date_after_sample is not None:
+                queryset = queryset.filter(sample_bottle__sample__sample_date_time__gt=date_after_sample)
+            elif date_before_sample is not None:
+                queryset = queryset.filter(sample_bottle__sample__sample_date_time__lt=date_before_sample)
+            date_after_entry = self.request.QUERY_PARAMS.get('date_after_entry', None)
+            date_before_entry = self.request.QUERY_PARAMS.get('date_before_entry', None)
+            if date_after_entry is not None and date_before_entry is not None:
+                queryset = queryset.filter(entry_date__range=(date_after_entry, date_before_entry))
+            elif date_after_entry is not None:
+                queryset = queryset.filter(entry_date__gt=date_after_entry)
+            elif date_before_entry is not None:
+                queryset = queryset.filter(entry_date__lt=date_before_entry)
             return queryset
 
 

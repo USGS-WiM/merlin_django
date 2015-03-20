@@ -28,12 +28,20 @@
                 </p>
                 <p>
                     <div class="form-group">
-                        <label for="date_after">After Date</label><br />
-                        <input id="date_after" class="select2-container select2-container-multi" style="width:297px;height:34px;font-size:15px;padding-left:4px;"/>
+                        <label for="date_after_sample">After Sample Date</label><br />
+                        <input id="date_after_sample" class="select2-container select2-container-multi" style="width:297px;height:34px;font-size:15px;padding-left:4px;"/>
                     </div>
                     <div class="form-group">
-                        <label for="date_before">Before Date</label><br />
-                        <input id="date_before" class="select2-container select2-container-multi" style="width:297px;height:34px;font-size:15px;padding-left:4px;"/>
+                        <label for="date_before_sample">Before Sample Date</label><br />
+                        <input id="date_before_sample" class="select2-container select2-container-multi" style="width:297px;height:34px;font-size:15px;padding-left:4px;"/>
+                    </div>
+                    <div class="form-group">
+                        <label for="date_after_entry">After Entry Date</label><br />
+                        <input id="date_after_entry" class="select2-container select2-container-multi" style="width:297px;height:34px;font-size:15px;padding-left:4px;"/>
+                    </div>
+                    <div class="form-group">
+                        <label for="date_before_entry">Before Entry Date</label><br />
+                        <input id="date_before_entry" class="select2-container select2-container-multi" style="width:297px;height:34px;font-size:15px;padding-left:4px;"/>
                     </div>
                     <div class="form-group">
                         <label for="select_constituent">Constituent</label><br />
@@ -41,9 +49,17 @@
                     </div>
                 </p>
                 <p>
-                    <button type="button" class="btn btn-info" name="search">Search</button>
-                    <button type="button" class="btn btn-default" name="prev">Previous Page</button>
-                    <button type="button" class="btn btn-default" name="next">Next Page</button>
+                    <div class="form-group">
+                        <button type="button" class="btn btn-info" name="search">Search</button>
+                        <button type="button" class="btn btn-info" name="exportCSV">Export CSV</button>
+                        <button type="button" class="btn btn-default" name="prev">Previous Page</button>
+                        <button type="button" class="btn btn-default" name="next">Next Page</button>
+                        <label>Value Type:</label>
+                        <div id="valueTypeRadio" class="form-group">
+                            <input type="radio" name="valueType" id="valueTypeFinal" value="final" checked />Final<br />
+                            <input type="radio" name="valueType" id="valueTypeReport" value="report" />Report
+                        </div>
+                    </div>
                 </p>
             </form>
         </div>
@@ -86,6 +102,10 @@
                 var data_projects = JSON.parse(grid.attr('data-projects'));
                 var data_sites;
                 var data_constituents = JSON.parse(grid.attr('data-constituents'));
+                var dateToday = new Date(); //toISOString().split("T")[0];
+                var yearToday = dateToday.getFullYear().toString();
+                var monthToday = (dateToday.getMonth() + 1).toString();
+                var dayToday = dateToday.getDate().toString();
                 grid_console.text('Loading data...');
                 grid.handsontable({
                     startRows: 0,
@@ -99,14 +119,15 @@
                         {title: 'Tare Weight', data: 'sample_bottle.bottle.bottle_prefix.tare_weight', readOnly: true, width: 100, format: '0.0000'},
                         {title: 'Project', data: 'sample_bottle.sample.project.name', readOnly: true, width: 200},
                         {title: 'Site', data: 'sample_bottle.sample.site.name', readOnly: true, width: 200},
-                        {title: 'Date', data: 'sample_bottle.sample.sample_date', readOnly: true, width: 100},
-                        {title: 'Time', data: 'sample_bottle.sample.sample_time', readOnly: true, width: 60},
+                        {title: 'Sample Date', data: 'sample_bottle.sample.sample_date', readOnly: true, width: 100},
+                        {title: 'Sample Time', data: 'sample_bottle.sample.sample_time', readOnly: true, width: 100},
+                        {title: 'Depth', data:'sample_bottle.sample.depth', readOnly: true, width: 60, format: '0.00'},
                         {title: 'Constituent', data: 'constituent', readOnly: true, width: 100},
                         {title: 'Isotope', data: 'isotope_flag', readOnly: true, width: 60},
-                        {title: 'Received', data: 'sample_bottle.sample.received_date', readOnly: true, width: 100},
+                        {title: 'Received Date', data: 'sample_bottle.sample.received_date', readOnly: true, width: 100},
                         {title: 'Comments', data: 'sample_bottle.sample.comment', readOnly: true, width: 200},
                         {title: 'Result Value', data: 'final_value', readOnly: true, width: 100, format: '0.00000000'},
-                        {title: 'Unit', readOnly: true, width: 60},
+                        {title: 'Unit', data:'method.final_value_unit', readOnly: true, width: 60},
                         {title: 'Detection Flag', data: 'detection_flag', readOnly: true, width: 100},
                         {title: 'Analyzed Date', data: 'analyzed_date', readOnly: true, width: 100}
                     ],
@@ -213,12 +234,22 @@
                     return data.constituent;
                 }
 
-                var date_after = $("#date_after").datepicker({
+                var date_after_sample = $("#date_after_sample").datepicker({
                     dateFormat: "mm/dd/y",
                     maxDate: 0
                 });
 
-                var date_before = $("#date_before").datepicker({
+                var date_before_sample = $("#date_before_sample").datepicker({
+                    dateFormat: "mm/dd/y",
+                    maxDate: 0
+                });
+
+                var date_after_entry = $("#date_after_entry").datepicker({
+                    dateFormat: "mm/dd/y",
+                    maxDate: 0
+                });
+
+                var date_before_entry = $("#date_before_entry").datepicker({
                     dateFormat: "mm/dd/y",
                     maxDate: 0
                 });
@@ -229,8 +260,10 @@
                     thisDataObject['bottle'] = $(select_bottle).val();
                     thisDataObject['project'] = $(select_project).val();
                     thisDataObject['site'] = $(select_site).val();//.slice(0, -1);
-                    thisDataObject['date_after'] = $(date_after).val();
-                    thisDataObject['date_before'] = $(date_before).val();
+                    thisDataObject['date_after_sample'] = $(date_after_sample).val();
+                    thisDataObject['date_before_sample'] = $(date_before_sample).val();
+                    thisDataObject['date_after_entry'] = $(date_after_entry).val();
+                    thisDataObject['date_before_entry'] = $(date_before_entry).val();
                     thisDataObject['constituent'] = $(select_constituent).val();
                     var dataJSON = JSON.stringify(thisDataObject);
                     $.ajax({
@@ -252,7 +285,7 @@
                                 grid_console.text(textStatus+': Retrieved '+ data_data['count'] +' results across ' + resultPages + ' pages. Showing first 100 results.');
                                 grid.data('handsontable').loadData(data_data.results);
                                 for (var i = 0; i < data_data['results'].length; i++) {
-                                    grid.data('handsontable').setDataAtCell(i,12,(data_data['results'][i]['method'] === null ? null : data_data['results'][i]['method']['final_value_unit']));
+                                    grid.data('handsontable').setDataAtCell(i,13,(data_data['results'][i]['method'] === null ? null : data_data['results'][i]['method']['final_value_unit']));
                                 }
                             }
                             else {
@@ -297,6 +330,24 @@
                             grid_console.text("error");
                         }
                     });
+                });
+
+                grid.parent().find('button[name=exportCSV]').click(function() {
+                    var table = grid.handsontable('getInstance');
+                    var csv_filename = "results_" + yearToday + "-" + monthToday + "-" + dayToday + ".csv";
+                    handsontable2csv.download(table, csv_filename);
+                });
+
+                $("input[type=radio][name=valueType]").change(function () {
+                    var settings = grid.handsontable('getInstance').getSettings();
+                    if (this.value == "report") {
+                        settings.columns[12] = {title: 'Result Value', data: 'report_value', readOnly: true, width: 100, format: '0.00000000'};
+                        grid.handsontable('getInstance').updateSettings(settings);
+                    }
+                    else {
+                        settings.columns[12] = {title: 'Result Value', data: 'final_value', readOnly: true, width: 100, format: '0.00000000'};
+                        grid.handsontable('getInstance').updateSettings(settings);
+                    }
                 });
 
             });
