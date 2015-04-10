@@ -368,10 +368,64 @@ class MethodTypeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = MethodType
-        fields = ('id', 'method_code', 'method', 'preparation', 'description', 'method_detection_limit',
-                  'method_detection_limit_unit', 'raw_value_unit', 'final_value_unit',
-                  'decimal_places', 'significant_figures', 'standard_operating_procedure',
-                  'nwis_parameter_code', 'nwis_parameter_name', 'nwis_method_code',)
+        fields = ('id', 'method_code', 'method', 'preparation', 'description', 'raw_method_detection_limit',
+                  'final_method_detection_limit', 'raw_method_detection_limit_unit', 'final_method_detection_limit_unit',
+                  'raw_value_unit', 'final_value_unit', 'decimal_places', 'significant_figures',
+                  'standard_operating_procedure', 'nwis_parameter_code', 'nwis_parameter_name', 'nwis_method_code',)
+
+
+class FlatResultSerializer(serializers.ModelSerializer):
+    result_id = serializers.IntegerField(source='id', read_only=True)
+    bottle = serializers.RelatedField(source='sample_bottle.bottle.bottle_unique_name')
+    tare_weight = serializers.RelatedField(source='sample_bottle.bottle.bottle_prefix.tare_weight')
+    project_name = serializers.RelatedField(source='sample_bottle.sample.project.name')
+    site_name = serializers.RelatedField(source='sample_bottle.sample.site.name')
+    sample_date = serializers.DateTimeField(format='%m/%d/%y', source='sample_bottle.sample.sample_date_time', read_only=True)
+    sample_time = serializers.DateTimeField(format='%H%M', source='sample_bottle.sample.sample_date_time', read_only=True)
+    depth = serializers.RelatedField(source='sample_bottle.sample.depth')
+    constituent = serializers.RelatedField(source='constituent')
+    isotope_flag = serializers.RelatedField(source='isotope_flag')
+    received_date = serializers.RelatedField(source='sample_bottle.sample.received_date')
+    comments = serializers.RelatedField(source='sample_bottle.sample.comment')
+    unit = serializers.RelatedField(source='method.final_value_unit')
+    detection_flag = serializers.RelatedField(source='detection_flag')
+    analyzed_date = serializers.DateTimeField(format='%m/%d/%y', source='analyzed_date', read_only=True)
+
+    class Meta:
+        model = Result
+        fields = ('result_id', 'bottle', 'tare_weight', 'project_name', 'site_name', 'sample_date', 'sample_time',
+                  'depth', 'constituent', 'isotope_flag', 'received_date', 'comments', 'final_value', 'report_value',
+                  'unit', 'detection_flag', 'analyzed_date',)
+
+
+class FlatResultSampleSerializer(serializers.ModelSerializer):
+    sample_id = serializers.IntegerField(source='sample_bottle.sample.id', read_only=True)
+    project_name = serializers.RelatedField(source='sample_bottle.sample.project.name')
+    site_name = serializers.RelatedField(source='sample_bottle.sample.site.name')
+    site_id = serializers.RelatedField(source='sample_bottle.sample.site.usgs_scode')
+    date = serializers.DateTimeField(format='%m/%d/%y', source='sample_bottle.sample.sample_date_time', read_only=True)
+    time = serializers.DateTimeField(format='%H%M', source='sample_bottle.sample.sample_date_time', read_only=True)
+    depth = serializers.RelatedField(source='sample_bottle.sample.depth')
+    length = serializers.RelatedField(source='sample_bottle.sample.length')
+    received = serializers.RelatedField(source='sample_bottle.sample.received_date')
+    sample_comments = serializers.RelatedField(source='sample_bottle.sample.comment')
+    container_id = serializers.RelatedField(source='sample_bottle.bottle.bottle_unique_name')
+    lab_processing = serializers.RelatedField(source='sample_bottle.sample.lab_processing')
+    medium = serializers.RelatedField(source='sample_bottle.sample.medium_type')
+    analysis = serializers.RelatedField(source='constituent')
+    isotope = serializers.RelatedField(source='isotope_flag')
+    filter = serializers.RelatedField(source='sample_bottle.filter_type')
+    filter_vol = serializers.RelatedField(source='sample_bottle.volume_filtered')
+    preservation = serializers.RelatedField(source='sample_bottle.preservation_type')
+    acid = serializers.RelatedField(source='sample_bottle.preservation_acid')
+    acid_vol = serializers.RelatedField(source='sample_bottle.preservation_volume')
+    pres_comments = serializers.RelatedField(source='sample_bottle.preservation_comment')
+
+    class Meta:
+        model = Result
+        fields = ('sample_id', 'project_name', 'site_name', 'site_id', 'date', 'time', 'depth', 'length',
+                  'received', 'sample_comments', 'container_id', 'lab_processing', 'medium', 'analysis', 'isotope',
+                  'filter', 'filter_vol', 'preservation', 'acid', 'acid_vol', 'pres_comments')
 
 
 class FullResultSerializer(serializers.ModelSerializer):
@@ -415,8 +469,7 @@ class ResultSerializer(serializers.ModelSerializer):
 ######
 
 
-class TestReportSerializer(serializers.Serializer):
-    id = serializers.IntegerField()
-    project = serializers.CharField()
-    sample_bottles = serializers.RelatedField(many=True)
-    results = ResultSerializer(source='get_results', read_only=True)
+class ReportResultsCountNawqaSerializer(serializers.Serializer):
+    project_name = serializers.CharField()
+    site_name = serializers.CharField()
+    count = serializers.IntegerField()

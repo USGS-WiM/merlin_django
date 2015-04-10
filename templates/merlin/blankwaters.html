@@ -156,7 +156,7 @@
                     else {grid_console.text('Date is badly formed. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); return false;}
                     var dataJSON = JSON.stringify(thisDataObject);
                     $.ajax({
-                        url: '/merlin/blankwater_add/',
+                        url: "{% url 'merlin:blankwaters_create' %}",
                         data: dataJSON,
                         dataType: 'json',
                         contentType: "application/json",
@@ -319,12 +319,6 @@
                     });
                 });
 
-                grid.parent().find('button[name=edit]').click(function () {
-                    var thisDataRow = grid.data('handsontable').getDataAtRow(selectionRowIndices[0]);
-                    var thisDataRowID = thisDataRow[0];
-                    window.location = '/merlin/blankwaters/'+thisDataRowID+'/edit';
-                });
-
                 grid.parent().find('button[name=save]').click(function () {
                     var changedDataArray = [];
                     // if there are no changed rows, notify the user and stop the submission
@@ -360,7 +354,7 @@
                     if(validTable) {
                         var changedDataJSON = JSON.stringify(changedDataArray);
                         $.ajax({
-                            url: '/merlin/blankwaters/save',
+                            url: "{% url 'merlin:blankwaters_update' %}",
                             data: changedDataJSON,
                             dataType: 'json',
                             contentType: "application/json",

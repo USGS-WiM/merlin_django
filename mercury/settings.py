@@ -118,6 +118,8 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'audit_log.middleware.UserLoggingMiddleware',
+    #'userstamp.middleware.UserstampMiddleware'
 )
 
 ROOT_URLCONF = 'mercury.urls'
@@ -178,12 +180,13 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
-    )
+    ),
     #'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',)
     #'DEFAULT_RENDERER_CLASSES': (
-        #'rest_framework.renderers.TemplateHTMLRenderer',
-        #'rest_framework.renderers.BrowsableAPIRenderer',
         #'rest_framework.renderers.JSONRenderer',
+        #'rest_framework.renderers.BrowsableAPIRenderer',
+        #'rest_framework_csv.renderers.CSVRenderer',
+        #'rest_framework.renderers.TemplateHTMLRenderer',
     #)
 }
 

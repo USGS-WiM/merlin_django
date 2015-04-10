@@ -7,9 +7,27 @@ from collections import Counter
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import RequestContext
 from django.shortcuts import render_to_response
+from django.core.urlresolvers import reverse
+
+
+########################################################################################################################
+##
+## copyright: 2015 WiM - USGS
+## authors: Aaron Stephenson USGS WiM (Wisconsin Internet Mapping)
+##
+## In Django, a view is what takes a Web request and returns a Web response. The response can be many things, but most
+## of the time it will be a Web page, a redirect, or a document.
+##
+## All these views are written as Function-Based Views (https://docs.djangoproject.com/en/1.7/topics/http/views/)
+## because that is the paradigm used by most Django projects, especially tutorials for learning Django.
+##
+##
+########################################################################################################################
+
 
 logger = logging.getLogger(__name__)
 
+## localhost dev
 REST_SERVICES_URL = 'http://localhost:8000/mercuryservices/'
 REST_AUTH_URL = 'http://localhost:8000/mercuryauth/'
 ## WIM5
@@ -19,7 +37,7 @@ REST_AUTH_URL = 'http://localhost:8000/mercuryauth/'
 #REST_SERVICES_URL = 'http://130.11.161.247/mercuryservices/'
 #REST_AUTH_URL = 'http://130.11.161.247/mercuryauth/'
 
-USER_AUTH = ('admin', 'admin')
+#USER_AUTH = ('user', 'password')
 #USER_TOKEN = ''
 HEADERS_CONTENT_JSON = {'content-type': 'application/json'}
 HEADERS_CONTENT_FORM = {'content-type': 'application/x-www-form-urlencoded'}
@@ -35,7 +53,7 @@ BOTTLE_KEYS = ["bottle_prefix", "bottle_unique_name", "created_date", "descripti
 
 def sample_login(request):
     if not request.session.get('token'):
-        return HttpResponseRedirect('/merlin/')
+        return HttpResponseRedirect(reverse('index'))
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     context = RequestContext(request)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'projects/', headers=headers_auth_token)
@@ -56,7 +74,7 @@ def sample_login(request):
     return render_to_response('merlin/sample_login.html', context_dict, context)
 
 
-def sample_login_save(request):
+def samples_create(request):
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     table = json.loads(request.body.decode('utf-8'))
@@ -341,7 +359,7 @@ def sample_login_save(request):
     return HttpResponse(r, content_type='application/json')
 
 
-def sample_search(request):
+def samples_search(request):
     if not request.session.get('token'):
         return HttpResponseRedirect('/merlin/')
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
@@ -361,10 +379,14 @@ def sample_search(request):
             params_dict["depth"] = str(params['depth']).strip('[]')
         if params['replicate']:
             params_dict["replicate"] = str(params['replicate']).strip('[]')
-        if params['date_after']:
-            params_dict["date_after"] = datetime.strptime(str(params['date_after']).strip('[]'), '%m/%d/%y').strftime('%Y-%m-%d')
-        if params['date_before']:
-            params_dict["date_before"] = datetime.strptime(str(params['date_before']).strip('[]'), '%m/%d/%y').strftime('%Y-%m-%d')
+        if params['constituent']:
+            params_dict["constituent"] = str(params['constituent']).strip('[]')
+        if params['date_after_sample']:
+            params_dict["date_after_sample"] = datetime.strptime(str(params['date_after_sample']).strip('[]'), '%m/%d/%y').strftime('%Y-%m-%d')
+        if params['date_before_sample']:
+            params_dict["date_before_sample"] = datetime.strptime(str(params['date_before_sample']).strip('[]'), '%m/%d/%y').strftime('%Y-%m-%d')
+        if params['page_size']:
+            params_dict["page_size"] = str(params['page_size']).strip('[]')
         #logger.info(params_dict)
 
         # r = requests.request(method='GET', url=REST_SERVICES_URL+'samples/', params=d, headers=headers_auth_token, headers=HEADERS_CONTENT_JSON)
@@ -398,7 +420,7 @@ def sample_search(request):
         return render_to_response('merlin/sample_search.html', context_dict, context)
 
 
-def sample_search_save(request):
+def samples_update(request):
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     table = json.loads(request.body.decode('utf-8'))
@@ -563,7 +585,7 @@ def sample_search_save(request):
     return HttpResponse(sample_analysis_response_data, content_type='application/json')
 
 
-def result_search(request):
+def results_search(request):
     if not request.session.get('token'):
         return HttpResponseRedirect('/merlin/')
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
@@ -589,7 +611,10 @@ def result_search(request):
             params_dict["date_after_entry"] = datetime.strptime(str(params['date_after_entry']).strip('[]'), '%m/%d/%y').strftime('%Y-%m-%d')
         if params['date_before_entry']:
             params_dict["date_before_entry"] = datetime.strptime(str(params['date_before_entry']).strip('[]'), '%m/%d/%y').strftime('%Y-%m-%d')
-        params_dict["final_value_null"] = "False"
+        if params['exclude_null_results']:
+            params_dict["exclude_null_results"] = str(params['exclude_null_results']).strip('[]')
+        if params['page_size']:
+            params_dict["page_size"] = str(params['page_size']).strip('[]')
 
         r = requests.request(method='GET', url=REST_SERVICES_URL+'fullresults/', params=params_dict, headers=headers)
         logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
@@ -623,14 +648,7 @@ def bottles(request):
     return render_to_response('merlin/bottles.html', context_dict, context)
 
 
-def bottles_load(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    data = request.body
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'bottles?name='+data, headers=headers_auth_token)
-    return HttpResponse(r, content_type='application/json')
-
-
-def bottles_save(request):
+def bottles_update(request):
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     data = json.loads(request.body.decode('utf-8'))
@@ -660,7 +678,7 @@ def bottles_save(request):
     return HttpResponse(response_data, content_type='application/json')
 
 
-def bottle_prefixes_save(request):
+def bottle_prefixes_update(request):
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     data = json.loads(request.body.decode('utf-8'))
@@ -690,13 +708,13 @@ def bottle_prefixes_save(request):
     return HttpResponse(response_data, content_type='application/json')
 
 
-def bottle_prefix_add(request):
+def bottle_prefixes_create(request):
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     data = request.body
 
     # validate that the submitted bottle prefix doesn't already exist
-    logging.info("VALIDATE Bottle Prefix Add")
+    logger.info("VALIDATE Bottle Prefix Add")
     this_bottle_prefix = {'bottle_prefix': data.get('bottle_prefix')}
     r = requests.get(REST_SERVICES_URL+'bottleprefixes/', params=this_bottle_prefix)
     logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
@@ -721,7 +739,7 @@ def bottle_prefix_add(request):
         return HttpResponse(r, content_type='application/json')
 
 
-def bottle_prefix_range_add(request):
+def bottle_prefixes_range_create(request):
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     params = json.loads(request.body.decode('utf-8'))
@@ -740,7 +758,7 @@ def bottle_prefix_range_add(request):
     new_bottle_prefixes = json.dumps(new_bottle_prefixes)
 
     # validate that the submitted bottle prefixes don't already exist
-    logging.info("VALIDATE Bottle Prefix Range")
+    logger.info("VALIDATE Bottle Prefix Range")
     for item in new_bottle_prefixes:
         this_bottle_prefix = item.get('bottle_prefix')
         r = requests.get(REST_SERVICES_URL+'bottleprefixes/', params={'bottle_prefix': this_bottle_prefix})
@@ -771,7 +789,7 @@ def bottle_prefix_range_add(request):
         return HttpResponse(r, content_type='application/json')
 
 
-def bottles_add(request):
+def bottles_create(request):
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     data = json.loads(request.body.decode('utf-8'))
@@ -781,7 +799,7 @@ def bottles_add(request):
     message_not_exist = "No new Bottles were saved because these Bottle Prefixes do not exist in the database: "
 
     # validate that the submitted bottle names don't already exist
-    logging.info("VALIDATE Bottles Add")
+    logger.info("VALIDATE Bottles Add")
     item_number = 0
     for item in data:
         item_number += 1
@@ -802,7 +820,7 @@ def bottles_add(request):
         return HttpResponse(message, content_type='text/html')
 
     # validate that the submitted bottle prefixes already exist
-    logging.info("VALIDATE Bottles Add Prefixes")
+    logger.info("VALIDATE Bottles Add Prefixes")
     item_number = 0
     for item in data:
         item_number += 1
@@ -857,14 +875,7 @@ def brominations(request):
     return render_to_response('merlin/brominations.html', context_dict, context)
 
 
-def brominations_load(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    data = request.body
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'brominations?id='+data, headers=headers_auth_token)
-    return HttpResponse(r, content_type='application/json')
-
-
-def brominations_save(request):
+def brominations_update(request):
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     #data = request.body
@@ -913,7 +924,7 @@ def brominations_save(request):
     return HttpResponse(response_data, content_type='application/json')
 
 
-def bromination_add(request):
+def brominations_create(request):
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     data = request.body
@@ -921,7 +932,7 @@ def bromination_add(request):
     return HttpResponse(r, content_type='application/json')
 
 
-def samplebottlebromination_add(request):
+def samplebottlebrominations_create(request):
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     data = json.loads(request.body.decode('utf-8'))
@@ -929,12 +940,12 @@ def samplebottlebromination_add(request):
     message_not_valid = "These Sample Bottles are not for UTHG or FTHG: "
 
     # validate that the submitted sample bottles have samples with constituents of UTHG or FTHG
-    logging.info("VALIDATE Sample Bottles Brominations")
+    logger.info("VALIDATE Sample Bottles Brominations")
     item_number = 0
     for item in data:
         item_number += 1
-        params = {'id': item.get('sample_bottle'), 'constituent': [39,27]}
-        r = requests.get(REST_SERVICES_URL+'bottles/', params=params)
+        params = {'id': item.get('sample_bottle'), 'constituent': '39,27'}
+        r = requests.get(REST_SERVICES_URL+'samplebottles/', params=params)
         logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
         response_data = r.json()
         logger.info("bottles count: " + str(response_data['count']))
@@ -1007,14 +1018,7 @@ def blankwaters(request):
     return render_to_response('merlin/blankwaters.html', context_dict, context)
 
 
-def blankwaters_load(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    data = request.body
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'blankwaters?id='+data, headers=headers_auth_token)
-    return HttpResponse(r, content_type='application/json')
-
-
-def blankwaters_save(request):
+def blankwaters_update(request):
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     #data = request.body
@@ -1048,7 +1052,7 @@ def blankwaters_save(request):
     return HttpResponse(response_data, content_type='application/json')
 
 
-def blankwater_add(request):
+def blankwaters_create(request):
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     data = request.body
@@ -1067,14 +1071,7 @@ def acids(request):
     return render_to_response('merlin/acids.html', context_dict, context)
 
 
-def acids_load(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    data = request.body
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'acids?id='+data, headers=headers_auth_token)
-    return HttpResponse(r, content_type='application/json')
-
-
-def acids_save(request):
+def acids_update(request):
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     #data = request.body
@@ -1123,7 +1120,7 @@ def acids_save(request):
     return HttpResponse(response_data, content_type='application/json')
 
 
-def acid_add(request):
+def acids_create(request):
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     data = request.body
@@ -1142,14 +1139,7 @@ def sites(request):
     return render_to_response('merlin/sites.html', context_dict, context)
 
 
-def sites_load(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    data = request.body
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'sites?name='+data, headers=headers_auth_token)
-    return HttpResponse(r, content_type='application/json')
-
-
-def sites_save(request):
+def sites_update(request):
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     #data = request.body
@@ -1198,7 +1188,7 @@ def sites_save(request):
     return HttpResponse(response_data, content_type='application/json')
 
 
-def site_add(request):
+def sites_create(request):
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     data = request.body
@@ -1217,14 +1207,7 @@ def projects(request):
     return render_to_response('merlin/projects.html', context_dict, context)
 
 
-def projects_load(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    data = request.body
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'projects?name='+data, headers=headers_auth_token)
-    return HttpResponse(r, content_type='application/json')
-
-
-def projects_save(request):
+def projects_update(request):
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     #data = request.body
@@ -1273,7 +1256,7 @@ def projects_save(request):
     return HttpResponse(response_data, content_type='application/json')
 
 
-def project_add(request):
+def projects_create(request):
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     data = request.body
@@ -1292,14 +1275,7 @@ def cooperators(request):
     return render_to_response('merlin/cooperators.html', context_dict, context)
 
 
-def cooperators_load(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    data = request.body
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'cooperators?name='+data, headers=headers_auth_token)
-    return HttpResponse(r, content_type='application/json')
-
-
-def cooperators_save(request):
+def cooperators_update(request):
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     #data = request.body
@@ -1348,7 +1324,7 @@ def cooperators_save(request):
     return HttpResponse(response_data, content_type='application/json')
 
 
-def cooperator_add(request):
+def cooperators_create(request):
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     data = request.body

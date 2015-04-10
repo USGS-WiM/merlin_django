@@ -1,13 +1,13 @@
 
 <ul class="nav nav-list">
-    <li><a href="/merlin/sample_login/">Sample Login</a></li>
-    <li><a href="/merlin/sample_search/">Sample Search</a></li>
-    <li><a href="/merlin/result_search/">Result Search</a></li>
-    <li><a href="/merlin/bottles/">Bottles</a></li>
-    <li><a href="/merlin/acids/">Acids</a></li>
-    <li><a href="/merlin/brominations/">Brominations</a></li>
-    <li><a href="/merlin/blankwaters/">Blank Waters</a></li>
-    <li><a href="/merlin/cooperators/">Cooperators</a></li>
-    <li><a href="/merlin/projects/">Projects</a></li>
-    <li><a href="/merlin/sites/">Sites</a></li>
+    <li><a href="{% url 'merlin:sample_login' %}">Sample Login</a></li>
+    <li><a href="{% url 'merlin:samples_search' %}">Samples Search</a></li>
+    <li><a href="{% url 'merlin:results_search' %}">Results Search</a></li>
+    <li><a href="{% url 'merlin:bottles' %}">Bottles</a></li>
+    <li><a href="{% url 'merlin:acids' %}">Acids</a></li>
+    <li><a href="{% url 'merlin:brominations' %}">Brominations</a></li>
+    <li><a href="{% url 'merlin:blankwaters' %}">Blank Waters</a></li>
+    <li><a href="{% url 'merlin:cooperators' %}">Cooperators</a></li>
+    <li><a href="{% url 'merlin:projects' %}">Projects</a></li>
+    <li><a href="{% url 'merlin:sites' %}">Sites</a></li>
 </ul>

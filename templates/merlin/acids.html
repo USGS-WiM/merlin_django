@@ -156,7 +156,7 @@
                     else {grid_console.text('Date is badly formed. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); return false;}
                     var dataJSON = JSON.stringify(thisDataObject);
                     $.ajax({
-                        url: '/merlin/acid_add/',
+                        url: "{% url 'merlin:acids_create' %}",
                         data: dataJSON,
                         dataType: 'json',
                         contentType: "application/json",
@@ -354,7 +354,7 @@
                     if(validTable) {
                         var changedDataJSON = JSON.stringify(changedDataArray);
                         $.ajax({
-                            url: '/merlin/acids/save',
+                            url: "{% url 'merlin:acids_update' %}",
                             data: changedDataJSON,
                             dataType: 'json',
                             contentType: "application/json",
