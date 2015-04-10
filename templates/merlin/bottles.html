@@ -72,7 +72,7 @@
         </div>
         <div id="grid_bottles_add" data-bottle-types="{{ bottletypes }}" style="display:none" >
             <br />
-            <button type="button" class="btn btn-primary" name="bottlesAddSave">Save</button>
+            <button type="button" class="btn btn-primary" data-loading-text="Saving..." name="bottlesAddSave">Save</button>
             <button type="button" class="btn btn-default" name="insertRange">Insert Range</button>
             <button type="button" class="btn btn-info" name="exportCSV">Export CSV</button>
             <button type="button" class="btn btn-default" name="insertRows">Insert 8 Blank Rows</button>
@@ -305,6 +305,7 @@
                     var endVal = $('#grid_bottle_range_end').val();
                     //if (!endVal || !($.isNumeric(endVal)) || !(Math.floor(endVal) == endVal)) {grid_console.text('Last number sequence is required (and must be an integer)!'); return false;}
                     var end = Number(endVal);
+                    if (end < Number(start)+1) {grid_console.text('Last number in sequence cannot be less than the start number!'); return false;}
                     var digits = start.length;
                     if (!initialDataRow[1]) {grid_console.text('Suffix is required in the first row!'); return false;}
                     var suffix = initialDataRow[1];
@@ -330,7 +331,7 @@
                     console.log(csv);
                     $('#csv').text(csv);*/
                     var table = grid_bottles_add.handsontable('getInstance');
-                    var csv_filename = "bottle_codes_" + yearToday + "-" + monthToday + "-" + dayToday + ".csv";
+                    var csv_filename = "bottle_codes_" + yearToday + "-" + (monthToday.length == 1 ? "0" + monthToday : monthToday) + "-" + (dayToday.length == 1 ? "0" + dayToday : dayToday) + ".csv";
                     handsontable2csv.download(table, csv_filename);
                 });
 
@@ -347,12 +348,13 @@
                 });
 
                 grid_bottles_add.parent().find('button[name=bottlesAddSave]').click(function () {
+                    var $btn = $(this).button('loading');
                     var changedDataArrayBottlesAdd = [];
                     //$.each(changedRowIndicesBottlesAdd, function(index, value) {
                     //    var thisDataRow = grid_bottles_add.data('handsontable').getDataAtRow(value);
                     //    var thisDataObject = {};
                     // if there are no changed rows, notify the user and stop the submission
-                    if (typeof changedRowIndicesBottlesAdd == 'undefined' || changedRowIndicesBottlesAdd.length < 1) {grid_console.text('Table is empty!'); validTableAdd = false; return false;}
+                    if (typeof changedRowIndicesBottlesAdd == 'undefined' || changedRowIndicesBottlesAdd.length < 1) {grid_console.text('Table is empty!'); validTableAdd = false; $btn.button('reset'); return false;}
                     // otherwise loop through all rows
                     var allRows = grid_bottles_add.handsontable('getInstance').countRows();
                     for (var row = 0; row < allRows; row++) {
@@ -388,23 +390,12 @@
                                             if (makeYear(baddate) != null && makeMonth(baddate) != null && makeDay(baddate) != null) {
                                                 var gooddate_string = makeYear(baddate) + "-" + makeMonth(baddate) + "-" + makeDay(baddate);
                                                 var gooddate = new Date(makeYear(baddate), makeMonth(baddate) - 1, makeDay(baddate));
-                                                if (gooddate > dateToday) {
-                                                    {
-                                                        grid_console.text('Date cannot be a future date!');
-                                                        return false;
-                                                    }
-                                                }
+                                                if (gooddate > dateToday) {grid_console.text('Date cannot be a future date!'); $btn.button('reset'); return false;}
                                                 thisDataObject[objectFieldsAdd[i]] = gooddate_string;
                                             }
-                                            else {
-                                                grid_console.text('There is a problem with the Date in row ' + (row + 1) + '. Please contact the administrator.');
-                                                return false;
-                                            }
+                                            else {grid_console.text('There is a problem with the Date in row ' + (row + 1) + '. Please contact the administrator.'); $btn.button('reset'); return false;}
                                         }
-                                        else {
-                                            grid_console.text('Date is badly formed in row ' + (row + 1) + '. Expecting a date in mm/dd/yy format but found ' + baddate + '!');
-                                            return false;
-                                        }
+                                        else {grid_console.text('Date is badly formed in row ' + (row + 1) + '. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); $btn.button('reset'); return false;}
                                         break;
                                     default:
                                         thisDataObject[objectFieldsAdd[i]] = thisDataRow[i];
@@ -420,7 +411,7 @@
                     if(validTableAdd) {
                         var changedDataJSON = JSON.stringify(changedDataArrayBottlesAdd);
                         $.ajax({
-                            url: '/merlin/bottles_add/',
+                            url: "{% url 'merlin:bottles_create' %}",
                             data: changedDataJSON,
                             dataType: 'json',
                             contentType: "application/json",
@@ -451,6 +442,7 @@
                             }
                         });
                     }
+                    $btn.button('reset');
                 });
 
                 var form_bottle_prefix_add = $("#form_bottle_prefix_add");
@@ -476,7 +468,7 @@
                     thisDataObject['description'] = form_bottle_prefix_add.find('input[name=description]').val();
                     var dataJSON = JSON.stringify(thisDataObject);
                     $.ajax({
-                        url: '/merlin/bottleprefix_add/',
+                        url: "{% url 'merlin:bottle_prefixes_create' %}",
                         data: dataJSON,
                         dataType: 'json',
                         contentType: "application/json",
@@ -530,7 +522,7 @@
                     thisDataObject['description'] = form_bottle_prefix_range_add.find('input[name=description]').val();
                     var dataJSON = JSON.stringify(thisDataObject);
                     $.ajax({
-                        url: '/merlin/bottleprefix_range_add/',
+                        url: "{% url 'merlin:bottle_prefixes_range_create' %}",
                         data: dataJSON,
                         dataType: 'json',
                         contentType: "application/json",
@@ -958,7 +950,7 @@
                     if(validTablePrefix) {
                         var changedDataJSON = JSON.stringify(changedDataArray);
                         $.ajax({
-                            url: '/merlin/bottleprefixes/save',
+                            url: "{% url 'merlin:bottle_prefixes_create' %}",
                             data: changedDataJSON,
                             dataType: 'json',
                             contentType: "application/json",
@@ -1113,7 +1105,7 @@
                     if(validTableBottle) {
                         var changedDataJSON = JSON.stringify(changedDataArray);
                         $.ajax({
-                            url: '/merlin/bottles/save',
+                            url: "{% url 'merlin:bottles_update' %}",
                             data: changedDataJSON,
                             dataType: 'json',
                             contentType: "application/json",

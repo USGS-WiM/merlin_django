@@ -192,7 +192,7 @@
                     invalidCellClassName: 'customHtInvalid',
                     columns: [
                         {title: "Unique Bottle Name", width: 150, type: 'autocomplete', strict: true, source: function (query, process) {
-                            getValuesAjax('/mercuryservices/bottles', 'bottle_unique_name', query, process, ('constituent=39,27'))}},
+                            getValuesAjax('/mercuryservices/samplebottles', 'bottle', query, process, ('constituent=39,27'))}},
                         {title: "Event Number", width: 100},
                         {title: "Volume Added (mL)", width: 150}
                     ],
@@ -282,7 +282,7 @@
                     thisDataObject['date_before'] = $(date_before).val();
                     var dataJSON = JSON.stringify(thisDataObject);
                     $.ajax({
-                        url: '/merlin/samplebottlebromination_search/',
+                        url: "{% url 'merlin:samplebottlebrominations_search' %}",
                         data: dataJSON,
                         dataType: 'json',
                         contentType: "application/json",
@@ -515,7 +515,7 @@
                     if(validTableBrominations) {
                         var changedDataJSON = JSON.stringify(changedDataArray);
                         $.ajax({
-                            url: '/merlin/brominations/save',
+                            url: "{% url 'merlin:brominations_update' %}",
                             data: changedDataJSON,
                             dataType: 'json',
                             contentType: "application/json",
@@ -602,7 +602,7 @@
                     if (validTableAdd) {
                         var dataJSON = JSON.stringify(dataArray);
                         $.ajax({
-                            url: '/merlin/samplebottlebromination_add/',
+                            url: "{% url 'merlin:samplebottlebrominations_create' %}",
                             data: dataJSON,
                             dataType: 'json',
                             contentType: "application/json",
@@ -656,7 +656,7 @@
                     else {grid_console.text('Date is badly formed. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); return false;}
                     var dataJSON = JSON.stringify(thisDataObject);
                     $.ajax({
-                        url: '/merlin/bromination_add/',
+                        url: "{% url 'merlin:brominations_create' %}",
                         data: dataJSON,
                         dataType: 'json',
                         contentType: "application/json",

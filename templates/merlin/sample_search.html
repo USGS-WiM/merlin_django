@@ -25,12 +25,12 @@
                 </p>
                 <p>
                     <div class="form-group">
-                        <label for="date_after">After Date</label><br />
-                        <input id="date_after" class="select2-container select2-container-multi" style="width:297px;height:34px;font-size:15px;padding-left:4px;"/>
+                        <label for="date_after_sample">After Sample Date</label><br />
+                        <input id="date_after_sample" class="select2-container select2-container-multi" style="width:297px;height:34px;font-size:15px;padding-left:4px;"/>
                     </div>
                     <div class="form-group">
-                        <label for="date_before">Before Date</label><br />
-                        <input id="date_before" class="select2-container select2-container-multi" style="width:297px;height:34px;font-size:15px;padding-left:4px;"/>
+                        <label for="date_before_sample">Before Sample Date</label><br />
+                        <input id="date_before_sample" class="select2-container select2-container-multi" style="width:297px;height:34px;font-size:15px;padding-left:4px;"/>
                     </div>
                     <div class="form-group">
                         <label for="select_depth">Depth</label><br />
@@ -40,17 +40,26 @@
                         <label for="select_replicate">Replicate</label><br />
                         <input id="select_replicate" type="number" class="select2-container select2-container-multi" style="width:297px;height:34px;font-size:15px;padding-left:4px;"/>
                     </div>
+                    <div class="form-group">
+                        <label for="select_constituent">Analysis</label><br />
+                        <input id="select_constituent" type="hidden" style="width:297px"/>
+                    </div>
                 </p>
                 <p>
                     {% if request.session.is_staff %}
                     <button type="button" class="btn btn-warning" name="save">Save</button>
                     {% endif %}
                     <button type="button" class="btn btn-info" name="search">Search</button>
+                    <button type="button" class="btn btn-default" name="exportCSV">Export CSV</button>
                     <button type="button" class="btn btn-default" name="prev">Previous Page</button>
                     <button type="button" class="btn btn-default" name="next">Next Page</button>
                     <label for="lookupContainers" style="margin-left:75px">Lookup Container IDs</label>
                     <input type="checkbox" name="lookupContainers" id="lookupContainers" />
                 </p>
+                <div id="exportCSVButtonPanel" style="display:none" >
+                    <button type="button" class="btn btn-info" name="exportCSVCurrentPage">Current Page</button>
+                    <button type="button" class="btn btn-info" name="exportCSVAllPages">All Pages</button>
+                </div>
             </form>
         </div>
 
@@ -66,6 +75,7 @@
         <!-- <p><input id="search_field" type="search" placeholder="Highlight in table." style="width:600px; border:1px solid darkgray; height:42px"/></p> -->
         <br /><br />
         <div id="grid" data-projects="{{ projects }}" data-processings="{{ processings }}" data-constituents="{{ constituents }}" data-mediums="{{ mediums }}" data-filters="{{ filters }}" data-preservations="{{ preservations }}" data-isotopeflags="{{ isotope_flags }}" ></div>
+        <div id="tempgrid" style="display:none"></div>
 
         <script>
             $(document).ready(function() {
@@ -86,6 +96,7 @@
                 var currentPage = 1;
                 var resultPages = 1;
                 var validTable = false;
+                var exportCSVClicked = false;
                 var grid = $('#grid');
                 var grid_console = $("#grid_console");
                 var data_data;
@@ -133,19 +144,14 @@
                             break;
                     }
                 };
-                var dateToday = new Date(); //.toISOString().split("T")[0];
                 var objectFields = ["sample_bottle.sample.id", "project", "project_id", "site", "site_id", "skip_date", "sample_date_time", "depth", "length", "replicate", "comment", "received_date", "lab_processing", "bottle", "medium_type", "constituent_type", "isotope_flag", "filter_type", "volume_filtered", "preservation_type", "preservation_acid", "preservation_volume", "preservation_comment", "sample_bottle.id", "id"];
                 var changedRowIndices = [];
                 var selectionRowIndices = [];
-                grid_console.text('Loading data...');
-                grid.handsontable({
-                    startRows: 0,
-                    data: data_data,
-                    manualColumnResize: true,
-                    manualRowResize: true,
-                    invalidCellClassName: 'customHtInvalid',
-                    search: {searchResultClass: 'customHtSearchResult'},
-                    columns: [
+                var dateToday = new Date(); //toISOString().split("T")[0];
+                var yearToday = dateToday.getFullYear().toString();
+                var monthToday = (dateToday.getMonth() + 1).toString();
+                var dayToday = dateToday.getDate().toString();
+                var grid_columns = [
                         {title: 'Sample ID', data: 'sample_bottle.sample.id', readOnly: true, width: 80},
                         {title: 'Project Name', data: 'sample_bottle.sample.project.name', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 100, type: 'autocomplete', strict: true, source: function (query, process) {
                             getValuesAjax('/mercuryservices/projects', 'name', query, process)}
@@ -186,7 +192,15 @@
                         {title: 'Pres. Comments', data: 'sample_bottle.preservation_comment', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 115, type: 'text'},
                         {title: 'Sample Bottle ID', data: 'sample_bottle.id', readOnly: true, width: 1},
                         {title: 'Result ID', data: 'id', readOnly: true, width: 1}
-                    ],
+                    ];
+                var grid_options = {
+                    startRows: 0,
+                    data: data_data,
+                    manualColumnResize: true,
+                    manualRowResize: true,
+                    invalidCellClassName: 'customHtInvalid',
+                    search: {searchResultClass: 'customHtSearchResult'},
+                    columns: grid_columns,
                     columnSorting: true,
                     // define event handlers
                     beforeChange: function(changes, source) {
@@ -322,7 +336,9 @@
                         //}
 
                     }
-                });
+                };
+                grid_console.text('Loading data...');
+                grid.handsontable(grid_options);
                 //grid.data('handsontable').sort(0);
                 grid_console.text('Data loaded.');
 
@@ -425,12 +441,12 @@
                     return data.constituent;
                 }
 
-                var date_after = $("#date_after").datepicker({
+                var date_after_sample = $("#date_after_sample").datepicker({
                     dateFormat: "mm/dd/y",
                     maxDate: 0
                 });
 
-                var date_before = $("#date_before").datepicker({
+                var date_before_sample = $("#date_before_sample").datepicker({
                     dateFormat: "mm/dd/y",
                     maxDate: 0
                 });
@@ -450,11 +466,13 @@
                     thisDataObject['site'] = $(select_site).val();//.slice(0, -1);
                     thisDataObject['depth'] = $("#select_depth").val();
                     thisDataObject['replicate'] = $("#select_replicate").val();
-                    thisDataObject['date_after'] = $(date_after).val();
-                    thisDataObject['date_before'] = $(date_before).val();
+                    thisDataObject['constituent'] = $(select_constituent).val();
+                    thisDataObject['date_after_sample'] = $(date_after_sample).val();
+                    thisDataObject['date_before_sample'] = $(date_before_sample).val();
+                    thisDataObject['page_size'] = "";
                     var dataJSON = JSON.stringify(thisDataObject);
                     $.ajax({
-                        url: '/merlin/sample_search/search',
+                        url: "{% url 'merlin:samples_search' %}",
                         data: dataJSON,
                         dataType: 'json',
                         contentType: "application/json",
@@ -469,7 +487,7 @@
                             else if (jqXHRequest.status === 200) {
                                 data_data = data;
                                 resultPages = Math.ceil(data_data['count'] / 100);
-                                grid_console.text(textStatus+': Retrieved '+ data_data['count'] +' results across ' + resultPages + ' pages. Showing first 100 results.');
+                                grid_console.text(textStatus+': Retrieved '+ data_data['count'] +' results across ' + resultPages + ' pages.' + (resultPages > 1 ? ' Showing first 100 results.' : ''));
                                 grid.data('handsontable').loadData(data_data.results);
                             }
                             else {
@@ -759,7 +777,7 @@
                         var confirmed = confirm("WARNING: This will overwrite existing records in the database!\nContinue and Save, or Cancel?");
                         if (confirmed == true) {
                             $.ajax({
-                                url: '/merlin/sample_search/save',
+                                url: "{% url 'merlin:samples_update' %}",
                                 data: changedDataJSON,
                                 dataType: 'json',
                                 contentType: "application/json",
@@ -784,6 +802,71 @@
                             });
                         }
                     }
+                });
+
+                grid.parent().find('button[name=exportCSV]').click(function() {
+                    if (exportCSVClicked) {
+                        exportCSVClicked = false;
+                        $("#exportCSVButtonPanel").hide();
+                    }
+                    else {
+                        exportCSVClicked = true;
+                        $("#exportCSVButtonPanel").show();
+                    }
+                });
+
+                grid.parent().find('button[name=exportCSVCurrentPage]').click(function() {
+                    var table = grid.handsontable('getInstance');
+                    var csv_filename = "samples_" + yearToday + "-" + (monthToday.length == 1 ? "0" + monthToday : monthToday) + "-" + (dayToday.length == 1 ? "0" + dayToday : dayToday) + ".csv";
+                    handsontable2csv.download(table, csv_filename);
+                    grid.parent().find('button[name=exportCSV]').click();
+                });
+
+                grid.parent().find('button[name=exportCSVAllPages]').click(function() {
+                    // if there is only one result page, then there is no need to request more data from the server, so just export the current page
+                    if (resultPages == 1) {grid.parent().find('button[name=exportCSVCurrentPage]').click(); return false;}
+                    // otherwise request all the data matching the search query from the server
+                    var thisDataObject = {};
+                    thisDataObject['bottle'] = $(select_bottle).val();
+                    thisDataObject['project'] = $(select_project).val();
+                    thisDataObject['site'] = $(select_site).val();//.slice(0, -1);
+                    thisDataObject['depth'] = $("#select_depth").val();
+                    thisDataObject['replicate'] = $("#select_replicate").val();
+                    thisDataObject['date_after_sample'] = $(date_after_sample).val();
+                    thisDataObject['date_before_sample'] = $(date_before_sample).val();
+                    // page_size is the parameter that will override our self-defined default 100-record pagination
+                    // setting it to the nearest hundred above the record count will ensure we get all matching records
+                    thisDataObject['page_size'] = (resultPages * 100);
+                    var dataJSON = JSON.stringify(thisDataObject);
+                    $.ajax({
+                        url: "{% url 'merlin:samples_search' %}",
+                        data: dataJSON,
+                        dataType: 'json',
+                        contentType: "application/json",
+                        type: 'POST',
+                        success: function (data, textStatus, jqXHRequest) {
+                            if (jqXHRequest.status === 200) {
+                                // create a temporary handsontable to package up the data in a CSV file
+                                tempgrid = $('#tempgrid');
+                                tempgrid.handsontable({startRows: 0, columns: grid_columns});
+                                tempgrid.data('handsontable').loadData(data.results);
+                                temptable = tempgrid.handsontable('getInstance');
+                                csv_filename = "samples_" + yearToday + "-" + (monthToday.length == 1 ? "0" + monthToday : monthToday) + "-" + (dayToday.length == 1 ? "0" + dayToday : dayToday) + ".csv";
+                                handsontable2csv.download(temptable, csv_filename);
+                                delete tempgrid;
+                                delete temptable;
+                                delete csv_filename;
+                                grid_console.text(textStatus + ': Data exported.');
+                            }
+                            else {
+                                grid_console.text(textStatus+': Export error: '+jqXHRequest.statusText+', code: '+jqXHRequest.status+'.');
+                            }
+                        },
+                        error: function (jqXHRequest, textStatus, errorThrown) {
+                            grid_console.text(errorThrown + " ... " + textStatus);
+                        }
+                    });
+                    grid.parent().find('button[name=exportCSV]').click();
                 });
 
             });

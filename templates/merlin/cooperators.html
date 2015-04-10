@@ -69,9 +69,6 @@
         <br /><br />
         <p>
             <button type="button" class="btn btn-default" name="load">Reload Table</button>
-            <button type="button" class="btn btn-default" name="prev">Previous Page</button>
-            <button type="button" class="btn btn-default" name="next">Next Page</button>
-            <span id="page"></span>
         </p>
         {% if request.session.is_staff %}
         <p style="display:none;">
@@ -100,7 +97,6 @@
                 var validTable = false;
                 var dateToday = new Date(); //toISOString().split("T")[0];
                 var objectFields = ["id", "name", "agency", "email", "phone", "sec_phone", "address", "city", "state", "zipcode", "country", "projects"];
-                var currentPage = 1;
                 var addClicked = false;
                 /*function getColumns() {
                     var cols = [];
@@ -118,13 +114,12 @@
                 }*/
                 var grid = $('#grid');
                 var data_data = JSON.parse(grid.attr("data-data"));
-                var resultPages = Math.ceil(data_data['count'] / 100);
                 var grid_console = $("#grid_console");
                 var changedRowIndices = [];
                 var selectionRowIndices = [];
                 grid_console.text('Loading data.');
                 grid.handsontable({
-                    data: data_data.results,
+                    data: data_data,
                     manualColumnResize: true,
                     manualRowResize: true,
                     invalidCellClassName: 'customHtInvalid',
@@ -171,12 +166,10 @@
                     }
                 });
                 grid.data('handsontable').sort(0);
-                $('#page').html("Page " + currentPage + " of " + resultPages);
                 grid_console.text('Data loaded.');
 
                 var form_add = $("#form_add");
                 form_add.find('button[name=addOK]').click(function() {
-                    alert("addOK");
                     var thisDataObject = {};
                     thisDataObject['name'] = form_add.find('input[name=name]').val();
                     thisDataObject['agency'] = form_add.find('input[name=agency]').val();
@@ -190,7 +183,7 @@
                     thisDataObject['country'] = form_add.find('input[name=country]').val();
                     var dataJSON = JSON.stringify(thisDataObject);
                     $.ajax({
-                        url: '/merlin/cooperator_add/',
+                        url: "{% url 'merlin:cooperators_create' %}",
                         data: dataJSON,
                         dataType: 'json',
                         contentType: "application/json",
@@ -239,9 +232,9 @@
                         },
                         results: function (data, page) {
                             data_data = data;
-                            grid.data('handsontable').loadData(data_data.results);
+                            grid.data('handsontable').loadData(data_data);
                             grid_console.text('Filtered data loaded.');
-                            return {results: data.results};
+                            return {results: data};
                         }
                     },
                     sortResults: function(results, container, query) {
@@ -259,66 +252,19 @@
 
                 grid.parent().find('button[name=load]').click(function () {
                     $.ajax({
-                        url: '/mercuryservices/cooperators/?page='+currentPage,
+                        url: '/mercuryservices/cooperators/',
                         dataType: 'json',
                         success: function (response) {
                             grid_console.text("success");
                             data_data = response;
-                            grid.data('handsontable').loadData(data_data.results);
+                            grid.data('handsontable').loadData(data_data);
                             grid.data('handsontable').sort(0);
-                            $('#page').html("Page " + currentPage + " of " + resultPages);
-                            grid_console.text('Page '+ currentPage +' data reloaded.');
+                            grid_console.text('Data reloaded.');
                         },
                         error: function (jqXHRequest, textStatus, errorThrown) {
-                            grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve page to reload.");
+                            grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve data to reload.");
                         }
                     });
-                });
-
-                grid.parent().find('button[name=next]').click(function () {
-                    if (currentPage != resultPages) {
-                        $.ajax({
-                            url: data_data.next,
-                            dataType: 'json',
-                            success: function (response) {
-                                grid_console.text("success");
-                                data_data = response;
-                                grid.data('handsontable').loadData(data_data.results);
-                                currentPage++;
-                                $('#page').html("Page " + currentPage + " of " + resultPages);
-                                grid_console.text('Page ' + currentPage + ' of ' + resultPages + ' loaded.');
-                            },
-                            error: function (jqXHRequest, textStatus, errorThrown) {
-                            grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve next page.");
-                        }
-                        });
-                    }
-                    else {
-                        grid_console.text("End of results, there are no pages after Page " + resultPages + ".");
-                    }
-                });
-
-                grid.parent().find('button[name=prev]').click(function () {
-                    if (currentPage != 1) {
-                        $.ajax({
-                            url: data_data.previous,
-                            dataType: 'json',
-                            success: function (response) {
-                                grid_console.text("success");
-                                data_data = response;
-                                grid.data('handsontable').loadData(data_data.results);
-                                currentPage--;
-                                $('#page').html("Page " + currentPage + " of " + resultPages);
-                                grid_console.text('Page ' + currentPage + ' of ' + resultPages + ' loaded.');
-                            },
-                            error: function (jqXHRequest, textStatus, errorThrown) {
-                            grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve previous page.");
-                        }
-                        });
-                    }
-                    else {
-                        grid_console.text("There are no pages before Page 1.");
-                    }
                 });
 
                 grid.parent().find('button[name=add]').click(function () {
@@ -330,18 +276,6 @@
                         addClicked = true;
                         $("#form_add").show();
                     }
-                });
-
-                grid.parent().find('button[name=delete]').click(function () {
-                    var thisDataRow = grid.data('handsontable').getDataAtRow(selectionRowIndices[0]);
-                    var thisDataRowID = thisDataRow[0];
-                    window.location = '/merlin/cooperators/'+thisDataRowID+'/delete';
-                });
-
-                grid.parent().find('button[name=edit]').click(function () {
-                    var thisDataRow = grid.data('handsontable').getDataAtRow(selectionRowIndices[0]);
-                    var thisDataRowID = thisDataRow[0];
-                    window.location = '/merlin/cooperators/'+thisDataRowID+'/edit';
                 });
 
                 grid.parent().find('button[name=save]').click(function () {
@@ -386,7 +320,7 @@
                     if(validTable) {
                         var changedDataJSON = JSON.stringify(changedDataArray);
                         $.ajax({
-                            url: '/merlin/cooperators/save',
+                            url: "{% url 'merlin:cooperators_update' %}",
                             data: changedDataJSON,
                             dataType: 'json',
                             contentType: "application/json",

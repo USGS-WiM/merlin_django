@@ -2,9 +2,9 @@
 {% block body_block %}
 
     <div style="padding:10px">
-        <p>
-            <!-- <button type="button" class="btn btn-default" name="save">Save</button> -->
-        </p>
+{#        <p>#}
+{#            <!-- <button type="button" class="btn btn-default" name="save">Save</button> -->#}
+{#        </p>#}
         <pre id="grid_console" class="console" style="width:600px"></pre>
         <div class="panel-default">
             <form id="form_result_search" class="form-inline">
@@ -50,17 +50,27 @@
                 </p>
                 <p>
                     <div class="form-group">
+                        <input type="checkbox" name="excludeNullResults" id="excludeNullResults" checked />
+                        <label for="excludeNullResults">Exclude Null Results</label>
+                    </div>
+                </p>
+                <p>
+                    <div class="form-group">
                         <button type="button" class="btn btn-info" name="search">Search</button>
-                        <button type="button" class="btn btn-info" name="exportCSV">Export CSV</button>
+                        <button type="button" class="btn btn-default" name="exportCSV">Export CSV</button>
                         <button type="button" class="btn btn-default" name="prev">Previous Page</button>
                         <button type="button" class="btn btn-default" name="next">Next Page</button>
                         <label>Value Type:</label>
                         <div id="valueTypeRadio" class="form-group">
-                            <input type="radio" name="valueType" id="valueTypeFinal" value="final" checked />Final<br />
-                            <input type="radio" name="valueType" id="valueTypeReport" value="report" />Report
+                            <input type="radio" name="valueType" id="valueTypeFinal" value="final"/>Final<br />
+                            <input type="radio" name="valueType" id="valueTypeReport" value="report" checked />Report
                         </div>
                     </div>
                 </p>
+                <div id="exportCSVButtonPanel" style="display:none" >
+                    <button type="button" class="btn btn-info" name="exportCSVCurrentPage">Current Page</button>
+                    <button type="button" class="btn btn-info" name="exportCSVAllPages">All Pages</button>
+                </div>
             </form>
         </div>
 
@@ -76,6 +86,7 @@
         <!-- <p><input id="search_field" type="search" placeholder="Highlight in table." style="width:600px; border:1px solid darkgray; height:42px"/></p> -->
         <br /><br />
         <div id="grid" data-projects="{{ projects }}" data-constituents="{{ constituents }}" ></div>
+        <div id="tempgrid" style="display:none"></div>
 
         <script>
             $(document).ready(function() {
@@ -95,6 +106,7 @@
 
                 var currentPage = 1;
                 var resultPages = 1;
+                var exportCSVClicked = false;
                 var grid = $('#grid');
                 var grid_console = $("#grid_console");
                 var data_data;
@@ -106,14 +118,7 @@
                 var yearToday = dateToday.getFullYear().toString();
                 var monthToday = (dateToday.getMonth() + 1).toString();
                 var dayToday = dateToday.getDate().toString();
-                grid_console.text('Loading data...');
-                grid.handsontable({
-                    startRows: 0,
-                    data: data_data,
-                    manualColumnResize: true,
-                    manualRowResize: true,
-                    search: {searchResultClass: 'customHtSearchResult'},
-                    columns: [
+                var grid_columns = [
                         {title: 'Result ID', data: 'id', readOnly: true, width: 100},
                         {title: 'Bottle', data: 'sample_bottle.bottle.bottle_unique_name', readOnly: true, width: 100},
                         {title: 'Tare Weight', data: 'sample_bottle.bottle.bottle_prefix.tare_weight', readOnly: true, width: 100, format: '0.0000'},
@@ -127,12 +132,21 @@
                         {title: 'Received Date', data: 'sample_bottle.sample.received_date', readOnly: true, width: 100},
                         {title: 'Comments', data: 'sample_bottle.sample.comment', readOnly: true, width: 200},
                         {title: 'Result Value', data: 'final_value', readOnly: true, width: 100, format: '0.00000000'},
-                        {title: 'Unit', data:'method.final_value_unit', readOnly: true, width: 60},
+                        {title: 'Unit', data: 'method.final_value_unit', readOnly: true, width: 60},
                         {title: 'Detection Flag', data: 'detection_flag', readOnly: true, width: 100},
                         {title: 'Analyzed Date', data: 'analyzed_date', readOnly: true, width: 100}
-                    ],
+                    ];
+                var grid_options = {
+                    startRows: 0,
+                    data: data_data,
+                    manualColumnResize: true,
+                    manualRowResize: true,
+                    search: {searchResultClass: 'customHtSearchResult'},
+                    columns: grid_columns,
                     columnSorting: true
-                });
+                };
+                grid_console.text('Loading data...');
+                grid.handsontable(grid_options);
                 grid_console.text('Data loaded.');
 
                 $('#search_field').on('keyup', function (event) {
@@ -265,9 +279,11 @@
                     thisDataObject['date_after_entry'] = $(date_after_entry).val();
                     thisDataObject['date_before_entry'] = $(date_before_entry).val();
                     thisDataObject['constituent'] = $(select_constituent).val();
+                    thisDataObject['exclude_null_results'] = $('#excludeNullResults').is(':checked');
+                    thisDataObject['page_size'] = "";
                     var dataJSON = JSON.stringify(thisDataObject);
                     $.ajax({
-                        url: '/merlin/result_search/search',
+                        url: "{% url 'merlin:results_search' %}",
                         data: dataJSON,
                         dataType: 'json',
                         contentType: "application/json",
@@ -282,11 +298,14 @@
                             else if (jqXHRequest.status === 200) {
                                 data_data = data;
                                 resultPages = Math.ceil(data_data['count'] / 100);
-                                grid_console.text(textStatus+': Retrieved '+ data_data['count'] +' results across ' + resultPages + ' pages. Showing first 100 results.');
-                                grid.data('handsontable').loadData(data_data.results);
+                                grid_console.text(textStatus+': Retrieved '+ data_data['count'] +' results across ' + resultPages + ' pages.' + (resultPages > 1 ? ' Showing first 100 results.' : ''));
                                 for (var i = 0; i < data_data['results'].length; i++) {
-                                    grid.data('handsontable').setDataAtCell(i,13,(data_data['results'][i]['method'] === null ? null : data_data['results'][i]['method']['final_value_unit']));
+                                    //grid.data('handsontable').setDataAtCell(i,13,(data_data['results'][i]['method'] === null ? null : data_data['results'][i]['method']['final_value_unit']));
+                                    //var row = data_data['results'][i];
+                                    //if (row['method'] == null) {row['method'] = {"final_value_unit": ""};}
+                                    data_data['results'][i]['method'] === null ? data_data['results'][i]['method'] = {"final_value_unit": ""} : data_data['results'][i]['method'];
                                 }
+                                grid.data('handsontable').loadData(data_data.results);
                             }
                             else {
                                 grid_console.text(textStatus+': Search error: '+jqXHRequest.statusText+', code: '+jqXHRequest.status+'.');
@@ -299,43 +318,47 @@
                 });
 
                 grid.parent().find('button[name=next]').click(function () {
-                    $.ajax({
-                        url: data_data.next,
-                        dataType: 'json',
-                        success: function (response) {
-                            grid_console.text("success");
-                            data_data = response;
-                            grid.data('handsontable').loadData(data_data.results);
-                            currentPage++;
-                            grid_console.text('Page '+ currentPage +' of '+ resultPages +' loaded.');
-                        },
-                        error: function (response) {
-                            grid_console.text("error");
-                        }
-                    });
+                    if (currentPage != resultPages) {
+                        $.ajax({
+                            url: data_data.next,
+                            dataType: 'json',
+                            success: function (response) {
+                                grid_console.text("success");
+                                data_data = response;
+                                grid.data('handsontable').loadData(data_data.results);
+                                currentPage++;
+                                grid_console.text('Page '+ currentPage +' of '+ resultPages +' loaded.');
+                            },
+                            error: function (response) {
+                                grid_console.text("error");
+                            }
+                        });
+                    }
+                    else {
+                        grid_console.text("End of results, there are no pages after Page " + resultPages + ".");
+                    }
                 });
 
                 grid.parent().find('button[name=prev]').click(function () {
-                    $.ajax({
-                        url: data_data.previous,
-                        dataType: 'json',
-                        success: function (response) {
-                            grid_console.text("success");
-                            data_data = response;
-                            grid.data('handsontable').loadData(data_data.results);
-                            currentPage--;
-                            grid_console.text('Page '+ currentPage +' of '+ resultPages +' loaded.');
-                        },
-                        error: function (response) {
-                            grid_console.text("error");
-                        }
-                    });
-                });
-
-                grid.parent().find('button[name=exportCSV]').click(function() {
-                    var table = grid.handsontable('getInstance');
-                    var csv_filename = "results_" + yearToday + "-" + monthToday + "-" + dayToday + ".csv";
-                    handsontable2csv.download(table, csv_filename);
+                    if (currentPage != 1) {
+                        $.ajax({
+                            url: data_data.previous,
+                            dataType: 'json',
+                            success: function (response) {
+                                grid_console.text("success");
+                                data_data = response;
+                                grid.data('handsontable').loadData(data_data.results);
+                                currentPage--;
+                                grid_console.text('Page '+ currentPage +' of '+ resultPages +' loaded.');
+                            },
+                            error: function (response) {
+                                grid_console.text("error");
+                            }
+                        });
+                    }
+                    else {
+                        grid_console.text("There are no pages before Page 1.");
+                    }
                 });
 
                 $("input[type=radio][name=valueType]").change(function () {
@@ -348,6 +371,78 @@
                         settings.columns[12] = {title: 'Result Value', data: 'final_value', readOnly: true, width: 100, format: '0.00000000'};
                         grid.handsontable('getInstance').updateSettings(settings);
                     }
+                });
+
+                grid.parent().find('button[name=exportCSV]').click(function() {
+                    if (exportCSVClicked) {
+                        exportCSVClicked = false;
+                        $("#exportCSVButtonPanel").hide();
+                    }
+                    else {
+                        exportCSVClicked = true;
+                        $("#exportCSVButtonPanel").show();
+                    }
+                });
+
+                grid.parent().find('button[name=exportCSVCurrentPage]').click(function() {
+                    var table = grid.handsontable('getInstance');
+                    var csv_filename = "results_" + yearToday + "-" + (monthToday.length == 1 ? "0" + monthToday : monthToday) + "-" + (dayToday.length == 1 ? "0" + dayToday : dayToday) + ".csv";
+                    handsontable2csv.download(table, csv_filename);
+                    grid.parent().find('button[name=exportCSV]').click();
+                });
+
+                grid.parent().find('button[name=exportCSVAllPages]').click(function() {
+                    // if there is only one result page, then there is no need to request more data from the server, so just export the current page
+                    if (resultPages == 1) {grid.parent().find('button[name=exportCSVCurrentPage]').click(); return false;}
+                    // otherwise request all the data matching the search query from the server
+                    var thisDataObject = {};
+                    thisDataObject['bottle'] = $(select_bottle).val();
+                    thisDataObject['project'] = $(select_project).val();
+                    thisDataObject['site'] = $(select_site).val();//.slice(0, -1);
+                    thisDataObject['date_after_sample'] = $(date_after_sample).val();
+                    thisDataObject['date_before_sample'] = $(date_before_sample).val();
+                    thisDataObject['date_after_entry'] = $(date_after_entry).val();
+                    thisDataObject['date_before_entry'] = $(date_before_entry).val();
+                    thisDataObject['constituent'] = $(select_constituent).val();
+                    thisDataObject['exclude_null_results'] = $('#excludeNullResults').is(':checked');
+                    // page_size is the parameter that will override our self-defined default 100-record pagination
+                    // setting it to the nearest hundred above the record count will ensure we get all matching records
+                    thisDataObject['page_size'] = (resultPages * 100);
+                    var dataJSON = JSON.stringify(thisDataObject);
+                    $.ajax({
+                        url: "{% url 'merlin:results_search' %}",
+                        data: dataJSON,
+                        dataType: 'json',
+                        contentType: "application/json",
+                        type: 'POST',
+                        success: function (data, textStatus, jqXHRequest) {
+                            if (jqXHRequest.status === 200) {
+                                // create a temporary handsontable to package up the data in a CSV file
+                                tempgrid = $('#tempgrid');
+                                tempgrid.handsontable({startRows: 0, columns: grid_columns});
+                                tempdata = data;
+                                for (var i = 0; i < tempdata['results'].length; i++) {
+                                    tempdata['results'][i]['method'] === null ? tempdata['results'][i]['method'] = {"final_value_unit": ""} : tempdata['results'][i]['method'];
+                                }
+                                tempgrid.data('handsontable').loadData(tempdata.results);
+                                temptable = tempgrid.handsontable('getInstance');
+                                csv_filename = "results_" + yearToday + "-" + (monthToday.length == 1 ? "0" + monthToday : monthToday) + "-" + (dayToday.length == 1 ? "0" + dayToday : dayToday) + ".csv";
+                                handsontable2csv.download(temptable, csv_filename);
+                                delete csv_filename;
+                                delete temptable;
+                                delete tempdata;
+                                delete tempgrid;
+                                grid_console.text(textStatus + ': Data exported.');
+                            }
+                            else {
+                                grid_console.text(textStatus+': Export error: '+jqXHRequest.statusText+', code: '+jqXHRequest.status+'.');
+                            }
+                        },
+                        error: function (jqXHRequest, textStatus, errorThrown) {
+                            grid_console.text(errorThrown + " ... " + textStatus);
+                        }
+                    });
+                    grid.parent().find('button[name=exportCSV]').click();
                 });
 
             });

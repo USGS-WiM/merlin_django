@@ -6,35 +6,32 @@ from numbers import Number
 from datetime import datetime as dt
 from django.core.exceptions import MultipleObjectsReturned
 from django.db.models.base import ObjectDoesNotExist
-from django.http import HttpResponse, HttpResponseRedirect
-from rest_framework import views, viewsets, generics, permissions, authentication, exceptions, status
-from rest_framework.response import Response
+from django.http import HttpResponse
+from rest_framework import views, viewsets, generics, permissions
+from rest_framework_csv import renderers as drf_csv
 from rest_framework_bulk import BulkCreateModelMixin, BulkUpdateModelMixin
 from mercuryservices.serializers import *
 from mercuryservices.models import *
 
 
+########################################################################################################################
+##
+## copyright: 2015 WiM - USGS
+## authors: Aaron Stephenson USGS WiM (Wisconsin Internet Mapping)
+##
+## In Django, a view is what takes a Web request and returns a Web response. The response can be many things, but most
+## of the time it will be a Web page, a redirect, or a document. In this case, the response will almost always be data
+## in JSON format.
+##
+## All these views are written as Class-Based Views (https://docs.djangoproject.com/en/1.7/topics/class-based-views/)
+## because that is the paradigm used by Django Rest Framework (http://www.django-rest-framework.org/api-guide/views/)
+## which is the toolkit we used to create web services in Django.
+##
+##
+########################################################################################################################
+
+
 logger = logging.getLogger(__name__)
-
-
-#The following lines were a test to see if Django Rest Framework could return responses to HTML instead of JSON.
-# class ModelViewSetOverride(viewsets.ModelViewSet):
-#     renderer_classes = (TemplateHTMLRenderer,)
-#
-#     def list(self, request, *args, **kwargs):
-#         self.object = self.get_queryset()
-#         cooperator_form = CooperatorForm()
-#         return Response({'list': self.object, 'cooperator_form': cooperator_form}, template_name='merlin/list.html')
-#
-#     def retrieve(self, request, *args, **kwargs):
-#         self.object = self.get_object()
-#         return Response({'item': self.object}, template_name='merlin/retrieve.html')
-#
-#     def create(self, request, *args, **kwargs):
-#         form = CooperatorForm(request.POST)
-#         if form.is_valid():
-#             form.save(commit=True)
-#         return Response({'list': self.get_queryset(), 'cooperator_form': CooperatorForm()}, template_name='merlin/list.html')
 
 
 ######
@@ -53,7 +50,7 @@ class CooperatorViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     #queryset = Cooperator.objects.all()
     serializer_class = CooperatorSerializer
-    paginate_by = 100
+    #paginate_by = 100
 
     # override the default queryset to allow filtering by URL arguments
     def get_queryset(self):
@@ -197,6 +194,9 @@ class SampleBottleViewSet(viewsets.ModelViewSet):
     #     return queryset
     def get_queryset(self):
         queryset = SampleBottle.objects.all().select_related('sample')
+        id = self.request.QUERY_PARAMS.get('id', None)
+        if id is not None:
+            queryset = queryset.filter(id__exact=id)
         project = self.request.QUERY_PARAMS.get('project', None)
         if project is not None:
             project_list = project.split(',')
@@ -208,7 +208,19 @@ class SampleBottleViewSet(viewsets.ModelViewSet):
         bottle = self.request.QUERY_PARAMS.get('bottle', None)
         if bottle is not None:
             bottle_list = bottle.split(',')
-            queryset = queryset.filter(bottle__bottle_unique_name__in=bottle_list)
+            # if there is only one, chances are the user is trying to look up a specific bottle
+            if len(bottle_list) == 1:
+                try:
+                    # look up this bottle
+                    this_sample_bottle = SampleBottle.objects.get(bottle__bottle_unique_name=bottle_list[0])
+                    # if there is one match, the user just wants the details of this bottle, so add it to the query set
+                    if this_sample_bottle:
+                        queryset = queryset.filter(bottle__bottle_unique_name__in=bottle_list)
+                except (ObjectDoesNotExist, MultipleObjectsReturned):
+                    # if there are multiple matches, or if it doesn't exist, then the submitted bottle value is not a full/valid bottle name, but just a partial name, so the user wants a list of bottles whose name contains the value
+                    queryset = queryset.filter(bottle__bottle_unique_name__icontains=bottle_list[0])
+            else:
+                queryset = queryset.filter(bottle__bottle_unique_name__in=bottle_list)
         constituent = self.request.QUERY_PARAMS.get('constituent', None)
         if constituent is not None:
             constituent_list = constituent.split(',')
@@ -218,7 +230,7 @@ class SampleBottleViewSet(viewsets.ModelViewSet):
         if date_after is not None and date_before is not None:
             queryset = queryset.filter(sample__sample_date_time__range=(date_after, date_before))
         elif date_after is not None:
-                queryset = queryset.filter(sample__sample_date_time__gt=date_after)
+            queryset = queryset.filter(sample__sample_date_time__gt=date_after)
         elif date_before is not None:
             queryset = queryset.filter(sample__sample_date_time__lt=date_before)
         return queryset
@@ -231,6 +243,9 @@ class FullSampleBottleViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = SampleBottle.objects.all().select_related()
+        id = self.request.QUERY_PARAMS.get('id', None)
+        if id is not None:
+            queryset = queryset.filter(id__exact=id)
         project = self.request.QUERY_PARAMS.get('project', None)
         if project is not None:
             project_list = project.split(',')
@@ -307,6 +322,8 @@ class BottleViewSet(viewsets.ModelViewSet):
     paginate_by = 100
 
     def get_queryset(self):
+        print(self.request.user)
+        print(self.request.auth)
         queryset = Bottle.objects.all()
         id = self.request.QUERY_PARAMS.get('id', None)
         if id is not None:
@@ -314,10 +331,6 @@ class BottleViewSet(viewsets.ModelViewSet):
         bottle_unique_name = self.request.QUERY_PARAMS.get('bottle_unique_name', None)
         if bottle_unique_name is not None:
             queryset = queryset.filter(bottle_unique_name__icontains=bottle_unique_name)
-        constituent = self.request.QUERY_PARAMS.get('constituent', None)
-        if constituent is not None:
-            constituent_list = constituent.split(',')
-            queryset = queryset.filter(sample_bottles__results__constituent_id__in=constituent_list)
         return queryset
 
 
@@ -383,19 +396,6 @@ class MediumTypeViewSet(viewsets.ModelViewSet):
     queryset = MediumType.objects.all()
     serializer_class = MediumTypeSerializer
 
-    #The following lines were a test to see if Django Rest Framework could return responses to HTML instead of JSON.
-    # def list(self, request, *args, **kwargs):
-    #     response = super(MediumTypeViewSet, self).list(request, *args, **kwargs)
-    #     if request.accepted_renderer.format == 'html':
-    #         return Response({'data': response.data}, template_name='mercury/mediums.html')
-    #     return response
-    #
-    # def retrieve(self, request, *args, **kwargs):
-    #     response = super(MediumTypeViewSet, self).retrieve(request, *args, **kwargs)
-    #     if request.accepted_renderer.format == 'html':
-    #         return Response({'data': response.data}, template_name='mercury/medium.html')
-    #     return response
-
 
 ######
 ##
@@ -443,6 +443,54 @@ class FullResultViewSet(viewsets.ModelViewSet):
     #queryset = Result.objects.all()
     serializer_class = FullResultSerializer
     paginate_by = 100
+    paginate_by_param = 'page_size'
+
+    # # override the default renderers to use a csv renderer when requested
+    # def get_renderers(self):
+    #     frmt = self.request.QUERY_PARAMS.get('format', None)
+    #     if frmt is not None and frmt == 'csv':
+    #         renderer_classes = (drf_csv.CSVRenderer, ) + tuple(api_settings.DEFAULT_RENDERER_CLASSES)
+    #     else:
+    #         renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES)
+    #     return [renderer_class() for renderer_class in renderer_classes]
+
+    # override the default paginate_by to use unlimited pagination for filtered CSV requests, and 100 for all others.
+    # def get_paginate_by(self):
+    #     other_params = self.request.QUERY_PARAMS.copy()
+    #     if 'format' in other_params.keys():
+    #         del other_params['format']
+    #     if self.request.accepted_renderer.format == 'csv' and len(other_params) > 0:
+    #         return None
+    #     return 100
+
+    # override the default serializer_class if CSV format is specified
+    # def get_serializer_class(self):
+    #     if self.request.accepted_renderer.format == 'csv':
+    #         table = self.request.QUERY_PARAMS.get('table', None)
+    #         # if table is not specified or not equal to samples, assume results
+    #         print(table == 'sample')
+    #         if table is not None and table == 'sample':
+    #             print('in sample')
+    #             return FlatResultSampleSerializer
+    #         else:
+    #             print('in else')
+    #             return FlatResultSerializer
+    #     else:
+    #         return FullResultSerializer
+
+    # override the default finalize_response to assign a filename to CSV files
+    # def finalize_response(self, request, *args, **kwargs):
+    #     response = super(viewsets.ModelViewSet, self).finalize_response(request, *args, **kwargs)
+    #     if self.request.accepted_renderer.format == 'csv':
+    #         table = self.request.QUERY_PARAMS.get('table', None)
+    #         # if table is not specified or not equal to samples, assume results
+    #         if table is not None and table == 'sample':
+    #             table_name = 'samples'
+    #         else:
+    #             table_name = 'results'
+    #         filename = table_name + '_' + dt.now().strftime("%Y") + '-' + dt.now().strftime("%m") + '-' + dt.now().strftime("%d") + '.csv'
+    #         response['Content-Disposition'] = "attachment; filename=%s" % filename
+    #     return response
 
     # override the default queryset to allow filtering by URL arguments
     def get_queryset(self):
@@ -459,18 +507,24 @@ class FullResultViewSet(viewsets.ModelViewSet):
             # if query values are names
             else:
                 queryset = queryset.filter(sample_bottle__bottle__bottle_unique_name__in=bottle_list)
+            exclude_null_results = self.request.QUERY_PARAMS.get('exclude_null_results')
+            if exclude_null_results is not None:
+                if exclude_null_results == 'True' or exclude_null_results == 'true':
+                    queryset = queryset.filter(final_value__isnull=False)
+                #elif exclude_null_results == 'False' or exclude_null_results == 'false':
+                #    queryset = queryset.filter(final_value__isnull=True)
             return queryset
         # else, search by other params
         else:
             barcode = self.request.QUERY_PARAMS.get('barcode', None)
             if barcode is not None:
                 queryset = queryset.filter(sample_bottle__exact=barcode)
-            final_value_null = self.request.QUERY_PARAMS.get('final_value_null')
-            if final_value_null is not None:
-                if final_value_null == 'False' or final_value_null == 'false':
+            exclude_null_results = self.request.QUERY_PARAMS.get('exclude_null_results')
+            if exclude_null_results is not None:
+                if exclude_null_results == 'True' or exclude_null_results == 'true':
                     queryset = queryset.filter(final_value__isnull=False)
-                elif final_value_null == 'True' or final_value_null == 'true':
-                    queryset = queryset.filter(final_value__isnull=True)
+                #elif exclude_null_results == 'False' or exclude_null_results == 'false':
+                #    queryset = queryset.filter(final_value__isnull=True)
             constituent = self.request.QUERY_PARAMS.get('constituent', None)
             if constituent is not None:
                 constituent_list = constituent.split(',')
@@ -702,6 +756,8 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
 
     def get_queryset(self):
+        print(self.request.user)
+        print(self.request.auth)
         queryset = User.objects.all()
         username = self.request.QUERY_PARAMS.get('username', None)
         if username is not None:
@@ -773,11 +829,11 @@ class ProcedureTypeViewSet(viewsets.ModelViewSet):
     serializer_class = ProcedureTypeSerializer
 
 
-class TestReport(generics.ListAPIView):
+class ReportResultsCountNawqa(generics.ListAPIView):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    serializer_class = TestReportSerializer
+    serializer_class = ReportResultsCountNawqaSerializer
     paginate_by = 100
-    queryset = Sample.objects.prefetch_related()
+    queryset = ResultCountNawqa.objects.all()
 
     # def get_queryset(self):
     #     queryset = Result.objects.filter(sample_bottle__sample__project=project).prefetch_related()#.only('id', 'sample_bottle__sample__project', 'sample_bottle', 'constituent', 'isotope_flag', 'analyzed_date')

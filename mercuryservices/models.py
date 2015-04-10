@@ -1,7 +1,9 @@
 from datetime import datetime
 from django.db import models
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import User
 from django.contrib import admin
+from django.conf import settings
+from audit_log.models.fields import CreatingUserField, LastUserField
 
 
 ######
@@ -136,7 +138,10 @@ class Bottle(models.Model):
     bottle_prefix = models.ForeignKey('BottlePrefix')
     description = models.TextField(blank=True)
     created_date = models.DateField(default=datetime.now, null=True, blank=True)
+    #created_by = CreatingUserField(related_name='created_bottles')
     modified_date = models.DateField(auto_now=True, null=True, blank=True)
+    #modified_by = LastUserField()
+    #modified_by = models.ForeignKey(settings.AUTH_USER_MODEL)
     status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
@@ -196,6 +201,7 @@ class MediumType(models.Model):
     """Medium in which sample was taken (various types of water, soil, or air)."""
 
     nwis_code = models.CharField(max_length=128, blank=True)
+    nwis_code_qa = models.CharField(max_length=128, blank=True)
     medium = models.CharField(max_length=128)
     description = models.TextField(blank=True)
     comment = models.TextField(blank=True)
@@ -318,8 +324,10 @@ class MethodType(models.Model):
     method_code = models.IntegerField()
     preparation = models.CharField(max_length=128, blank=True)
     description = models.TextField(blank=True)
-    method_detection_limit = models.FloatField(null=True, blank=True)
-    method_detection_limit_unit = models.ForeignKey('UnitType', null=True, related_name='mdl_unit')
+    raw_method_detection_limit = models.FloatField(null=True, blank=True)
+    final_method_detection_limit = models.FloatField(null=True, blank=True)
+    raw_method_detection_limit_unit = models.ForeignKey('UnitType', null=True, related_name='raw_mdl_unit')
+    final_method_detection_limit_unit = models.ForeignKey('UnitType', null=True, related_name='final_mdl_unit')
     raw_value_unit = models.ForeignKey('UnitType', null=True, related_name='raw_unit')
     final_value_unit = models.ForeignKey('UnitType', null=True, related_name='final_unit')
     decimal_places = models.IntegerField(null=True, blank=True)
@@ -443,6 +451,8 @@ class QualityAssuranceType(models.Model):
 
     quality_assurance = models.CharField(max_length=128)
     description = models.TextField(blank=True)
+    nwis_value_qualifier = models.CharField(max_length=128, blank=True)
+    nwis_value_qualifier_comment = models.TextField(blank=True)
     status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
@@ -551,7 +561,7 @@ class Bromination(models.Model):
 
 class UserProfile(models.Model):
     """Extends the default User model.
-       Default fields: username, first_name, last_name, email, password, groups, user_permissions,
+       Default fields of the User model: username, first_name, last_name, email, password, groups, user_permissions,
        is_staff, is_active, is_superuser, last_login, date_joined"""
     user = models.OneToOneField(User)
 
@@ -581,13 +591,11 @@ class Status(models.Model):
     note = models.TextField(blank=True)
 
     class Meta:
+        db_table = "mercury_status"
         verbose_name_plural = "Statuses"
 
     def __str__(self):
         return self.status_id
-
-    class Meta:
-        db_table = "mercury_status"
 
 
 class ProcedureStatusType(models.Model):
@@ -619,6 +627,26 @@ class ProcedureType(models.Model):
 
     class Meta:
         db_table = "mercury_proceduretype"
+
+
+######
+##
+## Database Views for Reporting
+##
+######
+
+
+class ResultCountNawqa(models.Model):
+    project_name = models.CharField(max_length=128)
+    site_name = models.CharField(max_length=128, primary_key=True)
+    count = models.IntegerField()
+
+    def __str__(self):
+        return self.count
+
+    class Meta:
+        db_table = "results_count_nawqa"
+        managed = False
 
 
 ######
