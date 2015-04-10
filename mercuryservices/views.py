@@ -921,8 +921,9 @@ class BatchUpload(views.APIView):
 
                 #calculate the report value
                 method_detection_limit,significant_figures,decimal_places = getMethodType(method_id)
+                final_method_detection_limit =  processDailyDetectionLimit(daily_detection_limit,method_id,volume_filtered,sediment_dry_weight,sample_mass_processed)
                 if(method_detection_limit is not None and result_details.final_value is not None and result_details.final_value < method_detection_limit):
-                    result_details.report_value = method_detection_limit
+                    result_details.report_value = final_method_detection_limit
                 else:
                     result_details.report_value = result_details.final_value
 
@@ -1472,4 +1473,37 @@ def processDailyDetectionLimit(daily_detection_limit, method_id,volume_filtered,
             value = -999
         else:
             value = daily_detection_limit / sample_mass_processed
+    return value
+
+
+def processMethodDailyDetectionLimit(daily_detection_limit, method_id,volume_filtered, sediment_dry_weight,sample_mass_processed):
+
+    value = method_daily_detection_limit
+    if (method_id is None or method_daily_detection_limit is None or method_daily_detection_limit == 0):
+        value = method_daily_detection_limit
+    elif (method_daily_detection_limit == -999):
+        value = -999
+    elif (method_id == 42):
+        value = method_daily_detection_limit / 1000
+    elif (method_id == 48 or method_id == 49 or method_id == 83 or method_id == 84 or method_id == 85 or method_id == 233 or method_id == 211):
+        if (volume_filtered is not None):
+            value = method_daily_detection_limit * 1000 / volume_filtered
+    elif (method_id == 52 or method_id == 71):
+        if (sediment_dry_weight is None or sediment_dry_weight == -999):
+            value = -999
+        else:
+            if (sample_mass_processed is None or sample_mass_processed == -999):
+                value = -999
+            else:
+                value = method_daily_detection_limit / sediment_dry_weight / sample_mass_processed
+    elif (method_id == 50 or method_id == 74 or method_id == 82):
+        if (sediment_dry_weight is None or sediment_dry_weight == -999):
+            value = -999
+        else:
+            value = method_daily_detection_limit / sediment_dry_weight
+    elif (method_id == 73 or method_id == 127 or  method_id == 157 or method_id == 228):
+        if (sample_mass_processed is None or sample_mass_processed == -999):
+            value = -999
+        else:
+            value = method_daily_detection_limit / sample_mass_processed
     return value
