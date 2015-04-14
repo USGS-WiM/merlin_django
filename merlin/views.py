@@ -75,9 +75,12 @@ def sample_login(request):
 
 
 def samples_create(request):
+    logger.info("SAMPLE LOGIN CREATE")
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     table = json.loads(request.body.decode('utf-8'))
+    table_rows = len(table)
+    logger.info("submitted table contains " + str(table_rows) + " rows")
     row_number = 0
     unique_sample_ids = []
     unique_bottles = []
@@ -92,7 +95,7 @@ def samples_create(request):
     # analyze each submitted row, parsing sample data and sample bottle data
     for row in table:
         row_number += 1
-        row_message = "for row " + str(row_number) + " in table..."
+        row_message = "for row " + str(row_number) + " of " + str(table_rows) + " in table..."
         logger.info(row_message)
         # grab the data that uniquely identifies each sample
         this_depth = str(row.get('depth'))
@@ -264,6 +267,7 @@ def samples_create(request):
             logger.info("Combo ID:                " + sample_id['combo_id'])
             if sample_bottle['sample'] == sample_id['combo_id']:
                 sample_bottle['sample'] = sample_id['db_id']
+                break
         if not isinstance(sample_bottle['sample'], int):
             logger.warning("Could not match sample and combo IDs!")
             logger.warning("Deleting samples that were just saved.")
@@ -310,6 +314,7 @@ def samples_create(request):
             logger.info("Sample Bottle ID:          " + str(sample_bottle_id['bottle_id']))
             if sample_analysis['sample_bottle'] == sample_bottle_id['bottle_id']:
                 sample_analysis['sample_bottle'] = sample_bottle_id['db_id']
+                break
         if not isinstance(sample_analysis['sample_bottle'], int):
             logger.warning("Could not match sample bottle and combo bottle IDs!")
             logger.warning("Deleting sample bottles that were just saved.")
@@ -421,9 +426,12 @@ def samples_search(request):
 
 
 def samples_update(request):
+    logger.info("SAMPLE LOGIN UPDATE")
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     table = json.loads(request.body.decode('utf-8'))
+    table_rows = len(table)
+    logger.info("submitted table contains " + str(table_rows) + " rows")
     row_number = 0
     unique_sample_ids = []
     sample_data = []
@@ -434,7 +442,7 @@ def samples_update(request):
     # analyze each submitted row, parsing sample data and sample bottle data
     for row in table:
         row_number += 1
-        row_message = "for row " + str(row_number) + " in table..."
+        row_message = "for row " + str(row_number) + " of " + str(table_rows) + " in table..."
         logger.info(row_message)
         # grab the data that uniquely identifies each sample
         this_sample_id = row.get('sample_bottle.sample.id')
@@ -519,6 +527,7 @@ def samples_update(request):
         this_response_data = r.json()
         logger.info("1 samples saved")
         sample_response_data.append(this_response_data)
+    logger.info(sample_response_data)
 
     ## SAVE SAMPLE BOTTLES ##
     # update the sample bottles with the database IDs, rather than the combo IDs
@@ -554,6 +563,7 @@ def samples_update(request):
 
     ## SAVE SAMPLE ANALYSES (placeholder records in Results table) ##
     # update the sample analyses with the sample bottle IDs, rather than the bottle IDs
+    logger.info("SAVE Sample Analyses in Search Save")
     # send the sample analyses to the database
     #sample_analysis_data = json.dumps(sample_analysis_data)
     logger.info(str(sample_analysis_data))
@@ -982,7 +992,7 @@ def samplebottlebrominations_create(request):
         return HttpResponse(r, content_type='application/json')
 
 
-def samplebottlebromination_search(request):
+def samplebottlebrominations_search(request):
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     context = RequestContext(request)

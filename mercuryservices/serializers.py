@@ -98,6 +98,7 @@ class SampleSerializer(serializers.ModelSerializer):
     site = SimpleSiteSerializer(source='site', read_only=True)
     medium_type = serializers.RelatedField(source='medium_type')
     lab_processing = serializers.RelatedField(source='lab_processing')
+    sample_bottles = serializers.RelatedField(many=True, read_only=True)
 
     class Meta:
         model = Sample

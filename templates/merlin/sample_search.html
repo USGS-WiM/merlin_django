@@ -486,6 +486,10 @@
                             // otherwise, it's JSON from the REST Services
                             else if (jqXHRequest.status === 200) {
                                 data_data = data;
+                                for (var row in data_data.results) {
+                                    var medium_original = data_data.results[row]['sample_bottle']['sample']['medium_type'];
+                                    data_data.results[row]['sample_bottle']['sample']['medium_type'] = updateValueDom(data_mediums, 'nwis_code', 'display_text', medium_original);
+                                }
                                 resultPages = Math.ceil(data_data['count'] / 100);
                                 grid_console.text(textStatus+': Retrieved '+ data_data['count'] +' results across ' + resultPages + ' pages.' + (resultPages > 1 ? ' Showing first 100 results.' : ''));
                                 grid.data('handsontable').loadData(data_data.results);
@@ -771,7 +775,7 @@
                         // convert the array to a true JSON object
                         var changedDataJSON = JSON.stringify(changedDataArray);
                         // send the entire changed data object to the server via ajax
-                        console.log(changedDataJSON);
+                        //console.log(changedDataJSON);
                         grid_console.text('Attempting to save data...');
                         // confirm that the user really does want to save
                         var confirmed = confirm("WARNING: This will overwrite existing records in the database!\nContinue and Save, or Cancel?");
@@ -832,6 +836,7 @@
                     thisDataObject['site'] = $(select_site).val();//.slice(0, -1);
                     thisDataObject['depth'] = $("#select_depth").val();
                     thisDataObject['replicate'] = $("#select_replicate").val();
+                    thisDataObject['constituent'] = $(select_constituent).val();
                     thisDataObject['date_after_sample'] = $(date_after_sample).val();
                     thisDataObject['date_before_sample'] = $(date_before_sample).val();
                     // page_size is the parameter that will override our self-defined default 100-record pagination
