@@ -46,7 +46,7 @@ urlpatterns = patterns('',
     url(r'^brominations_update/$', views.brominations_update, name='brominations_update'),
     url(r'^brominations_create/$', views.brominations_create, name='brominations_create'),
     url(r'^samplebottlebrominations_create/$', views.samplebottlebrominations_create, name='samplebottlebrominations_create'),
-    url(r'^samplebottlebromination_search/$', views.samplebottlebromination_search, name='samplebottlebromination_search'),
+    url(r'^samplebottlebrominations_search/$', views.samplebottlebrominations_search, name='samplebottlebrominations_search'),
 
     url(r'^bottles/$', views.bottles, name='bottles'),
     url(r'^bottles_update/$', views.bottles_update, name='bottles_update'),
