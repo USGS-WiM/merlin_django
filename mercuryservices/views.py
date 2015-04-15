@@ -1476,7 +1476,7 @@ def processDailyDetectionLimit(daily_detection_limit, method_id,volume_filtered,
     return value
 
 
-def processMethodDailyDetectionLimit(daily_detection_limit, method_id,volume_filtered, sediment_dry_weight,sample_mass_processed):
+def processMethodDailyDetectionLimit(method_daily_detection_limit, method_id,volume_filtered, sediment_dry_weight,sample_mass_processed):
 
     value = method_daily_detection_limit
     if (method_id is None or method_daily_detection_limit is None or method_daily_detection_limit == 0):
