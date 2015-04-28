@@ -2,6 +2,33 @@
 {% block body_block %}
 
     <div style="padding:10px">
+        <p>
+            <button type="button" class="btn btn-default" name="add">Add New Project</button>
+        </p>
+        <div id="form_add" class="panel-default" style="display:none;">
+            <h3>Create Project</h3>
+            <form class="form-inline" style="border:1px solid;width:1000px;padding:4px;">
+                <div class="form-group" style="padding:2px;text-align:center">
+                    <label for="name">Name</label><br />
+                    <input class="input-block-level" name="name" type="text" style="width:400px">
+                </div>
+                <div class="form-group" style="padding:2px;text-align:center">
+                    <label for="description">Description</label><br />
+                    <input class="input-block-level" name="description" type="text" style="width:400px">
+                </div>
+                <div class="form-group" style="padding:2px;text-align:center">
+                    <label for="accounting_code">Accounting Code</label><br />
+                    <input class="input-block-level" name="accounting_code" type="text" style="width:400px">
+                </div>
+                <div class="form-group" style="padding:2px;text-align:center">
+                    <label for="cooperator">Cooperator</label><br />
+                    <select class="input-block-level" name="cooperator" id="cooperator" style="width:400px;height:26px"></select>
+                </div>
+            </form>
+            <br />
+            <button type="button" class="btn btn-primary" data-loading-text="Saving..." name="addSave">Save</button>
+        </div>
+        <br />
         <pre id="grid_console" class="console" style="width:600px"></pre>
         <p><input id="select_field" type="hidden" placeholder="Filter by project name." style="width:600px"/></p>
         <p>
@@ -16,15 +43,14 @@
         <!-- <p><input id="search_field" type="search" placeholder="Highlight in table." style="width:600px; border:1px solid darkgray; height:42px"/></p> -->
         <br /><br />
         <p>
-            <button type="button" class="btn btn-default" name="load">Reload Table</button>
+            {% if request.session.is_staff %}
+            <button type="button" class="btn btn-warning" data-loading-text="Saving..." name="save">Save</button>
+            <button type="button" class="btn btn-danger" data-loading-text="Deleting..." name="delete">Delete Row</button>
+            {% endif %}
+            <button type="button" class="btn btn-default" data-loading-text="Reloading..." name="load">Reload Table</button>
         </p>
-        {% if request.session.is_staff %}
-        <p style="display:none;">
-            <button type="button" class="btn btn-warning" name="save">Save</button>
-            <button type="button" class="btn btn-danger" name="delete">Delete Row</button>
-        </p>
-        {% endif %}
-        <div id="grid" data-data="{{ data }}" ></div>
+
+        <div id="grid" data-data="{{ data }}" data-cooperators="{{ cooperators }}" ></div>
 
         <script>
             $(document).ready(function() {
@@ -43,11 +69,11 @@
                 });
 
                 var validTable = false;
-                var dateToday = new Date(); //toISOString().split("T")[0];
                 var objectFields = ["id", "name", "description", "accounting_code", "cooperator"];
                 var addClicked = false;
                 var grid = $('#grid');
                 var data_data = JSON.parse(grid.attr("data-data"));
+                var data_cooperators = JSON.parse(grid.attr("data-cooperators"));
                 var grid_console = $("#grid_console");
                 var changedRowIndices = [];
                 var selectionRowIndices = [];
@@ -65,7 +91,7 @@
                         {title: "Accounting Code", data: "accounting_code", width: 150},
                         {title: "Cooperator", data: "cooperator", width: 200}
                     ],
-                    columnSorting: { column: 0 },
+                    columnSorting: true,
                     beforeChange: function(changes, source) {
                          // "changes" is a 2D array containing information about each of the edited cells [ [row, col, oldVal, newVal], [row, col, oldVal, newVal], ... ].
                         // "source" is one of the following strings: "alter", "empty", "edit", "populateFromArray", "loadData", "autofill", "paste".
@@ -92,8 +118,52 @@
                         selectionRowIndices[1] = r2;
                     }
                 });
-                grid.data('handsontable').sort(0);
+                //grid.data('handsontable').sort(0);
                 grid_console.text('Data loaded.');
+
+                var select_cooperator = $("#cooperator");
+                for (var i in data_cooperators) {
+                    select_cooperator.append(new Option(data_cooperators[i].name, data_cooperators[i].id));
+                }
+
+                var form_add = $("#form_add");
+                form_add.find('button[name=addSave]').click(function() {
+                    var button_state = $(this).button('loading');
+                    var thisDataObject = {};
+                    thisDataObject['name'] = form_add.find('input[name=name]').val().toUpperCase();
+                    thisDataObject['description'] = form_add.find('input[name=description]').val();
+                    thisDataObject['accounting_code'] = form_add.find('input[name=accounting_code]').val().toUpperCase();
+                    thisDataObject['cooperator'] = Number(select_cooperator.val());
+                    var dataJSON = JSON.stringify(thisDataObject);
+                    $.ajax({
+                        url: "{% url 'merlin:projects_create' %}",
+                        data: dataJSON,
+                        dataType: 'json',
+                        contentType: "application/json",
+                        type: 'POST',
+                        success: function (data, textStatus, jqXHRequest) {
+                            var content_type = jqXHRequest.getResponseHeader("content-type");
+                            // if the content-type is plain text, then it's a custom message from our Django view
+                            if (content_type.indexOf('text') > -1) {
+                                grid_console.text(data);
+                            }
+                            // otherwise, it's JSON from the REST Services
+                            else if (jqXHRequest.status === 200) {
+                                $(":input", "#form_add").not(":button").val("");
+                                form_add.parent().find('button[name=add]').click();
+                                //tools_prefixes.find('button[name=load]').click();
+                                grid_console.text(textStatus+': Data saved.');
+                            }
+                            else {
+                                grid_console.text(textStatus+': Save error: '+jqXHRequest.statusText+', code: '+jqXHRequest.status+'.');
+                            }
+                        },
+                        error: function (jqXHRequest, textStatus, errorThrown) {
+                            grid_console.text(errorThrown + ": " + textStatus);
+                        }
+                    });
+                    button_state.button('reset');
+                });
 
                 $('#search_field').on('keyup', function (event) {
                     grid.handsontable('getInstance').search.query(this.value);
@@ -117,9 +187,9 @@
                         },
                         results: function (data, page) {
                             data_data = data;
-                            grid.data('handsontable').loadData(data_data.results);
+                            grid.data('handsontable').loadData(data_data);
                             grid_console.text('Filtered data loaded.');
-                            return {results: data.results};
+                            return {results: data};
                         }
                     },
                     sortResults: function(results, container, query) {
@@ -136,6 +206,7 @@
                 }
 
                 grid.parent().find('button[name=load]').click(function () {
+                    var button_state = $(this).button('loading');
                     $.ajax({
                         url: '/mercuryservices/projects/',
                         dataType: 'json',
@@ -143,13 +214,14 @@
                             grid_console.text("success");
                             data_data = response;
                             grid.data('handsontable').loadData(data_data);
-                            grid.data('handsontable').sort(0);
+                            //grid.data('handsontable').sort(0);
                             grid_console.text('Data reloaded.');
                         },
                         error: function (jqXHRequest, textStatus, errorThrown) {
                             grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve data to reload.");
                         }
                     });
+                    button_state.button('reset');
                 });
 
                 grid.parent().find('button[name=add]').click(function () {
@@ -164,17 +236,23 @@
                 });
 
                 grid.parent().find('button[name=delete]').click(function () {
+                    var button_state = $(this).button('loading');
+                    if (typeof selectionRowIndices[0] == 'undefined') {grid_console.text('There are no selected rows to delete!'); button_state.button('reset'); return false;}
                     var thisDataRow = grid.data('handsontable').getDataAtRow(selectionRowIndices[0]);
-                    var thisDataRowID = thisDataRow[0];
+                    var thisDataObject = {"id": thisDataRow[0]};
+                    var changedDataJSON = JSON.stringify(thisDataObject);
                     $.ajax({
-                        url: '/mercuryservices/projects/'+thisDataRowID+'/',
-                        type: 'DELETE',
+                        url: "{% url 'merlin:projects_delete' %}",
+                        data: changedDataJSON,
+                        type: 'POST',
                         success: function (data, textStatus, jqXHRequest) {
                             var content_type = jqXHRequest.getResponseHeader("content-type");
-                            if (jqXHRequest.status === 200) {
-                                grid_console.text(textStatus + ': Data deleted.');
+                            if (jqXHRequest.status === 204) {
+                                grid.parent().find('button[name=load]').click();
+                                grid_console.text('Data deleted.');
                             }
                             else {
+                                grid.parent().find('button[name=load]').click();
                                 grid_console.text(textStatus + ': Delete error: ' + jqXHRequest.statusText + ', code: ' + jqXHRequest.status + '.');
                             }
                         },
@@ -182,41 +260,20 @@
                             grid_console.text(errorThrown + ": " + textStatus);
                         }
                     });
+                    button_state.button('reset');
                 });
 
                 grid.parent().find('button[name=save]').click(function () {
-                    grid_console.text('Saving is disabled at the moment.');
-                });
-                /*grid.parent().find('button[name=save]').click(function () {
+                    var button_state = $(this).button('loading');
                     var changedDataArray = [];
                     // if there are no changed rows, notify the user and stop the submission
-                    if (typeof changedRowIndices == 'undefined' || changedRowIndices.length < 1) {grid_console.text('Table is empty!'); validTable = false; return false;}
+                    if (typeof changedRowIndices == 'undefined' || changedRowIndices.length < 1) {grid_console.text('Table is empty!'); validTable = false; button_state.button('reset'); return false;}
                     // otherwise loop through all changed rows
                     $.each(changedRowIndices, function(index, value) {
                         var thisDataRow = grid.data('handsontable').getDataAtRow(value);
                         var thisDataObject = {};
                         for (var i = 0; i < thisDataRow.length; i++) {
-                            //////////
-                            //
-                            //  need to add in checks for numeric data conversion (submitting strings will cause a 400 error)
-                            //
-                            //////////
-                            else if (objectFields[i] == 'created_date') {
-                                var baddate = thisDataRow[i];
-                                if (dateRegEx.test(baddate)) {
-                                    if (makeYear(baddate)!= null && makeMonth(baddate)!= null && makeDay(baddate) != null) {
-                                        var gooddate_string = makeYear(baddate) + "-" + makeMonth(baddate) + "-" + makeDay(baddate) + " 00:00:00";
-                                        var gooddate = new Date(makeYear(baddate), makeMonth(baddate)-1, makeDay(baddate));
-                                        if (gooddate > dateToday) {
-                                            {grid_console.text('Date cannot be a future date!'); validTable = false; return false;}
-                                        }
-                                        thisDataObject[objectFields[i]] = gooddate_string;
-                                    }
-                                    else {grid_console.text('There is a problem with the Date in row ' + (index + 1) + '. Please contact the administrator.'); validTable = false; return false;}
-                                }
-                                else {grid_console.text('Date is badly formed in row ' + (index + 1) + '. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); validTable = false; return false;}
-                            }
-                            else {thisDataObject[objectFields[i]] = thisDataRow[i];}
+                            thisDataObject[objectFields[i]] = thisDataRow[i];
                         }
                         changedDataArray.push(thisDataObject);
                         // if we made it through the various validations above, then the table must be valid
@@ -239,6 +296,7 @@
                                 }
                                 // otherwise, it's JSON from the REST Services
                                 else if (jqXHRequest.status === 200) {
+                                    grid.parent().find('button[name=load]').click();
                                     grid_console.text(textStatus + ': Data saved.');
                                 }
                                 else {
@@ -250,7 +308,8 @@
                             }
                         });
                     }
-                });*/
+                    button_state.button('reset');
+                });
 
             });
         </script>

@@ -643,6 +643,183 @@ def results_search(request):
         return render_to_response('merlin/result_search.html', context_dict, context)
 
 
+def results_count_nawqa(request):
+    if not request.session.get('token'):
+        return HttpResponseRedirect('/merlin/')
+    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
+    context = RequestContext(request)
+
+    if request.method == 'POST':
+        params_dict = {}
+        params = json.loads(request.body.decode('utf-8'))
+        if params['date_after_entry']:
+            params_dict["date_after_entry"] = datetime.strptime(str(params['date_after_entry']).strip('[]'), '%m/%d/%y').strftime('%Y-%m-%d')
+        if params['date_before_entry']:
+            params_dict["date_before_entry"] = datetime.strptime(str(params['date_before_entry']).strip('[]'), '%m/%d/%y').strftime('%Y-%m-%d')
+        if params['page_size']:
+            params_dict["page_size"] = str(params['page_size']).strip('[]')
+
+        r = requests.request(method='GET', url=REST_SERVICES_URL+'resultcountnawqa/', params=params_dict, headers=headers)
+        logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
+        r_dict = r.json()
+        logger.info("search result count nawqa report count: " + str(r_dict['count']))
+        r_json = json.dumps(r_dict)
+        return HttpResponse(r_json, content_type='application/json')
+
+    else:  # request.method == 'GET'
+        r = requests.request(method='GET', url=REST_SERVICES_URL+'resultcountnawqa/', headers=headers_auth_token)
+        data = json.dumps(r.json(), sort_keys=True)
+        context_dict = {'data': data}
+
+        return render_to_response('merlin/results_count_nawqa.html', context_dict, context)
+
+
+def results_count_projects(request):
+    if not request.session.get('token'):
+        return HttpResponseRedirect('/merlin/')
+    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
+    context = RequestContext(request)
+
+    if request.method == 'POST':
+        params_dict = {}
+        params = json.loads(request.body.decode('utf-8'))
+        if params['date_after_entry']:
+            params_dict["date_after_entry"] = datetime.strptime(str(params['date_after_entry']).strip('[]'), '%m/%d/%y').strftime('%Y-%m-%d')
+        if params['date_before_entry']:
+            params_dict["date_before_entry"] = datetime.strptime(str(params['date_before_entry']).strip('[]'), '%m/%d/%y').strftime('%Y-%m-%d')
+        if params['page_size']:
+            params_dict["page_size"] = str(params['page_size']).strip('[]')
+
+        r = requests.request(method='GET', url=REST_SERVICES_URL+'resultcountprojects/', params=params_dict, headers=headers)
+        logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
+        r_dict = r.json()
+        logger.info("search results count project report count: " + str(r_dict['count']))
+        r_json = json.dumps(r_dict)
+        return HttpResponse(r_json, content_type='application/json')
+
+    else:  # request.method == 'GET'
+        r = requests.request(method='GET', url=REST_SERVICES_URL+'resultcountprojects/', headers=headers_auth_token)
+        data = json.dumps(r.json(), sort_keys=True)
+        context_dict = {'data': data}
+
+        return render_to_response('merlin/results_count_projects.html', context_dict, context)
+
+
+def samples_nwis_report(request):
+    if not request.session.get('token'):
+        return HttpResponseRedirect('/merlin/')
+    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
+    context = RequestContext(request)
+
+    if request.method == 'POST':
+        params_dict = {}
+        params = json.loads(request.body.decode('utf-8'))
+        if params['project']:
+            params_dict["project"] = str(params['project']).strip('[]').replace(', ', ',')
+        if params['project_not']:
+            params_dict["project_not"] = str(params['project_not']).strip('[]').replace(', ', ',')
+        if params['date_after_entry']:
+            params_dict["date_after_entry"] = datetime.strptime(str(params['date_after_entry']).strip('[]'), '%m/%d/%y').strftime('%Y-%m-%d')
+        if params['date_before_entry']:
+            params_dict["date_before_entry"] = datetime.strptime(str(params['date_before_entry']).strip('[]'), '%m/%d/%y').strftime('%Y-%m-%d')
+        if params['page_size']:
+            params_dict["page_size"] = str(params['page_size']).strip('[]')
+
+        r = requests.request(method='GET', url=REST_SERVICES_URL+'reportsamplesnwis/', params=params_dict, headers=headers)
+        logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
+        r_dict = r.json()
+        logger.info("search samples nwis report count: " + str(r_dict['count']))
+        r_json = json.dumps(r_dict)
+        return HttpResponse(r_json, content_type='application/json')
+
+    else:  # request.method == 'GET'
+        r = requests.request(method='GET', url=REST_SERVICES_URL+'projects/', headers=headers_auth_token)
+        projects = json.dumps(r.json(), sort_keys=True)
+        context_dict = {'projects': projects}
+
+        return render_to_response('merlin/samples_nwis.html', context_dict, context)
+
+
+def results_nwis_report(request):
+    if not request.session.get('token'):
+        return HttpResponseRedirect('/merlin/')
+    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
+    context = RequestContext(request)
+
+    if request.method == 'POST':
+        params_dict = {}
+        params = json.loads(request.body.decode('utf-8'))
+        if params['project']:
+            params_dict["project"] = str(params['project']).strip('[]').replace(', ', ',')
+        if params['project_not']:
+            params_dict["project_not"] = str(params['project_not']).strip('[]').replace(', ', ',')
+        if params['date_after_entry']:
+            params_dict["date_after_entry"] = datetime.strptime(str(params['date_after_entry']).strip('[]'), '%m/%d/%y').strftime('%Y-%m-%d')
+        if params['date_before_entry']:
+            params_dict["date_before_entry"] = datetime.strptime(str(params['date_before_entry']).strip('[]'), '%m/%d/%y').strftime('%Y-%m-%d')
+        if params['page_size']:
+            params_dict["page_size"] = str(params['page_size']).strip('[]')
+        if params['exclude_ld']:
+            params_dict["exclude_ld"] = str(params['exclude_ld']).strip('[]')
+
+        r = requests.request(method='GET', url=REST_SERVICES_URL+'reportresultsnwis/', params=params_dict, headers=headers)
+        logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
+        r_dict = r.json()
+        logger.info("search results nwis report count: " + str(r_dict['count']))
+        r_json = json.dumps(r_dict)
+        return HttpResponse(r_json, content_type='application/json')
+
+    else:  # request.method == 'GET'
+        r = requests.request(method='GET', url=REST_SERVICES_URL+'projects/', headers=headers_auth_token)
+        projects = json.dumps(r.json(), sort_keys=True)
+        context_dict = {'projects': projects}
+
+        return render_to_response('merlin/results_nwis.html', context_dict, context)
+
+
+def results_cooperator_report(request):
+    if not request.session.get('token'):
+        return HttpResponseRedirect('/merlin/')
+    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
+    context = RequestContext(request)
+
+    if request.method == 'POST':
+        params_dict = {}
+        params = json.loads(request.body.decode('utf-8'))
+        if params['cooperator']:
+            params_dict["cooperator"] = str(params['cooperator']).strip('[]').replace(', ', ',')
+        if params['project']:
+            params_dict["project"] = str(params['project']).strip('[]').replace(', ', ',')
+        if params['project_not']:
+            params_dict["project_not"] = str(params['project_not']).strip('[]').replace(', ', ',')
+        if params['date_after_entry']:
+            params_dict["date_after_entry"] = datetime.strptime(str(params['date_after_entry']).strip('[]'), '%m/%d/%y').strftime('%Y-%m-%d')
+        if params['date_before_entry']:
+            params_dict["date_before_entry"] = datetime.strptime(str(params['date_before_entry']).strip('[]'), '%m/%d/%y').strftime('%Y-%m-%d')
+        if params['page_size']:
+            params_dict["page_size"] = str(params['page_size']).strip('[]')
+
+        r = requests.request(method='GET', url=REST_SERVICES_URL+'reportresultscooperator/', params=params_dict, headers=headers)
+        logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
+        r_dict = r.json()
+        logger.info("search results cooperator report count: " + str(r_dict['count']))
+        r_json = json.dumps(r_dict)
+        return HttpResponse(r_json, content_type='application/json')
+
+    else:  # request.method == 'GET'
+        r = requests.request(method='GET', url=REST_SERVICES_URL+'projects/', headers=headers_auth_token)
+        projects = json.dumps(r.json(), sort_keys=True)
+        r = requests.request(method='GET', url=REST_SERVICES_URL+'cooperators/', headers=headers_auth_token)
+        cooperators = json.dumps(r.json(), sort_keys=True)
+        context_dict = {'projects': projects, 'cooperators': cooperators}
+        return render_to_response('merlin/results_cooperator.html', context_dict, context)
+
+
 def bottles(request):
     if not request.session.get('token'):
         return HttpResponseRedirect('/merlin/')
@@ -749,6 +926,17 @@ def bottle_prefixes_create(request):
         return HttpResponse(r, content_type='application/json')
 
 
+def bottle_prefixes_delete(request):
+    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
+    data = json.loads(request.body.decode('utf-8'))
+    this_id = data.pop("id")
+    url = REST_SERVICES_URL+'bottleprefixes/'+str(this_id)+'/'
+    r = requests.request(method='DELETE', url=url, headers=headers)
+    logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
+    return HttpResponse(r)
+
+
 def bottle_prefixes_range_create(request):
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
@@ -805,7 +993,7 @@ def bottles_create(request):
     data = json.loads(request.body.decode('utf-8'))
     all_unique_bottle_names = True
     all_existing_bottle_prefixes = True
-    message_exist = "No new Bottles were saved because these Bottles already exist in the database: "
+    message_exist = "No new Bottles were saved because these Bottles already exist in the database:   "
     message_not_exist = "No new Bottles were saved because these Bottle Prefixes do not exist in the database: "
 
     # validate that the submitted bottle names don't already exist
@@ -870,6 +1058,17 @@ def bottles_create(request):
     else:
         logger.info("bottles saved")
         return HttpResponse(r, content_type='application/json')
+
+
+def bottles_delete(request):
+    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
+    data = json.loads(request.body.decode('utf-8'))
+    this_id = data.pop("id")
+    url = REST_SERVICES_URL+'bottles/'+str(this_id)+'/'
+    r = requests.request(method='DELETE', url=url, headers=headers)
+    logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
+    return HttpResponse(r)
 
 
 def brominations(request):
@@ -939,7 +1138,19 @@ def brominations_create(request):
     headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     data = request.body
     r = requests.request(method='POST', url=REST_SERVICES_URL+'bulkbrominations/', data=data, headers=headers)
+    logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
     return HttpResponse(r, content_type='application/json')
+
+
+def brominations_delete(request):
+    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
+    data = json.loads(request.body.decode('utf-8'))
+    this_id = data.pop("id")
+    url = REST_SERVICES_URL+'brominations/'+str(this_id)+'/'
+    r = requests.request(method='DELETE', url=url, headers=headers)
+    logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
+    return HttpResponse(r)
 
 
 def samplebottlebrominations_create(request):
@@ -1067,7 +1278,19 @@ def blankwaters_create(request):
     headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     data = request.body
     r = requests.request(method='POST', url=REST_SERVICES_URL+'bulkblankwaters/', data=data, headers=headers)
+    logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
     return HttpResponse(r, content_type='application/json')
+
+
+def blankwaters_delete(request):
+    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
+    data = json.loads(request.body.decode('utf-8'))
+    this_id = data.pop("id")
+    url = REST_SERVICES_URL+'blankwaters/'+str(this_id)+'/'
+    r = requests.request(method='DELETE', url=url, headers=headers)
+    logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
+    return HttpResponse(r)
 
 
 def acids(request):
@@ -1135,7 +1358,19 @@ def acids_create(request):
     headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     data = request.body
     r = requests.request(method='POST', url=REST_SERVICES_URL+'bulkacids/', data=data, headers=headers)
+    logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
     return HttpResponse(r, content_type='application/json')
+
+
+def acids_delete(request):
+    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
+    data = json.loads(request.body.decode('utf-8'))
+    this_id = data.pop("id")
+    url = REST_SERVICES_URL+'acids/'+str(this_id)+'/'
+    r = requests.request(method='DELETE', url=url, headers=headers)
+    logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
+    return HttpResponse(r)
 
 
 def sites(request):
@@ -1145,7 +1380,9 @@ def sites(request):
     context = RequestContext(request)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'sites/', headers=headers_auth_token)
     data = json.dumps(r.json(), sort_keys=True)
-    context_dict = {'data': data}
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'projects/', headers=headers_auth_token)
+    projects = json.dumps(r.json(), sort_keys=True)
+    context_dict = {'data': data, 'projects': projects}
     return render_to_response('merlin/sites.html', context_dict, context)
 
 
@@ -1202,8 +1439,20 @@ def sites_create(request):
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     data = request.body
-    r = requests.request(method='POST', url=REST_SERVICES_URL+'sites/', data=data, headers=headers)
+    r = requests.request(method='POST', url=REST_SERVICES_URL+'bulksites/', data=data, headers=headers)
+    logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
     return HttpResponse(r, content_type='application/json')
+
+
+def sites_delete(request):
+    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
+    data = json.loads(request.body.decode('utf-8'))
+    this_id = data.pop("id")
+    url = REST_SERVICES_URL+'sites/'+str(this_id)+'/'
+    r = requests.request(method='DELETE', url=url, headers=headers)
+    logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
+    return HttpResponse(r)
 
 
 def projects(request):
@@ -1213,7 +1462,9 @@ def projects(request):
     context = RequestContext(request)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'projects/', headers=headers_auth_token)
     data = json.dumps(r.json(), sort_keys=True)
-    context_dict = {'data': data}
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'cooperators/', headers=headers_auth_token)
+    cooperators = json.dumps(r.json(), sort_keys=True)
+    context_dict = {'data': data, 'cooperators': cooperators}
     return render_to_response('merlin/projects.html', context_dict, context)
 
 
@@ -1270,8 +1521,71 @@ def projects_create(request):
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     data = request.body
-    r = requests.request(method='POST', url=REST_SERVICES_URL+'projects/', data=data, headers=headers)
+    r = requests.request(method='POST', url=REST_SERVICES_URL+'bulkprojects/', data=data, headers=headers)
+    logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
     return HttpResponse(r, content_type='application/json')
+
+
+def projects_delete(request):
+    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
+    data = json.loads(request.body.decode('utf-8'))
+    this_id = data.pop("id")
+    url = REST_SERVICES_URL+'projects/'+str(this_id)+'/'
+    r = requests.request(method='DELETE', url=url, headers=headers)
+    logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
+    return HttpResponse(r)
+
+
+def projectssites(request):
+    if not request.session.get('token'):
+        return HttpResponseRedirect('/merlin/')
+    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    context = RequestContext(request)
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'projectssites/', headers=headers_auth_token)
+    data = json.dumps(r.json(), sort_keys=True)
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'projects/', headers=headers_auth_token)
+    projects = json.dumps(r.json(), sort_keys=True)
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'sites/', headers=headers_auth_token)
+    sites = json.dumps(r.json(), sort_keys=True)
+    context_dict = {'data': data, 'projects': projects, 'sites': sites}
+    return render_to_response('merlin/projects_sites.html', context_dict, context)
+
+
+def projectssites_create(request):
+    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
+    data = json.loads(request.body.decode('utf-8'))
+
+    # validate that the submitted project-site doesn't already exist
+    logger.info("VALIDATE Project-Site Add")
+    this_projectsite = {'project': data.get('project'), 'site': data.get('site')}
+    r = requests.get(REST_SERVICES_URL+'projectssites/', params=this_projectsite)
+    logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
+    response_data = r.json()
+    logger.info("projects-sites count: " + str(response_data['count']))
+    # if response count does not equal zero, then this project-site already exists in the database
+    if response_data['count'] != 0:
+        logger.warning("Validation Warning: Projects-Sites relation " + str(data.get('project')) + '-' + str(data.get('site')) + " count != 0")
+        message = "Projects-Sites relation " + str(response_data['results'][0]['project_name']) + "-" + str(response_data['results'][0]['site_name']) + " already exists."
+        message = json.dumps(message)
+        return HttpResponse(message, content_type='text/html')
+
+    data = json.dumps(data)
+    r = requests.request(method='POST', url=REST_SERVICES_URL+'projectssites/', data=data, headers=headers)
+    logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
+    return HttpResponse(r, content_type='application/json')
+
+
+def projectssites_delete(request):
+    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
+    data = json.loads(request.body.decode('utf-8'))
+    this_id = data.pop("id")
+    url = REST_SERVICES_URL+'projectssites/'+str(this_id)+'/'
+    r = requests.request(method='DELETE', url=url, headers=headers)
+    logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
+    return HttpResponse(r)
 
 
 def cooperators(request):
@@ -1338,8 +1652,20 @@ def cooperators_create(request):
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     data = request.body
-    r = requests.request(method='POST', url=REST_SERVICES_URL+'cooperators/', data=data, headers=headers)
+    r = requests.request(method='POST', url=REST_SERVICES_URL+'bulkcooperators/', data=data, headers=headers)
+    logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
     return HttpResponse(r, content_type='application/json')
+
+
+def cooperators_delete(request):
+    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
+    data = json.loads(request.body.decode('utf-8'))
+    this_id = data.pop("id")
+    url = REST_SERVICES_URL+'cooperators/'+str(this_id)+'/'
+    r = requests.request(method='DELETE', url=url, headers=headers)
+    logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
+    return HttpResponse(r)
 
 
 #login using Session Authentication

@@ -48,6 +48,15 @@ class SimpleSiteSerializer(serializers.ModelSerializer):
                   'method', 'site_status', 'nwis_customer_code',)
 
 
+class ProjectSiteSerializer(serializers.ModelSerializer):
+    project_name = serializers.RelatedField(source='project', read_only=True)
+    site_name = serializers.RelatedField(source='site', read_only=True)
+
+    class Meta:
+        model = ProjectSite
+        fields = ('id', 'project', 'site', 'project_name', 'site_name')
+
+
 ######
 ##
 ## Field Sample
@@ -369,10 +378,10 @@ class MethodTypeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = MethodType
-        fields = ('id', 'method_code', 'method', 'preparation', 'description', 'raw_method_detection_limit',
-                  'final_method_detection_limit', 'raw_method_detection_limit_unit', 'final_method_detection_limit_unit',
-                  'raw_value_unit', 'final_value_unit', 'decimal_places', 'significant_figures',
-                  'standard_operating_procedure', 'nwis_parameter_code', 'nwis_parameter_name', 'nwis_method_code',)
+        fields = ('id', 'method_code', 'method', 'preparation', 'description',
+                  'method_detection_limit', 'method_detection_limit_unit', 'raw_value_unit', 'final_value_unit',
+                  'decimal_places', 'significant_figures', 'standard_operating_procedure',
+                  'nwis_parameter_code', 'nwis_parameter_name', 'nwis_method_code',)
 
 
 class FlatResultSerializer(serializers.ModelSerializer):
@@ -474,3 +483,80 @@ class ReportResultsCountNawqaSerializer(serializers.Serializer):
     project_name = serializers.CharField()
     site_name = serializers.CharField()
     count = serializers.IntegerField()
+
+
+class ReportResultsCountProjectsSerializer(serializers.Serializer):
+    project_name = serializers.CharField()
+    count = serializers.IntegerField()
+    nwis_customer_code = serializers.CharField()
+    null = serializers.CharField()
+    cooperator_email = serializers.EmailField()
+
+
+class ReportSamplesNwisSerializer(serializers.Serializer):
+    sample_integer = serializers.IntegerField()
+    user_code = serializers.CharField()
+    agency_cd = serializers.CharField()
+    site_no = serializers.CharField()
+    sample_start_date = serializers.CharField()
+    sample_end_date = serializers.CharField()
+    medium_cd = serializers.CharField()
+    lab_id = serializers.CharField()
+    project_cd = serializers.CharField()
+    aqfr_cd = serializers.CharField()
+    sample_type = serializers.CharField()
+    anl_start_cd = serializers.CharField()
+    anl_src_cd = serializers.CharField()
+    hyd_cond_cd = serializers.CharField()
+    hyd_event_cd = serializers.CharField()
+    tissue_id = serializers.CharField()
+    body_part_cd = serializers.CharField()
+    lab_smp_comment = serializers.CharField()
+    field_smp_comment = models.TextField()
+    sample_tz_cd = serializers.CharField()
+    tm_datum_rlblty_cd = serializers.CharField()
+    coll_agency_cd = serializers.CharField()
+
+
+class ReportResultsNwisSerializer(serializers.Serializer):
+    sample_integer = serializers.IntegerField()
+    parameter_cd = serializers.CharField()
+    result_value = serializers.CharField()
+    remark_cd = serializers.CharField()
+    qa_cd = serializers.CharField()
+    qw_method_cd = serializers.CharField()
+    results_rd = serializers.CharField()
+    val_qual_cd = serializers.CharField()
+    rpt_lev_value = serializers.FloatField()
+    rpt_lev_cd = serializers.CharField()
+    dqi_cd = serializers.CharField()
+    null_val_qual = serializers.CharField()
+    prep_set_no = serializers.CharField()
+    anl_set_no = serializers.CharField()
+    anl_dt = serializers.CharField()
+    prep_dt = serializers.CharField()
+    lab_result_comment = serializers.CharField()
+    field_result_comment = serializers.CharField()
+    lab_std_dev = serializers.CharField()
+    anl_ent = serializers.CharField()
+
+
+class ReportResultsCooperatorSerializer(serializers.Serializer):
+    site_name = serializers.CharField()
+    usgs_scode = serializers.CharField()
+    sample_date_time = serializers.DateTimeField(format='%m/%d/%y %H:%M:%S', source='sample_date_time')
+    medium = serializers.CharField()
+    length = serializers.CharField()
+    depth = serializers.CharField()
+    analysis_date = serializers.DateTimeField(format='%m/%d/%y', source='analysis_date')
+    result_id = serializers.IntegerField()
+    bottle = serializers.CharField()
+    constituent = serializers.CharField()
+    final_ddl = serializers.CharField()
+    detection_flag = serializers.CharField()
+    final_value = serializers.CharField()
+    unit = serializers.CharField()
+    sample_id = serializers.IntegerField()
+    analysis_comment = serializers.CharField()
+    sample_comment = serializers.CharField()
+    qaflags = serializers.CharField()

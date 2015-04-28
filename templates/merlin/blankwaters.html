@@ -27,7 +27,7 @@
                 </div>
             </form>
             <br />
-            <button type="button" class="btn btn-primary" name="addSave">Save</button>
+            <button type="button" class="btn btn-primary" data-loading-text="Saving..." name="addSave">Save</button>
         </div>
         <br />
         <pre id="grid_console" class="console" style="width:600px"></pre>
@@ -44,17 +44,15 @@
         <!-- <p><input id="search_field" type="search" placeholder="Highlight in table." style="width:600px; border:1px solid darkgray; height:42px"/></p> -->
         <br /><br />
         <p>
-            <button type="button" class="btn btn-default" name="load">Reload Table</button>
-            <button type="button" class="btn btn-default" name="prev">Previous Page</button>
-            <button type="button" class="btn btn-default" name="next">Next Page</button>
+            {% if request.session.is_staff %}
+            <button type="button" class="btn btn-warning" data-loading-text="Saving..." name="save">Save</button>
+            <button type="button" class="btn btn-danger" data-loading-text="Deleting..." name="delete">Delete Row</button>
+            {% endif %}
+            <button type="button" class="btn btn-default" data-loading-text="Reloading..." name="load">Reload Table</button>
+            <button type="button" class="btn btn-default" data-loading-text="Getting Previous..." name="prev">Previous Page</button>
+            <button type="button" class="btn btn-default" data-loading-text="Getting Next..." name="next">Next Page</button>
             <span id="page"></span>
         </p>
-        {% if request.session.is_staff %}
-        <p>
-            <button type="button" class="btn btn-warning" name="save">Save</button>
-            <button type="button" class="btn btn-danger" name="delete">Delete Row</button>
-        </p>
-        {% endif %}
         <div id="grid" data-data="{{ data }}" ></div>
 
         <script>
@@ -136,6 +134,7 @@
 
                 var form_add = $("#form_add");
                 form_add.find('button[name=addSave]').click(function() {
+                    var button_state = $(this).button('loading');
                     var thisDataObject = {};
                     thisDataObject['lot_number'] = form_add.find('input[name=lot_number]').val().toUpperCase();
                     thisDataObject['concentration'] = Number(form_add.find('input[name=concentration]').val());
@@ -147,13 +146,13 @@
                             var gooddate_string = makeYear(baddate) + "-" + makeMonth(baddate) + "-" + makeDay(baddate) + " 00:00:00";
                             var gooddate = new Date(makeYear(baddate), makeMonth(baddate)-1, makeDay(baddate));
                             if (gooddate > dateToday) {
-                                {grid_console.text('Date cannot be a future date!'); return false;}
+                                {grid_console.text('Date cannot be a future date!'); button_state.button('reset'); return false;}
                             }
                             thisDataObject['created_date'] = gooddate_string;
                         }
-                        else {grid_console.text('There is a problem with the Date. Please contact the administrator.'); return false;}
+                        else {grid_console.text('There is a problem with the Date. Please contact the administrator.'); button_state.button('reset'); return false;}
                     }
-                    else {grid_console.text('Date is badly formed. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); return false;}
+                    else {grid_console.text('Date is badly formed. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); button_state.button('reset'); return false;}
                     var dataJSON = JSON.stringify(thisDataObject);
                     $.ajax({
                         url: "{% url 'merlin:blankwaters_create' %}",
@@ -182,6 +181,7 @@
                             grid_console.text(errorThrown + ": " + textStatus);
                         }
                     });
+                    button_state.button('reset');
                 });
 
                 $('#search_field').on('keyup', function (event) {
@@ -225,6 +225,7 @@
                 }
 
                 grid.parent().find('button[name=load]').click(function () {
+                    var button_state = $(this).button('loading');
                     $.ajax({
                         url: '/mercuryservices/blankwaters/?page='+currentPage,
                         dataType: 'json',
@@ -239,9 +240,11 @@
                             grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve page to reload.");
                         }
                     });
+                    button_state.button('reset');
                 });
 
                 grid.parent().find('button[name=next]').click(function () {
+                    var button_state = $(this).button('loading');
                     if (currentPage != resultPages) {
                         $.ajax({
                             url: data_data.next,
@@ -262,9 +265,11 @@
                     else {
                         grid_console.text("End of results, there are no pages after Page " + resultPages + ".");
                     }
+                    button_state.button('reset');
                 });
 
                 grid.parent().find('button[name=prev]').click(function () {
+                    var button_state = $(this).button('loading');
                     if (currentPage != 1) {
                         $.ajax({
                             url: data_data.previous,
@@ -285,6 +290,7 @@
                     else {
                         grid_console.text("There are no pages before Page 1.");
                     }
+                    button_state.button('reset');
                 });
 
                 grid.parent().find('button[name=add]').click(function () {
@@ -299,17 +305,23 @@
                 });
 
                 grid.parent().find('button[name=delete]').click(function () {
+                    var button_state = $(this).button('loading');
+                    if (typeof selectionRowIndices[0] == 'undefined') {grid_console.text('There are no selected rows to delete!'); button_state.button('reset'); return false;}
                     var thisDataRow = grid.data('handsontable').getDataAtRow(selectionRowIndices[0]);
-                    var thisDataRowID = thisDataRow[0];
+                    var thisDataObject = {"id": thisDataRow[0]};
+                    var changedDataJSON = JSON.stringify(thisDataObject);
                     $.ajax({
-                        url: '/mercuryservices/blankwaters/'+thisDataRowID+'/',
-                        type: 'DELETE',
+                        url: "{% url 'merlin:blankwaters_delete' %}",
+                        data: changedDataJSON,
+                        type: 'POST',
                         success: function (data, textStatus, jqXHRequest) {
                             var content_type = jqXHRequest.getResponseHeader("content-type");
-                            if (jqXHRequest.status === 200) {
-                                grid_console.text(textStatus + ': Data deleted.');
+                            if (jqXHRequest.status === 204) {
+                                grid.parent().find('button[name=load]').click();
+                                grid_console.text('Data deleted.');
                             }
                             else {
+                                grid.parent().find('button[name=load]').click();
                                 grid_console.text(textStatus + ': Delete error: ' + jqXHRequest.statusText + ', code: ' + jqXHRequest.status + '.');
                             }
                         },
@@ -317,12 +329,14 @@
                             grid_console.text(errorThrown + ": " + textStatus);
                         }
                     });
+                    button_state.button('reset');
                 });
 
                 grid.parent().find('button[name=save]').click(function () {
+                    var button_state = $(this).button('loading');
                     var changedDataArray = [];
                     // if there are no changed rows, notify the user and stop the submission
-                    if (typeof changedRowIndices == 'undefined' || changedRowIndices.length < 1) {grid_console.text('Table is empty!'); validTable = false; return false;}
+                    if (typeof changedRowIndices == 'undefined' || changedRowIndices.length < 1) {grid_console.text('There are no changed rows to save!!'); validTable = false; button_state.button('reset'); return false;}
                     // otherwise loop through all changed rows
                     $.each(changedRowIndices, function(index, value) {
                         var thisDataRow = grid.data('handsontable').getDataAtRow(value);
@@ -336,13 +350,13 @@
                                         var gooddate_string = makeYear(baddate) + "-" + makeMonth(baddate) + "-" + makeDay(baddate) + " 00:00:00";
                                         var gooddate = new Date(makeYear(baddate), makeMonth(baddate)-1, makeDay(baddate));
                                         if (gooddate > dateToday) {
-                                            {grid_console.text('Date cannot be a future date!'); validTable = false; return false;}
+                                            {grid_console.text('Date cannot be a future date!'); validTable = false; button_state.button('reset'); return false;}
                                         }
                                         thisDataObject[objectFields[i]] = gooddate_string;
                                     }
-                                    else {grid_console.text('There is a problem with the Date in row ' + (index + 1) + '. Please contact the administrator.'); validTable = false; return false;}
+                                    else {grid_console.text('There is a problem with the Date in row ' + (index + 1) + '. Please contact the administrator.'); validTable = false; button_state.button('reset'); return false;}
                                 }
-                                else {grid_console.text('Date is badly formed in row ' + (index + 1) + '. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); validTable = false; return false;}
+                                else {grid_console.text('Date is badly formed in row ' + (index + 1) + '. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); validTable = false; button_state.button('reset'); return false;}
                             }
                             else {thisDataObject[objectFields[i]] = thisDataRow[i];}
                         }
@@ -378,6 +392,7 @@
                             }
                         });
                     }
+                    button_state.button('reset');
                 });
 
             });

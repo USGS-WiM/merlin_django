@@ -5,6 +5,7 @@ import math
 from numbers import Number
 from datetime import datetime as dt
 from django.core.exceptions import MultipleObjectsReturned
+from django.db.models import Count
 from django.db.models.base import ObjectDoesNotExist
 from django.http import HttpResponse
 from rest_framework import views, viewsets, generics, permissions
@@ -122,6 +123,45 @@ class SiteViewSet(viewsets.ModelViewSet):
                 id = Project.objects.get(name__exact=project)
                 # get the Sites related to this Project ID
                 queryset = queryset.filter(projects__exact=id)
+        return queryset
+
+
+class ProjectSiteBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
+    model = ProjectSite
+    permission_classes = (permissions.IsAuthenticated,)
+
+
+class ProjectSiteViewSet(viewsets.ModelViewSet):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    #queryset = Project.objects.all()
+    serializer_class = ProjectSiteSerializer
+    paginate_by = 100
+    paginate_by_param = 'project'
+    max_paginate_by = 2000
+
+    # override the default queryset to allow filtering by URL arguments
+    def get_queryset(self):
+        queryset = ProjectSite.objects.all()
+        project = self.request.QUERY_PARAMS.get('project', None)
+        if project is not None:
+            # if query value is a Project ID
+            if project.isdigit():
+                # get the Projects-Sites with this Project ID
+                queryset = queryset.filter(project__exact=project)
+            # if query value is a Project name
+            else:
+                # lookup the Projects-Sites whose related Projects contain this Project name
+                queryset = queryset.filter(project__name__icontains=project)
+        site = self.request.QUERY_PARAMS.get('site', None)
+        if site is not None:
+            # if query value is a Site ID
+            if site.isdigit():
+                # get the Projects-Sites with this Site ID
+                queryset = queryset.filter(site__exact=site)
+            # if query value is a Project name
+            else:
+                # lookup the Projects-Sites whose related Sites contain this Site name
+                queryset = queryset.filter(site__name__icontains=site)
         return queryset
 
 
@@ -322,8 +362,6 @@ class BottleViewSet(viewsets.ModelViewSet):
     paginate_by = 100
 
     def get_queryset(self):
-        print(self.request.user)
-        print(self.request.auth)
         queryset = Bottle.objects.all()
         id = self.request.QUERY_PARAMS.get('id', None)
         if id is not None:
@@ -756,8 +794,6 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
 
     def get_queryset(self):
-        print(self.request.user)
-        print(self.request.auth)
         queryset = User.objects.all()
         username = self.request.QUERY_PARAMS.get('username', None)
         if username is not None:
@@ -831,25 +867,135 @@ class ProcedureTypeViewSet(viewsets.ModelViewSet):
 
 class ReportResultsCountNawqa(generics.ListAPIView):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    #queryset = ResultCountNawqa.objects.all()
     serializer_class = ReportResultsCountNawqaSerializer
     paginate_by = 100
-    queryset = ResultCountNawqa.objects.all()
 
-    # def get_queryset(self):
-    #     queryset = Result.objects.filter(sample_bottle__sample__project=project).prefetch_related()#.only('id', 'sample_bottle__sample__project', 'sample_bottle', 'constituent', 'isotope_flag', 'analyzed_date')
-    #     project = self.request.QUERY_PARAMS.get('project', None)
-    #     if project is not None:
-    #         project_list = project.split(',')
-    #         queryset = queryset.filter(sample_bottle__sample__project__in=project_list)
-    #     date_after = self.request.QUERY_PARAMS.get('date_after', None)
-    #     date_before = self.request.QUERY_PARAMS.get('date_before', None)
-    #     if date_after is not None and date_before is not None:
-    #         queryset = queryset.filter(sample_bottle__sample__sample_date_time__range=(date_after, date_before))
-    #     elif date_after is not None:
-    #         queryset = queryset.filter(sample_bottle__sample__sample_date_time__gt=date_after)
-    #     elif date_before is not None:
-    #         queryset = queryset.filter(sample_bottle__sample__sample_date_time__lt=date_before)
-    #     return queryset
+    def get_queryset(self):
+        queryset = ResultCountNawqa.objects.all()
+        date_after_entry = self.request.QUERY_PARAMS.get('date_after_entry', None)
+        date_before_entry = self.request.QUERY_PARAMS.get('date_before_entry', None)
+        if date_after_entry is not None and date_before_entry is not None:
+            queryset = queryset.filter(entry_date__range=(date_after_entry, date_before_entry))
+        elif date_after_entry is not None:
+            queryset = queryset.filter(entry_date__gt=date_after_entry)
+        elif date_before_entry is not None:
+            queryset = queryset.filter(entry_date__lt=date_before_entry)
+        queryset = queryset.values('project_name', 'site_name').annotate(count=Count('project_name'))
+        return queryset
+
+
+class ReportResultsCountProjects(generics.ListAPIView):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    #queryset = ResultCountProjects.objects.all()
+    serializer_class = ReportResultsCountProjectsSerializer
+    paginate_by = 100
+
+    def get_queryset(self):
+        queryset = ResultCountProjects.objects.all()
+        date_after_entry = self.request.QUERY_PARAMS.get('date_after_entry', None)
+        date_before_entry = self.request.QUERY_PARAMS.get('date_before_entry', None)
+        if date_after_entry is not None and date_before_entry is not None:
+            queryset = queryset.filter(entry_date__range=(date_after_entry, date_before_entry))
+        elif date_after_entry is not None:
+            queryset = queryset.filter(entry_date__gt=date_after_entry)
+        elif date_before_entry is not None:
+            queryset = queryset.filter(entry_date__lt=date_before_entry)
+        queryset = queryset.values('project_name', 'nwis_customer_code', 'cooperator_email').annotate(count=Count('project_name'))
+        return queryset
+
+
+class ReportSamplesNwis(generics.ListAPIView):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    #queryset = SampleNwis.objects.all()
+    serializer_class = ReportSamplesNwisSerializer
+    paginate_by = 100
+    paginate_by_param = 'page_size'
+
+    def get_queryset(self):
+        queryset = SampleNwis.objects.all()
+        project = self.request.QUERY_PARAMS.get('project', None)
+        if project is not None:
+            project_list = project.split(',')
+            queryset = queryset.filter(project_name__in=project_list)
+        project_not = self.request.QUERY_PARAMS.get('project_not', None)
+        if project_not is not None:
+            project_not_list = project_not.split(',')
+            queryset = queryset.exclude(project_name__in=project_not_list)
+        date_after_entry = self.request.QUERY_PARAMS.get('date_after_entry', None)
+        date_before_entry = self.request.QUERY_PARAMS.get('date_before_entry', None)
+        if date_after_entry is not None and date_before_entry is not None:
+            queryset = queryset.filter(entry_date__range=(date_after_entry, date_before_entry))
+        elif date_after_entry is not None:
+            queryset = queryset.filter(entry_date__gt=date_after_entry)
+        elif date_before_entry is not None:
+            queryset = queryset.filter(entry_date__lt=date_before_entry)
+        return queryset
+
+
+class ReportResultsNwis(generics.ListAPIView):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    #queryset = ResultNwisLD.objects.all()
+    serializer_class = ReportResultsNwisSerializer
+    paginate_by = 100
+    paginate_by_param = 'page_size'
+
+    def get_queryset(self):
+        queryset = ResultNwisLD.objects.all()
+        exclude_ld = self.request.QUERY_PARAMS.get('exclude_ld', None)
+        if exclude_ld is not None:
+            if exclude_ld == 'True' or exclude_ld == 'true':
+                # parameter_cd for length is '00024' and depth is '00098'
+                queryset = queryset.exclude(parameter_cd__exact='00024').exclude(parameter_cd__exact='00098')
+        project = self.request.QUERY_PARAMS.get('project', None)
+        if project is not None:
+            project_list = project.split(',')
+            queryset = queryset.filter(project_name__in=project_list)
+        project_not = self.request.QUERY_PARAMS.get('project_not', None)
+        if project_not is not None:
+            project_not_list = project_not.split(',')
+            queryset = queryset.exclude(project_name__in=project_not_list)
+        date_after_entry = self.request.QUERY_PARAMS.get('date_after_entry', None)
+        date_before_entry = self.request.QUERY_PARAMS.get('date_before_entry', None)
+        if date_after_entry is not None and date_before_entry is not None:
+            queryset = queryset.filter(entry_date__range=(date_after_entry, date_before_entry))
+        elif date_after_entry is not None:
+            queryset = queryset.filter(entry_date__gt=date_after_entry)
+        elif date_before_entry is not None:
+            queryset = queryset.filter(entry_date__lt=date_before_entry)
+        return queryset
+
+
+class ReportResultsCooperator(generics.ListAPIView):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    #queryset = ResultCooperator.objects.all()
+    serializer_class = ReportResultsCooperatorSerializer
+    paginate_by = 100
+    paginate_by_param = 'page_size'
+
+    def get_queryset(self):
+        queryset = ResultCooperator.objects.all()
+        cooperator = self.request.QUERY_PARAMS.get('cooperator', None)
+        if cooperator is not None:
+            cooperator_list = cooperator.split(',')
+            queryset = queryset.filter(cooperator_name__in=cooperator_list)
+        project = self.request.QUERY_PARAMS.get('project', None)
+        if project is not None:
+            project_list = project.split(',')
+            queryset = queryset.filter(project_name__in=project_list)
+        project_not = self.request.QUERY_PARAMS.get('project_not', None)
+        if project_not is not None:
+            project_not_list = project_not.split(',')
+            queryset = queryset.exclude(project_name__in=project_not_list)
+        date_after_entry = self.request.QUERY_PARAMS.get('date_after_entry', None)
+        date_before_entry = self.request.QUERY_PARAMS.get('date_before_entry', None)
+        if date_after_entry is not None and date_before_entry is not None:
+            queryset = queryset.filter(entry_date__range=(date_after_entry, date_before_entry))
+        elif date_after_entry is not None:
+            queryset = queryset.filter(entry_date__gt=date_after_entry)
+        elif date_before_entry is not None:
+            queryset = queryset.filter(entry_date__lt=date_before_entry)
+        return queryset
 
 
 ######

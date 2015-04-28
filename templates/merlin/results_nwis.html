@@ -1,0 +1,311 @@
+{% extends 'merlin/base.html' %}
+{% block body_block %}
+
+    <div style="padding:10px">
+        <pre id="grid_console" class="console" style="width:600px"></pre>
+        <div class="panel-default">
+            <form id="form_result_nwis_search" class="form-inline">
+                {% csrf_token %}
+                <p>
+                    <div class="form-group">
+                        <label for="select_project">Project Name</label><br />
+                        <input id="select_project" type="hidden" style="width:598px"/>
+                    </div>
+                    <div class="form-group">
+                        <label for="select_project_not">NOT Project Name</label><br />
+                        <input id="select_project_not" type="hidden" style="width:598px"/>
+                    </div>
+                    <div class="form-group">
+                        <label for="date_after_entry">After Entry Date</label><br />
+                        <input id="date_after_entry" class="select2-container select2-container-multi" style="width:297px;height:34px;font-size:15px;padding-left:4px;"/>
+                    </div>
+                    <div class="form-group">
+                        <label for="date_before_entry">Before Entry Date</label><br />
+                        <input id="date_before_entry" class="select2-container select2-container-multi" style="width:297px;height:34px;font-size:15px;padding-left:4px;"/>
+                    </div>
+                </p>
+                <p>
+                    <div class="form-group">
+                        <input type="checkbox" name="excludeLD" id="excludeLD" />
+                        <label for="excludeLD">Exclude Length and Depth Parameters</label>
+                    </div>
+                </p>
+                <p>
+                    <div class="form-group">
+                        <button type="button" class="btn btn-info" name="search">Search</button>
+                        <button type="button" class="btn btn-default" name="exportTAB">Export TAB</button>
+                        <button type="button" class="btn btn-default" name="prev">Previous Page</button>
+                        <button type="button" class="btn btn-default" name="next">Next Page</button>
+                        <span id="page"></span>
+                    </div>
+                </p>
+                <div id="exportTABButtonPanel" style="display:none" >
+                    <button type="button" class="btn btn-info" name="exportTABCurrentPage">Current Page</button>
+                    <button type="button" class="btn btn-info" name="exportTABAllPages">All Pages</button>
+                </div>
+                <br />
+            </form>
+        </div>
+        <div id="grid" data-projects="{{ projects }}"></div>
+        <div id="tempgrid" style="display:none"></div>
+
+        <script>
+            $(document).ready(function() {
+
+                var csrftoken = $.cookie('csrftoken');
+                function csrfSafeMethod(method) {
+                    // these HTTP methods do not require CSRF protection
+                    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+                }
+                $.ajaxSetup({
+                    beforeSend: function(xhr, settings) {
+                        if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                        }
+                    }
+                });
+
+                var currentPage = 1;
+                var resultPages = 1;
+                var exportTABClicked = false;
+                var grid = $('#grid');
+                var grid_console = $("#grid_console");
+                grid.css("z-index", "0");
+                var data_data;
+                var data_projects = JSON.parse(grid.attr('data-projects'));
+                var dateToday = new Date(); //toISOString().split("T")[0];
+                var yearToday = dateToday.getFullYear().toString();
+                var monthToday = (dateToday.getMonth() + 1).toString();
+                var dayToday = dateToday.getDate().toString();
+                grid_console.text('Loading data...');
+                var grid_columns = [
+                        {title: "sample_integer", data: "sample_integer", readOnly: true, width: 110},
+                        {title: "parameter_cd", data: "parameter_cd", readOnly: true, width: 100},
+                        {title: "result_value", data: "result_value", readOnly: true, width: 90},
+                        {title: "remark_cd", data: "remark_cd", readOnly: true, width: 80},
+                        {title: "qa_cd", data: "qa_cd", readOnly: true, width: 45},
+                        {title: "qw_method_cd", data: "qw_method_cd", readOnly: true, width: 110},
+                        {title: "results_rd", data: "results_rd", readOnly: true, width: 70},
+                        {title: "val_qual_cd", data: "val_qual_cd", readOnly: true, width: 85},
+                        {title: "rpt_lev_value", data: "rpt_lev_value", readOnly: true, width: 95, type: 'numeric', format: '0.0000'},
+                        {title: "rpt_lev_cd", data: "rpt_lev_cd", readOnly: true, width: 75},
+                        {title: "dqi_cd", data: "dqi_cd", readOnly: true, width: 50},
+                        {title: "null_val_qual", data: "null_val_qual", readOnly: true, width: 90},
+                        {title: "prep_set_no", data: "prep_set_no", readOnly: true, width: 90},
+                        {title: "anl_set_no", data: "anl_set_no", readOnly: true, width: 80},
+                        {title: "anl_dt", data: "anl_dt", readOnly: true, width: 75},
+                        {title: "prep_dt", data: "prep_dt", readOnly: true, width: 60},
+                        {title: "lab_result_comment", data: "lab_result_comment", readOnly: true, width: 200},
+                        {title: "field_result_comment", data: "field_result_comment", readOnly: true, width: 150},
+                        {title: "lab_std_dev", data: "lab_std_dev", readOnly: true, width: 90},
+                        {title: "anl_ent", data: "anl_ent", readOnly: true, width: 100}
+                    ];
+                var grid_options = {
+                    startRows: 0,
+                    data: data_data,
+                    manualColumnResize: true,
+                    manualRowResize: true,
+                    columns: grid_columns
+                };
+                grid.handsontable(grid_options);
+                $('#page').html("Page " + currentPage + " of " + resultPages);
+                grid_console.text('Data loaded.');
+
+                var data_project_names = [];
+                for (var i = 0; i < data_projects.length; i++){
+                    data_project_names.push({"id": data_projects[i].name, "name": data_projects[i].name});
+                }
+
+                var select_project = $("#select_project").select2({
+                    allowClear: true,
+                    multiple: true,
+                    //maximumSelectionSize: 1,
+                    //dropdownCss:{display:'none'},
+                    minimumInputLength: 1,
+                    data: { results: data_project_names, text: 'name'},
+                    formatResult: formatName,
+                    formatSelection: formatName
+                });
+
+                var select_project_not = $("#select_project_not").select2({
+                    allowClear: true,
+                    multiple: true,
+                    //maximumSelectionSize: 1,
+                    //dropdownCss:{display:'none'},
+                    minimumInputLength: 1,
+                    data: { results: data_project_names, text: 'name'},
+                    formatResult: formatName,
+                    formatSelection: formatName
+                });
+
+                function formatName(data) {
+                    return data.name;
+                }
+
+                var date_after_entry = $("#date_after_entry").datepicker({
+                    dateFormat: "mm/dd/y",
+                    maxDate: 0
+                });
+
+                var date_before_entry = $("#date_before_entry").datepicker({
+                    dateFormat: "mm/dd/y",
+                    maxDate: 0
+                });
+
+                grid.parent().find('button[name=search]').click(function () {
+                    grid_console.text('Attempting to search...');
+                    var thisDataObject = {};
+                    thisDataObject['project'] = $(select_project).val();
+                    thisDataObject['project_not'] = $(select_project_not).val();
+                    thisDataObject['date_after_entry'] = $(date_after_entry).val();
+                    thisDataObject['date_before_entry'] = $(date_before_entry).val();
+                    thisDataObject['page_size'] = "";
+                    thisDataObject['exclude_ld'] = $('#excludeLD').is(':checked');
+                    var dataJSON = JSON.stringify(thisDataObject);
+                    $.ajax({
+                        url: "{% url 'merlin:results_nwis_report' %}",
+                        data: dataJSON,
+                        dataType: 'json',
+                        contentType: "application/json",
+                        type: 'POST',
+                        success: function (data, textStatus, jqXHRequest) {
+                            var content_type = jqXHRequest.getResponseHeader("content-type");
+                            // if the content-type is plain text, then it's a custom message from our Django view
+                            if (content_type.indexOf('text') > -1) {
+                                grid_console.text(data);
+                            }
+                            // otherwise, it's JSON from the REST Services
+                            else if (jqXHRequest.status === 200) {
+                                data_data = data;
+                                resultPages = Math.ceil(data_data['count'] / 100);
+                                grid_console.text(textStatus+': Retrieved '+ data_data['count'] +' results across ' + resultPages + ' pages.' + (resultPages > 1 ? ' Showing first 100 results.' : ''));
+                                grid.data('handsontable').loadData(data_data.results);
+                            }
+                            else {
+                                grid_console.text(textStatus+': Search error: '+jqXHRequest.statusText+', code: '+jqXHRequest.status+'.');
+                            }
+                        },
+                        error: function (jqXHRequest, textStatus, errorThrown) {
+                            grid_console.text(errorThrown + " ... " + textStatus);
+                        }
+                    });
+                    currentPage = 1;
+                });
+
+                grid.parent().find('button[name=next]').click(function () {
+                    if (currentPage != resultPages) {
+                        $.ajax({
+                            url: data_data.next,
+                            dataType: 'json',
+                            success: function (response) {
+                                grid_console.text("success");
+                                data_data = response;
+                                grid.data('handsontable').loadData(data_data.results);
+                                currentPage++;
+                                $('#page').html("Page " + currentPage + " of " + resultPages);
+                                grid_console.text('Page ' + currentPage + ' of ' + resultPages + ' loaded.');
+                            },
+                            error: function (response) {
+                                grid_console.text("error");
+                            }
+                        });
+                    }
+                    else {
+                        grid_console.text("End of results, there are no pages after Page " + resultPages + ".");
+                    }
+                });
+
+                grid.parent().find('button[name=prev]').click(function () {
+                    if (currentPage != 1) {
+                        $.ajax({
+                            url: data_data.previous,
+                            dataType: 'json',
+                            success: function (response) {
+                                grid_console.text("success");
+                                data_data = response;
+                                grid.data('handsontable').loadData(data_data.results);
+                                currentPage--;
+                                $('#page').html("Page " + currentPage + " of " + resultPages);
+                                grid_console.text('Page ' + currentPage + ' of ' + resultPages + ' loaded.');
+                            },
+                            error: function (response) {
+                                grid_console.text("error");
+                            }
+                        });
+                    }
+                    else {
+                        grid_console.text("There are no pages before Page 1.");
+                    }
+                });
+
+                grid.parent().find('button[name=exportTAB]').click(function() {
+                    if (exportTABClicked) {
+                        exportTABClicked = false;
+                        $("#exportTABButtonPanel").hide();
+                    }
+                    else {
+                        exportTABClicked = true;
+                        $("#exportTABButtonPanel").show();
+                    }
+                });
+
+                grid.parent().find('button[name=exportTABCurrentPage]').click(function() {
+                    var table = grid.handsontable('getInstance');
+                    var tab_filename = "NWIS_Results_Report_" + yearToday + "-" + (monthToday.length == 1 ? "0" + monthToday : monthToday) + "-" + (dayToday.length == 1 ? "0" + dayToday : dayToday) + ".txt";
+                    handsontable2tab.download(table, tab_filename);
+                    grid.parent().find('button[name=exportTAB]').click();
+                });
+
+                grid.parent().find('button[name=exportTABAllPages]').click(function() {
+                    // if there is only one result page, then there is no need to request more data from the server, so just export the current page
+                    if (resultPages == 1) {grid.parent().find('button[name=exportTABCurrentPage]').click(); return false;}
+                    // otherwise request all the data matching the search query from the server
+                    var thisDataObject = {};
+                    thisDataObject['project'] = $(select_project).val();
+                    thisDataObject['project_not'] = $(select_project_not).val();
+                    thisDataObject['date_after_entry'] = $(date_after_entry).val();
+                    thisDataObject['date_before_entry'] = $(date_before_entry).val();
+                    // page_size is the parameter that will override our self-defined default 100-record pagination
+                    // setting it to the nearest hundred above the record count will ensure we get all matching records
+                    thisDataObject['page_size'] = (resultPages * 100);
+                    thisDataObject['exclude_ld'] = $('#excludeLD').is(':checked');
+                    var dataJSON = JSON.stringify(thisDataObject);
+                    $.ajax({
+                        url: "{% url 'merlin:results_nwis_report' %}",
+                        data: dataJSON,
+                        dataType: 'json',
+                        contentType: "application/json",
+                        type: 'POST',
+                        success: function (data, textStatus, jqXHRequest) {
+                            if (jqXHRequest.status === 200) {
+                                // create a temporary handsontable to package up the data in a TAB file
+                                tempgrid = $('#tempgrid');
+                                tempgrid.handsontable({startRows: 0, columns: grid_columns});
+                                tempdata = data;
+                                tempgrid.data('handsontable').loadData(tempdata.results);
+                                temptable = tempgrid.handsontable('getInstance');
+                                tab_filename = "NWIS_Results_Report_" + yearToday + "-" + (monthToday.length == 1 ? "0" + monthToday : monthToday) + "-" + (dayToday.length == 1 ? "0" + dayToday : dayToday) + ".txt";
+                                handsontable2tab.download(temptable, tab_filename);
+                                delete tab_filename;
+                                delete temptable;
+                                delete tempdata;
+                                delete tempgrid;
+                                grid_console.text(textStatus + ': Data exported.');
+                            }
+                            else {
+                                grid_console.text(textStatus+': Export error: '+jqXHRequest.statusText+', code: '+jqXHRequest.status+'.');
+                            }
+                        },
+                        error: function (jqXHRequest, textStatus, errorThrown) {
+                            grid_console.text(errorThrown + " ... " + textStatus);
+                        }
+                    });
+                    grid.parent().find('button[name=exportTAB]').click();
+                });
+
+            });
+        </script>
+
+    </div>
+
+{% endblock %}

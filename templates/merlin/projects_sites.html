@@ -1,0 +1,497 @@
+{% extends 'merlin/base.html' %}
+{% block body_block %}
+
+    <div style="padding:10px">
+        <pre id="grid_console" class="console" style="width:600px"></pre>
+        <div class="row">
+            <div id="tools_projects" class="col-md-3">
+                <p><input name="select" type="hidden" placeholder="Filter by project name." style="width:350px"/></p>
+                <p>
+                    <div class="select2-container select2-container-multi" style="width:350px">
+                        <ul class="select2-choices">
+                            <li class="select2-search-field">
+                                <label class="select2-offscreen"></label>
+                                <input name="search" type="search" placeholder="Highlight in project table." class="select2-input select2-default" style="width:343px;height:30px;font-size:14px;"/>
+                            </li>
+                        </ul>
+                    </div>
+                </p>
+                <p>
+                    <button type="button" class="btn btn-default" data-loading-text="Reloading..." name="load">Reload Table</button>
+                </p>
+                <p><br /><br /></p>
+                <h1>Projects</h1>
+            </div>
+            <div id="tools_projectssites" class="col-md-5">
+                <p>
+                    <input name="select_project" type="hidden" placeholder="Filter by project name." style="width:350px"/>
+                    <input name="select_site" type="hidden" placeholder="Filter by site name." style="width:350px"/>
+                </p>
+                <p>
+                    <div class="select2-container select2-container-multi" style="width:400px">
+                        <ul class="select2-choices">
+                            <li class="select2-search-field">
+                                <label class="select2-offscreen"></label>
+                                <input name="search" type="search" placeholder="Highlight in projects-sites table." class="select2-input select2-default" style="width:393px;height:30px;font-size:14px;"/>
+                            </li>
+                        </ul>
+                    </div>
+                </p>
+                <p>
+                    <button type="button" class="btn btn-primary" data-loading-text="Saving..." name="save">Save</button>
+                    <button type="button" class="btn btn-danger" data-loading-text="Deleting..." name="delete">Delete Row</button>
+                    <button type="button" class="btn btn-default" data-loading-text="Reloading..." name="load">Reload Table</button>
+                </p>
+                <p>
+                <form id="form_projectssites" class="form-inline">
+                    <div class="form-group">
+                        <span id="selected_project_name">Selected Project Name: <strong>NULL</strong></span><span id="selected_project_name_warning" style="display:none;color:darkred"><strong>You must select a Project Name before you can save!</strong></span><br />
+                        <span id="selected_site_name">Selected Site Name: <strong>NULL</strong></span><span id="selected_site_name_warning" style="display:none;color:darkred"><strong>You must select a Site Name before you can save!</strong></span>
+                    </div>
+                </form>
+                </p>
+                <h1>Projects-Sites</h1>
+            </div>
+            <div id="tools_sites" class="col-md-4">
+                <p><input name="select" type="hidden" placeholder="Filter by site name." style="width:350px"/></p>
+                <p>
+                    <div class="select2-container select2-container-multi" style="width:350px">
+                        <ul class="select2-choices">
+                            <li class="select2-search-field">
+                                <label class="select2-offscreen"></label>
+                                <input name="search" type="search" placeholder="Highlight in site table." class="select2-input select2-default" style="width:343px;height:30px;font-size:14px;"/>
+                            </li>
+                        </ul>
+                    </div>
+                </p>
+                <p>
+                    <button type="button" class="btn btn-default" data-loading-text="Reloading..." name="load">Reload Table</button>
+                </p>
+                <p><br /><br /></p>
+                <h1>Sites</h1>
+            </div>
+        </div>
+        <br />
+        <div class="row">
+            <div class="col-md-3" id="grid_projects" data-projects="{{ projects }}"></div>
+            <div class="col-md-5" id="grid_projectssites" data-data="{{ data }}"></div>
+            <div class="col-md-4" id="grid_sites" data-sites="{{ sites }}"></div>
+        </div>
+
+        <script>
+            $(document).ready(function() {
+
+                var csrftoken = $.cookie('csrftoken');
+                function csrfSafeMethod(method) {
+                    // these HTTP methods do not require CSRF protection
+                    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+                }
+                $.ajaxSetup({
+                    beforeSend: function(xhr, settings) {
+                        if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                        }
+                    }
+                });
+
+                var grid_console = $("#grid_console");
+
+                var grid_projects = $('#grid_projects');
+                grid_projects.css("z-index", "0");
+                var data_projects = JSON.parse(grid_projects.attr("data-projects"));
+                var selectedProjectRow;
+                grid_console.text('Loading project data.');
+                grid_projects.handsontable({
+                    data: data_projects,
+                    currentRowClassName: 'customCurrentRow',
+                    outsideClickDeselects: false,
+                    manualColumnResize: true,
+                    manualRowResize: true,
+                    invalidCellClassName: 'customHtInvalid',
+                    search: {searchResultClass: 'customHtSearchResult'},
+                    columns: [
+                        {title: "ID", data: "id", readOnly: true, width: 1},
+                        {title: "Project Name", data: "name", readOnly:true, width: 400}
+                    ],
+                    columnSorting: true,
+                    // get list of selected rows
+                    afterSelectionEnd: function(r, c, r2, c2) {
+                        selectedProjectRow = r;
+                        $('#selected_project_name').html("Selected Project Name: <strong>" + grid_projects.handsontable('getInstance').getDataAtCell(selectedProjectRow, 1) + "</strong>");
+                        $('#selected_project_name_warning').hide();
+                    }
+                });
+                //grid_projects.data('handsontable').sort(0);
+                grid_console.text('Project data loaded.');
+
+                var grid_projectssites = $('#grid_projectssites');
+                grid_projectssites.css("z-index", "0");
+                var data_data = JSON.parse(grid_projectssites.attr("data-data"));
+                var validTableProjectssites = false;
+                var gridProjectssites_changedRowIndices = [];
+                var gridProjectssites_selectionRowIndices = [];
+                grid_console.text('Loading projects-sites data.');
+                grid_projectssites.handsontable({
+                    //minSpareRows: 1,
+                    data: data_data.results,
+                    manualColumnResize: true,
+                    manualRowResize: true,
+                    invalidCellClassName: 'customHtInvalid',
+                    search: {searchResultClass: 'customHtSearchResult'},
+                    columns: [
+                        {title: "ID", data: "id", readOnly: true, width: 1},
+                        {title: "Project Name", data: "project_name", readOnly: true, width: 350},
+                        {title: "Site Name", data: "site_name", readOnly: true, width: 350}
+                    ],
+                    columnSorting: true,
+                    // define event handlers
+                    beforeChange: function(changes, source) {
+                        // "changes" is a 2D array containing information about each of the edited cells [ [row, col, oldVal, newVal], [row, col, oldVal, newVal], ... ].
+                        // "source" is one of the following strings: "alter", "empty", "edit", "populateFromArray", "loadData", "autofill", "paste".
+
+                        // get index of changed row
+                        var changedRow = changes[0][0];
+                        // get index of changed column
+                        var changedCol = changes[0][1];
+                        // get value of changed cell
+                        var changedVal = changes[0][3];
+
+                        // remember the indices of all changed rows
+                        if (source != 'loadData') {
+                            // find index of this row in the changed rows array
+                            var changedRowIndex = gridProjectssites_changedRowIndices.indexOf(changedRow);
+                            // if not in the array (index == -1), add it to the array, otherwise ignore
+                            if (changedRowIndex == -1){
+                                gridProjectssites_changedRowIndices.push(changedRow);
+                            }
+                        }
+                    },
+                    // get list of selected rows
+                    afterSelectionEnd: function(r, c, r2, c2) {
+                        // clear the array
+                        gridProjectssites_selectionRowIndices.length = 0;
+                        // add the beginning and ending indices
+                        gridProjectssites_selectionRowIndices[0] = r;
+                        gridProjectssites_selectionRowIndices[1] = r2;
+                    }
+                });
+                //grid_projectssites.data('handsontable').sort(0);
+                grid_console.text('Projects-Sites data loaded.');
+                
+                var grid_sites = $('#grid_sites');
+                grid_sites.css("z-index", "0");
+                var data_sites = JSON.parse(grid_sites.attr("data-sites"));
+                var selectedSiteRow;
+                grid_console.text('Loading site data.');
+                grid_sites.handsontable({
+                    //minSpareRows: 1,
+                    data: data_sites.results,
+                    currentRowClassName: 'customCurrentRow',
+                    outsideClickDeselects: false,
+                    manualColumnResize: true,
+                    manualRowResize: true,
+                    invalidCellClassName: 'customHtInvalid',
+                    search: {searchResultClass: 'customHtSearchResult'},
+                    columns: [
+                        {title: "ID", data: "id", readOnly: true, width: 1},
+                        {title: "Site Name", data: "name", readOnly: true, width: 400},
+                        {title: "USGS SCode", data: "usgs_scode", readOnly: true, width: 150}
+                    ],
+                    columnSorting: true,
+                    // get list of selected rows
+                    afterSelectionEnd: function(r, c, r2, c2) {
+                        selectedSiteRow = r;
+                        $('#selected_site_name').html("Selected Site Name: <strong>" + grid_sites.handsontable('getInstance').getDataAtCell(selectedSiteRow, 1) + "</strong>");
+                        $('#selected_site_name_warning').hide();
+                    }
+                });
+                //grid_sites.data('handsontable').sort(0);
+                grid_console.text('Site data loaded.');
+
+                function formatName(data) {
+                    return data.name;
+                }
+
+                function formatProject(data) {
+                    return data.project;
+                }
+
+                function formatSite(data) {
+                    return data.site;
+                }
+                
+                var tools_projects = $('#tools_projects');
+
+                tools_projects.find('input[name=search]').on('keyup', function (event) {
+                    grid_projects.handsontable('getInstance').search.query(this.value);
+                    grid_projects.handsontable('getInstance').render();
+                });
+
+                tools_projects.find('input[name=select]').select2({
+                    multiple: true,
+                    maximumSelectionSize: 1,
+                    dropdownCss:{display:'none'},
+                    //minimumResultsForSearch: -1,
+                    //allowClear: true,
+                    minimumInputLength: 1,
+                    ajax: {
+                        url: '/mercuryservices/projects/',
+                        dataType: 'json',
+                        data: function (term, page) {
+                            return {
+                                name: term
+                            };
+                        },
+                        results: function (data, page) {
+                            data_projects = data;
+                            grid_projects.data('handsontable').loadData(data_projects);
+                            grid_console.text('Filtered data loaded.');
+                            return {results: data};
+                        }
+                    },
+                    /*sortResults: function(results, container, query) {
+                        return results.sort(function (a, b) {
+                            return a - b;
+                        }); //sort by ID, numerically ascending
+                    },*/
+                    formatResult: formatName,
+                    formatSelection: formatName
+                });
+
+                tools_projects.find('button[name=load]').click(function () {
+                    var button_state = $(this).button('loading');
+                    $.ajax({
+                        url: '/mercuryservices/projects/',
+                        dataType: 'json',
+                        success: function (response) {
+                            data_projects = response;
+                            grid_projects.data('handsontable').loadData(data_projects);
+                            grid_console.text('Project data reloaded.');
+                        },
+                        error: function (jqXHRequest, textStatus, errorThrown) {
+                            grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve page to reload.");
+                        }
+                    });
+                    button_state.button('reset');
+                });
+                
+                var tools_sites = $('#tools_sites');
+
+                tools_sites.find('input[name=search]').on('keyup', function (event) {
+                    grid_sites.handsontable('getInstance').search.query(this.value);
+                    grid_sites.handsontable('getInstance').render();
+                });
+
+                tools_sites.find('input[name=select]').select2({
+                    multiple: true,
+                    maximumSelectionSize: 1,
+                    dropdownCss:{display:'none'},
+                    //minimumResultsForSearch: -1,
+                    //allowClear: true,
+                    minimumInputLength: 1,
+                    ajax: {
+                        url: '/mercuryservices/sites/',
+                        dataType: 'json',
+                        data: function (term, page) {
+                            return {
+                                name: term
+                            };
+                        },
+                        results: function (data, page) {
+                            data_sites = data;
+                            grid_sites.data('handsontable').loadData(data_sites.results);
+                            grid_console.text('Filtered data loaded.');
+                            return {results: data.results};
+                        }
+                    },
+                    /*sortResults: function(results, container, query) {
+                        return results.sort(function (a, b) {
+                            return a - b;
+                        }); //sort by ID, numerically ascending
+                    },*/
+                    formatResult: formatName,
+                    formatSelection: formatName
+                });
+
+                tools_sites.find('button[name=load]').click(function () {
+                    var button_state = $(this).button('loading');
+                    $.ajax({
+                        url: '/mercuryservices/sites/',
+                        dataType: 'json',
+                        success: function (response) {
+                            data_sites = response;
+                            grid_sites.data('handsontable').loadData(data_sites.results);
+                            grid_console.text('Site data reloaded.');
+                        },
+                        error: function (jqXHRequest, textStatus, errorThrown) {
+                            grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve page to reload.");
+                        }
+                    });
+                    button_state.button('reset');
+                });
+
+                var tools_projectssites = $('#tools_projectssites');
+
+                tools_projectssites.find('input[name=search]').on('keyup', function (event) {
+                    grid_projectssites.handsontable('getInstance').search.query(this.value);
+                    grid_projectssites.handsontable('getInstance').render();
+                });
+
+                tools_projectssites.find('input[name=select_project]').select2({
+                    multiple: true,
+                    maximumSelectionSize: 1,
+                    dropdownCss:{display:'none'},
+                    //minimumResultsForSearch: -1,
+                    //allowClear: true,
+                    minimumInputLength: 1,
+                    ajax: {
+                        url: '/mercuryservices/projectssites/',
+                        dataType: 'json',
+                        data: function (term, page) {
+                            return {
+                                project: term
+                            };
+                        },
+                        results: function (data, page) {
+                            data_data = data;
+                            grid_projectssites.data('handsontable').loadData(data_data.results);
+                            grid_console.text('Filtered data loaded.');
+                            return {results: data.results};
+                        }
+                    },
+                    /*sortResults: function(results, container, query) {
+                        return results.sort(function (a, b) {
+                            return a - b;
+                        }); //sort by ID, numerically ascending
+                    },*/
+                    formatResult: formatProject,
+                    formatSelection: formatProject
+                });
+
+                tools_projectssites.find('input[name=select_site]').select2({
+                    multiple: true,
+                    maximumSelectionSize: 1,
+                    dropdownCss:{display:'none'},
+                    //minimumResultsForSearch: -1,
+                    //allowClear: true,
+                    minimumInputLength: 1,
+                    ajax: {
+                        url: '/mercuryservices/projectssites/',
+                        dataType: 'json',
+                        data: function (term, page) {
+                            return {
+                                site: term
+                            };
+                        },
+                        results: function (data, page) {
+                            data_data = data;
+                            grid_projectssites.data('handsontable').loadData(data_data.results);
+                            grid_console.text('Filtered data loaded.');
+                            return {results: data.results};
+                        }
+                    },
+                    /*sortResults: function(results, container, query) {
+                        return results.sort(function (a, b) {
+                            return a - b;
+                        }); //sort by ID, numerically ascending
+                    },*/
+                    formatResult: formatSite,
+                    formatSelection: formatSite
+                });
+
+                tools_projectssites.find('button[name=load]').click(function () {
+                    var button_state = $(this).button('loading');
+                    $.ajax({
+                        url: '/mercuryservices/projectssites/',
+                        dataType: 'json',
+                        success: function (response) {
+                            data_data = response;
+                            grid_projectssites.data('handsontable').loadData(data_data.results);
+                            grid_console.text('Projects-Sites data reloaded.');
+                        },
+                        error: function (jqXHRequest, textStatus, errorThrown) {
+                            grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve page to reload.");
+                        }
+                    });
+                    button_state.button('reset');
+                });
+
+                tools_projectssites.find('button[name=delete]').click(function () {
+                    var button_state = $(this).button('loading');
+                    if (typeof gridProjectssites_selectionRowIndices[0] == 'undefined') {grid_console.text('There are no selected rows to delete!'); button_state.button('reset'); return false;}
+                    var thisDataRow = grid_projectssites.data('handsontable').getDataAtRow(gridProjectssites_selectionRowIndices[0]);
+                    var thisDataObject = {"id": thisDataRow[0]};
+                    var changedDataJSON = JSON.stringify(thisDataObject);
+                    $.ajax({
+                        url: "{% url 'merlin:projectssites_delete' %}",
+                        data: changedDataJSON,
+                        type: 'POST',
+                        success: function (data, textStatus, jqXHRequest) {
+                            var content_type = jqXHRequest.getResponseHeader("content-type");
+                            if (jqXHRequest.status === 204) {
+                                tools_projectssites.find('button[name=load]').click();
+                                grid_console.text('Data deleted.');
+                            }
+                            else {
+                                grid_projectssites.parent().find('button[name=load]').click();
+                                grid_console.text(textStatus + ': Delete error: ' + jqXHRequest.statusText + ', code: ' + jqXHRequest.status + '.');
+                            }
+                        },
+                        error: function (jqXHRequest, textStatus, errorThrown) {
+                            grid_console.text(errorThrown + ": " + textStatus);
+                        }
+                    });
+                    button_state.button('reset');
+                });
+
+                tools_projectssites.find('button[name=save]').click(function() {
+                    var button_state = $(this).button('loading');
+                    if ((typeof(selectedProjectRow) === 'undefined' || selectedProjectRow == null) && (typeof(selectedSiteRow) === 'undefined' || selectedSiteRow == null)) {$('#selected_project_name_warning').show(); $('#selected_site_name_warning').show(); button_state.button('reset'); return;}
+                    if (typeof(selectedProjectRow) === 'undefined' || selectedProjectRow == null) {$('#selected_project_name_warning').show(); button_state.button('reset'); return;}
+                    else {$('#selected_project_name_warning').hide();}
+                    if (typeof(selectedSiteRow) === 'undefined' || selectedSiteRow == null) {$('#selected_site_name_warning').show(); button_state.button('reset'); return;}
+                    else {$('#selected_site_name_warning').hide();}
+                    var selected_project_id = grid_projects.handsontable('getInstance').getDataAtCell(selectedProjectRow, 0);
+                    var selected_site_id = grid_sites.handsontable('getInstance').getDataAtCell(selectedSiteRow, 0);
+                    var dataObject = {"project": selected_project_id, "site": selected_site_id};
+                    var dataJSON = JSON.stringify(dataObject);
+                    $.ajax({
+                        url: "{% url 'merlin:projectssites_create' %}",
+                        data: dataJSON,
+                        dataType: 'json',
+                        contentType: "application/json",
+                        type: 'POST',
+                        success: function (data, textStatus, jqXHRequest) {
+                            var content_type = jqXHRequest.getResponseHeader("content-type");
+                            // if the content-type is plain text, then it's a custom message from our Django view
+                            if (content_type.indexOf('text') > -1) {
+                                grid_console.text(data);
+                            }
+                            // otherwise, it's JSON from the REST Services
+                            else if (jqXHRequest.status === 200) {
+                                tools_projectssites.find('button[name=load]').click();
+                                grid_console.text(textStatus + ': Data saved.');
+                                selectedProjectRow = null;
+                                selectedSiteRow = null;
+                                grid_projects.handsontable('getInstance').deselectCell();
+                                grid_sites.handsontable('getInstance').deselectCell();
+                                $('#selected_project_name').html("Selected Project Name: <strong>NULL</strong>");
+                                $('#selected_site_name').html("Selected Site Name: <strong>NULL</strong>");
+                            }
+                            else {
+                                grid_console.text(textStatus + ': Save error: ' + jqXHRequest.statusText + ', code: ' + jqXHRequest.status + '.');
+                            }
+                        },
+                        error: function (jqXHRequest, textStatus, errorThrown) {
+                            grid_console.text(errorThrown + ": " + textStatus);
+                        }
+                    });
+                    button_state.button('reset');
+                });
+
+            });
+        </script>
+
+    </div>
+
+{% endblock %}
