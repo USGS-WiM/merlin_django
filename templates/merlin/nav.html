@@ -10,4 +10,12 @@
     <li><a href="{% url 'merlin:cooperators' %}">Cooperators</a></li>
     <li><a href="{% url 'merlin:projects' %}">Projects</a></li>
     <li><a href="{% url 'merlin:sites' %}">Sites</a></li>
+    {% if request.session.is_staff %}
+    <li><a href="{% url 'merlin:projectssites' %}">Projects-Sites</a></li>
+    <li><a href="{% url 'merlin:results_count_projects' %}">Report Projects Results Count</a></li>
+    <li><a href="{% url 'merlin:results_count_nawqa' %}">Report NAWQA Results Count</a></li>
+    <li><a href="{% url 'merlin:samples_nwis_report' %}">Report NWIS Samples</a></li>
+    <li><a href="{% url 'merlin:results_nwis_report' %}">Report NWIS Results</a></li>
+    <li><a href="{% url 'merlin:results_cooperator_report' %}">Report Cooperator Results</a></li>
+    {% endif %}
 </ul>

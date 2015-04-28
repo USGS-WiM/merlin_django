@@ -23,14 +23,10 @@
                 </div>
             </form>
             <br />
-            <button type="button" class="btn btn-primary" name="addSave">Save</button>
+            <button type="button" class="btn btn-primary" data-loading-text="Saving..." name="addSave">Save</button>
         </div>
         <br />
         <pre id="grid_console" class="console" style="width:600px"></pre>
-
-        <!-- <p><input id="search_field" type="search" placeholder="Highlight in table." style="width:600px; border:1px solid darkgray; height:42px"/></p> -->
-        <br /><br />
-
         <div class="row">
             <div id="tools_brominations" class="col-md-4">
                 <p><input id="select_field" type="hidden" placeholder="Filter by bromination date." style="width:400px"/></p>
@@ -45,16 +41,16 @@
                     </div>
                 </p>
                 <p>
-                    <button type="button" class="btn btn-default" name="load">Reload Table</button>
-                    <button type="button" class="btn btn-default" name="prev">Previous Page</button>
-                    <button type="button" class="btn btn-default" name="next">Next Page</button>
+                    {% if request.session.is_staff %}
+                    <button type="button" class="btn btn-warning" data-loading-text="Saving..." name="save">Save</button>
+                    <button type="button" class="btn btn-danger" data-loading-text="Deleting..." name="delete">Delete Row</button>
+                    {% endif %}
+                    <button type="button" class="btn btn-default" data-loading-text="Reloading..." name="load">Reload Table</button>
+                    <button type="button" class="btn btn-default" data-loading-text="Getting Previous..." name="prev">Previous Page</button>
+                    <button type="button" class="btn btn-default" data-loading-text="Getting Next..." name="next">Next Page</button>
                     <span id="page"></span>
                 </p>
                 <p>
-                    {% if request.session.is_staff %}
-                    <button type="button" class="btn btn-warning" name="save">Save</button>
-                    <button type="button" class="btn btn-danger" name="delete">Delete Row</button>
-                    {% endif %}
 					<button type="button" class="btn btn-info" name="gridAdd">Brominate Samples</button>
                 </p>
                 <h1>Bromination Events</h1>
@@ -82,7 +78,7 @@
                 </div>
                 <br />
                 <p>
-                    <button type="button" class="btn btn-info" name="search">Search</button>
+                    <button type="button" class="btn btn-info" data-loading-text="Searching..." name="search">Search</button>
                 </p>
                 <h1>Brominated Samples</h1>
             </div>
@@ -92,9 +88,9 @@
             <div class="col-md-4" id="grid_add" style="display:none;">
                 <span id="selected_bromination_id">Selected Bromination ID: <strong>NULL</strong></span><br />
                 <span id="selected_bromination_id_warning" style="display:none;color:darkred"><strong>You must select a Bromination ID before you can save!</strong></span><br />
-                <button type="button" class="btn btn-primary" name="sampleSave">Save</button>
-                <button type="button" class="btn btn-default" name="insertRows">Insert 8 Blank Rows</button>
-                <button type="button" class="btn btn-danger" name="deleteRows">Delete Rows</button>
+                <button type="button" class="btn btn-primary" data-loading-text="Saving..." name="sampleSave">Save</button>
+                <button type="button" class="btn btn-default" data-loading-text="Inserting..." name="insertRows">Insert 8 Blank Rows</button>
+                <button type="button" class="btn btn-danger" data-loading-text="Deleting..." name="deleteRows">Delete Rows</button>
             </div>
             <div class="col-md-4" id="grid_samples" data-samples="{{ samples }}"></div>
         </div>
@@ -273,6 +269,7 @@
                 grid_console.text('Data loaded.');
 
                 $('#tools_samples').find('button[name=search]').click(function () {
+                    var button_state = $(this).button('loading');
                     grid_console.text('Attempting to search...');
                     var thisDataObject = {};
                     //var theID = $(select_project).select2('data').id;
@@ -308,6 +305,7 @@
                             grid_console.text(errorThrown + " ... " + textStatus);
                         }
                     });
+                    button_state.button('reset');
                 });
 
                 $("#created_date").datepicker({
@@ -397,6 +395,7 @@
                 var tools_brominations = $('#tools_brominations');
 
                 tools_brominations.find('button[name=load]').click(function () {
+                    var button_state = $(this).button('loading');
                     $.ajax({
                         url: '/mercuryservices/brominations/?page='+currentPage,
                         dataType: 'json',
@@ -411,9 +410,11 @@
                             grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve page to reload.");
                         }
                     });
+                    button_state.button('reset');
                 });
 
                 tools_brominations.find('button[name=next]').click(function () {
+                    var button_state = $(this).button('loading');
                     if (currentPage != resultPages) {
                         $.ajax({
                             url: data_data.next,
@@ -434,9 +435,11 @@
                     else {
                         grid_console.text("End of results, there are no pages after Page " + resultPages + ".");
                     }
+                    button_state.button('reset');
                 });
 
                 tools_brominations.find('button[name=prev]').click(function () {
+                    var button_state = $(this).button('loading');
                     if (currentPage != 1) {
                         $.ajax({
                             url: data_data.previous,
@@ -457,20 +460,27 @@
                     else {
                         grid_console.text("There are no pages before Page 1.");
                     }
+                    button_state.button('reset');
                 });
 
                 tools_brominations.find('button[name=delete]').click(function () {
+                    var button_state = $(this).button('loading');
+                    if (typeof selectionRowIndices[0] == 'undefined') {grid_console.text('There are no selected rows to delete!'); button_state.button('reset'); return false;}
                     var thisDataRow = grid_brominations.data('handsontable').getDataAtRow(selectionRowIndices[0]);
-                    var thisDataRowID = thisDataRow[0];
+                    var thisDataObject = {"id": thisDataRow[0]};
+                    var changedDataJSON = JSON.stringify(thisDataObject);
                     $.ajax({
-                        url: '/mercuryservices/brominations/'+thisDataRowID+'/',
-                        type: 'DELETE',
+                        url: "{% url 'merlin:brominations_delete' %}",
+                        data: changedDataJSON,
+                        type: 'POST',
                         success: function (data, textStatus, jqXHRequest) {
                             var content_type = jqXHRequest.getResponseHeader("content-type");
-                            if (jqXHRequest.status === 200) {
-                                grid_console.text(textStatus + ': Data deleted.');
+                            if (jqXHRequest.status === 204) {
+                                tools_brominations.find('button[name=load]').click();
+                                grid_console.text('Data deleted.');
                             }
                             else {
+                                tools_brominations.find('button[name=load]').click();
                                 grid_console.text(textStatus + ': Delete error: ' + jqXHRequest.statusText + ', code: ' + jqXHRequest.status + '.');
                             }
                         },
@@ -478,12 +488,14 @@
                             grid_console.text(errorThrown + ": " + textStatus);
                         }
                     });
+                    button_state.button('reset');
                 });
 
                 tools_brominations.find('button[name=save]').click(function () {
+                    var button_state = $(this).button('loading');
                     var changedDataArray = [];
                     // if there are no changed rows, notify the user and stop the submission
-                    if (typeof changedRowIndices == 'undefined' || changedRowIndices.length < 1) {grid_console.text('Table is empty!'); validTableBrominations = false; return false;}
+                    if (typeof changedRowIndices == 'undefined' || changedRowIndices.length < 1) {grid_console.text('There are no changed rows to save!'); validTableBrominations = false; button_state.button('reset'); return false;}
                     // otherwise loop through all changed rows
                     $.each(changedRowIndices, function(index, value) {
                         var thisDataRow = grid_brominations.data('handsontable').getDataAtRow(value);
@@ -497,13 +509,13 @@
                                         var gooddate_string = makeYear(baddate) + "-" + makeMonth(baddate) + "-" + makeDay(baddate) + " 00:00:00";
                                         var gooddate = new Date(makeYear(baddate), makeMonth(baddate)-1, makeDay(baddate));
                                         if (gooddate > dateToday) {
-                                            {grid_console.text('Date cannot be a future date!'); validTableBrominations = false; return false;}
+                                            {grid_console.text('Date cannot be a future date!'); validTableBrominations = false; button_state.button('reset'); return false;}
                                         }
                                         thisDataObject[objectFields[i]] = gooddate_string;
                                     }
-                                    else {grid_console.text('There is a problem with the Date in row ' + (index + 1) + '. Please contact the administrator.'); validTableBrominations = false; return false;}
+                                    else {grid_console.text('There is a problem with the Date in row ' + (index + 1) + '. Please contact the administrator.'); validTableBrominations = false; button_state.button('reset'); return false;}
                                 }
-                                else {grid_console.text('Date is badly formed in row ' + (index + 1) + '. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); validTableBrominations = false; return false;}
+                                else {grid_console.text('Date is badly formed in row ' + (index + 1) + '. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); validTableBrominations = false; button_state.button('reset'); return false;}
                             }
                             else {thisDataObject[objectFields[i]] = thisDataRow[i];}
                         }
@@ -539,6 +551,7 @@
                             }
                         });
                     }
+                    button_state.button('reset');
                 });
 
                 tools_brominations.find('button[name=gridAdd]').click(function () {
@@ -556,19 +569,25 @@
                 });
 
                 grid_add.parent().find('button[name=insertRows]').click(function () {
+                    var button_state = $(this).button('loading');
                     grid_add.data('handsontable').alter('insert_row', null, 8);
                     grid_console.text('Inserted Rows.');
+                    button_state.button('reset');
                 });
 
                 grid_add.parent().find('button[name=deleteRows]').click(function () {
+                    var button_state = $(this).button('loading');
                     var selectedRows = grid_add.handsontable('getInstance').getSelectedRange();
+                    if (typeof selectedRows == 'undefined') {grid_console.text('There are no selected rows to delete!'); button_state.button('reset'); return false;}
                     var firstSelectedRow = selectedRows['from']['row'];
                     var lastSelectedRow = selectedRows['to']['row'];
                     grid_add.data('handsontable').alter('remove_row', firstSelectedRow, (lastSelectedRow != firstSelectedRow ? (lastSelectedRow - firstSelectedRow) + 1 : 1));
+                    button_state.button('reset');
                 });
 
                 grid_add.find('button[name=sampleSave]').click(function() {
-                    if (typeof(selectedBrominationRow) === 'undefined' || selectedBrominationRow == null) {$('#selected_bromination_id_warning').show(); return;}
+                    var button_state = $(this).button('loading');
+                    if (typeof(selectedBrominationRow) === 'undefined' || selectedBrominationRow == null) {$('#selected_bromination_id_warning').show(); button_state.button('reset'); return;}
                     else {$('#selected_bromination_id_warning').hide();}
                     var selected_bromination_id = grid_brominations.handsontable('getInstance').getDataAtCell(selectedBrominationRow, 0);
                     var selected_bromination_date = grid_brominations.handsontable('getInstance').getDataAtCell(selectedBrominationRow, 2);
@@ -577,7 +596,7 @@
                     var dataArray = [];
                     //$.each(gridAdd_changedRowIndices, function(index, value) {
                     // if there are no changed rows, notify the user and stop the submission
-                    if (typeof gridAdd_changedRowIndices == 'undefined' || gridAdd_changedRowIndices.length < 1) {grid_console.text('Table is empty!'); validTableAdd = false; return false;}
+                    if (typeof gridAdd_changedRowIndices == 'undefined' || gridAdd_changedRowIndices.length < 1) {grid_console.text('Table is empty!'); validTableAdd = false; button_state.button('reset'); return false;}
                     // otherwise loop through all rows
                     var allRows = grid_add.handsontable('getInstance').countRows();
                     for (var row = 0; row < allRows; row++) {
@@ -589,7 +608,7 @@
                             var thisDataObject = {};
                             thisDataObject['bromination'] = selected_bromination_id;
                             var thisID = updateValueAjax('/mercuryservices/samplebottles/', 'bottle', 'id', thisDataRow[0], 'constituent=39,27');
-                            if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Sample Bottle must be a valid choice in row ' + (row + 1) + '!'); validTableAdd = false; return false;}
+                            if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Sample Bottle must be a valid choice in row ' + (row + 1) + '!'); validTableAdd = false; button_state.button('reset'); return false;}
                             thisDataObject['sample_bottle'] = thisID;
                             thisDataObject['bromination_event'] = thisDataRow[1];
                             thisDataObject['bromination_volume'] = thisDataRow[2];
@@ -621,6 +640,7 @@
                                     grid_add.data('handsontable').alter('remove_row', 0, rows);
                                     grid_add.data('handsontable').alter('insert_row', null, 8);
                                     selectedBrominationRow = null;
+                                    grid_brominations.handsontable('getInstance').deselectCell();
                                     $('#selected_bromination_id').html("Selected Bromination ID: <strong>NULL</strong>");
                                     $('#tools_samples').find('button[name=search]').click()
                                 }
@@ -633,10 +653,12 @@
                             }
                         });
                     }
+                    button_state.button('reset');
                 });
 
                 var form_add = $("#form_add");
                 form_add.find('button[name=addSave]').click(function() {
+                    var button_state = $(this).button('loading');
                     var thisDataObject = {};
                     thisDataObject['concentration'] = Number(form_add.find('input[name=concentration]').val());
                     thisDataObject['comment'] = form_add.find('input[name=comment]').val();
@@ -647,13 +669,13 @@
                             var gooddate_string = makeYear(baddate) + "-" + makeMonth(baddate) + "-" + makeDay(baddate) + " 00:00:00";
                             var gooddate = new Date(makeYear(baddate), makeMonth(baddate)-1, makeDay(baddate));
                             if (gooddate > dateToday) {
-                                {grid_console.text('Date cannot be a future date!'); return false;}
+                                {grid_console.text('Date cannot be a future date!'); button_state.button('reset'); return false;}
                             }
                             thisDataObject['created_date'] = gooddate_string;
                         }
-                        else {grid_console.text('There is a problem with the Date. Please contact the administrator.'); return false;}
+                        else {grid_console.text('There is a problem with the Date. Please contact the administrator.'); button_state.button('reset'); return false;}
                     }
-                    else {grid_console.text('Date is badly formed. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); return false;}
+                    else {grid_console.text('Date is badly formed. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); button_state.button('reset'); return false;}
                     var dataJSON = JSON.stringify(thisDataObject);
                     $.ajax({
                         url: "{% url 'merlin:brominations_create' %}",
@@ -682,6 +704,7 @@
                             grid_console.text(errorThrown + ": " + textStatus);
                         }
                     });
+                    button_state.button('reset');
                 });
 
                 form_add.parent().find('button[name=formAdd]').click(function () {

@@ -85,6 +85,7 @@ class ProjectSite(models.Model):
 
     class Meta:
         db_table = "mercury_projectsite"
+        ordering = ['-id']
 
 
 ######
@@ -323,10 +324,8 @@ class MethodType(models.Model):
     method_code = models.IntegerField()
     preparation = models.CharField(max_length=128, blank=True)
     description = models.TextField(blank=True)
-    raw_method_detection_limit = models.FloatField(null=True, blank=True)
-    final_method_detection_limit = models.FloatField(null=True, blank=True)
-    raw_method_detection_limit_unit = models.ForeignKey('UnitType', null=True, related_name='raw_mdl_unit')
-    final_method_detection_limit_unit = models.ForeignKey('UnitType', null=True, related_name='final_mdl_unit')
+    method_detection_limit = models.FloatField(null=True, blank=True)
+    method_detection_limit_unit = models.ForeignKey('UnitType', null=True, related_name='mdl_unit')
     raw_value_unit = models.ForeignKey('UnitType', null=True, related_name='raw_unit')
     final_value_unit = models.ForeignKey('UnitType', null=True, related_name='final_unit')
     decimal_places = models.IntegerField(null=True, blank=True)
@@ -589,12 +588,12 @@ class Status(models.Model):
     date_time_stamp = models.DateTimeField()
     note = models.TextField(blank=True)
 
+    def __str__(self):
+        return str(self.status_id)
+
     class Meta:
         db_table = "mercury_status"
         verbose_name_plural = "Statuses"
-
-    def __str__(self):
-        return self.status_id
 
 
 class ProcedureStatusType(models.Model):
@@ -630,6 +629,35 @@ class ProcedureType(models.Model):
 
 ######
 ##
+## Temporary Tables for Excel Macros
+##
+######
+
+
+class TempBottle(models.Model):
+    bottle_id = models.CharField(max_length=128)
+    sort_id = models.IntegerField()
+
+    def __str__(self):
+        return str(self.id)
+
+    class Meta:
+        db_table = "mercury_tempbottle"
+
+
+class TempBottle2(models.Model):
+    bottle_id = models.CharField(max_length=128)
+    sort_id = models.IntegerField()
+
+    def __str__(self):
+        return str(self.id)
+
+    class Meta:
+        db_table = "mercury_tempbottle2"
+
+
+######
+##
 ## Database Views for Reporting
 ##
 ######
@@ -637,15 +665,132 @@ class ProcedureType(models.Model):
 
 class ResultCountNawqa(models.Model):
     project_name = models.CharField(max_length=128)
-    site_name = models.CharField(max_length=128, primary_key=True)
-    count = models.IntegerField()
+    site_name = models.CharField(max_length=128)
+    entry_date = models.DateField()
+    row_num = models.IntegerField(primary_key=True)
 
     def __str__(self):
-        return self.count
+        return str(self.row_num)
 
     class Meta:
-        db_table = "results_count_nawqa"
+        db_table = "report_nawqa_results_count"
         managed = False
+
+
+class ResultCountProjects(models.Model):
+    project_name = models.CharField(max_length=128)
+    nwis_customer_code = models.CharField(max_length=128)
+    null = models.CharField(max_length=8)
+    cooperator_email = models.EmailField()
+    entry_date = models.DateField()
+    row_num = models.IntegerField(primary_key=True)
+
+    def __str__(self):
+        return str(self.row_num)
+
+    class Meta:
+        db_table = "report_projects_results_count"
+        managed = False
+
+
+class SampleNwis(models.Model):
+    sample_integer = models.IntegerField()
+    user_code = models.CharField(max_length=128)
+    agency_cd = models.CharField(max_length=8)
+    site_no = models.CharField(max_length=128)
+    sample_start_date = models.CharField(max_length=128)
+    sample_end_date = models.CharField(max_length=8)
+    medium_cd = models.CharField(max_length=128)
+    lab_id = models.CharField(max_length=8)
+    project_cd = models.CharField(max_length=8)
+    aqfr_cd = models.CharField(max_length=8)
+    sample_type = models.CharField(max_length=8)
+    anl_start_cd = models.CharField(max_length=8)
+    anl_src_cd = models.CharField(max_length=8)
+    hyd_cond_cd = models.CharField(max_length=8)
+    hyd_event_cd = models.CharField(max_length=8)
+    tissue_id = models.CharField(max_length=8)
+    body_part_cd = models.CharField(max_length=8)
+    lab_smp_comment = models.CharField(max_length=8)
+    field_smp_comment = models.TextField()
+    sample_tz_cd = models.CharField(max_length=8)
+    tm_datum_rlblty_cd = models.CharField(max_length=8)
+    coll_agency_cd = models.CharField(max_length=8)
+    entry_date = models.DateField()
+    project_name = models.CharField(max_length=128)
+    row_num = models.IntegerField(primary_key=True)
+
+    def __str__(self):
+        return str(self.row_num)
+
+    class Meta:
+        db_table = "report_nwis_samples"
+        managed = False
+
+
+class ResultNwisLD(models.Model):
+    sample_integer = models.IntegerField()
+    parameter_cd = models.CharField(max_length=128)
+    result_value = models.CharField(max_length=128)
+    remark_cd = models.CharField(max_length=128)
+    qa_cd = models.CharField(max_length=8)
+    qw_method_cd = models.CharField(max_length=8)
+    results_rd = models.CharField(max_length=8)
+    val_qual_cd = models.TextField()
+    rpt_lev_value = models.FloatField()
+    rpt_lev_cd = models.CharField(max_length=8)
+    dqi_cd = models.CharField(max_length=8)
+    null_val_qual = models.CharField(max_length=8)
+    prep_set_no = models.CharField(max_length=8)
+    anl_set_no = models.CharField(max_length=8)
+    anl_dt = models.CharField(max_length=8)
+    prep_dt = models.CharField(max_length=8)
+    lab_result_comment = models.TextField()
+    field_result_comment = models.CharField(max_length=8)
+    lab_std_dev = models.CharField(max_length=8)
+    anl_ent = models.CharField(max_length=8)
+    entry_date = models.DateField()
+    project_name = models.CharField(max_length=128)
+    cooperator_name = models.CharField(max_length=128)
+    row_num = models.IntegerField(primary_key=True)
+
+    def __str__(self):
+        return str(self.row_num)
+
+    class Meta:
+        db_table = "report_nwis_results_ld"
+        managed = False
+
+
+class ResultCooperator(models.Model):
+    site_name = models.CharField("Site", max_length=128)
+    usgs_scode = models.CharField("USGS Station ID", max_length=128)
+    sample_date_time = models.DateTimeField("Sample Date Time")
+    medium = models.CharField("Medium", max_length=128)
+    length = models.CharField("Sample Length (m)", max_length=128)
+    depth = models.CharField("Sample Depth (m)", max_length=128)
+    analysis_date = models.DateField("Analysis Date", max_length=128)
+    result_id = models.IntegerField("Results ID")
+    bottle = models.CharField("Bottle ID", max_length=128)
+    constituent = models.CharField("Parameter", max_length=128)
+    final_ddl = models.CharField("DDL (output)", max_length=128)
+    detection_flag = models.CharField("D-Flag (output)", max_length=128)
+    final_value = models.CharField("Value", max_length=128)
+    unit = models.CharField("Units", max_length=128)
+    sample_id = models.IntegerField("Field ID")
+    analysis_comment = models.TextField("Analysis Comment")
+    sample_comment = models.TextField("Sample Comment")
+    qaflags = models.CharField("ALL QA FLAGS", max_length=128)
+    entry_date = models.DateField()
+    project_name = models.CharField(max_length=128)
+    cooperator_name = models.CharField(max_length=128)
+    row_num = models.IntegerField(primary_key=True)
+
+    def __str__(self):
+        return str(self.row_num)
+
+    class Meta:
+        db_table = "report_cooperator_results"
 
 
 ######

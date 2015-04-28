@@ -23,6 +23,7 @@ router.register(r'methods', views.MethodTypeViewSet, 'methods')
 router.register(r'procedures', views.ProcedureTypeViewSet)
 router.register(r'preservations', views.PreservationTypeViewSet)
 router.register(r'projects', views.ProjectViewSet, 'projects')
+router.register(r'projectssites', views.ProjectSiteViewSet, 'projectssites')
 router.register(r'processings', views.ProcessingTypeViewSet)
 router.register(r'qualityassurances', views.QualityAssuranceViewSet)
 router.register(r'qualityassurancetypes', views.QualityAssuranceTypeViewSet, 'qualityassurancetypes')
@@ -45,6 +46,7 @@ router.register(r'bulkbottleprefixes', views.BottlePrefixBulkCreateUpdateViewSet
 router.register(r'bulkbrominations', views.BrominationBulkUpdateViewSet)
 router.register(r'bulkcooperators', views.CooperatorBulkUpdateViewSet)
 router.register(r'bulkprojects', views.ProjectBulkUpdateViewSet)
+router.register(r'bulkprojectssites', views.ProjectBulkUpdateViewSet)
 router.register(r'bulkresults', views.ResultBulkCreateUpdateViewSet)
 router.register(r'bulksamples', views.SampleBulkCreateUpdateViewSet)
 router.register(r'bulksamplebottles', views.SampleBottleBulkCreateUpdateViewSet)
@@ -55,5 +57,9 @@ urlpatterns = patterns('',
                        url(r'^', include(router.urls)),
                        url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
                        url(r'^batchupload', views.BatchUpload.as_view(), name='batchupload'),
-                       url(r'^testreport/', views.ReportResultsCountNawqa.as_view(), name='testreport'),
+                       url(r'^reportresultscooperator/', views.ReportResultsCooperator.as_view(), name='reportresultscooperator'),
+                       url(r'^reportresultsnwis/', views.ReportResultsNwis.as_view(), name='reportresultsnwis'),
+                       url(r'^reportsamplesnwis/', views.ReportSamplesNwis.as_view(), name='reportsamplesnwis'),
+                       url(r'^resultcountprojects/', views.ReportResultsCountProjects.as_view(), name='resultcountprojects'),
+                       url(r'^resultcountnawqa/', views.ReportResultsCountNawqa.as_view(), name='resultcountnawqa'),
                        )
