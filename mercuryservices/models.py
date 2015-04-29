@@ -82,7 +82,6 @@ class ProjectSite(models.Model):
     def __str__(self):
         return str(self.id)
 
-
     class Meta:
         db_table = "mercury_projectsite"
         ordering = ['-id']
@@ -104,7 +103,6 @@ class BottleType(models.Model):
 
     def __str__(self):
         return self.bottle_type
-
 
     class Meta:
         db_table = "mercury_bottletype"

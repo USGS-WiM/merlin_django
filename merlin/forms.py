@@ -131,6 +131,6 @@ class BrominationForm(forms.Form):
     #dateTimeOptions = {'format': 'yyyy-mm-dd HH:ii:ss', 'autoclose': True, 'showMeridian': True}
     concentration = forms.DecimalField(help_text="Concentration")
     time_stamp = forms.DateTimeField(help_text="Date", initial=get_datetime_today(), widget=DateTimeInput())
-    #time_stamp = forms.DateTimeField(help_text="Date")#, widget=DateTimeWidget(usel10n=True, bootstrap_version=3, options=dateTimeOptions))
+    #time_stamp = forms.DateTimeField(
+    # help_text="Date")#, widget=DateTimeWidget(usel10n=True, bootstrap_version=3, options=dateTimeOptions))
     comment = forms.CharField(help_text="Comment", required=False)
-
