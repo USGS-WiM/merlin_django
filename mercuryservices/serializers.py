@@ -276,7 +276,8 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'first_name', 'last_name', 'email', 'groups', 'user_permissions', 'is_superuser', 'is_staff', 'is_active')#, 'initials', 'phone')
+        fields = ('id', 'username', 'first_name', 'last_name', 'email',
+                  'groups', 'user_permissions', 'is_superuser', 'is_staff', 'is_active')  # , 'initials', 'phone')
 
 
 ######
@@ -390,8 +391,10 @@ class FlatResultSerializer(serializers.ModelSerializer):
     tare_weight = serializers.RelatedField(source='sample_bottle.bottle.bottle_prefix.tare_weight')
     project_name = serializers.RelatedField(source='sample_bottle.sample.project.name')
     site_name = serializers.RelatedField(source='sample_bottle.sample.site.name')
-    sample_date = serializers.DateTimeField(format='%m/%d/%y', source='sample_bottle.sample.sample_date_time', read_only=True)
-    sample_time = serializers.DateTimeField(format='%H%M', source='sample_bottle.sample.sample_date_time', read_only=True)
+    sample_date = serializers.DateTimeField(
+        format='%m/%d/%y', source='sample_bottle.sample.sample_date_time', read_only=True)
+    sample_time = serializers.DateTimeField(
+        format='%H%M', source='sample_bottle.sample.sample_date_time', read_only=True)
     depth = serializers.RelatedField(source='sample_bottle.sample.depth')
     constituent = serializers.RelatedField(source='constituent')
     isotope_flag = serializers.RelatedField(source='isotope_flag')
