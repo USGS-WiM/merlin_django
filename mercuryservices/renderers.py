@@ -1,10 +1,25 @@
 from rest_framework_csv.renderers import CSVRenderer
 
 
-class PaginatedCSVRenderer (CSVRenderer):
+class PaginatedResultSampleCSVRenderer(CSVRenderer):
     results_field = 'results'
 
     def render(self, data, media_type=None, renderer_context=None):
         if not isinstance(data, list):
             data = data.get(self.results_field, [])
-        return super(PaginatedCSVRenderer, self).render(data, media_type, renderer_context)
+        self.headers = ['sample_id', 'project_name', 'site_name', 'site_id', 'date', 'time', 'depth', 'length',
+                        'received', 'sample_comments', 'container_id', 'lab_processing', 'medium', 'analysis',
+                        'isotope', 'filter', 'filter_vol', 'preservation', 'acid', 'acid_vol', 'pres_comments']
+        return super(PaginatedResultSampleCSVRenderer, self).render(data, media_type, renderer_context)
+
+
+class PaginatedResultCSVRenderer(CSVRenderer):
+    results_field = 'results'
+
+    def render(self, data, media_type=None, renderer_context=None):
+        if not isinstance(data, list):
+            data = data.get(self.results_field, [])
+        self.headers = ['result_id', 'bottle', 'tare_weight', 'project_name', 'site_name', 'sample_date', 'sample_time',
+                        'depth', 'constituent', 'isotope_flag', 'received_date', 'comments', 'final_value',
+                        'report_value', 'unit', 'detection_flag', 'analyzed_date']
+        return super(PaginatedResultCSVRenderer, self).render(data, media_type, renderer_context)

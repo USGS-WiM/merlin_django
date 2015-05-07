@@ -66,6 +66,18 @@ function makeDay(thisDate) {
     else if (thisDay.length == 1) {return "0" + thisDay;}
     else {return null;}
 }
+function formatDate(thisDate, row) {
+    var dateToday = new Date();
+    if (dateRegEx.test(thisDate)) {
+        if (makeYear(thisDate) != null && makeMonth(thisDate) != null && makeDay(thisDate) != null) {
+            var formattedDate = new Date(makeYear(thisDate), makeMonth(thisDate) - 1, makeDay(thisDate));
+            if (formattedDate > dateToday) {return "Date cannot be a future date" + (typeof row != 'undefined' ? (" in row " + row + "!") : "!") ;}
+            else {return formattedDate.toISOString().slice(0,10);}
+        }
+        else {return "Date formatting problem encountered" + (typeof row != 'undefined' ? (" in row " + row + ".") : ".") + " Please contact the administrator.";}
+    }
+    else {return "Date is badly formed" + (typeof row != 'undefined' ? (" in row " + row + ".") : ".") + " Expecting a date in mm/dd/yy format but found " + thisDate + "!";}
+}
 function getRange(limit) {
     var values = [];
     for (var i = 0; i < limit; i++){
@@ -81,7 +93,7 @@ function getRange(limit) {
 function getIdDom(domDataObject, key, value) {
     var objectID = null;
     for (var index in domDataObject) {
-        if (value == domDataObject[index][key]) {
+        if (value == domDataObject[index][key].trim()) {
             objectID = domDataObject[index]['id'];
         }
     }
