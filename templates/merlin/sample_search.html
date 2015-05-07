@@ -466,6 +466,7 @@
                     thisDataObject['date_after_sample'] = $(date_after_sample).val();
                     thisDataObject['date_before_sample'] = $(date_before_sample).val();
                     thisDataObject['page_size'] = "";
+                    thisDataObject['table'] = "";
                     var dataJSON = JSON.stringify(thisDataObject);
                     $.ajax({
                         url: "{% url 'merlin:samples_search' %}",
@@ -838,46 +839,26 @@
                     if (resultPages == 1) {grid.parent().find('button[name=exportCSVCurrentPage]').click(); button_state.button('reset'); return false;}
                     // otherwise request all the data matching the search query from the server
                     var thisDataObject = {};
-                    thisDataObject['bottle'] = $(select_bottle).val();
-                    thisDataObject['project'] = $(select_project).val();
-                    thisDataObject['site'] = $(select_site).val();//.slice(0, -1);
-                    thisDataObject['depth'] = $("#select_depth").val();
-                    thisDataObject['replicate'] = $("#select_replicate").val();
-                    thisDataObject['constituent'] = $(select_constituent).val();
-                    thisDataObject['date_after_sample'] = $(date_after_sample).val();
-                    thisDataObject['date_before_sample'] = $(date_before_sample).val();
+                    if ($(select_bottle).val() != "") {thisDataObject['bottle'] = $(select_bottle).val()}
+                    if ($(select_project).val() != "") {thisDataObject['project'] = $(select_project).val()}
+                    if ($(select_site).val() != "") {thisDataObject['site'] = $(select_site).val()}
+                    if ($("#select_depth").val() != "") {thisDataObject['depth'] = $("#select_depth").val()}
+                    if ($("#select_replicate").val() != "") {thisDataObject['replicate'] = $("#select_replicate").val()}
+                    if ($(select_constituent).val() != "") {thisDataObject['constituent'] = $(select_constituent).val()}
+                    var formattedDate = "";
+                    if ($(date_after_sample).val()!= "") {formattedDate = formatDate($(date_after_sample).val()); if (isNaN(formattedDate.slice(0,4)) && formattedDate != "") {grid_console.text(formattedDate); button_state.button('reset'); return false;} else {thisDataObject['date_after_sample'] = formattedDate;}} else {formattedDate = ""}
+                    if ($(date_before_sample).val() != "") {formattedDate = formatDate($(date_before_sample).val()); if (isNaN(formattedDate.slice(0,4)) && formattedDate != "") {grid_console.text(formattedDate); button_state.button('reset'); return false;} else {thisDataObject['date_before_sample'] = formattedDate;}} else {formattedDate = ""}
+                    thisDataObject['format'] = "csv";
+                    thisDataObject['table'] = "sample";
                     // page_size is the parameter that will override our self-defined default 100-record pagination
                     // setting it to the nearest hundred above the record count will ensure we get all matching records
                     thisDataObject['page_size'] = (resultPages * 100);
                     var dataJSON = JSON.stringify(thisDataObject);
-                    $.ajax({
-                        url: "{% url 'merlin:samples_search' %}",
-                        data: dataJSON,
-                        dataType: 'json',
-                        contentType: "application/json",
-                        type: 'POST',
-                        success: function (data, textStatus, jqXHRequest) {
-                            if (jqXHRequest.status === 200) {
-                                // create a temporary handsontable to package up the data in a CSV file
-                                tempgrid = $('#tempgrid');
-                                tempgrid.handsontable({startRows: 0, columns: grid_columns});
-                                tempgrid.data('handsontable').loadData(data.results);
-                                temptable = tempgrid.handsontable('getInstance');
-                                csv_filename = "samples_" + yearToday + "-" + (monthToday.length == 1 ? "0" + monthToday : monthToday) + "-" + (dayToday.length == 1 ? "0" + dayToday : dayToday) + ".csv";
-                                handsontable2csv.download(temptable, csv_filename);
-                                delete tempgrid;
-                                delete temptable;
-                                delete csv_filename;
-                                grid_console.text(textStatus + ': Data exported.');
-                            }
-                            else {
-                                grid_console.text(textStatus+': Export error: '+jqXHRequest.statusText+', code: '+jqXHRequest.status+'.');
-                            }
-                        },
-                        error: function (jqXHRequest, textStatus, errorThrown) {
-                            grid_console.text(errorThrown + " ... " + textStatus);
-                        }
-                    });
+                    var link = document.createElement("a");
+                    link.setAttribute("href", "/mercuryservices/fullresults/?"+ $.param(thisDataObject));
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
                     grid.parent().find('button[name=exportCSV]').click();
                     button_state.button('reset');
                 });

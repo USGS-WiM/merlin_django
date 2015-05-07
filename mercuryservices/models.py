@@ -37,7 +37,7 @@ class Cooperator(models.Model):
 class Project(models.Model):
     """A structure to organize a cooperator's sampling events for a particular purpose or goal."""
 
-    name = models.CharField(max_length=128)
+    name = models.CharField(max_length=128, unique=True)
     description = models.CharField(max_length=128, blank=True)
     accounting_code = models.CharField(max_length=128, blank=True)
     cooperator = models.ForeignKey('Cooperator', related_name='projects', null=True)
@@ -53,7 +53,7 @@ class Project(models.Model):
 class Site(models.Model):
     """A sampling location, usually an official USGS site. Can be used by more than one project."""
 
-    name = models.CharField(max_length=128)
+    name = models.CharField(max_length=128, unique=True)
     usgs_sid = models.CharField(max_length=128, blank=True)
     usgs_scode = models.CharField(max_length=128, blank=True)
     description = models.TextField(blank=True)
@@ -97,7 +97,7 @@ class ProjectSite(models.Model):
 class BottleType(models.Model):
     """Type of bottle (1L Teflon, 250mL Teflon, Glass Jar, etc.)."""
 
-    bottle_type = models.CharField(max_length=128)
+    bottle_type = models.CharField(max_length=128, unique=True)
     description = models.TextField(blank=True)
     status = models.ForeignKey('Status', null=True, blank=True)
 
@@ -111,11 +111,11 @@ class BottleType(models.Model):
 class BottlePrefix(models.Model):
     """Reusable bottles with permanently etched IDs (MLO755, DSV330, etc.)."""
 
-    bottle_prefix = models.CharField(max_length=128)
+    bottle_prefix = models.CharField(max_length=128, unique=True)
     tare_weight = models.DecimalField(max_digits=8, decimal_places=4, null=True)
     bottle_type = models.ForeignKey('BottleType')
     description = models.TextField(blank=True)
-    created_date = models.DateField(default=datetime.now, null=True, blank=True)
+    created_date = models.DateField(default=datetime.now, null=True, blank=True, db_index=True)
     modified_date = models.DateField(auto_now=True, null=True, blank=True)
     status = models.ForeignKey('Status', null=True, blank=True)
 
@@ -132,10 +132,10 @@ class Bottle(models.Model):
      where the prefix is the permanent ID of the bottle being used and the suffix is the
      indicator of the current use of that bottle prefix (DIS26009, WIP507BWK, etc.)."""
 
-    bottle_unique_name = models.CharField(max_length=128)
+    bottle_unique_name = models.CharField(max_length=128, unique=True)
     bottle_prefix = models.ForeignKey('BottlePrefix')
     description = models.TextField(blank=True)
-    created_date = models.DateField(default=datetime.now, null=True, blank=True)
+    created_date = models.DateField(default=datetime.now, null=True, blank=True, db_index=True)
     #created_by = CreatingUserField(related_name='created_bottles')
     modified_date = models.DateField(auto_now=True, null=True, blank=True)
     #modified_by = LastUserField()
@@ -153,7 +153,7 @@ class Bottle(models.Model):
 class FilterType(models.Model):
     """Type of filtration used to filter bottle (Calyx, Centrifugal, Quartz Fiber, etc.)."""
 
-    filter = models.CharField(max_length=128)
+    filter = models.CharField(max_length=128, unique=True)
     description = models.TextField(blank=True)
     status = models.ForeignKey('Status', null=True, blank=True)
 
@@ -167,7 +167,7 @@ class FilterType(models.Model):
 class PreservationType(models.Model):
     """Type of preservation of bottle (Freezing, Acidification, None)."""
 
-    preservation = models.CharField(max_length=128)
+    preservation = models.CharField(max_length=128, unique=True)
     description = models.TextField(blank=True)
     status = models.ForeignKey('Status', null=True, blank=True)
 
@@ -184,7 +184,7 @@ class ProcessingType(models.Model):
     This information may be used to document procession charges that should be assessed to the cooperator.
     """
 
-    processing = models.CharField(max_length=128)
+    processing = models.CharField(max_length=128, unique=True)
     description = models.TextField(blank=True)
     status = models.ForeignKey('Status', null=True, blank=True)
 
@@ -198,9 +198,9 @@ class ProcessingType(models.Model):
 class MediumType(models.Model):
     """Medium in which sample was taken (various types of water, soil, or air)."""
 
-    nwis_code = models.CharField(max_length=128, blank=True)
+    nwis_code = models.CharField(max_length=128, blank=True, unique=True)
     nwis_code_qa = models.CharField(max_length=128, blank=True)
-    medium = models.CharField(max_length=128)
+    medium = models.CharField(max_length=128, unique=True)
     description = models.TextField(blank=True)
     comment = models.TextField(blank=True)
     status = models.ForeignKey('Status', null=True, blank=True)
@@ -229,10 +229,10 @@ class Sample(models.Model):
     modified_date = models.DateField(auto_now=True, null=True, blank=True)
     status = models.ForeignKey('Status', null=True, blank=True)
 
-    def get_results(self):
-        sample_bottles = SampleBottle.objects.filter(sample=self)
-        results = Result.objects.filter(sample_bottle__in=sample_bottles)
-        return results
+    # def get_results(self):
+    #     sample_bottles = SampleBottle.objects.filter(sample=self)
+    #     results = Result.objects.filter(sample_bottle__in=sample_bottles)
+    #     return results
 
     def __str__(self):
         return str(self.id)
@@ -282,7 +282,7 @@ class SampleBottleBromination(models.Model):
     bromination = models.ForeignKey('Bromination')
     bromination_event = models.IntegerField(null=True, blank=True)
     bromination_volume = models.FloatField(null=True, blank=True)
-    created_date = models.DateField(default=datetime.now, null=True, blank=True)
+    created_date = models.DateField(default=datetime.now, null=True, blank=True, db_index=True)
     modified_date = models.DateField(auto_now=True, null=True, blank=True)
     status = models.ForeignKey('Status', null=True, blank=True)
 
@@ -304,7 +304,7 @@ class SampleBottleBromination(models.Model):
 class UnitType(models.Model):
     """Defined units of measurement for data values."""
 
-    unit = models.CharField(max_length=128)
+    unit = models.CharField(max_length=128, unique=True)
     description = models.TextField(blank=True)
     status = models.ForeignKey('Status', null=True, blank=True)
 
@@ -318,8 +318,8 @@ class UnitType(models.Model):
 class MethodType(models.Model):
     """Established protocols for analyzing samples."""
 
-    method = models.CharField(max_length=128)
-    method_code = models.IntegerField()
+    method = models.CharField(max_length=128, unique=True)
+    method_code = models.IntegerField(unique=True)
     preparation = models.CharField(max_length=128, blank=True)
     description = models.TextField(blank=True)
     method_detection_limit = models.FloatField(null=True, blank=True)
@@ -380,7 +380,7 @@ class Result(models.Model):
 class ConstituentType(models.Model):
     """Determines which methods can be used to analyze samples from which mediums."""
 
-    constituent = models.CharField(max_length=128)
+    constituent = models.CharField(max_length=128, unique=True)
     description = models.TextField(blank=True)
     mediums = models.ManyToManyField('MediumType', through='ConstituentMedium', related_name='constituents')
     methods = models.ManyToManyField('MethodType', through='ConstituentMethod', related_name='constituents')
@@ -445,7 +445,7 @@ class QualityAssurance(models.Model):
 class QualityAssuranceType(models.Model):
     """Activities performed to prevent mistakes or contamination of samples."""
 
-    quality_assurance = models.CharField(max_length=128)
+    quality_assurance = models.CharField(max_length=128, unique=True)
     description = models.TextField(blank=True)
     nwis_value_qualifier = models.CharField(max_length=128, blank=True)
     nwis_value_qualifier_comment = models.TextField(blank=True)
@@ -463,7 +463,7 @@ class DetectionFlag(models.Model):
     Also, may indicate if sample was "lost" (will never have a reportable value),
     or "archived" (no analysis has been done but may occur in the future, avoiding a "hole")."""
 
-    detection_flag = models.CharField(max_length=128)  # A, <, E, L
+    detection_flag = models.CharField(max_length=128, unique=True)  # A, <, E, L
     description = models.TextField(blank=True)  # less than, estimated, lost
     status = models.ForeignKey('Status', null=True, blank=True)
 
@@ -477,7 +477,7 @@ class DetectionFlag(models.Model):
 class IsotopeFlag(models.Model):
     """Flag indicating whether isotope parameters are Ambient (A) or Excess (X-198, X-199, X-200, X-201, X-202)."""
 
-    isotope_flag = models.CharField(max_length=128)  # A, X-198, X-199, X-200, X-201, X-202, X-204
+    isotope_flag = models.CharField(max_length=128, unique=True)  # A, X-198, X-199, X-200, X-201, X-202, X-204
     description = models.TextField(blank=True)  # Ambient, Excess of 199, Excess of 200, etc
     status = models.ForeignKey('Status', null=True, blank=True)
 
@@ -498,10 +498,10 @@ class IsotopeFlag(models.Model):
 class Acid(models.Model):
     """A particular concentration of an acid used for sample preservation."""
 
-    code = models.CharField(max_length=128)
+    code = models.CharField(max_length=128, unique=True)
     concentration = models.FloatField(default=-999)
     comment = models.TextField(blank=True)
-    created_date = models.DateField(default=datetime.now, null=True, blank=True)
+    created_date = models.DateField(default=datetime.now, null=True, blank=True, db_index=True)
     modified_date = models.DateField(auto_now=True, null=True, blank=True)
     status = models.ForeignKey('Status', null=True, blank=True)
 
@@ -516,10 +516,10 @@ class Acid(models.Model):
 class BlankWater(models.Model):
     """Water that has none of the chemicals being analyzed."""
 
-    lot_number = models.CharField(max_length=128)
+    lot_number = models.CharField(max_length=128, unique=True)
     concentration = models.FloatField(default=-999)
     comment = models.TextField(blank=True)
-    created_date = models.DateField(default=datetime.now, null=True, blank=True)
+    created_date = models.DateField(default=datetime.now, null=True, blank=True, db_index=True)
     modified_date = models.DateField(auto_now=True, null=True, blank=True)
     status = models.ForeignKey('Status', null=True, blank=True)
 
@@ -536,7 +536,7 @@ class Bromination(models.Model):
 
     concentration = models.FloatField()
     comment = models.TextField(blank=True)
-    created_date = models.DateField(default=datetime.now, null=True, blank=True)
+    created_date = models.DateField(default=datetime.now, null=True, blank=True, db_index=True)
     modified_date = models.DateField(auto_now=True, null=True, blank=True)
     status = models.ForeignKey('Status', null=True, blank=True)
 
@@ -749,7 +749,6 @@ class ResultNwisLD(models.Model):
     anl_ent = models.CharField(max_length=8)
     entry_date = models.DateField()
     project_name = models.CharField(max_length=128)
-    cooperator_name = models.CharField(max_length=128)
     row_num = models.IntegerField(primary_key=True)
 
     def __str__(self):

@@ -58,7 +58,7 @@ def sample_login(request):
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     context = RequestContext(request)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'projects/', headers=headers_auth_token)
-    merc_projects = json.dumps(r.json(), sort_keys=True)
+    projects = json.dumps(r.json(), sort_keys=True)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'processings/', headers=headers_auth_token)
     processings = json.dumps(r.json(), sort_keys=True)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'mediums/', headers=headers_auth_token)
@@ -71,7 +71,7 @@ def sample_login(request):
     preservations = json.dumps(r.json(), sort_keys=True)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'isotopeflags/', headers=headers_auth_token)
     isotope_flags = json.dumps(r.json(), sort_keys=True)
-    context_dict = {'projects': merc_projects, 'processings': processings, 'mediums': mediums,
+    context_dict = {'projects': projects, 'processings': processings, 'mediums': mediums,
                     'constituents': constituents, 'filters': filters, 'preservations': preservations,
                     'isotope_flags': isotope_flags}
     return render_to_response('merlin/sample_login.html', context_dict, context)
@@ -450,18 +450,27 @@ def samples_search(request):
                 str(params['date_before_sample']).strip('[]'), '%m/%d/%y').strftime('%Y-%m-%d')
         if params['page_size']:
             params_dict["page_size"] = str(params['page_size']).strip('[]')
-        #logger.info(params_dict)
+        if params['format']:
+            params_dict["format"] = str(params['format']).strip('[]')
+        if params['table']:
+            params_dict["table"] = str(params['table']).strip('[]')
 
         r = requests.request(method='GET', url=REST_SERVICES_URL+'fullresults/', params=params_dict, headers=headers)
         logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
-        r_dict = r.json()
-        logger.info("search samples count: " + str(r_dict['count']))
-        r_json = json.dumps(r_dict)
-        return HttpResponse(r_json, content_type='application/json')
+        if params['format'] == 'csv':
+            response = HttpResponse(r, content_type='text/csv')
+            response['Content-Disposition'] = 'attachment; filename="results.csv"'
+            response.write(r.content)
+            return response
+        else:
+            r_dict = r.json()
+            logger.info("search results count: " + str(r_dict['count']))
+            r_json = json.dumps(r_dict)
+            return HttpResponse(r_json, content_type='application/json')
 
     else:  # request.method == 'GET'
         r = requests.request(method='GET', url=REST_SERVICES_URL+'projects/', headers=headers_auth_token)
-        merc_projects = json.dumps(r.json(), sort_keys=True)
+        projects = json.dumps(r.json(), sort_keys=True)
         r = requests.request(method='GET', url=REST_SERVICES_URL+'processings/', headers=headers_auth_token)
         processings = json.dumps(r.json(), sort_keys=True)
         r = requests.request(method='GET', url=REST_SERVICES_URL+'constituents/', headers=headers_auth_token)
@@ -474,7 +483,7 @@ def samples_search(request):
         preservations = json.dumps(r.json(), sort_keys=True)
         r = requests.request(method='GET', url=REST_SERVICES_URL+'isotopeflags/', headers=headers_auth_token)
         isotope_flags = json.dumps(r.json(), sort_keys=True)
-        context_dict = {'projects': merc_projects, 'processings': processings,
+        context_dict = {'projects': projects, 'processings': processings,
                         'constituents': constituents, 'mediums': mediums, 'filters': filters,
                         'preservations': preservations, 'isotope_flags': isotope_flags}
 
@@ -710,20 +719,30 @@ def results_search(request):
             params_dict["exclude_null_results"] = str(params['exclude_null_results']).strip('[]')
         if params['page_size']:
             params_dict["page_size"] = str(params['page_size']).strip('[]')
+        if params['format']:
+            params_dict["format"] = str(params['format']).strip('[]')
+        if params['table']:
+            params_dict["table"] = str(params['table']).strip('[]')
 
         r = requests.request(method='GET', url=REST_SERVICES_URL+'fullresults/', params=params_dict, headers=headers)
         logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
-        r_dict = r.json()
-        logger.info("search results count: " + str(r_dict['count']))
-        r_json = json.dumps(r_dict)
-        return HttpResponse(r_json, content_type='application/json')
+        if params['format'] == 'csv':
+            response = HttpResponse(r, content_type='text/csv')
+            response['Content-Disposition'] = 'attachment; filename="results.csv"'
+            response.write(r.content)
+            return response
+        else:
+            r_dict = r.json()
+            logger.info("search results count: " + str(r_dict['count']))
+            r_json = json.dumps(r_dict)
+            return HttpResponse(r_json, content_type='application/json')
 
     else:  # request.method == 'GET'
         r = requests.request(method='GET', url=REST_SERVICES_URL+'projects/', headers=headers_auth_token)
-        merc_projects = json.dumps(r.json(), sort_keys=True)
+        projects = json.dumps(r.json(), sort_keys=True)
         r = requests.request(method='GET', url=REST_SERVICES_URL+'constituents/', headers=headers_auth_token)
         constituents = json.dumps(r.json(), sort_keys=True)
-        context_dict = {'projects': merc_projects, 'constituents': constituents}
+        context_dict = {'projects': projects, 'constituents': constituents}
 
         return render_to_response('merlin/result_search.html', context_dict, context)
 
@@ -831,8 +850,8 @@ def samples_nwis_report(request):
 
     else:  # request.method == 'GET'
         r = requests.request(method='GET', url=REST_SERVICES_URL+'projects/', headers=headers_auth_token)
-        merc_projects = json.dumps(r.json(), sort_keys=True)
-        context_dict = {'projects': merc_projects}
+        projects = json.dumps(r.json(), sort_keys=True)
+        context_dict = {'projects': projects}
 
         return render_to_response('merlin/samples_nwis.html', context_dict, context)
 
@@ -872,8 +891,8 @@ def results_nwis_report(request):
 
     else:  # request.method == 'GET'
         r = requests.request(method='GET', url=REST_SERVICES_URL+'projects/', headers=headers_auth_token)
-        merc_projects = json.dumps(r.json(), sort_keys=True)
-        context_dict = {'projects': merc_projects}
+        projects = json.dumps(r.json(), sort_keys=True)
+        context_dict = {'projects': projects}
 
         return render_to_response('merlin/results_nwis.html', context_dict, context)
 
@@ -913,10 +932,10 @@ def results_cooperator_report(request):
 
     else:  # request.method == 'GET'
         r = requests.request(method='GET', url=REST_SERVICES_URL+'projects/', headers=headers_auth_token)
-        merc_projects = json.dumps(r.json(), sort_keys=True)
+        projects = json.dumps(r.json(), sort_keys=True)
         r = requests.request(method='GET', url=REST_SERVICES_URL+'cooperators/', headers=headers_auth_token)
-        merc_cooperators = json.dumps(r.json(), sort_keys=True)
-        context_dict = {'projects': merc_projects, 'cooperators': merc_cooperators}
+        cooperators = json.dumps(r.json(), sort_keys=True)
+        context_dict = {'projects': projects, 'cooperators': cooperators}
         return render_to_response('merlin/results_cooperator.html', context_dict, context)
 
 
@@ -926,12 +945,12 @@ def bottles(request):
     #headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     context = RequestContext(request)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'bottles/')  # , headers=headers_auth_token)
-    merc_bottles = json.dumps(r.json(), sort_keys=True)
+    bottles = json.dumps(r.json(), sort_keys=True)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'bottleprefixes/')  # , headers=headers_auth_token)
     prefixes = json.dumps(r.json(), sort_keys=True)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'bottletypes/')  # , headers=headers_auth_token)
     bottletypes = json.dumps(r.json(), sort_keys=True)
-    context_dict = {'bottles': merc_bottles, 'prefixes': prefixes, 'bottletypes': bottletypes}
+    context_dict = {'bottles': bottles, 'prefixes': prefixes, 'bottletypes': bottletypes}
     return render_to_response('merlin/bottles.html', context_dict, context)
 
 
@@ -1497,8 +1516,8 @@ def sites(request):
     r = requests.request(method='GET', url=REST_SERVICES_URL+'sites/', headers=headers_auth_token)
     data = json.dumps(r.json(), sort_keys=True)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'projects/', headers=headers_auth_token)
-    merc_projects = json.dumps(r.json(), sort_keys=True)
-    context_dict = {'data': data, 'projects': merc_projects}
+    projects = json.dumps(r.json(), sort_keys=True)
+    context_dict = {'data': data, 'projects': projects}
     return render_to_response('merlin/sites.html', context_dict, context)
 
 
@@ -1580,8 +1599,8 @@ def projects(request):
     r = requests.request(method='GET', url=REST_SERVICES_URL+'projects/', headers=headers_auth_token)
     data = json.dumps(r.json(), sort_keys=True)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'cooperators/', headers=headers_auth_token)
-    merc_cooperators = json.dumps(r.json(), sort_keys=True)
-    context_dict = {'data': data, 'cooperators': merc_cooperators}
+    cooperators = json.dumps(r.json(), sort_keys=True)
+    context_dict = {'data': data, 'cooperators': cooperators}
     return render_to_response('merlin/projects.html', context_dict, context)
 
 
@@ -1663,10 +1682,10 @@ def projectssites(request):
     r = requests.request(method='GET', url=REST_SERVICES_URL+'projectssites/', headers=headers_auth_token)
     data = json.dumps(r.json(), sort_keys=True)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'projects/', headers=headers_auth_token)
-    merc_projects = json.dumps(r.json(), sort_keys=True)
+    projects = json.dumps(r.json(), sort_keys=True)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'sites/', headers=headers_auth_token)
-    merc_sites = json.dumps(r.json(), sort_keys=True)
-    context_dict = {'data': data, 'projects': merc_projects, 'sites': merc_sites}
+    sites = json.dumps(r.json(), sort_keys=True)
+    context_dict = {'data': data, 'projects': projects, 'sites': sites}
     return render_to_response('merlin/projects_sites.html', context_dict, context)
 
 

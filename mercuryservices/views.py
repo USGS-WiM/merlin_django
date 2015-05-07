@@ -9,9 +9,11 @@ from django.db.models import Count
 from django.db.models.base import ObjectDoesNotExist
 from django.http import HttpResponse
 from rest_framework import views, viewsets, generics, permissions
+from rest_framework.settings import api_settings
 from rest_framework_bulk import BulkCreateModelMixin, BulkUpdateModelMixin
 from mercuryservices.serializers import *
 from mercuryservices.models import *
+from mercuryservices.renderers import *
 
 
 ########################################################################################################################
@@ -465,14 +467,70 @@ class ResultViewSet(viewsets.ModelViewSet):
 
 class FullResultViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    #queryset = Result.objects.all()
-    serializer_class = FullResultSerializer
-    paginate_by = 100
-    paginate_by_param = 'page_size'
+
+    # override the default renderers to use a custom csv renderer when requested
+    # note that these custom renderers have hard-coded field name headers that match the their respective serialzers
+    # when this code was originally written, so if the serializer fields change, these renderer field name headers
+    # won't match the serializer data, until the renderer code is manually updated to match the serializer fields
+    def get_renderers(self):
+        frmt = self.request.QUERY_PARAMS.get('format', None)
+        if frmt is not None and frmt == 'csv':
+            table = self.request.QUERY_PARAMS.get('table', None)
+            # if table is not specified or not equal to samples, assume results
+            if table is not None and table == 'sample':
+                renderer_classes = (PaginatedResultSampleCSVRenderer, ) + tuple(api_settings.DEFAULT_RENDERER_CLASSES)
+            else:
+                renderer_classes = (PaginatedResultCSVRenderer, ) + tuple(api_settings.DEFAULT_RENDERER_CLASSES)
+        else:
+            renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES)
+        return [renderer_class() for renderer_class in renderer_classes]
+
+    # override the default paginate_by to use unlimited pagination for filtered CSV requests, and 100 for all others.
+    def get_paginate_by(self):
+        other_params = self.request.QUERY_PARAMS.copy()
+        if 'format' in other_params.keys():
+            del other_params['format']
+        if self.request.accepted_renderer.format == 'csv' and len(other_params) > 0:
+            return None
+        return 100
+
+    # override the default serializer_class if CSV format is specified
+    def get_serializer_class(self):
+        if self.request.accepted_renderer.format == 'csv':
+            table = self.request.QUERY_PARAMS.get('table', None)
+            # if table is not specified or not equal to samples, assume results
+            if table is not None and table == 'sample':
+                return FlatResultSampleSerializer
+            else:
+                return FlatResultSerializer
+        else:
+            return FullResultSerializer
+
+    # override the default finalize_response to assign a filename to CSV files
+    def finalize_response(self, request, *args, **kwargs):
+        response = super(viewsets.ModelViewSet, self).finalize_response(request, *args, **kwargs)
+        if self.request.accepted_renderer.format == 'csv':
+            table = self.request.QUERY_PARAMS.get('table', None)
+            # if table is not specified or not equal to samples, assume results
+            if table is not None and table == 'sample':
+                table_name = 'samples'
+            else:
+                table_name = 'results'
+            filename = table_name + '_'
+            filename += dt.now().strftime("%Y") + '-' + dt.now().strftime("%m") + '-' + dt.now().strftime("%d") + '.csv'
+            response['Content-Disposition'] = "attachment; filename=%s" % filename
+        return response
 
     # override the default queryset to allow filtering by URL arguments
     def get_queryset(self):
-        queryset = Result.objects.all()
+        #queryset = Result.objects.all()
+        queryset = Result.objects.all().prefetch_related(
+            'sample_bottle', 'sample_bottle__bottle',
+            'sample_bottle__bottle__bottle_prefix', 'sample_bottle__sample',
+            'sample_bottle__sample__site', 'sample_bottle__sample__project', 'constituent', 'isotope_flag',
+            'detection_flag', 'method'
+        )
+
         # if bottle is in query, only search by bottle and ignore other params
         bottle = self.request.QUERY_PARAMS.get('bottle', None)
         if bottle is not None:
