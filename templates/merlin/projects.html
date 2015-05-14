@@ -1,6 +1,7 @@
 {% extends 'merlin/base.html' %}
 {% block body_block %}
 
+    <div id="loading"></div>
     <div style="padding:10px">
         <p>
             <button type="button" class="btn btn-default" name="add">Add New Project</button>
@@ -52,8 +53,11 @@
 
         <div id="grid" data-data="{{ data }}" data-cooperators="{{ cooperators }}" ></div>
 
-        <script>
+		<script>
             $(document).ready(function() {
+
+				var loading = $('#loading');
+				loading.hide();
 
                 var csrftoken = $.cookie('csrftoken');
                 function csrfSafeMethod(method) {
@@ -89,7 +93,7 @@
                         {title: "Name", data: "name", width: 400},
                         {title: "Description", data: "description", width: 600},
                         {title: "Accounting Code", data: "accounting_code", width: 150},
-                        {title: "Cooperator", data: "cooperator", width: 200}
+                        {title: "Cooperator", data: "cooperator_string", width: 200, type: 'autocomplete', strict: true, source: getValuesDom(data_cooperators,"name")}
                     ],
                     columnSorting: true,
                     beforeChange: function(changes, source) {
@@ -100,12 +104,17 @@
                         var changedRow = changes[0][0];
 
                         // remember the indices of all changed rows
-                        if (source != 'loadData') {
-                            // find index of this row in the changed rows array
-                            var changedRowIndex = changedRowIndices.indexOf(changedRow);
-                            // if not in the array (index == -1), add it to the array, otherwise ignore
-                            if (changedRowIndex == -1){
-                                changedRowIndices.push(changedRow);
+                        if (typeof source !== 'undefined') {
+                            // for all changed cells, get the changed rows
+                            for (var i = 0; i < changes.length; i++) {
+                                // get the row of this cell
+                                var thisRow = changes[i][0];
+                                // find index of this row in the changed rows array
+                                var changedRowIndex = changedRowIndices.indexOf(thisRow);
+                                // if not in the array (index == -1), add it to the array, otherwise ignore
+                                if (changedRowIndex == -1) {
+                                    changedRowIndices.push(thisRow);
+                                }
                             }
                         }
                     },
@@ -129,6 +138,7 @@
                 var form_add = $("#form_add");
                 form_add.find('button[name=addSave]').click(function() {
                     var button_state = $(this).button('loading');
+                    loading.show();
                     var thisDataObject = {};
                     thisDataObject['name'] = form_add.find('input[name=name]').val().toUpperCase();
                     thisDataObject['description'] = form_add.find('input[name=description]').val();
@@ -146,23 +156,30 @@
                             // if the content-type is plain text, then it's a custom message from our Django view
                             if (content_type.indexOf('text') > -1) {
                                 grid_console.text(data);
+                                loading.hide();
+                                button_state.button('reset');
                             }
                             // otherwise, it's JSON from the REST Services
                             else if (jqXHRequest.status === 200) {
                                 $(":input", "#form_add").not(":button").val("");
                                 form_add.parent().find('button[name=add]').click();
-                                //tools_prefixes.find('button[name=load]').click();
+                                grid.parent().find('button[name=load]').click();
                                 grid_console.text(textStatus+': Data saved.');
+                                loading.hide();
+                                button_state.button('reset');
                             }
                             else {
                                 grid_console.text(textStatus+': Save error: '+jqXHRequest.statusText+', code: '+jqXHRequest.status+'.');
+                                loading.hide();
+                                button_state.button('reset');
                             }
                         },
                         error: function (jqXHRequest, textStatus, errorThrown) {
                             grid_console.text(errorThrown + ": " + textStatus);
+                            loading.hide();
+                            button_state.button('reset');
                         }
                     });
-                    button_state.button('reset');
                 });
 
                 $('#search_field').on('keyup', function (event) {
@@ -207,6 +224,7 @@
 
                 grid.parent().find('button[name=load]').click(function () {
                     var button_state = $(this).button('loading');
+                    loading.show();
                     $.ajax({
                         url: '/mercuryservices/projects/',
                         dataType: 'json',
@@ -216,12 +234,15 @@
                             grid.data('handsontable').loadData(data_data);
                             //grid.data('handsontable').sort(0);
                             grid_console.text('Data reloaded.');
+                            loading.hide();
+                            button_state.button('reset');
                         },
                         error: function (jqXHRequest, textStatus, errorThrown) {
                             grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve data to reload.");
+                            loading.hide();
+                            button_state.button('reset');
                         }
                     });
-                    button_state.button('reset');
                 });
 
                 grid.parent().find('button[name=add]').click(function () {
@@ -237,7 +258,8 @@
 
                 grid.parent().find('button[name=delete]').click(function () {
                     var button_state = $(this).button('loading');
-                    if (typeof selectionRowIndices[0] == 'undefined') {grid_console.text('There are no selected rows to delete!'); button_state.button('reset'); return false;}
+                    loading.show();
+                    if (typeof selectionRowIndices[0] == 'undefined') {grid_console.text('There are no selected rows to delete!'); loading.hide(); button_state.button('reset'); return false;}
                     var thisDataRow = grid.data('handsontable').getDataAtRow(selectionRowIndices[0]);
                     var thisDataObject = {"id": thisDataRow[0]};
                     var changedDataJSON = JSON.stringify(thisDataObject);
@@ -247,33 +269,44 @@
                         type: 'POST',
                         success: function (data, textStatus, jqXHRequest) {
                             var content_type = jqXHRequest.getResponseHeader("content-type");
-                            if (jqXHRequest.status === 204) {
+                            if (jqXHRequest.status === 200) {
                                 grid.parent().find('button[name=load]').click();
                                 grid_console.text('Data deleted.');
+                                loading.hide();
+                                button_state.button('reset');
                             }
                             else {
                                 grid.parent().find('button[name=load]').click();
                                 grid_console.text(textStatus + ': Delete error: ' + jqXHRequest.statusText + ', code: ' + jqXHRequest.status + '.');
+                                loading.hide();
+                                button_state.button('reset');
                             }
                         },
                         error: function (jqXHRequest, textStatus, errorThrown) {
                             grid_console.text(errorThrown + ": " + textStatus);
+                            loading.hide();
+                            button_state.button('reset');
                         }
                     });
-                    button_state.button('reset');
                 });
 
                 grid.parent().find('button[name=save]').click(function () {
                     var button_state = $(this).button('loading');
+                    loading.show();
                     var changedDataArray = [];
                     // if there are no changed rows, notify the user and stop the submission
-                    if (typeof changedRowIndices == 'undefined' || changedRowIndices.length < 1) {grid_console.text('Table is empty!'); validTable = false; button_state.button('reset'); return false;}
+                    if (typeof changedRowIndices == 'undefined' || changedRowIndices.length < 1) {grid_console.text('Table is empty!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                     // otherwise loop through all changed rows
                     $.each(changedRowIndices, function(index, value) {
                         var thisDataRow = grid.data('handsontable').getDataAtRow(value);
                         var thisDataObject = {};
                         for (var i = 0; i < thisDataRow.length; i++) {
-                            thisDataObject[objectFields[i]] = thisDataRow[i];
+                            if (objectFields[i] == "cooperator") {
+                                var thisID = updateValueAjax('/mercuryservices/cooperators/', 'name', 'id', thisDataRow[i]);
+                                if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Cooperator must be a valid choice in row ' + (index + 1) + '!'); validTableBottle = false; loading.hide(); button_state.button('reset'); return false;}
+                                thisDataObject[objectFields[i]] = thisID;
+                            }
+                            else {thisDataObject[objectFields[i]] = thisDataRow[i];}
                         }
                         changedDataArray.push(thisDataObject);
                         // if we made it through the various validations above, then the table must be valid
@@ -293,22 +326,29 @@
                                 // if the content-type is plain text, then it's a custom message from our Django view
                                 if (content_type.indexOf('text') > -1) {
                                     grid_console.text(data);
+                                    loading.hide();
+                                    button_state.button('reset');
                                 }
                                 // otherwise, it's JSON from the REST Services
                                 else if (jqXHRequest.status === 200) {
                                     grid.parent().find('button[name=load]').click();
                                     grid_console.text(textStatus + ': Data saved.');
+                                    loading.hide();
+                                    button_state.button('reset');
                                 }
                                 else {
                                     grid_console.text(textStatus + ': Save error: ' + jqXHRequest.statusText + ', code: ' + jqXHRequest.status + '.');
+                                    loading.hide();
+                                    button_state.button('reset');
                                 }
                             },
                             error: function (jqXHRequest, textStatus, errorThrown) {
                                 grid_console.text(errorThrown + ": " + textStatus);
+                                loading.hide();
+                                button_state.button('reset');
                             }
                         });
                     }
-                    button_state.button('reset');
                 });
 
             });

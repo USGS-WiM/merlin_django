@@ -144,10 +144,30 @@ def samples_create(request):
             logger.info("Creating sample: " + str(this_sample))
             sample_data.append(this_sample)
 
-        # validate this bottle is used only once, otherwise hold onto its details for further validation
-        logger.info("VALIDATE Bottle ID part 1 of 2")
+        # validate this bottle has never been used in a sample before
+        logger.info("VALIDATE Bottle ID part 1 of 3")
         this_bottle = row.get('bottle')
         logger.info(this_bottle)
+        r = requests.get(REST_SERVICES_URL+'samplebottles/', params={"bottle": this_bottle})
+        logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
+        response_data = r.json()
+        bottle_name = response_data['results'][0]['bottle_string']
+        logger.info("count: " + str(response_data['count']))
+        # if response count does not equal zero, then this bottle is already used by a sample in the database
+        if response_data['count'] != 0:
+            logger.warning("Validation Warning: " + str(this_bottle) + " count != 0")
+            r = requests.get(REST_SERVICES_URL+'projects/', params={'id': row.get('project')})
+            project_name = r.json()[0]['name']
+            r = requests.get(REST_SERVICES_URL+'sites/', params={'id': row.get('site')})
+            site_name = r.json()['results'][0]['name']
+            message = "\"Error in row " + str(row_number) + ": This Bottle already used by a Sample in the database: "
+            message += bottle_name + "\""
+            logger.error(message)
+            return HttpResponse(message, content_type='text/html')
+
+        # validate this bottle is used only once within this sample login session,
+        # otherwise hold onto its details for further validation
+        logger.info("VALIDATE Bottle ID part 2 of 3")
         if this_bottle not in unique_bottles:
             logger.info(str(this_bottle) + " is unique")
             unique_bottles.append(this_bottle)
@@ -225,9 +245,9 @@ def samples_create(request):
         # add this new sample bottle object to the list
         sample_analysis_data.append(this_sample_analysis)
 
-    # validate this bottle is used in only one sample, otherwise notify the user
-    # (it can be used more than once within a sample, though)
-    logger.info("VALIDATE Bottle ID part 2 of 2")
+    # validate this bottle is used in only one sample in this sample login session,
+    # otherwise notify the user (it can be used more than once within a sample, however)
+    logger.info("VALIDATE Bottle ID part 3 of 3")
     sample_bottle_counter = Counter()
     for unique_bottle in unique_bottles:
         logger.info(str(unique_bottle))
@@ -357,7 +377,7 @@ def samples_create(request):
             logger.warning("Deleting sample bottles that were just saved.")
             for sample_bottle_id in sample_bottle_ids:
                 this_id = str(sample_bottle_id['db_id'])
-                r = requests.request(method='DELETE', url=REST_SERVICES_URL+'samplebottles/' + this_id, headers=headers)
+                r = requests.request(method='DELETE', url=REST_SERVICES_URL+'samplebottles/' + this_id + '/', headers=headers)
                 if r.status_code != 204:
                     message = "\"Error: Can save samples and sample bottles, but cannot save analyses."
                     message += " Encountered problem reversing saved sample bottles"
@@ -368,7 +388,7 @@ def samples_create(request):
             logger.warning("Deleting samples that were just saved.")
             for sample_id in sample_ids:
                 this_id = str(sample_id['db_id'])
-                r = requests.request(method='DELETE', url=REST_SERVICES_URL+'samples/' + this_id, headers=headers)
+                r = requests.request(method='DELETE', url=REST_SERVICES_URL+'samples/' + this_id + '/', headers=headers)
                 if r.status_code != 204:
                     message = "\"Error: Can save samples and sample bottles, but cannot save analyses."
                     message += " Encountered problem reversing saved samples"
@@ -391,7 +411,7 @@ def samples_create(request):
         logger.warning("Deleting sample bottles that were just saved.")
         for sample_bottle_id in sample_bottle_ids:
             this_id = str(sample_bottle_id['db_id'])
-            r = requests.request(method='DELETE', url=REST_SERVICES_URL+'samplebottles/' + this_id, headers=headers)
+            r = requests.request(method='DELETE', url=REST_SERVICES_URL+'samplebottles/' + this_id + '/', headers=headers)
             if r.status_code != 204:
                 message = "\"Error: Can save samples and sample bottles, but cannot save analyses."
                 message += " Encountered problem reversing saved sample bottles"
@@ -402,7 +422,7 @@ def samples_create(request):
         logger.warning("Deleting samples that were just saved.")
         for sample_id in sample_ids:
             this_id = str(sample_id['db_id'])
-            r = requests.request(method='DELETE', url=REST_SERVICES_URL+'samples/' + this_id, headers=headers)
+            r = requests.request(method='DELETE', url=REST_SERVICES_URL+'samples/' + this_id + '/', headers=headers)
             if r.status_code != 204:
                 message = "\"Error: Can save samples and sample bottles, but cannot save analyses."
                 message += " Encountered problem reversing saved samples"
@@ -1017,7 +1037,7 @@ def bottle_prefixes_update(request):
 def bottle_prefixes_create(request):
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
-    data = request.body
+    data = json.loads(request.body.decode('utf-8'))
 
     # validate that the submitted bottle prefix doesn't already exist
     logger.info("VALIDATE Bottle Prefix Add")
@@ -1025,6 +1045,7 @@ def bottle_prefixes_create(request):
     r = requests.get(REST_SERVICES_URL+'bottleprefixes/', params=this_bottle_prefix)
     logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
     response_data = r.json()
+    logger.info("bottle prefix count: " + str(response_data['count']))
     logger.info("bottle prefix count: " + str(response_data['count']))
     # if response count does not equal zero, then this sample already exists in the database
     if response_data['count'] != 0:
@@ -1034,6 +1055,7 @@ def bottle_prefixes_create(request):
 
     ## SAVE Bottle Prefixes ##
     # send the bottle prefixes to the database
+    data = json.dumps(data)
     r = requests.request(method='POST', url=REST_SERVICES_URL+'bulkbottleprefixes/', data=data, headers=headers)
     logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
     if r.status_code != 201:
@@ -1075,7 +1097,6 @@ def bottle_prefixes_range_create(request):
                              'created_date': params['created_date']}
         logger.info(str(new_bottle_prefix))
         new_bottle_prefixes.append(new_bottle_prefix)
-    new_bottle_prefixes = json.dumps(new_bottle_prefixes)
 
     # validate that the submitted bottle prefixes don't already exist
     logger.info("VALIDATE Bottle Prefix Range")
@@ -1098,6 +1119,7 @@ def bottle_prefixes_range_create(request):
 
     ## SAVE Bottle Prefixes ##
     # send the bottle prefixes to the database
+    new_bottle_prefixes = json.dumps(new_bottle_prefixes)
     r = requests.request(
         method='POST', url=REST_SERVICES_URL+'bulkbottleprefixes/', data=new_bottle_prefixes, headers=headers)
     logger.info(r.request.method + " " + r.request.url + " " + r.reason + " " + str(r.status_code))
@@ -1891,7 +1913,7 @@ def user_login(request):
 
         data = {"username": username, "password": password}
 
-        r = requests.request(method='POST', url=REST_AUTH_URL+'login', data=data, headers=HEADERS_CONTENT_FORM)
+        r = requests.request(method='POST', url=REST_AUTH_URL+'login/', data=data, headers=HEADERS_CONTENT_FORM)
         logger.info(r.request.method + " " + r.request.url + " " + r.reason + " " + str(r.status_code))
         response_data = r.json()
 
@@ -1974,7 +1996,7 @@ def user_login(request):
 #logout using Token Authentication
 def user_logout(request):
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    r = requests.request(method='POST', url=REST_AUTH_URL+'logout', headers=headers_auth_token)
+    r = requests.request(method='POST', url=REST_AUTH_URL+'logout/', headers=headers_auth_token)
     logger.info(r.request.method + " " + r.request.url + " " + r.reason + " " + str(r.status_code))
 
     if r.status_code == 200:

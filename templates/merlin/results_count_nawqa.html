@@ -1,6 +1,7 @@
 {% extends 'merlin/base.html' %}
 {% block body_block %}
 
+    <div id="loading"></div>
     <div style="padding:10px">
         <pre id="grid_console" class="console" style="width:600px"></pre>
         <div class="panel-default">
@@ -18,16 +19,16 @@
                 </p>
                 <p>
                     <div class="form-group">
-                        <button type="button" class="btn btn-info" name="search">Search</button>
+                        <button type="button" class="btn btn-info" data-loading-text="Searching..." name="search">Search</button>
                         <!-- <button type="button" class="btn btn-default" name="exportTAB">Export TAB</button> -->
-                        <button type="button" class="btn btn-default" name="prev">Previous Page</button>
-                        <button type="button" class="btn btn-default" name="next">Next Page</button>
+                        <button type="button" class="btn btn-default" data-loading-text="Getting Previous..." name="prev">Previous Page</button>
+                        <button type="button" class="btn btn-default" data-loading-text="Getting Next..." name="next">Next Page</button>
                         <span id="page"></span>
                     </div>
                 </p>
                 <div id="exportTABButtonPanel" style="display:none" >
-                    <button type="button" class="btn btn-info" name="exportTABCurrentPage">Current Page</button>
-                    <button type="button" class="btn btn-info" name="exportTABAllPages">All Pages</button>
+                    <button type="button" class="btn btn-info" data-loading-text="Exporting..." name="exportTABCurrentPage">Current Page</button>
+                    <button type="button" class="btn btn-info" data-loading-text="Exporting..." name="exportTABAllPages">All Pages</button>
                 </div>
                 <br />
             </form>
@@ -35,8 +36,11 @@
         <div id="grid" data-data="{{ data }}"></div>
         <div id="tempgrid" style="display:none"></div>
 
-        <script>
+		<script>
             $(document).ready(function() {
+
+				var loading = $('#loading');
+				loading.hide();
 
                 var csrftoken = $.cookie('csrftoken');
                 function csrfSafeMethod(method) {
@@ -90,6 +94,8 @@
                 });
 
                 grid.parent().find('button[name=search]').click(function () {
+                    var button_state = $(this).button('loading');
+                    loading.show();
                     grid_console.text('Attempting to search...');
                     var thisDataObject = {};
                     thisDataObject['date_after_entry'] = $(date_after_entry).val();
@@ -107,6 +113,8 @@
                             // if the content-type is plain text, then it's a custom message from our Django view
                             if (content_type.indexOf('text') > -1) {
                                 grid_console.text(data);
+                                loading.hide();
+                                button_state.button('reset');
                             }
                             // otherwise, it's JSON from the REST Services
                             else if (jqXHRequest.status === 200) {
@@ -114,19 +122,27 @@
                                 resultPages = Math.ceil(data_data['count'] / 100);
                                 grid_console.text(textStatus+': Retrieved '+ data_data['count'] +' results across ' + resultPages + ' pages.' + (resultPages > 1 ? ' Showing first 100 results.' : ''));
                                 grid.data('handsontable').loadData(data_data.results);
+                                loading.hide();
+                                button_state.button('reset');
                             }
                             else {
                                 grid_console.text(textStatus+': Search error: '+jqXHRequest.statusText+', code: '+jqXHRequest.status+'.');
+                                loading.hide();
+                                button_state.button('reset');
                             }
                         },
                         error: function (jqXHRequest, textStatus, errorThrown) {
                             grid_console.text(errorThrown + " ... " + textStatus);
+                            loading.hide();
+                            button_state.button('reset');
                         }
                     });
                     currentPage = 1;
                 });
 
                 grid.parent().find('button[name=next]').click(function () {
+                    var button_state = $(this).button('loading');
+                    loading.show();
                     if (currentPage != resultPages) {
                         $.ajax({
                             url: data_data.next,
@@ -138,18 +154,26 @@
                                 currentPage++;
                                 $('#page').html("Page " + currentPage + " of " + resultPages);
                                 grid_console.text('Page ' + currentPage + ' of ' + resultPages + ' loaded.');
+                                loading.hide();
+                                button_state.button('reset');
                             },
                             error: function (response) {
                                 grid_console.text("error");
+                                loading.hide();
+                                button_state.button('reset');
                             }
                         });
                     }
                     else {
                         grid_console.text("End of results, there are no pages after Page " + resultPages + ".");
+                        loading.hide();
+                        button_state.button('reset');
                     }
                 });
 
                 grid.parent().find('button[name=prev]').click(function () {
+                    var button_state = $(this).button('loading');
+                    loading.show();
                     if (currentPage != 1) {
                         $.ajax({
                             url: data_data.previous,
@@ -161,14 +185,20 @@
                                 currentPage--;
                                 $('#page').html("Page " + currentPage + " of " + resultPages);
                                 grid_console.text('Page ' + currentPage + ' of ' + resultPages + ' loaded.');
+                                loading.hide();
+                                button_state.button('reset');
                             },
                             error: function (response) {
                                 grid_console.text("error");
+                                loading.hide();
+                                button_state.button('reset');
                             }
                         });
                     }
                     else {
                         grid_console.text("There are no pages before Page 1.");
+                        loading.hide();
+                        button_state.button('reset');
                     }
                 });
 
@@ -184,15 +214,21 @@
                 });
 
                 grid.parent().find('button[name=exportTABCurrentPage]').click(function() {
+                    var button_state = $(this).button('loading');
+                    loading.show();
                     var table = grid.handsontable('getInstance');
                     var tab_filename = "Results_Count_NAWQA_" + yearToday + "-" + (monthToday.length == 1 ? "0" + monthToday : monthToday) + "-" + (dayToday.length == 1 ? "0" + dayToday : dayToday) + ".txt";
                     handsontable2tab.download(table, tab_filename);
                     grid.parent().find('button[name=exportTAB]').click();
+                    loading.hide();
+                    button_state.button('reset');
                 });
 
                 grid.parent().find('button[name=exportTABAllPages]').click(function() {
+                    var button_state = $(this).button('loading');
+                    loading.show();
                     // if there is only one result page, then there is no need to request more data from the server, so just export the current page
-                    if (resultPages == 1) {grid.parent().find('button[name=exportTABCurrentPage]').click(); return false;}
+                    if (resultPages == 1) {grid.parent().find('button[name=exportTABCurrentPage]').click(); loading.hide(); return false;}
                     // otherwise request all the data matching the search query from the server
                     var thisDataObject = {};
                     thisDataObject['date_after_entry'] = $(date_after_entry).val();
@@ -222,13 +258,19 @@
                                 delete tempdata;
                                 delete tempgrid;
                                 grid_console.text(textStatus + ': Data exported.');
+                                loading.hide();
+                                button_state.button('reset');
                             }
                             else {
                                 grid_console.text(textStatus+': Export error: '+jqXHRequest.statusText+', code: '+jqXHRequest.status+'.');
+                                loading.hide();
+                                button_state.button('reset');
                             }
                         },
                         error: function (jqXHRequest, textStatus, errorThrown) {
                             grid_console.text(errorThrown + " ... " + textStatus);
+                            loading.hide();
+                            button_state.button('reset');
                         }
                     });
                     grid.parent().find('button[name=exportTAB]').click();

@@ -1,6 +1,7 @@
 {% extends 'merlin/base.html' %}
 {% block body_block %}
 
+    <div id="loading"></div>
     <div style="padding:10px">
         <pre id="grid_console" class="console" style="width:600px"></pre>
         <div class="row">
@@ -78,8 +79,11 @@
             <div class="col-md-4" id="grid_sites" data-sites="{{ sites }}"></div>
         </div>
 
-        <script>
+		<script>
             $(document).ready(function() {
+
+				var loading = $('#loading');
+				loading.hide();
 
                 var csrftoken = $.cookie('csrftoken');
                 function csrfSafeMethod(method) {
@@ -140,8 +144,8 @@
                     search: {searchResultClass: 'customHtSearchResult'},
                     columns: [
                         {title: "ID", data: "id", readOnly: true, width: 1},
-                        {title: "Project Name", data: "project_name", readOnly: true, width: 350},
-                        {title: "Site Name", data: "site_name", readOnly: true, width: 350}
+                        {title: "Project Name", data: "project_string", readOnly: true, width: 350},
+                        {title: "Site Name", data: "site_string", readOnly: true, width: 350}
                     ],
                     columnSorting: true,
                     // define event handlers
@@ -157,12 +161,17 @@
                         var changedVal = changes[0][3];
 
                         // remember the indices of all changed rows
-                        if (source != 'loadData') {
-                            // find index of this row in the changed rows array
-                            var changedRowIndex = gridProjectssites_changedRowIndices.indexOf(changedRow);
-                            // if not in the array (index == -1), add it to the array, otherwise ignore
-                            if (changedRowIndex == -1){
-                                gridProjectssites_changedRowIndices.push(changedRow);
+                        if (typeof source !== 'undefined') {
+                            // for all changed cells, get the changed rows
+                            for (var i = 0; i < changes.length; i++) {
+                                // get the row of this cell
+                                var thisRow = changes[i][0];
+                                // find index of this row in the changed rows array
+                                var changedRowIndex = gridProjectssites_changedRowIndices.indexOf(thisRow);
+                                // if not in the array (index == -1), add it to the array, otherwise ignore
+                                if (changedRowIndex == -1) {
+                                    gridProjectssites_changedRowIndices.push(thisRow);
+                                }
                             }
                         }
                     },
@@ -260,6 +269,7 @@
 
                 tools_projects.find('button[name=load]').click(function () {
                     var button_state = $(this).button('loading');
+                    loading.show();
                     $.ajax({
                         url: '/mercuryservices/projects/',
                         dataType: 'json',
@@ -267,12 +277,15 @@
                             data_projects = response;
                             grid_projects.data('handsontable').loadData(data_projects);
                             grid_console.text('Project data reloaded.');
+                            loading.hide();
+                            button_state.button('reset');
                         },
                         error: function (jqXHRequest, textStatus, errorThrown) {
                             grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve page to reload.");
+                            loading.hide();
+                            button_state.button('reset');
                         }
                     });
-                    button_state.button('reset');
                 });
                 
                 var tools_sites = $('#tools_sites');
@@ -315,6 +328,7 @@
 
                 tools_sites.find('button[name=load]').click(function () {
                     var button_state = $(this).button('loading');
+                    loading.show();
                     $.ajax({
                         url: '/mercuryservices/sites/',
                         dataType: 'json',
@@ -322,12 +336,15 @@
                             data_sites = response;
                             grid_sites.data('handsontable').loadData(data_sites.results);
                             grid_console.text('Site data reloaded.');
+                            loading.hide();
+                            button_state.button('reset');
                         },
                         error: function (jqXHRequest, textStatus, errorThrown) {
                             grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve page to reload.");
+                            loading.hide();
+                            button_state.button('reset');
                         }
                     });
-                    button_state.button('reset');
                 });
 
                 var tools_projectssites = $('#tools_projectssites');
@@ -401,6 +418,7 @@
 
                 tools_projectssites.find('button[name=load]').click(function () {
                     var button_state = $(this).button('loading');
+                    loading.show();
                     $.ajax({
                         url: '/mercuryservices/projectssites/',
                         dataType: 'json',
@@ -408,17 +426,21 @@
                             data_data = response;
                             grid_projectssites.data('handsontable').loadData(data_data.results);
                             grid_console.text('Projects-Sites data reloaded.');
+                            loading.hide();
+                            button_state.button('reset');
                         },
                         error: function (jqXHRequest, textStatus, errorThrown) {
                             grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve page to reload.");
+                            loading.hide();
+                            button_state.button('reset');
                         }
                     });
-                    button_state.button('reset');
                 });
 
                 tools_projectssites.find('button[name=delete]').click(function () {
                     var button_state = $(this).button('loading');
-                    if (typeof gridProjectssites_selectionRowIndices[0] == 'undefined') {grid_console.text('There are no selected rows to delete!'); button_state.button('reset'); return false;}
+                    loading.show();
+                    if (typeof gridProjectssites_selectionRowIndices[0] == 'undefined') {grid_console.text('There are no selected rows to delete!'); loading.hide(); button_state.button('reset'); return false;}
                     var thisDataRow = grid_projectssites.data('handsontable').getDataAtRow(gridProjectssites_selectionRowIndices[0]);
                     var thisDataObject = {"id": thisDataRow[0]};
                     var changedDataJSON = JSON.stringify(thisDataObject);
@@ -428,28 +450,34 @@
                         type: 'POST',
                         success: function (data, textStatus, jqXHRequest) {
                             var content_type = jqXHRequest.getResponseHeader("content-type");
-                            if (jqXHRequest.status === 204) {
+                            if (jqXHRequest.status === 200) {
                                 tools_projectssites.find('button[name=load]').click();
                                 grid_console.text('Data deleted.');
+                                loading.hide();
+                                button_state.button('reset');
                             }
                             else {
                                 grid_projectssites.parent().find('button[name=load]').click();
                                 grid_console.text(textStatus + ': Delete error: ' + jqXHRequest.statusText + ', code: ' + jqXHRequest.status + '.');
+                                loading.hide();
+                                button_state.button('reset');
                             }
                         },
                         error: function (jqXHRequest, textStatus, errorThrown) {
                             grid_console.text(errorThrown + ": " + textStatus);
+                            loading.hide();
+                            button_state.button('reset');
                         }
                     });
-                    button_state.button('reset');
                 });
 
                 tools_projectssites.find('button[name=save]').click(function() {
                     var button_state = $(this).button('loading');
-                    if ((typeof(selectedProjectRow) === 'undefined' || selectedProjectRow == null) && (typeof(selectedSiteRow) === 'undefined' || selectedSiteRow == null)) {$('#selected_project_name_warning').show(); $('#selected_site_name_warning').show(); button_state.button('reset'); return;}
-                    if (typeof(selectedProjectRow) === 'undefined' || selectedProjectRow == null) {$('#selected_project_name_warning').show(); button_state.button('reset'); return;}
+                    loading.show();
+                    if ((typeof(selectedProjectRow) === 'undefined' || selectedProjectRow == null) && (typeof(selectedSiteRow) === 'undefined' || selectedSiteRow == null)) {$('#selected_project_name_warning').show(); $('#selected_site_name_warning').show(); loading.hide(); button_state.button('reset'); return;}
+                    if (typeof(selectedProjectRow) === 'undefined' || selectedProjectRow == null) {$('#selected_project_name_warning').show(); loading.hide(); button_state.button('reset'); return;}
                     else {$('#selected_project_name_warning').hide();}
-                    if (typeof(selectedSiteRow) === 'undefined' || selectedSiteRow == null) {$('#selected_site_name_warning').show(); button_state.button('reset'); return;}
+                    if (typeof(selectedSiteRow) === 'undefined' || selectedSiteRow == null) {$('#selected_site_name_warning').show(); loading.hide(); button_state.button('reset'); return;}
                     else {$('#selected_site_name_warning').hide();}
                     var selected_project_id = grid_projects.handsontable('getInstance').getDataAtCell(selectedProjectRow, 0);
                     var selected_site_id = grid_sites.handsontable('getInstance').getDataAtCell(selectedSiteRow, 0);
@@ -466,6 +494,8 @@
                             // if the content-type is plain text, then it's a custom message from our Django view
                             if (content_type.indexOf('text') > -1) {
                                 grid_console.text(data);
+                                loading.hide();
+                                button_state.button('reset');
                             }
                             // otherwise, it's JSON from the REST Services
                             else if (jqXHRequest.status === 200) {
@@ -477,16 +507,21 @@
                                 grid_sites.handsontable('getInstance').deselectCell();
                                 $('#selected_project_name').html("Selected Project Name: <strong>NULL</strong>");
                                 $('#selected_site_name').html("Selected Site Name: <strong>NULL</strong>");
+                                loading.hide();
+                                button_state.button('reset');
                             }
                             else {
                                 grid_console.text(textStatus + ': Save error: ' + jqXHRequest.statusText + ', code: ' + jqXHRequest.status + '.');
+                                loading.hide();
+                                button_state.button('reset');
                             }
                         },
                         error: function (jqXHRequest, textStatus, errorThrown) {
                             grid_console.text(errorThrown + ": " + textStatus);
+                            loading.hide();
+                            button_state.button('reset');
                         }
                     });
-                    button_state.button('reset');
                 });
 
             });

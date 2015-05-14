@@ -1,6 +1,7 @@
 {% extends 'merlin/base.html' %}
 {% block body_block %}
 
+    <div id="loading"></div>
     <div style="padding:10px">
 {#        <pre id="debug_console" class="console" style="width:600px"></pre>#}
         <pre id="grid_console" class="console" style="width:600px"></pre>
@@ -45,8 +46,12 @@
         <br />
         <div id="grid" data-projects="{{ projects }}" data-processings="{{ processings }}" data-mediums="{{ mediums }}" data-constituents="{{ constituents }}" data-isotopeflags="{{ isotope_flags }}" data-filters="{{ filters }}" data-preservations="{{ preservations }}" ></div>
 
-        <script>
+
+		<script>
             $(document).ready(function() {
+
+				var loading = $('#loading');
+				loading.hide();
 
                 var csrftoken = $.cookie('csrftoken');
                 function csrfSafeMethod(method) {
@@ -623,6 +628,11 @@
                                             if (!thisDataRow[i]) {grid_console.text('Depth is required in row ' + (row + 1) + '!'); validTable = false; button_state.button('reset'); return false;}
                                         }
                                         thisDataObject[objectFields[i]] = (thisDataRow[i] % 1 === 0 ? (thisDataRow[i].toFixed(1)) : thisDataRow[i]);
+                                        break;
+                                    case 6: // rep
+                                        if (thisDataRow[i] !== 1) {
+                                            if (!thisDataRow[i]) {grid_console.text('Rep is required in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
+                                        }
                                         break;
                                     case 8: // bottle (container)
                                         // if it has a value, look up and return the ID, otherwise notify the user that this is a required field, and stop the submission

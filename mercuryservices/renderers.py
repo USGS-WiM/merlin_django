@@ -7,9 +7,10 @@ class PaginatedResultSampleCSVRenderer(CSVRenderer):
     def render(self, data, media_type=None, renderer_context=None):
         if not isinstance(data, list):
             data = data.get(self.results_field, [])
-        self.headers = ['sample_id', 'project_name', 'site_name', 'site_id', 'date', 'time', 'depth', 'length',
-                        'received', 'sample_comments', 'container_id', 'lab_processing', 'medium', 'analysis',
-                        'isotope', 'filter', 'filter_vol', 'preservation', 'acid', 'acid_vol', 'pres_comments']
+        self.headers = ['sample_id', 'project_name', 'project_id', 'site_name', 'site_id', 'date', 'time', 'depth',
+                        'length', 'replicate', 'sample_comments', 'received', 'lab_processing', 'container_id',
+                        'medium', 'analysis', 'isotope', 'filter', 'filter_vol', 'preservation', 'acid', 'acid_vol',
+                        'pres_comments', 'sample_bottle_id', 'result_id']
         return super(PaginatedResultSampleCSVRenderer, self).render(data, media_type, renderer_context)
 
 

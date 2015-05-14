@@ -1,6 +1,7 @@
 {% extends 'merlin/base.html' %}
 {% block body_block %}
 
+    <div id="loading"></div>
     <div style="padding:10px">
 {#        <p>#}
 {#            <!-- <button type="button" class="btn btn-default" name="save">Save</button> -->#}
@@ -70,6 +71,7 @@
                 <div id="exportCSVButtonPanel" style="display:none" >
                     <button type="button" class="btn btn-info" data-loading-text="Exporting..." name="exportCSVCurrentPage">Current Page</button>
                     <button type="button" class="btn btn-info" data-loading-text="Exporting..." name="exportCSVAllPages">All Pages</button>
+                    <span id="note">NOTE: Each page requested takes about 0.066 seconds to process, e.g. 100 pages will take about 6.6 seconds.</span>
                 </div>
             </form>
         </div>
@@ -88,8 +90,11 @@
         <div id="grid" data-projects="{{ projects }}" data-constituents="{{ constituents }}" ></div>
         <div id="tempgrid" style="display:none"></div>
 
-        <script>
+		<script>
             $(document).ready(function() {
+
+				var loading = $('#loading');
+				loading.hide();
 
                 var csrftoken = $.cookie('csrftoken');
                 function csrfSafeMethod(method) {
@@ -122,18 +127,18 @@
                         {title: 'Result ID', data: 'id', readOnly: true, width: 100},
                         {title: 'Bottle', data: 'sample_bottle.bottle.bottle_unique_name', readOnly: true, width: 100},
                         {title: 'Tare Weight', data: 'sample_bottle.bottle.bottle_prefix.tare_weight', readOnly: true, width: 100, format: '0.0000'},
-                        {title: 'Project', data: 'sample_bottle.sample.project.name', readOnly: true, width: 200},
-                        {title: 'Site', data: 'sample_bottle.sample.site.name', readOnly: true, width: 200},
+                        {title: 'Project', data: 'sample_bottle.sample.project_string', readOnly: true, width: 200},
+                        {title: 'Site', data: 'sample_bottle.sample.site_string', readOnly: true, width: 200},
                         {title: 'Sample Date', data: 'sample_bottle.sample.sample_date', readOnly: true, width: 100},
                         {title: 'Sample Time', data: 'sample_bottle.sample.sample_time', readOnly: true, width: 100},
                         {title: 'Depth', data:'sample_bottle.sample.depth', readOnly: true, width: 60, format: '0.00'},
-                        {title: 'Constituent', data: 'constituent', readOnly: true, width: 100},
-                        {title: 'Isotope', data: 'isotope_flag', readOnly: true, width: 60},
+                        {title: 'Constituent', data: 'constituent_string', readOnly: true, width: 100},
+                        {title: 'Isotope', data: 'isotope_flag_string', readOnly: true, width: 60},
                         {title: 'Received Date', data: 'sample_bottle.sample.received_date', readOnly: true, width: 100},
                         {title: 'Comments', data: 'sample_bottle.sample.comment', readOnly: true, width: 200},
                         {title: 'Result Value', data: 'final_value', readOnly: true, width: 100, format: '0.00000000'},
-                        {title: 'Unit', data: 'method.final_value_unit', readOnly: true, width: 60},
-                        {title: 'Detection Flag', data: 'detection_flag', readOnly: true, width: 100},
+                        {title: 'Unit', data: 'method.final_value_unit_string', readOnly: true, width: 60},
+                        {title: 'Detection Flag', data: 'detection_flag_string', readOnly: true, width: 100},
                         {title: 'Analyzed Date', data: 'analyzed_date', readOnly: true, width: 100}
                     ];
                 var grid_options = {
@@ -270,6 +275,7 @@
 
                 grid.parent().find('button[name=search]').click(function () {
                     var button_state = $(this).button('loading');
+                    loading.show();
                     grid_console.text('Attempting to search...');
                     var thisDataObject = {};
                     thisDataObject['bottle'] = $(select_bottle).val();
@@ -281,8 +287,9 @@
                     thisDataObject['date_before_entry'] = $(date_before_entry).val();
                     thisDataObject['constituent'] = $(select_constituent).val();
                     thisDataObject['exclude_null_results'] = $('#excludeNullResults').is(':checked');
-                    thisDataObject['page_size'] = "";
                     thisDataObject['format'] = "";
+                    thisDataObject['table'] = "result";
+                    thisDataObject['page_size'] = "";
                     var dataJSON = JSON.stringify(thisDataObject);
                     $.ajax({
                         url: "{% url 'merlin:results_search' %}",
@@ -295,6 +302,8 @@
                             // if the content-type is plain text, then it's a custom message from our Django view
                             if (content_type.indexOf('text') > -1) {
                                 grid_console.text(data);
+                                loading.hide();
+                                button_state.button('reset');
                             }
                             // otherwise, it's JSON from the REST Services
                             else if (jqXHRequest.status === 200) {
@@ -308,21 +317,27 @@
                                     data_data['results'][i]['method'] === null ? data_data['results'][i]['method'] = {"final_value_unit": ""} : data_data['results'][i]['method'];
                                 }
                                 grid.data('handsontable').loadData(data_data.results);
+                                loading.hide();
+                                button_state.button('reset');
                             }
                             else {
                                 grid_console.text(textStatus+': Search error: '+jqXHRequest.statusText+', code: '+jqXHRequest.status+'.');
+                                loading.hide();
+                                button_state.button('reset');
                             }
                         },
                         error: function (jqXHRequest, textStatus, errorThrown) {
                             grid_console.text(errorThrown + " ... " + textStatus);
+                            loading.hide();
+                            button_state.button('reset');
                         }
                     });
                     currentPage = 1;
-                    button_state.button('reset');
                 });
 
                 grid.parent().find('button[name=next]').click(function () {
                     var button_state = $(this).button('loading');
+                    loading.show();
                     if (currentPage != resultPages) {
                         $.ajax({
                             url: data_data.next,
@@ -333,20 +348,26 @@
                                 grid.data('handsontable').loadData(data_data.results);
                                 currentPage++;
                                 grid_console.text('Page '+ currentPage +' of '+ resultPages +' loaded.');
+                                loading.hide();
+                                button_state.button('reset');
                             },
                             error: function (response) {
                                 grid_console.text("error");
+                                loading.hide();
+                                button_state.button('reset');
                             }
                         });
                     }
                     else {
                         grid_console.text("End of results, there are no pages after Page " + resultPages + ".");
+                        loading.hide();
+                        button_state.button('reset');
                     }
-                    button_state.button('reset');
                 });
 
                 grid.parent().find('button[name=prev]').click(function () {
                     var button_state = $(this).button('loading');
+                    loading.show();
                     if (currentPage != 1) {
                         $.ajax({
                             url: data_data.previous,
@@ -357,16 +378,21 @@
                                 grid.data('handsontable').loadData(data_data.results);
                                 currentPage--;
                                 grid_console.text('Page '+ currentPage +' of '+ resultPages +' loaded.');
+                                loading.hide();
+                                button_state.button('reset');
                             },
                             error: function (response) {
                                 grid_console.text("error");
+                                loading.hide();
+                                button_state.button('reset');
                             }
                         });
                     }
                     else {
                         grid_console.text("There are no pages before Page 1.");
+                        loading.hide();
+                        button_state.button('reset');
                     }
-                    button_state.button('reset');
                 });
 
                 $("input[type=radio][name=valueType]").change(function () {
@@ -394,15 +420,18 @@
 
                 grid.parent().find('button[name=exportCSVCurrentPage]').click(function() {
                     var button_state = $(this).button('loading');
+                    loading.show();
                     var table = grid.handsontable('getInstance');
                     var csv_filename = "results_" + yearToday + "-" + (monthToday.length == 1 ? "0" + monthToday : monthToday) + "-" + (dayToday.length == 1 ? "0" + dayToday : dayToday) + ".csv";
                     handsontable2csv.download(table, csv_filename);
                     grid.parent().find('button[name=exportCSV]').click();
+                    loading.hide();
                     button_state.button('reset');
                 });
 
                 grid.parent().find('button[name=exportCSVAllPages]').click(function() {
                     var button_state = $(this).button('loading');
+                    loading.show();
                     // if there is only one result page, then there is no need to request more data from the server, so just export the current page
                     if (resultPages == 1) {grid.parent().find('button[name=exportCSVCurrentPage]').click(); button_state.button('reset'); return false;}
                     // otherwise request all the data matching the search query from the server
@@ -425,11 +454,14 @@
                     //var dataJSON = JSON.stringify(thisDataObject);
                     var link = document.createElement("a");
                     link.setAttribute("href", "/mercuryservices/fullresults/?"+ $.param(thisDataObject));
+                    link.setAttribute("download", "");
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
-                    grid.parent().find('button[name=exportCSV]').click();
-                    button_state.button('reset');
+                    // some testing indicated that the server takes 0.066 seconds for each page requested
+                    setTimeout(function(){grid.parent().find('button[name=exportCSV]').click();}, (resultPages * 330));
+                    setTimeout(function(){loading.hide();}, (resultPages * 66));
+                    setTimeout(function(){button_state.button('reset');}, (resultPages * 66));
                 });
 
             });

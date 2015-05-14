@@ -1,6 +1,7 @@
 {% extends 'merlin/base.html' %}
 {% block body_block %}
 
+    <div id="loading"></div>
     <div style="padding:10px">
 
         <p>
@@ -95,8 +96,11 @@
             <div class="col-md-4" id="grid_samples" data-samples="{{ samples }}"></div>
         </div>
 
-        <script>
+		<script>
             $(document).ready(function() {
+
+				var loading = $('#loading');
+				loading.hide();
 
                 var csrftoken = $.cookie('csrftoken');
                 function csrfSafeMethod(method) {
@@ -151,12 +155,17 @@
                         var changedRow = changes[0][0];
 
                         // remember the indices of all changed rows
-                        if (source != 'loadData') {
-                            // find index of this row in the changed rows array
-                            var changedRowIndex = changedRowIndices.indexOf(changedRow);
-                            // if not in the array (index == -1), add it to the array, otherwise ignore
-                            if (changedRowIndex == -1){
-                                changedRowIndices.push(changedRow);
+                        if (typeof source !== 'undefined') {
+                            // for all changed cells, get the changed rows
+                            for (var i = 0; i < changes.length; i++) {
+                                // get the row of this cell
+                                var thisRow = changes[i][0];
+                                // find index of this row in the changed rows array
+                                var changedRowIndex = changedRowIndices.indexOf(thisRow);
+                                // if not in the array (index == -1), add it to the array, otherwise ignore
+                                if (changedRowIndex == -1) {
+                                    changedRowIndices.push(thisRow);
+                                }
                             }
                         }
                     },
@@ -188,9 +197,9 @@
                     invalidCellClassName: 'customHtInvalid',
                     columns: [
                         {title: "Unique Bottle Name", width: 150, type: 'autocomplete', strict: true, source: function (query, process) {
-                            getValuesAjax('/mercuryservices/samplebottles', 'bottle', query, process, ('constituent=39,27'))}},
-                        {title: "Event Number", width: 100},
-                        {title: "Volume Added (mL)", width: 150}
+                            getValuesAjax('/mercuryservices/samplebottles', 'bottle_string', query, process, ('constituent=39,27'))}},
+                        {title: "Event Number", type: 'numeric', width: 100},
+                        {title: "Volume Added (mL)", type:'numeric', width: 150}
                     ],
                     // define event handlers
                     beforeChange: function(changes, source) {
@@ -205,12 +214,17 @@
                         var changedVal = changes[0][3];
 
                         // remember the indices of all changed rows
-                        if (source != 'loadData') {
-                            // find index of this row in the changed rows array
-                            var changedRowIndex = gridAdd_changedRowIndices.indexOf(changedRow);
-                            // if not in the array (index == -1), add it to the array, otherwise ignore
-                            if (changedRowIndex == -1){
-                                gridAdd_changedRowIndices.push(changedRow);
+                        if (typeof source !== 'undefined') {
+                            // for all changed cells, get the changed rows
+                            for (var i = 0; i < changes.length; i++) {
+                                // get the row of this cell
+                                var thisRow = changes[i][0];
+                                // find index of this row in the changed rows array
+                                var changedRowIndex = gridAdd_changedRowIndices.indexOf(thisRow);
+                                // if not in the array (index == -1), add it to the array, otherwise ignore
+                                if (changedRowIndex == -1) {
+                                    gridAdd_changedRowIndices.push(thisRow);
+                                }
                             }
                         }
 
@@ -258,7 +272,7 @@
                     search: {searchResultClass: 'customHtSearchResult'},
                     columns: [
                         {title: "ID", data: "id", readOnly: true, width: 1},
-                        {title: "Unique Bottle Name", data: "sample_bottle.bottle", width: 150},
+                        {title: "Unique Bottle Name", data: "sample_bottle_unique_name", width: 150},
                         {title: "Event Number", data: "bromination_event", width: 100},
                         {title: "Volume Added (mL)", data: "bromination_volume", width: 150},
                         {title: "Date", data: "created_date", width: 100, dateFormat: 'mm/dd/y'}
@@ -270,6 +284,7 @@
 
                 $('#tools_samples').find('button[name=search]').click(function () {
                     var button_state = $(this).button('loading');
+                    loading.show();
                     grid_console.text('Attempting to search...');
                     var thisDataObject = {};
                     //var theID = $(select_project).select2('data').id;
@@ -289,6 +304,8 @@
                             // if the content-type is plain text, then it's a custom message from our Django view
                             if (content_type.indexOf('text') > -1) {
                                 grid_console.text(data);
+                                loading.hide();
+                                button_state.button('reset');
                             }
                             // otherwise, it's JSON from the REST Services
                             else if (jqXHRequest.status === 200) {
@@ -296,16 +313,21 @@
                                 resultPages = Math.ceil(data_samples['count'] / 100);
                                 grid_console.text(textStatus+': Retrieved '+ data_samples['count'] +' results across ' + resultPages + ' pages. Showing first 100 results.');
                                 grid_samples.data('handsontable').loadData(data_samples.results);
+                                loading.hide();
+                                button_state.button('reset');
                             }
                             else {
                                 grid_console.text(textStatus+': Search error: '+jqXHRequest.statusText+', code: '+jqXHRequest.status+'.');
+                                loading.hide();
+                                button_state.button('reset');
                             }
                         },
                         error: function (jqXHRequest, textStatus, errorThrown) {
                             grid_console.text(errorThrown + " ... " + textStatus);
+                            loading.hide();
+                            button_state.button('reset');
                         }
                     });
-                    button_state.button('reset');
                 });
 
                 $("#created_date").datepicker({
@@ -396,6 +418,7 @@
 
                 tools_brominations.find('button[name=load]').click(function () {
                     var button_state = $(this).button('loading');
+                    loading.show();
                     $.ajax({
                         url: '/mercuryservices/brominations/?page='+currentPage,
                         dataType: 'json',
@@ -405,16 +428,20 @@
                             grid_brominations.data('handsontable').loadData(data_data.results);
                             $('#page').html("Page " + currentPage + " of " + resultPages);
                             grid_console.text('Page '+ currentPage +' data reloaded.');
+                            loading.hide();
+                            button_state.button('reset');
                         },
                         error: function (jqXHRequest, textStatus, errorThrown) {
                             grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve page to reload.");
+                            loading.hide();
+                            button_state.button('reset');
                         }
                     });
-                    button_state.button('reset');
                 });
 
                 tools_brominations.find('button[name=next]').click(function () {
                     var button_state = $(this).button('loading');
+                    loading.show();
                     if (currentPage != resultPages) {
                         $.ajax({
                             url: data_data.next,
@@ -426,20 +453,26 @@
                                 currentPage++;
                                 $('#page').html("Page " + currentPage + " of " + resultPages);
                                 grid_console.text('Page ' + currentPage + ' of ' + resultPages + ' loaded.');
+                                loading.hide();
+                                button_state.button('reset');
                             },
                             error: function (jqXHRequest, textStatus, errorThrown) {
                                 grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve next page.");
+                                loading.hide();
+                                button_state.button('reset');
                             }
                         });
                     }
                     else {
                         grid_console.text("End of results, there are no pages after Page " + resultPages + ".");
+                        loading.hide();
+                        button_state.button('reset');
                     }
-                    button_state.button('reset');
                 });
 
                 tools_brominations.find('button[name=prev]').click(function () {
                     var button_state = $(this).button('loading');
+                    loading.show();
                     if (currentPage != 1) {
                         $.ajax({
                             url: data_data.previous,
@@ -451,21 +484,27 @@
                                 currentPage--;
                                 $('#page').html("Page " + currentPage + " of " + resultPages);
                                 grid_console.text('Page ' + currentPage + ' of ' + resultPages + ' loaded.');
+                                loading.hide();
+                                button_state.button('reset');
                             },
                             error: function (jqXHRequest, textStatus, errorThrown) {
                                 grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve previous page.");
+                                loading.hide();
+                                button_state.button('reset');
                             }
                         });
                     }
                     else {
                         grid_console.text("There are no pages before Page 1.");
+                        loading.hide();
+                        button_state.button('reset');
                     }
-                    button_state.button('reset');
                 });
 
                 tools_brominations.find('button[name=delete]').click(function () {
                     var button_state = $(this).button('loading');
-                    if (typeof selectionRowIndices[0] == 'undefined') {grid_console.text('There are no selected rows to delete!'); button_state.button('reset'); return false;}
+                    loading.show();
+                    if (typeof selectionRowIndices[0] == 'undefined') {grid_console.text('There are no selected rows to delete!'); loading.hide(); button_state.button('reset'); return false;}
                     var thisDataRow = grid_brominations.data('handsontable').getDataAtRow(selectionRowIndices[0]);
                     var thisDataObject = {"id": thisDataRow[0]};
                     var changedDataJSON = JSON.stringify(thisDataObject);
@@ -475,27 +514,33 @@
                         type: 'POST',
                         success: function (data, textStatus, jqXHRequest) {
                             var content_type = jqXHRequest.getResponseHeader("content-type");
-                            if (jqXHRequest.status === 204) {
+                            if (jqXHRequest.status === 200) {
                                 tools_brominations.find('button[name=load]').click();
                                 grid_console.text('Data deleted.');
+                                loading.hide();
+                                button_state.button('reset');
                             }
                             else {
                                 tools_brominations.find('button[name=load]').click();
                                 grid_console.text(textStatus + ': Delete error: ' + jqXHRequest.statusText + ', code: ' + jqXHRequest.status + '.');
+                                loading.hide();
+                                button_state.button('reset');
                             }
                         },
                         error: function (jqXHRequest, textStatus, errorThrown) {
                             grid_console.text(errorThrown + ": " + textStatus);
+                            loading.hide();
+                            button_state.button('reset');
                         }
                     });
-                    button_state.button('reset');
                 });
 
                 tools_brominations.find('button[name=save]').click(function () {
                     var button_state = $(this).button('loading');
+                    loading.show();
                     var changedDataArray = [];
                     // if there are no changed rows, notify the user and stop the submission
-                    if (typeof changedRowIndices == 'undefined' || changedRowIndices.length < 1) {grid_console.text('There are no changed rows to save!'); validTableBrominations = false; button_state.button('reset'); return false;}
+                    if (typeof changedRowIndices == 'undefined' || changedRowIndices.length < 1) {grid_console.text('There are no changed rows to save!'); validTableBrominations = false; loading.hide(); button_state.button('reset'); return false;}
                     // otherwise loop through all changed rows
                     $.each(changedRowIndices, function(index, value) {
                         var thisDataRow = grid_brominations.data('handsontable').getDataAtRow(value);
@@ -506,16 +551,16 @@
                                 var baddate = thisDataRow[i];
                                 if (dateRegEx.test(baddate)) {
                                     if (makeYear(baddate)!= null && makeMonth(baddate)!= null && makeDay(baddate) != null) {
-                                        var gooddate_string = makeYear(baddate) + "-" + makeMonth(baddate) + "-" + makeDay(baddate) + " 00:00:00";
+                                        var gooddate_string = makeYear(baddate) + "-" + makeMonth(baddate) + "-" + makeDay(baddate);
                                         var gooddate = new Date(makeYear(baddate), makeMonth(baddate)-1, makeDay(baddate));
                                         if (gooddate > dateToday) {
-                                            {grid_console.text('Date cannot be a future date!'); validTableBrominations = false; button_state.button('reset'); return false;}
+                                            {grid_console.text('Date cannot be a future date!'); validTableBrominations = false; loading.hide(); button_state.button('reset'); return false;}
                                         }
                                         thisDataObject[objectFields[i]] = gooddate_string;
                                     }
-                                    else {grid_console.text('There is a problem with the Date in row ' + (index + 1) + '. Please contact the administrator.'); validTableBrominations = false; button_state.button('reset'); return false;}
+                                    else {grid_console.text('There is a problem with the Date in row ' + (index + 1) + '. Please contact the administrator.'); validTableBrominations = false; loading.hide(); button_state.button('reset'); return false;}
                                 }
-                                else {grid_console.text('Date is badly formed in row ' + (index + 1) + '. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); validTableBrominations = false; button_state.button('reset'); return false;}
+                                else {grid_console.text('Date is badly formed in row ' + (index + 1) + '. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); validTableBrominations = false; loading.hide(); button_state.button('reset'); return false;}
                             }
                             else {thisDataObject[objectFields[i]] = thisDataRow[i];}
                         }
@@ -537,21 +582,28 @@
                                 // if the content-type is plain text, then it's a custom message from our Django view
                                 if (content_type.indexOf('text') > -1) {
                                     grid_console.text(data);
+                                    loading.hide();
+                                    button_state.button('reset');
                                 }
                                 // otherwise, it's JSON from the REST Services
                                 else if (jqXHRequest.status === 200) {
                                     grid_console.text(textStatus + ': Data saved.');
+                                    loading.hide();
+                                    button_state.button('reset');
                                 }
                                 else {
                                     grid_console.text(textStatus + ': Save error: ' + jqXHRequest.statusText + ', code: ' + jqXHRequest.status + '.');
+                                    loading.hide();
+                                    button_state.button('reset');
                                 }
                             },
                             error: function (jqXHRequest, textStatus, errorThrown) {
                                 grid_console.text(errorThrown + ": " + textStatus);
+                                loading.hide();
+                                button_state.button('reset');
                             }
                         });
                     }
-                    button_state.button('reset');
                 });
 
                 tools_brominations.find('button[name=gridAdd]').click(function () {
@@ -570,24 +622,29 @@
 
                 grid_add.parent().find('button[name=insertRows]').click(function () {
                     var button_state = $(this).button('loading');
+                    loading.show();
                     grid_add.data('handsontable').alter('insert_row', null, 8);
                     grid_console.text('Inserted Rows.');
+                    loading.hide();
                     button_state.button('reset');
                 });
 
                 grid_add.parent().find('button[name=deleteRows]').click(function () {
                     var button_state = $(this).button('loading');
+                    loading.show();
                     var selectedRows = grid_add.handsontable('getInstance').getSelectedRange();
-                    if (typeof selectedRows == 'undefined') {grid_console.text('There are no selected rows to delete!'); button_state.button('reset'); return false;}
+                    if (typeof selectedRows == 'undefined') {grid_console.text('There are no selected rows to delete!'); loading.hide(); button_state.button('reset'); return false;}
                     var firstSelectedRow = selectedRows['from']['row'];
                     var lastSelectedRow = selectedRows['to']['row'];
                     grid_add.data('handsontable').alter('remove_row', firstSelectedRow, (lastSelectedRow != firstSelectedRow ? (lastSelectedRow - firstSelectedRow) + 1 : 1));
+                    loading.hide();
                     button_state.button('reset');
                 });
 
                 grid_add.find('button[name=sampleSave]').click(function() {
                     var button_state = $(this).button('loading');
-                    if (typeof(selectedBrominationRow) === 'undefined' || selectedBrominationRow == null) {$('#selected_bromination_id_warning').show(); button_state.button('reset'); return;}
+                    loading.show();
+                    if (typeof(selectedBrominationRow) === 'undefined' || selectedBrominationRow == null) {$('#selected_bromination_id_warning').show(); loading.hide(); button_state.button('reset'); return;}
                     else {$('#selected_bromination_id_warning').hide();}
                     var selected_bromination_id = grid_brominations.handsontable('getInstance').getDataAtCell(selectedBrominationRow, 0);
                     var selected_bromination_date = grid_brominations.handsontable('getInstance').getDataAtCell(selectedBrominationRow, 2);
@@ -596,7 +653,7 @@
                     var dataArray = [];
                     //$.each(gridAdd_changedRowIndices, function(index, value) {
                     // if there are no changed rows, notify the user and stop the submission
-                    if (typeof gridAdd_changedRowIndices == 'undefined' || gridAdd_changedRowIndices.length < 1) {grid_console.text('Table is empty!'); validTableAdd = false; button_state.button('reset'); return false;}
+                    if (typeof gridAdd_changedRowIndices == 'undefined' || gridAdd_changedRowIndices.length < 1) {grid_console.text('Table is empty!'); validTableAdd = false; loading.hide(); button_state.button('reset'); return false;}
                     // otherwise loop through all rows
                     var allRows = grid_add.handsontable('getInstance').countRows();
                     for (var row = 0; row < allRows; row++) {
@@ -607,8 +664,8 @@
                         if (thisDataRow[0] !== null && thisDataRow[0] !== "" && thisDataRow[0] !== 0 && typeof thisDataRow[0] !== 'undefined') {
                             var thisDataObject = {};
                             thisDataObject['bromination'] = selected_bromination_id;
-                            var thisID = updateValueAjax('/mercuryservices/samplebottles/', 'bottle', 'id', thisDataRow[0], 'constituent=39,27');
-                            if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Sample Bottle must be a valid choice in row ' + (row + 1) + '!'); validTableAdd = false; button_state.button('reset'); return false;}
+                            var thisID = updateValueAjax('/mercuryservices/samplebottles/', 'bottle_string', 'id', thisDataRow[0], 'constituent=39,27');
+                            if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Sample Bottle must be a valid choice in row ' + (row + 1) + '!'); validTableAdd = false; loading.hide(); button_state.button('reset'); return false;}
                             thisDataObject['sample_bottle'] = thisID;
                             thisDataObject['bromination_event'] = thisDataRow[1];
                             thisDataObject['bromination_volume'] = thisDataRow[2];
@@ -631,6 +688,8 @@
                                 // if the content-type is plain text, then it's a custom message from our Django view
                                 if (content_type.indexOf('text') > -1) {
                                     grid_console.text(data);
+                                    loading.hide();
+                                    button_state.button('reset');
                                 }
                                 // otherwise, it's JSON from the REST Services
                                 else if (jqXHRequest.status === 200) {
@@ -643,22 +702,28 @@
                                     grid_brominations.handsontable('getInstance').deselectCell();
                                     $('#selected_bromination_id').html("Selected Bromination ID: <strong>NULL</strong>");
                                     $('#tools_samples').find('button[name=search]').click()
+                                    loading.hide();
+                                    button_state.button('reset');
                                 }
                                 else {
                                     grid_console.text(textStatus + ': Save error: ' + jqXHRequest.statusText + ', code: ' + jqXHRequest.status + '.');
+                                    loading.hide();
+                                    button_state.button('reset');
                                 }
                             },
                             error: function (jqXHRequest, textStatus, errorThrown) {
                                 grid_console.text(errorThrown + ": " + textStatus);
+                                loading.hide();
+                                button_state.button('reset');
                             }
                         });
                     }
-                    button_state.button('reset');
                 });
 
                 var form_add = $("#form_add");
                 form_add.find('button[name=addSave]').click(function() {
                     var button_state = $(this).button('loading');
+                    loading.show();
                     var thisDataObject = {};
                     thisDataObject['concentration'] = Number(form_add.find('input[name=concentration]').val());
                     thisDataObject['comment'] = form_add.find('input[name=comment]').val();
@@ -666,16 +731,16 @@
                     var baddate = form_add.find('input[name=created_date]').val();
                     if (dateRegEx.test(baddate)) {
                         if (makeYear(baddate)!= null && makeMonth(baddate)!= null && makeDay(baddate) != null) {
-                            var gooddate_string = makeYear(baddate) + "-" + makeMonth(baddate) + "-" + makeDay(baddate) + " 00:00:00";
+                            var gooddate_string = makeYear(baddate) + "-" + makeMonth(baddate) + "-" + makeDay(baddate);
                             var gooddate = new Date(makeYear(baddate), makeMonth(baddate)-1, makeDay(baddate));
                             if (gooddate > dateToday) {
-                                {grid_console.text('Date cannot be a future date!'); button_state.button('reset'); return false;}
+                                {grid_console.text('Date cannot be a future date!'); loading.hide(); button_state.button('reset'); return false;}
                             }
                             thisDataObject['created_date'] = gooddate_string;
                         }
-                        else {grid_console.text('There is a problem with the Date. Please contact the administrator.'); button_state.button('reset'); return false;}
+                        else {grid_console.text('There is a problem with the Date. Please contact the administrator.'); loading.hide(); button_state.button('reset'); return false;}
                     }
-                    else {grid_console.text('Date is badly formed. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); button_state.button('reset'); return false;}
+                    else {grid_console.text('Date is badly formed. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); loading.hide(); button_state.button('reset'); return false;}
                     var dataJSON = JSON.stringify(thisDataObject);
                     $.ajax({
                         url: "{% url 'merlin:brominations_create' %}",
@@ -688,6 +753,8 @@
                             // if the content-type is plain text, then it's a custom message from our Django view
                             if (content_type.indexOf('text') > -1) {
                                 grid_console.text(data);
+                                loading.hide();
+                                button_state.button('reset');
                             }
                             // otherwise, it's JSON from the REST Services
                             else if (jqXHRequest.status === 200) {
@@ -695,16 +762,21 @@
                                 form_add.parent().find('button[name=formAdd]').click();
                                 tools_brominations.find('button[name=load]').click();
                                 grid_console.text(textStatus+': Data saved.');
+                                loading.hide();
+                                button_state.button('reset');
                             }
                             else {
                                 grid_console.text(textStatus+': Save error: '+jqXHRequest.statusText+', code: '+jqXHRequest.status+'.');
+                                loading.hide();
+                                button_state.button('reset');
                             }
                         },
                         error: function (jqXHRequest, textStatus, errorThrown) {
                             grid_console.text(errorThrown + ": " + textStatus);
+                            loading.hide();
+                            button_state.button('reset');
                         }
                     });
-                    button_state.button('reset');
                 });
 
                 form_add.parent().find('button[name=formAdd]').click(function () {
