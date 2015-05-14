@@ -1,6 +1,8 @@
 {% extends 'merlin/base.html' %}
 {% block body_block %}
 
+
+    <div id="loading"></div>
     <div style="padding:10px">
         <pre id="grid_console" class="console" style="width:600px"></pre>
         <div class="panel-default">
@@ -59,6 +61,7 @@
                 <div id="exportCSVButtonPanel" style="display:none" >
                     <button type="button" class="btn btn-info" data-loading-text="Exporting..." name="exportCSVCurrentPage">Current Page</button>
                     <button type="button" class="btn btn-info" data-loading-text="Exporting..." name="exportCSVAllPages">All Pages</button>
+                    <span id="note">NOTE: Each page requested takes about 0.33 seconds to process, e.g. 100 pages will take about 33 seconds.</span>
                 </div>
             </form>
         </div>
@@ -77,8 +80,11 @@
         <div id="grid" data-projects="{{ projects }}" data-processings="{{ processings }}" data-constituents="{{ constituents }}" data-mediums="{{ mediums }}" data-filters="{{ filters }}" data-preservations="{{ preservations }}" data-isotopeflags="{{ isotope_flags }}" ></div>
         <div id="tempgrid" style="display:none"></div>
 
-        <script>
+		<script>
             $(document).ready(function() {
+
+				var loading = $('#loading');
+				loading.hide();
 
                 var csrftoken = $.cookie('csrftoken');
                 function csrfSafeMethod(method) {
@@ -153,16 +159,16 @@
                 var dayToday = dateToday.getDate().toString();
                 var grid_columns = [
                         {title: 'Sample ID', data: 'sample_bottle.sample.id', readOnly: true, width: 80},
-                        {title: 'Project Name', data: 'sample_bottle.sample.project.name', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 100, type: 'autocomplete', strict: true, source: function (query, process) {
+                        {title: 'Project Name', data: 'sample_bottle.sample.project_string', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 100, type: 'autocomplete', strict: true, source: function (query, process) {
                             getValuesAjax('/mercuryservices/projects', 'name', query, process)}
                         },
-                        {title: 'Project ID', data: 'sample_bottle.sample.project.id', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 1, type: 'autocomplete', strict: true, source: function (query, process) {
+                        {title: 'Project ID', data: 'sample_bottle.sample.project', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 1, type: 'autocomplete', strict: true, source: function (query, process) {
                             getValuesAjax('/mercuryservices/projects', 'id', query, process)}
                         },
-                        {title: 'Site Name', data: 'sample_bottle.sample.site.name', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 75, type: 'autocomplete', strict: true, source: function (query, process) {
+                        {title: 'Site Name', data: 'sample_bottle.sample.site_string', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 75, type: 'autocomplete', strict: true, source: function (query, process) {
                             getValuesAjax('/mercuryservices/sites', 'name', query, process, ('project=' + grid.handsontable('getInstance').getDataAtCell(grid.handsontable('getInstance').getSelected()[0], 2)))}
                         },
-                        {title: 'Site ID', data: 'sample_bottle.sample.site.usgs_scode', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 70, type: 'autocomplete', strict: true, source: function (query, process) {
+                        {title: 'Site ID', data: 'sample_bottle.sample.site_usgs_scode', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 70, type: 'autocomplete', strict: true, source: function (query, process) {
                             getValuesAjax('/mercuryservices/sites', 'usgs_scode', query, process, ('project=' + grid.handsontable('getInstance').getDataAtCell(grid.handsontable('getInstance').getSelected()[0], 2)))}
                         },
                         // Date, Hour, and Minute as separate columns is temporary until a single column datetime editor can be found for handsontable
@@ -175,18 +181,18 @@
                         {title: 'Rep', data: 'sample_bottle.sample.replicate', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 50, type: 'numeric'},
                         {title: 'Sample Comments', data: 'sample_bottle.sample.comment', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 130, type: 'text'},
                         {title: 'Received', data: 'sample_bottle.sample.received_date', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 100, type: 'date', dateFormat: 'mm/dd/y', maxDate: 0},
-                        {title: 'Lab Processing', data: 'sample_bottle.sample.lab_processing', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 105, type: 'autocomplete', strict: true, source: getValuesDom(data_processings,"processing")},
+                        {title: 'Lab Processing', data: 'sample_bottle.sample.lab_processing_string', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 105, type: 'autocomplete', strict: true, source: getValuesDom(data_processings,"processing")},
                         //{title: 'Container ID', width: 110, type: 'autocomplete', strict: true, validator: validateRequired,  source: function (query, process) {
                         //    getValuesAjax('/mercuryservices/bottles/', 'bottle_unique_name', query, process)}},
                         {title: 'Container ID', data: 'sample_bottle.bottle.bottle_unique_name', width: 110, type: 'text'},
-                        {title: 'Medium', data: 'sample_bottle.sample.medium_type', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 100, type: 'autocomplete', strict: true, source: getValuesDom(data_mediums,"display_text")},
-                        {title: 'Analysis', data: 'constituent', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 70, type: 'autocomplete', strict: true},
-                        {title: 'Isotope', data: 'isotope_flag', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 55, type: 'dropdown', source: data_isotopeflags},
-                        {title: 'Filter', data: 'sample_bottle.filter_type', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 100, type: 'autocomplete', strict: true, source: getValuesDom(data_filters,"filter")},
+                        {title: 'Medium', data: 'sample_bottle.sample.medium_type_string', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 100, type: 'autocomplete', strict: true, source: getValuesDom(data_mediums,"display_text")},
+                        {title: 'Analysis', data: 'constituent_string', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 70, type: 'autocomplete', strict: true},
+                        {title: 'Isotope', data: 'isotope_flag_string', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 55, type: 'dropdown', source: data_isotopeflags},
+                        {title: 'Filter', data: 'sample_bottle.filter_type_string', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 100, type: 'autocomplete', strict: true, source: getValuesDom(data_filters,"filter")},
                         {title: 'Filter Vol.', data: 'sample_bottle.volume_filtered', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 65, type: 'numeric', format: '0.00'},
-                        {title: 'Preservation', data: 'sample_bottle.preservation_type', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 100, type: 'autocomplete', strict: true, source: getValuesDom(data_preservations, "preservation")},
+                        {title: 'Preservation', data: 'sample_bottle.preservation_type_string', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 100, type: 'autocomplete', strict: true, source: getValuesDom(data_preservations, "preservation")},
                         //{title: 'Acid', width: 100, type: 'autocomplete',  source: getValuesDom(data_acids, "code")},
-                        {title: 'Acid', data: 'sample_bottle.preservation_acid', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 110, type: 'autocomplete', strict: true,  source: function (query, process) {
+                        {title: 'Acid', data: 'sample_bottle.preservation_acid_string', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 110, type: 'autocomplete', strict: true,  source: function (query, process) {
                             getValuesAjax('/mercuryservices/acids', 'code', query, process)}},
                         {title: 'Acid Vol.', data: 'sample_bottle.preservation_volume', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 60, type: 'numeric', format: '0.00'},
                         {title: 'Pres. Comments', data: 'sample_bottle.preservation_comment', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 115, type: 'text'},
@@ -227,7 +233,7 @@
                         // update dependent columns when a value in a parent column is changed
                         if (source == 'edit') {
                             // when project name is changed to a non-null, non-blank value
-                            if (changedCol == 'sample_bottle.sample.project.name' && changedVal !== null && changedVal !== "") {
+                            if (changedCol == 'sample_bottle.sample.project_string' && changedVal !== null && changedVal !== "") {
                                 // update project ID to match project name
                                 var newValue = updateValueDom(data_sites, 'name', 'id', changedVal);
                                 grid.handsontable('setDataAtCell', changedRow, 2, newValue);
@@ -259,7 +265,7 @@
                                 });*/
                             }
                             // when project ID is changed to a non-null, non-blank value
-                            if (changedCol == 'sample_bottle.sample.project.id' && changedVal !== null && changedVal !== "") {
+                            if (changedCol == 'sample_bottle.sample.project' && changedVal !== null && changedVal !== "") {
                                 // update project name to match project ID
                                 var newValue = updateValueDom(data_projects, 'id', 'name', changedVal);
                                 grid.handsontable('setDataAtCell', changedRow, 1, newValue);
@@ -291,19 +297,19 @@
                                 });*/
                             }
                             // when site name is changed to a non-null, non-blank value
-                            if (changedCol == 'sample_bottle.sample.site.name' && changedVal !== null && changedVal !== "") {
+                            if (changedCol == 'sample_bottle.sample.site_string' && changedVal !== null && changedVal !== "") {
                                 // update site ID to match site name
                                 var newValue = updateValueAjax('/mercuryservices/sites/', 'name', 'usgs_scode', changedVal);
                                 grid.handsontable('setDataAtCell', changedRow, 4, newValue);
                             }
                             // when site ID is changed to a non-null, non-blank value
-                            if (changedCol == 'sample_bottle.sample.site.id' && changedVal !== null && changedVal !== "") {
+                            if (changedCol == 'sample_bottle.sample.site' && changedVal !== null && changedVal !== "") {
                                 // update site name to match site ID
                                 var newValue = updateValueAjax('/mercuryservices/sites/', 'usgs_scode', 'name', changedVal);
                                 grid.handsontable('setDataAtCell', changedRow, 3, newValue);
                             }
                             // when medium is changed to a non-null, non-blank value
-                            if (changedCol == 'sample_bottle.sample.medium_type' && changedVal !== null && changedVal !== "") {
+                            if (changedCol == 'sample_bottle.sample.medium_type_string' && changedVal !== null && changedVal !== "") {
                                 var thisVal = updateValueDom(data_mediums, 'display_text', 'nwis_code', changedVal);
                                 // update list of constituents filtered by the selected medium value
                                 $.ajax({
@@ -453,6 +459,7 @@
 
                 grid.parent().find('button[name=search]').click(function () {
                     var button_state = $(this).button('loading');
+                    loading.show();
                     grid_console.text('Attempting to search...');
                     var thisDataObject = {};
                     //var theID = $(select_project).select2('data').id;
@@ -466,6 +473,7 @@
                     thisDataObject['date_after_sample'] = $(date_after_sample).val();
                     thisDataObject['date_before_sample'] = $(date_before_sample).val();
                     thisDataObject['page_size'] = "";
+                    thisDataObject['format'] = "";
                     thisDataObject['table'] = "";
                     var dataJSON = JSON.stringify(thisDataObject);
                     $.ajax({
@@ -479,32 +487,40 @@
                             // if the content-type is plain text, then it's a custom message from our Django view
                             if (content_type.indexOf('text') > -1) {
                                 grid_console.text(data);
+                                loading.hide();
+                                button_state.button('reset');
                             }
                             // otherwise, it's JSON from the REST Services
                             else if (jqXHRequest.status === 200) {
                                 data_data = data;
                                 for (var row in data_data.results) {
-                                    var medium_original = data_data.results[row]['sample_bottle']['sample']['medium_type'];
-                                    data_data.results[row]['sample_bottle']['sample']['medium_type'] = updateValueDom(data_mediums, 'nwis_code', 'display_text', medium_original);
+                                    var medium_original = data_data.results[row]['sample_bottle']['sample']['medium_type_string'];
+                                    data_data.results[row]['sample_bottle']['sample']['medium_type_string'] = updateValueDom(data_mediums, 'nwis_code', 'display_text', medium_original);
                                 }
                                 resultPages = Math.ceil(data_data['count'] / 100);
                                 grid_console.text(textStatus+': Retrieved '+ data_data['count'] +' results across ' + resultPages + ' pages.' + (resultPages > 1 ? ' Showing first 100 results.' : ''));
                                 grid.data('handsontable').loadData(data_data.results);
+                                loading.hide();
+                                button_state.button('reset');
                             }
                             else {
                                 grid_console.text(textStatus+': Search error: '+jqXHRequest.statusText+', code: '+jqXHRequest.status+'.');
+                                loading.hide();
+                                button_state.button('reset');
                             }
                         },
                         error: function (jqXHRequest, textStatus, errorThrown) {
                             grid_console.text(errorThrown + " ... " + textStatus);
+                            loading.hide();
+                            button_state.button('reset');
                         }
                     });
                     currentPage = 1;
-                    button_state.button('reset');
                 });
 
                 grid.parent().find('button[name=next]').click(function () {
                     var button_state = $(this).button('loading');
+                    loading.show();
                     if (currentPage != resultPages) {
                         $.ajax({
                             url: data_data.next,
@@ -515,20 +531,26 @@
                                 grid.data('handsontable').loadData(data_data.results);
                                 currentPage++;
                                 grid_console.text('Page ' + currentPage + ' of ' + resultPages + ' loaded.');
+                                loading.hide();
+                                button_state.button('reset');
                             },
                             error: function (response) {
                                 grid_console.text("error");
+                                loading.hide();
+                                button_state.button('reset');
                             }
                         });
                     }
                     else {
                         grid_console.text("End of results, there are no pages after Page " + resultPages + ".");
+                        loading.hide();
+                        button_state.button('reset');
                     }
-                    button_state.button('reset');
                 });
 
                 grid.parent().find('button[name=prev]').click(function () {
                     var button_state = $(this).button('loading');
+                    loading.show();
                     if (currentPage != 1) {
                         $.ajax({
                             url: data_data.previous,
@@ -539,27 +561,32 @@
                                 grid.data('handsontable').loadData(data_data.results);
                                 currentPage--;
                                 grid_console.text('Page ' + currentPage + ' of ' + resultPages + ' loaded.');
+                                loading.hide();
+                                button_state.button('reset');
                             },
                             error: function (response) {
                                 grid_console.text("error");
+                                loading.hide();
+                                button_state.button('reset');
                             }
                         });
                     }
                     else {
                         grid_console.text("There are no pages before Page 1.");
+                        loading.hide();
+                        button_state.button('reset');
                     }
-                    button_state.button('reset');
                 });
 
                 $('#lookupContainers').change(function () {
                     var settings = grid.handsontable('getInstance').getSettings();
                     if (this.checked) {
-                        settings.columns[8] = {title: 'Container ID', data: 'sample_bottle.bottle.bottle_unique_name', width: 110, type: 'autocomplete', strict: true, validator: validateRequired,  source: function (query, process) {
+                        settings.columns[8] = {title: 'Container ID', data: 'sample_bottle.bottle.bottle_unique_name', width: 110, type: 'autocomplete', strict: true, source: function (query, process) {
                             getValuesAjax('/mercuryservices/bottles/', 'bottle_unique_name', query, process)}};
                         grid.handsontable('getInstance').updateSettings(settings);
                     }
                     else {
-                        settings.columns[8] = {title: 'Container ID', data: 'sample_bottle.bottle.bottle_unique_name', width: 110, type: 'text', validator: validateRequired};
+                        settings.columns[8] = {title: 'Container ID', data: 'sample_bottle.bottle.bottle_unique_name', width: 110, type: 'text'};
                         grid.handsontable('getInstance').updateSettings(settings);
                     }
                 });
@@ -570,9 +597,10 @@
                 //});
                 grid.parent().find('button[name=save]').click(function () {
                     var button_state = $(this).button('loading');
+                    loading.show();
                     // an array container for storing the changed data rows to send to the database
                     var changedDataArray = [];
-                    if (changedRowIndices.length == 0) {grid_console.text('There is nothing to save!'); button_state.button('reset'); return;}
+                    if (changedRowIndices.length == 0) {grid_console.text('There is nothing to save!'); loading.hide(); button_state.button('reset'); return;}
                     // loop through the list of changed rows
                     $.each(changedRowIndices, function(index, value) {
                         // grab all the data for this row
@@ -589,10 +617,10 @@
                                 switch(i){
                                     case 1: // project name
                                         // if it has a value, look up and return the ID, otherwise notify the user that this is a required field, and stop the submission
-                                        if (!thisDataRow[i]) {grid_console.text('Project Name is required in row ' + (index + 1) + '!'); validTable = false; button_state.button('reset'); return false;}
+                                        if (!thisDataRow[i]) {grid_console.text('Project Name is required in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                         else {
                                             thisID = updateValueAjax('/mercuryservices/projects/', 'name', 'id', thisDataRow[i]);
-                                            if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Project Name must be a valid choice in row ' + (index + 1) + '!'); validTable = false; button_state.button('reset'); return false;}
+                                            if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Project Name must be a valid choice in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                             thisDataObject[objectFields[i]] = thisID;
                                         }
                                         break;
@@ -601,29 +629,29 @@
                                         break;
                                     case 3: // site name
                                         // if it has a value, look up and return the ID, otherwise notify the user that this is a required field, and stop the submission
-                                        if (!thisDataRow[i]) {grid_console.text('Site Name is required in row ' + (index + 1) + '!'); validTable = false; button_state.button('reset'); return false;}
+                                        if (!thisDataRow[i]) {grid_console.text('Site Name is required in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                         else {
                                             thisID = updateValueAjax('/mercuryservices/sites/', 'name', 'id', thisDataRow[i]);
-                                            if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Site Name must be a valid choice in row ' + (index + 1) + '!'); validTable = false; button_state.button('reset'); return false;}
+                                            if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Site Name must be a valid choice in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                             thisDataObject[objectFields[i]] = thisID;
                                         }
                                         break;
                                     case 4: // site ID
                                         //// if it doesn't have a value, notify the user that this is a required field, and stop the submission
-                                        //if (!thisDataRow[i]) {grid_console.text('Site ID is required!'); validTable = false; button_state.button('reset'); return false;}
+                                        //if (!thisDataRow[i]) {grid_console.text('Site ID is required!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                         //else {thisDataObject[objectFields[i]] = getIdDom(data_sites,'usgs_scode',thisDataRow[i]);}
 
                                         // do nothing with this column
                                         break;
                                     case 5: // date
                                         // if it doesn't have a value, notify the user that this is a required field, and stop the submission
-                                        if (!thisDataRow[i]) {grid_console.text('Sample Date is required in row ' + (index + 1) + '!'); validTable = false; button_state.button('reset'); return false;}
+                                        if (!thisDataRow[i]) {grid_console.text('Sample Date is required in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                         // if it has a value but with bad formatting, notify the user, and stop the submission
                                         if (!(dateRegEx.test(thisDataRow[i]))) {grid_console.text('Sample Date is badly formed in row ' + (index + 1) + '. Expecting a date in mm/dd/yy format but found ' + thisDataRow[i] + '!'); validTable = false; button_state.button('reset'); return false;}
                                         break;
                                     case 6: // time
                                         // if it doesn't have a value, notify the user that this is a required field, and stop the submission
-                                        if (!thisDataRow[i]) {grid_console.text('Time is required in row ' + (index + 1) + '!'); validTable = false; button_state.button('reset'); return false;}
+                                        if (!thisDataRow[i]) {grid_console.text('Time is required in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                         if (thisDataRow[i] !== null && thisDataRow[i] !== "" && thisDataRow[i-1] !== null && thisDataRow[i-1] !== "") {
                                             var changedVal = thisDataRow[i];
                                             var newValue;
@@ -650,21 +678,21 @@
                                                 if (makeYear(dateReceived)!= null && makeMonth(dateReceived)!= null && makeDay(dateReceived) != null) {
                                                     gooddate_received = new Date(makeYear(dateReceived), makeMonth(dateReceived)-1, makeDay(dateReceived));
                                                     if (gooddate_received > dateToday) {
-                                                        {grid_console.text('Date Received cannot be a future date!'); validTable = false; button_state.button('reset'); return false;}
+                                                        {grid_console.text('Date Received cannot be a future date!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                                     }
                                                 }
-                                                else {grid_console.text('There is a problem with Received Date. Please contact the administrator.'); validTable = false; button_state.button('reset'); return false;}
+                                                else {grid_console.text('There is a problem with Received Date. Please contact the administrator.'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                             }
-                                            else {grid_console.text('Date Received is badly formed in row ' + (index + 1) + '. Expecting a date in mm/dd/yy format but found ' + dateReceived + '!'); validTable = false; button_state.button('reset'); return false;}
+                                            else {grid_console.text('Date Received is badly formed in row ' + (index + 1) + '. Expecting a date in mm/dd/yy format but found ' + dateReceived + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                             var baddate_sample = thisDataRow[i - 1];
                                             if (makeYear(baddate_sample)!= null && makeMonth(baddate_sample)!= null && makeDay(baddate_sample) != null) {
                                                 var gooddate_sample_string = makeYear(baddate_sample) + "-" + makeMonth(baddate_sample) + "-" + makeDay(baddate_sample);
                                                 var gooddate_sample = new Date(makeYear(baddate_sample), makeMonth(baddate_sample)-1, makeDay(baddate_sample));
                                                 if (gooddate_sample > dateToday) {
-                                                    {grid_console.text('Sample Date cannot be a future date!'); validTable = false; button_state.button('reset'); return false;}
+                                                    {grid_console.text('Sample Date cannot be a future date!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                                 }
                                                 if (gooddate_sample > gooddate_received) {
-                                                    {grid_console.text('Sample Date cannot be after Date Received!'); validTable = false; button_state.button('reset'); return false;}
+                                                    {grid_console.text('Sample Date cannot be after Date Received!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                                 }
                                                 var dateTodayLastYear = new Date();
                                                 //dateTodayLastYear.setTime(dateTodayLastYear.valueOf() - (365 * 24 * 60 * 60 * 1000));
@@ -672,11 +700,11 @@
                                                 if (dateTodayLastYear > gooddate_sample) {
                                                     grid_console.text('Sample Date is more than one year before today in row ' + (index + 1) + '!');
                                                     var confirmOldDate = confirm("WARNING: Sample Date is more than one year before today in row " + (index + 1) + "!\nContinue and Save with the date entered, or Cancel?");
-                                                    if (confirmOldDate == false) {validTable = false; button_state.button('reset'); return false;}
+                                                    if (confirmOldDate == false) {validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                                 }
                                                 thisDataObject[objectFields[i]] = gooddate_sample_string + " " + newValue + ":00";
                                             }
-                                            else {grid_console.text('There is a problem with Sample Date in row ' + (index + 1) + '. Please contact the administrator.'); validTable = false; button_state.button('reset'); return false;}
+                                            else {grid_console.text('There is a problem with Sample Date in row ' + (index + 1) + '. Please contact the administrator.'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                             //var gooddate_sample = "20" + baddate_sample.substr(6,4) + "-" + baddate_sample.substr(0,2) + "-" + baddate_sample.substr(3,2);
                                             //thisDataObject[objectFields[i]] = gooddate_sample + " " + newValue + ":00";
                                             //thisDataObject[objectFields[i]] = thisDataRow[i-1]+" "+newValue+":00";
@@ -684,56 +712,61 @@
                                         break;
                                     case 7: // depth
                                         if (thisDataRow[i] !== 0) {
-                                            if (!thisDataRow[i]) {grid_console.text('Depth is required in row ' + (index + 1) + '!'); validTable = false; button_state.button('reset'); return false;}
+                                            if (!thisDataRow[i]) {grid_console.text('Depth is required in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                         }
                                         thisDataObject[objectFields[i]] = (thisDataRow[i] % 1 === 0 ? (thisDataRow[i].toFixed(1)) : thisDataRow[i]);
                                         break;
+                                    case 9: // rep
+                                        if (thisDataRow[i] !== 1) {
+                                            if (!thisDataRow[i]) {grid_console.text('Rep is required in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
+                                        }
+                                        break;
                                     case 11: // received date
                                         // validation is being handled in previous case (sample datetime)
-                                        if (!thisDataRow[i]) {grid_console.text('Date Received is required!'); validTable = false; button_state.button('reset'); return false;}
-                                        thisDataObject[objectFields[i]] = makeYear(dateReceived) + "-" + makeMonth(dateReceived) + "-" + makeDay(dateReceived) + " 00:00:00";
+                                        if (!thisDataRow[i]) {grid_console.text('Date Received is required!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
+                                        thisDataObject[objectFields[i]] = makeYear(dateReceived) + "-" + makeMonth(dateReceived) + "-" + makeDay(dateReceived);
                                         break;
                                     case 12: // processing
                                         // if it has a value, look up and return the ID, otherwise skip this field (won't be included in submission to database)
                                         if (thisDataRow[i] !== null && thisDataRow[i] !== "" && thisDataRow[i] !== 0 && typeof thisDataRow[i] !== 'undefined') {
                                             thisID = getIdDom(data_processings,'processing',thisDataRow[i]);
-                                            if (thisID === null) {grid_console.text('Lab Processing must be a valid choice, or empty, in row ' + (index + 1) + '!'); validTable = false; button_state.button('reset'); return false;}
+                                            if (thisID === null) {grid_console.text('Lab Processing must be a valid choice, or empty, in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                             thisDataObject[objectFields[i]] = thisID;
                                         }
                                         break;
                                     case 13: // bottle (container)
                                         // if it has a value, look up and return the ID, otherwise notify the user that this is a required field, and stop the submission
-                                        if (!thisDataRow[i]) {grid_console.text('Container ID is required in row ' + (index + 1) + '!'); validTable = false; button_state.button('reset'); return false;}
+                                        if (!thisDataRow[i]) {grid_console.text('Container ID is required in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                         else {
                                             thisID = updateValueAjax('/mercuryservices/bottles/', 'bottle_unique_name', 'id', thisDataRow[i]);
-                                            if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Container ID must be a valid choice in row ' + (index + 1) + '!'); validTable = false; button_state.button('reset'); return false;}
+                                            if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Container ID must be a valid choice in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                             thisDataObject[objectFields[i]] = thisID;
                                         }
                                         break;
                                     case 14: // medium
                                         // if it has a value, look up and return the ID, otherwise notify the user that this is a required field, and stop the submission
-                                        if (!thisDataRow[i]) {grid_console.text('Medium is required in row ' + (index + 1) + '!'); validTable = false; button_state.button('reset'); return false;}
+                                        if (!thisDataRow[i]) {grid_console.text('Medium is required in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                         else {
                                             thisID = getIdDom(data_mediums,'display_text',thisDataRow[i]);
-                                            if (thisID === null) {grid_console.text('Medium must be a valid choice in row ' + (index + 1) + '!'); validTable = false; button_state.button('reset'); return false;}
+                                            if (thisID === null) {grid_console.text('Medium must be a valid choice in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                             thisDataObject[objectFields[i]] = thisID;
                                         }
                                         break;
                                     case 15: // constituent (analysis)
                                         // if it has a value, look up and return the ID, otherwise notify the user that this is a required field, and stop the submission
-                                        if (!thisDataRow[i]) {grid_console.text('Analysis is required in row ' + (index + 1) + '!'); validTable = false; button_state.button('reset'); return false;}
+                                        if (!thisDataRow[i]) {grid_console.text('Analysis is required in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                         else {
                                             thisID = getIdDom(data_constituents,'constituent',thisDataRow[i]);
-                                            if (thisID === null) {grid_console.text('Analysis must be a valid choice in row ' + (index + 1) + '!'); validTable = false; button_state.button('reset'); return false;}
+                                            if (thisID === null) {grid_console.text('Analysis must be a valid choice in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                             thisDataObject[objectFields[i]] = thisID;
                                         }
                                         break;
                                     case 16: // isotope flag
                                         // if it has a value, look up and return the ID, otherwise notify the user that this is a required field, and stop the submission
-                                        if (!thisDataRow[i]) {grid_console.text('Isotope is required in row ' + (index + 1) + '!'); validTable = false; button_state.button('reset'); return false;}
+                                        if (!thisDataRow[i]) {grid_console.text('Isotope is required in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                         else {
                                             thisID = getIdDom(data_isotopeflags,'isotope_flag',thisDataRow[i]);
-                                            if (thisID === null) {grid_console.text('Isotope must be a valid choice in row ' + (index + 1) + '!'); validTable = false; button_state.button('reset'); return false;}
+                                            if (thisID === null) {grid_console.text('Isotope must be a valid choice in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                             thisDataObject[objectFields[i]] = thisID;
                                         }
                                         break;
@@ -741,7 +774,7 @@
                                         // if it has a value, look up and return the ID, otherwise skip this field (won't be included in submission to database)
                                         if (thisDataRow[i] !== null && thisDataRow[i] !== "" && thisDataRow[i] !== 0 && typeof thisDataRow[i] !== 'undefined') {
                                             thisID = getIdDom(data_filters,'filter',thisDataRow[i]);
-                                            if (thisID === null) {grid_console.text('Filter must be a valid choice, or empty, in row ' + (index + 1) + '!'); validTable = false; button_state.button('reset'); return false;}
+                                            if (thisID === null) {grid_console.text('Filter must be a valid choice, or empty, in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                             thisDataObject[objectFields[i]] = thisID;
                                         }
                                         break;
@@ -749,7 +782,7 @@
                                         // if it has a value, look up and return the ID, otherwise skip this field (won't be included in submission to database)
                                         if (thisDataRow[i] !== null && thisDataRow[i] !== "" && thisDataRow[i] !== 0 && typeof thisDataRow[i] !== 'undefined') {
                                             thisID = getIdDom(data_preservations,'preservation',thisDataRow[i]);
-                                            if (thisID === null) {grid_console.text('Preservation must be a valid choice, or empty, in row ' + (index + 1) + '!'); validTable = false; button_state.button('reset'); return false;}
+                                            if (thisID === null) {grid_console.text('Preservation must be a valid choice, or empty, in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                             thisDataObject[objectFields[i]] = thisID;
                                         }
                                         break;
@@ -757,7 +790,7 @@
                                         // if it has a value, look up and return the ID, otherwise skip this field (won't be included in submission to database)
                                         if (thisDataRow[i] !== null && thisDataRow[i] !== "" && thisDataRow[i] !== 0 && typeof thisDataRow[i] !== 'undefined') {
                                             thisID = updateValueAjax('/mercuryservices/acids/', 'code_exact', 'id', thisDataRow[i]);
-                                            if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Acid must be a valid choice, or empty, in row ' + (index + 1) + '!'); validTable = false; button_state.button('reset'); return false;}
+                                            if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Acid must be a valid choice, or empty, in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                             thisDataObject[objectFields[i]] = thisID;
                                         }
                                         break;
@@ -795,22 +828,29 @@
                                     // if the content-type is plain text, then it's a custom message from our Django view
                                     if (content_type.indexOf('text') > -1) {
                                         grid_console.text(data);
+                                        loading.hide();
+                                        button_state.button('reset');
                                     }
                                     // otherwise, it's JSON from the REST Services
                                     else if (jqXHRequest.status === 200) {
                                         grid_console.text(textStatus + ': Data saved.');
+                                        loading.hide();
+                                        button_state.button('reset');
                                     }
                                     else {
                                         grid_console.text(textStatus + ': Save error: ' + jqXHRequest.statusText + ', code: ' + jqXHRequest.status + '.');
+                                        loading.hide();
+                                        button_state.button('reset');
                                     }
                                 },
                                 error: function (jqXHRequest, textStatus, errorThrown) {
                                     grid_console.text(errorThrown + ": " + textStatus);
+                                    loading.hide();
+                                    button_state.button('reset');
                                 }
                             });
                         }
                     }
-                    button_state.button('reset');
                 });
 
                 grid.parent().find('button[name=exportCSV]').click(function() {
@@ -826,17 +866,20 @@
 
                 grid.parent().find('button[name=exportCSVCurrentPage]').click(function() {
                     var button_state = $(this).button('loading');
+                    loading.show();
                     var table = grid.handsontable('getInstance');
                     var csv_filename = "samples_" + yearToday + "-" + (monthToday.length == 1 ? "0" + monthToday : monthToday) + "-" + (dayToday.length == 1 ? "0" + dayToday : dayToday) + ".csv";
                     handsontable2csv.download(table, csv_filename);
                     grid.parent().find('button[name=exportCSV]').click();
+                    loading.hide();
                     button_state.button('reset');
                 });
 
                 grid.parent().find('button[name=exportCSVAllPages]').click(function() {
                     var button_state = $(this).button('loading');
+                    loading.show();
                     // if there is only one result page, then there is no need to request more data from the server, so just export the current page
-                    if (resultPages == 1) {grid.parent().find('button[name=exportCSVCurrentPage]').click(); button_state.button('reset'); return false;}
+                    if (resultPages == 1) {grid.parent().find('button[name=exportCSVCurrentPage]').click(); loading.hide(); button_state.button('reset'); return false;}
                     // otherwise request all the data matching the search query from the server
                     var thisDataObject = {};
                     if ($(select_bottle).val() != "") {thisDataObject['bottle'] = $(select_bottle).val()}
@@ -846,8 +889,8 @@
                     if ($("#select_replicate").val() != "") {thisDataObject['replicate'] = $("#select_replicate").val()}
                     if ($(select_constituent).val() != "") {thisDataObject['constituent'] = $(select_constituent).val()}
                     var formattedDate = "";
-                    if ($(date_after_sample).val()!= "") {formattedDate = formatDate($(date_after_sample).val()); if (isNaN(formattedDate.slice(0,4)) && formattedDate != "") {grid_console.text(formattedDate); button_state.button('reset'); return false;} else {thisDataObject['date_after_sample'] = formattedDate;}} else {formattedDate = ""}
-                    if ($(date_before_sample).val() != "") {formattedDate = formatDate($(date_before_sample).val()); if (isNaN(formattedDate.slice(0,4)) && formattedDate != "") {grid_console.text(formattedDate); button_state.button('reset'); return false;} else {thisDataObject['date_before_sample'] = formattedDate;}} else {formattedDate = ""}
+                    if ($(date_after_sample).val()!= "") {formattedDate = formatDate($(date_after_sample).val()); if (isNaN(formattedDate.slice(0,4)) && formattedDate != "") {grid_console.text(formattedDate); loading.hide(); button_state.button('reset'); return false;} else {thisDataObject['date_after_sample'] = formattedDate;}} else {formattedDate = ""}
+                    if ($(date_before_sample).val() != "") {formattedDate = formatDate($(date_before_sample).val()); if (isNaN(formattedDate.slice(0,4)) && formattedDate != "") {grid_console.text(formattedDate); loading.hide(); button_state.button('reset'); return false;} else {thisDataObject['date_before_sample'] = formattedDate;}} else {formattedDate = ""}
                     thisDataObject['format'] = "csv";
                     thisDataObject['table'] = "sample";
                     // page_size is the parameter that will override our self-defined default 100-record pagination
@@ -856,11 +899,14 @@
                     var dataJSON = JSON.stringify(thisDataObject);
                     var link = document.createElement("a");
                     link.setAttribute("href", "/mercuryservices/fullresults/?"+ $.param(thisDataObject));
+                    link.setAttribute("download", "");
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
-                    grid.parent().find('button[name=exportCSV]').click();
-                    button_state.button('reset');
+                    // some testing indicated that the server takes 0.33 seconds for each page requested
+                    setTimeout(function(){grid.parent().find('button[name=exportCSV]').click();}, (resultPages * 330));
+                    setTimeout(function(){loading.hide();}, (resultPages * 330));
+                    setTimeout(function(){button_state.button('reset');}, (resultPages * 330));
                 });
 
             });

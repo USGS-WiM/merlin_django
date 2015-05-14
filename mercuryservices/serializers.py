@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework_bulk import BulkSerializerMixin, BulkListSerializer
 from mercuryservices.models import *
 
 
@@ -9,52 +10,58 @@ from mercuryservices.models import *
 ######
 
 
-class ProjectSerializer(serializers.ModelSerializer):
-    cooperator = serializers.RelatedField(source='cooperator')
+class ProjectSerializer(serializers.ModelSerializer, BulkSerializerMixin):
+    cooperator_string = serializers.StringRelatedField(source='cooperator')
 
     class Meta:
+        list_serializer_class = BulkListSerializer
         model = Project
-        fields = ('id', 'name', 'description', 'accounting_code', 'cooperator', 'sites',)
+        fields = ('id', 'name', 'description', 'accounting_code', 'cooperator', 'cooperator_string', 'sites',)
 
 
-class SimpleProjectSerializer(serializers.ModelSerializer):
+class SimpleProjectSerializer(serializers.ModelSerializer, BulkSerializerMixin):
 
     class Meta:
+        list_serializer_class = BulkListSerializer
         model = Project
         fields = ('id', 'name', 'description', 'accounting_code', 'cooperator',)
 
 
-class CooperatorSerializer(serializers.ModelSerializer):
+class CooperatorSerializer(serializers.ModelSerializer, BulkSerializerMixin):
 
     class Meta:
+        list_serializer_class = BulkListSerializer
         model = Cooperator
         fields = ('id', 'name', 'agency', 'email', 'phone', 'sec_phone', 'address', 'city', 'state', 'zipcode',
-                  'country', 'projects',)
+                  'country')
 
 
-class SiteSerializer(serializers.ModelSerializer):
+class SiteSerializer(serializers.ModelSerializer, BulkSerializerMixin):
 
     class Meta:
+        list_serializer_class = BulkListSerializer
         model = Site
         fields = ('id', 'name', 'usgs_sid', 'usgs_scode', 'description', 'latitude', 'longitude', 'datum',
                   'method', 'site_status', 'nwis_customer_code', 'projects',)
 
 
-class SimpleSiteSerializer(serializers.ModelSerializer):
+class SimpleSiteSerializer(serializers.ModelSerializer, BulkSerializerMixin):
 
     class Meta:
+        list_serializer_class = BulkListSerializer
         model = Site
         fields = ('id', 'name', 'usgs_sid', 'usgs_scode', 'description', 'latitude', 'longitude', 'datum',
                   'method', 'site_status', 'nwis_customer_code',)
 
 
-class ProjectSiteSerializer(serializers.ModelSerializer):
-    project_name = serializers.RelatedField(source='project', read_only=True)
-    site_name = serializers.RelatedField(source='site', read_only=True)
+class ProjectSiteSerializer(serializers.ModelSerializer, BulkSerializerMixin):
+    project_string = serializers.StringRelatedField(source='project')
+    site_string = serializers.StringRelatedField(source='site')
 
     class Meta:
+        list_serializer_class = BulkListSerializer
         model = ProjectSite
-        fields = ('id', 'project', 'site', 'project_name', 'site_name')
+        fields = ('id', 'project', 'project_string', 'site', 'site_string')
 
 
 ######
@@ -64,100 +71,114 @@ class ProjectSiteSerializer(serializers.ModelSerializer):
 ######
 
 
-class BottleTypeSerializer(serializers.ModelSerializer):
+class BottleTypeSerializer(serializers.ModelSerializer, BulkSerializerMixin):
 
     class Meta:
+        list_serializer_class = BulkListSerializer
         model = BottleType
         fields = ('id', 'bottle_type', 'description',)
 
 
-class BottlePrefixSerializer(serializers.ModelSerializer):
-    created_date = serializers.DateTimeField(format='%m/%d/%y', source='created_date')
-    bottle_type = serializers.RelatedField(source='bottle_type')
+class BottlePrefixSerializer(serializers.ModelSerializer, BulkSerializerMixin):
+    created_date = serializers.DateField(format='%m/%d/%y')
+    bottle_type_string = serializers.StringRelatedField(source='bottle_type')
 
     class Meta:
+        list_serializer_class = BulkListSerializer
         model = BottlePrefix
-        fields = ('id', 'bottle_prefix', 'tare_weight', 'bottle_type', 'created_date', 'description',)
+        fields = ('id', 'bottle_prefix', 'tare_weight', 'bottle_type', 'bottle_type_string',
+                  'created_date', 'description',)
 
 
-class BottleSerializer(serializers.ModelSerializer):
-    created_date = serializers.DateTimeField(format='%m/%d/%y', source='created_date')
-    bottle_prefix = serializers.RelatedField(source='bottle_prefix')
+class BottleSerializer(serializers.ModelSerializer, BulkSerializerMixin):
+    created_date = serializers.DateField(format='%m/%d/%y')
+    bottle_prefix_string = serializers.StringRelatedField(source='bottle_prefix')
 
     class Meta:
+        list_serializer_class = BulkListSerializer
+        model = Bottle
+        fields = ('id', 'bottle_unique_name', 'bottle_prefix', 'bottle_prefix_string', 'created_date', 'description',)
+
+
+class FullBottleSerializer(serializers.ModelSerializer, BulkSerializerMixin):
+    created_date = serializers.DateField(format='%m/%d/%y')
+    bottle_prefix = BottlePrefixSerializer()
+
+    class Meta:
+        list_serializer_class = BulkListSerializer
         model = Bottle
         fields = ('id', 'bottle_unique_name', 'bottle_prefix', 'created_date', 'description',)
 
 
-class FullBottleSerializer(serializers.ModelSerializer):
-    created_date = serializers.DateTimeField(format='%m/%d/%y', source='created_date')
-    bottle_prefix = BottlePrefixSerializer(source='bottle_prefix')
-
-    class Meta:
-        model = Bottle
-        fields = ('id', 'bottle_unique_name', 'bottle_prefix', 'created_date', 'description',)
-
-
-class SampleSerializer(serializers.ModelSerializer):
-    #sample_date_time = serializers.DateTimeField(format='%Y-%m-%d %H%:M:%S', source='sample_date_time')
+class SampleSerializer(serializers.ModelSerializer, BulkSerializerMixin):
+    sample_date_time = serializers.DateTimeField(format='%Y-%m-%d %H:%M:%S')
     sample_date = serializers.DateTimeField(format='%m/%d/%y', source='sample_date_time', read_only=True)
     sample_time = serializers.DateTimeField(format='%H%M', source='sample_date_time', read_only=True)
-    received_date = serializers.DateTimeField(format='%m/%d/%y', source='received_date')
-    project = SimpleProjectSerializer(source='project', read_only=True)
-    site = SimpleSiteSerializer(source='site', read_only=True)
-    medium_type = serializers.RelatedField(source='medium_type')
-    lab_processing = serializers.RelatedField(source='lab_processing')
-    sample_bottles = serializers.RelatedField(many=True, read_only=True)
+    received_date = serializers.DateField(format='%m/%d/%y')
+    project_string = serializers.StringRelatedField(source='project')
+    site_string = serializers.StringRelatedField(source='site')
+    site_usgs_scode = serializers.StringRelatedField(source='site.usgs_scode')
+    medium_type_string = serializers.StringRelatedField(source='medium_type')
+    lab_processing_string = serializers.StringRelatedField(source='lab_processing')
+    sample_bottles = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
 
     class Meta:
+        list_serializer_class = BulkListSerializer
         model = Sample
         fields = ('id', 'sample_date_time', 'sample_date', 'sample_time', 'depth', 'length', 'comment', 'received_date',
-                  'replicate', 'medium_type', 'lab_processing', 'sample_bottles', 'site', 'project',)
+                  'replicate', 'medium_type', 'medium_type_string', 'lab_processing', 'lab_processing_string',
+                  'sample_bottles', 'project', 'project_string', 'site', 'site_string', 'site_usgs_scode')
 
 
-class SampleBottleSerializer(serializers.ModelSerializer):
-    #sample = serializers.RelatedField(source='sample')
-    bottle = serializers.RelatedField(source='bottle')
+class SampleBottleSerializer(serializers.ModelSerializer, BulkSerializerMixin):
+    bottle_string = serializers.StringRelatedField(source='bottle')
 
     class Meta:
+        list_serializer_class = BulkListSerializer
         model = SampleBottle
-        fields = ('id', 'sample', 'bottle', 'filter_type', 'volume_filtered',
+        fields = ('id', 'sample', 'bottle', 'bottle_string', 'filter_type', 'volume_filtered',
                   'preservation_type', 'preservation_volume', 'preservation_acid', 'preservation_comment',)
 
 
-class SampleBottleBrominationSerializer(serializers.ModelSerializer):
-    sample_bottle = SampleBottleSerializer(source='sample_bottle')
-    created_date = serializers.DateTimeField(format='%m/%d/%y', source='created_date')
+class SampleBottleBrominationSerializer(serializers.ModelSerializer, BulkSerializerMixin):
+    sample_bottle_unique_name = serializers.StringRelatedField(source='sample_bottle.bottle.bottle_unique_name')
+    created_date = serializers.DateField(format='%m/%d/%y')
 
     class Meta:
+        list_serializer_class = BulkListSerializer
         model = SampleBottleBromination
-        fields = ('id', 'sample_bottle', 'bromination', 'bromination_event', 'bromination_volume', 'created_date',)
+        fields = ('id', 'sample_bottle', 'sample_bottle_unique_name',
+                  'bromination', 'bromination_event', 'bromination_volume', 'created_date',)
 
 
-class FilterTypeSerializer(serializers.ModelSerializer):
+class FilterTypeSerializer(serializers.ModelSerializer, BulkSerializerMixin):
 
     class Meta:
+        list_serializer_class = BulkListSerializer
         model = FilterType
         fields = ('id', 'filter', 'description',)
 
 
-class PreservationTypeSerializer(serializers.ModelSerializer):
+class PreservationTypeSerializer(serializers.ModelSerializer, BulkSerializerMixin):
 
     class Meta:
+        list_serializer_class = BulkListSerializer
         model = PreservationType
         fields = ('id', 'preservation', 'description',)
 
 
-class ProcessingTypeSerializer(serializers.ModelSerializer):
+class ProcessingTypeSerializer(serializers.ModelSerializer, BulkSerializerMixin):
 
     class Meta:
+        list_serializer_class = BulkListSerializer
         model = ProcessingType
         fields = ('id', 'processing', 'description',)
 
 
-class MediumTypeSerializer(serializers.ModelSerializer):
+class MediumTypeSerializer(serializers.ModelSerializer, BulkSerializerMixin):
 
     class Meta:
+        list_serializer_class = BulkListSerializer
         model = MediumType
         fields = ('id', 'nwis_code', 'medium', 'description', 'comment',)
 
@@ -169,23 +190,26 @@ class MediumTypeSerializer(serializers.ModelSerializer):
 ######
 
 
-class ConstituentTypeSerializer(serializers.ModelSerializer):
+class ConstituentTypeSerializer(serializers.ModelSerializer, BulkSerializerMixin):
 
     class Meta:
+        list_serializer_class = BulkListSerializer
         model = ConstituentType
         fields = ('id', 'constituent', 'description',)
 
 
-class ConstituentMediumSerializer(serializers.ModelSerializer):
+class ConstituentMediumSerializer(serializers.ModelSerializer, BulkSerializerMixin):
 
     class Meta:
+        list_serializer_class = BulkListSerializer
         model = ConstituentMedium
         fields = ('id', 'constituent_type', 'medium_type',)
 
 
-class ConstituentMethodSerializer(serializers.ModelSerializer):
+class ConstituentMethodSerializer(serializers.ModelSerializer, BulkSerializerMixin):
 
     class Meta:
+        list_serializer_class = BulkListSerializer
         model = ConstituentMethod
         fields = ('id', 'constituent_type', 'method_type',)
 
@@ -197,31 +221,35 @@ class ConstituentMethodSerializer(serializers.ModelSerializer):
 ######
 
 
-class QualityAssuranceSerializer(serializers.ModelSerializer):
-    quality_assurance = serializers.RelatedField(source='quality_assurance')
+class QualityAssuranceSerializer(serializers.ModelSerializer, BulkSerializerMixin):
+    quality_assurance_string = serializers.StringRelatedField(source='quality_assurance')
 
     class Meta:
+        list_serializer_class = BulkListSerializer
         model = QualityAssurance
-        fields = ('id', 'quality_assurance', 'result',)
+        fields = ('id', 'quality_assurance', 'quality_assurance_string', 'result',)
 
 
-class QualityAssuranceTypeSerializer(serializers.ModelSerializer):
+class QualityAssuranceTypeSerializer(serializers.ModelSerializer, BulkSerializerMixin):
 
     class Meta:
+        list_serializer_class = BulkListSerializer
         model = QualityAssuranceType
         fields = ('id', 'quality_assurance', 'description',)
 
 
-class DetectionFlagSerializer(serializers.ModelSerializer):
+class DetectionFlagSerializer(serializers.ModelSerializer, BulkSerializerMixin):
 
     class Meta:
+        list_serializer_class = BulkListSerializer
         model = DetectionFlag
         fields = ('id', 'detection_flag', 'description',)
 
 
-class IsotopeFlagSerializer(serializers.ModelSerializer):
+class IsotopeFlagSerializer(serializers.ModelSerializer, BulkSerializerMixin):
 
     class Meta:
+        list_serializer_class = BulkListSerializer
         model = IsotopeFlag
         fields = ('id', 'isotope_flag', 'description',)
 
@@ -232,26 +260,29 @@ class IsotopeFlagSerializer(serializers.ModelSerializer):
 ######
 
 
-class AcidSerializer(serializers.ModelSerializer):
-    created_date = serializers.DateTimeField(format='%m/%d/%y', source='created_date')
+class AcidSerializer(serializers.ModelSerializer, BulkSerializerMixin):
+    created_date = serializers.DateField(format='%m/%d/%y')
 
     class Meta:
+        list_serializer_class = BulkListSerializer
         model = Acid
         fields = ('id', 'code', 'concentration', 'created_date', 'comment',)
 
 
-class BlankWaterSerializer(serializers.ModelSerializer):
-    created_date = serializers.DateTimeField(format='%m/%d/%y', source='created_date')
+class BlankWaterSerializer(serializers.ModelSerializer, BulkSerializerMixin):
+    created_date = serializers.DateField(format='%m/%d/%y')
 
     class Meta:
+        list_serializer_class = BulkListSerializer
         model = BlankWater
         fields = ('id', 'lot_number', 'concentration', 'created_date', 'comment',)
 
 
-class BrominationSerializer(serializers.ModelSerializer):
-    created_date = serializers.DateTimeField(format='%m/%d/%y', source='created_date')
+class BrominationSerializer(serializers.ModelSerializer, BulkSerializerMixin):
+    created_date = serializers.DateField(format='%m/%d/%y')
 
     class Meta:
+        list_serializer_class = BulkListSerializer
         model = Bromination
         fields = ('id', 'concentration', 'created_date', 'comment',)
 
@@ -263,9 +294,10 @@ class BrominationSerializer(serializers.ModelSerializer):
 ######
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer, BulkSerializerMixin):
 
     class Meta:
+        list_serializer_class = BulkListSerializer
         model = User
         fields = ('id', 'username', 'first_name', 'last_name', 'email',
                   'groups', 'user_permissions', 'is_superuser', 'is_staff', 'is_active')
@@ -278,31 +310,35 @@ class UserSerializer(serializers.ModelSerializer):
 ######
 
 
-class StatusSerializer(serializers.ModelSerializer):
-    date_time_stamp = serializers.DateTimeField(format='%Y-%m-%d %H:%M:%S', source='date_time_stamp')
+class StatusSerializer(serializers.ModelSerializer, BulkSerializerMixin):
+    date_time_stamp = serializers.DateTimeField(format='%Y-%m-%d %H:%M:%S')
 
     class Meta:
+        list_serializer_class = BulkListSerializer
         model = Status
         fields = ('id', 'status_id', 'status_type', 'procedure_type', 'user', 'date_time_stamp', 'note',)
 
 
-class ProcedureStatusTypeSerializer(serializers.ModelSerializer):
+class ProcedureStatusTypeSerializer(serializers.ModelSerializer, BulkSerializerMixin):
 
     class Meta:
+        list_serializer_class = BulkListSerializer
         model = ProcedureStatusType
         fields = ('id', 'procedure_type', 'status_type',)
 
 
-class StatusTypeSerializer(serializers.ModelSerializer):
+class StatusTypeSerializer(serializers.ModelSerializer, BulkSerializerMixin):
 
     class Meta:
+        list_serializer_class = BulkListSerializer
         model = StatusType
         fields = ('id', 'status_type',)
 
 
-class ProcedureTypeSerializer(serializers.ModelSerializer):
+class ProcedureTypeSerializer(serializers.ModelSerializer, BulkSerializerMixin):
 
     class Meta:
+        list_serializer_class = BulkListSerializer
         model = ProcedureType
         fields = ('id', 'procedure',)
 
@@ -314,39 +350,19 @@ class ProcedureTypeSerializer(serializers.ModelSerializer):
 ######
 
 
-class FullSampleBottleSerializer(serializers.ModelSerializer):
-    sample = SampleSerializer(source='sample')
-    bottle = FullBottleSerializer(source='bottle')
-    filter_type = serializers.RelatedField(source='filter_type')
-    preservation_type = serializers.RelatedField(source='preservation_type')
-    preservation_acid = serializers.RelatedField(source='preservation_acid')
+class FullSampleBottleSerializer(serializers.ModelSerializer, BulkSerializerMixin):
+    sample = SampleSerializer()
+    bottle = FullBottleSerializer()
+    filter_type_string = serializers.StringRelatedField(source='filter_type')
+    preservation_type_string = serializers.StringRelatedField(source='preservation_type')
+    preservation_acid_string = serializers.StringRelatedField(source='preservation_acid')
 
     class Meta:
+        list_serializer_class = BulkListSerializer
         model = SampleBottle
-        fields = ('id', 'bottle', 'filter_type', 'volume_filtered',
-                  'preservation_type', 'preservation_volume', 'preservation_acid', 'preservation_comment',
-                  'sample',)
-
-
-    # sample = serializers.IntegerField(source='sample')
-    # project = serializers.IntegerField(source='project')
-    # site = serializers.IntegerField(source='site')
-    # time_stamp = serializers.DateTimeField(format='%Y-%m-%d %H:%M:%S', source='time_stamp')
-    # depth = serializers.FloatField(source='depth')
-    # length = serializers.FloatField(source='length')
-    # comment = serializers.CharField(source='comment')
-    # received_time_stamp = serializers.DateTimeField(format='%Y-%m-%d %H:%M:%S', source='received_time_stamp')
-    # replicate = serializers.IntegerField(source='replicate')
-    # medium_type = serializers.IntegerField(source='medium_type')
-    # lab_processing = serializers.IntegerField(source='lab_processing')
-    # samplebottle = serializers.IntegerField(source='samplebottle')
-    # bottle = serializers.IntegerField(source='bottle')
-    # filter_type = serializers.IntegerField(source='filter_type')
-    # volume_filtered = serializers.FloatField(source='volume_filtered')
-    # preservation_type = serializers.IntegerField(source='preservation_type')
-    # preservation_volume = serializers.FloatField(source='preservation_volume')
-    # preservation_acid = serializers.IntegerField(source='preservation_acid')
-    # preservation_comment = serializers.CharField(source='preservation_comment')
+        fields = ('id', 'bottle', 'filter_type', 'filter_type_string', 'volume_filtered', 'preservation_type',
+                  'preservation_type_string', 'preservation_volume', 'preservation_acid', 'preservation_acid_string',
+                  'preservation_comment', 'sample',)
 
 
 ######
@@ -356,44 +372,47 @@ class FullSampleBottleSerializer(serializers.ModelSerializer):
 ######
 
 
-class UnitTypeSerializer(serializers.ModelSerializer):
+class UnitTypeSerializer(serializers.ModelSerializer, BulkSerializerMixin):
 
     class Meta:
+        list_serializer_class = BulkListSerializer
         model = UnitType
         fields = ('id', 'unit', 'description',)
 
 
-class MethodTypeSerializer(serializers.ModelSerializer):
-    raw_value_unit = serializers.RelatedField(source='raw_value_unit')
-    final_value_unit = serializers.RelatedField(source='final_value_unit')
-    method_detection_limit_unit = serializers.RelatedField(source='method_detection_limit_unit')
+class MethodTypeSerializer(serializers.ModelSerializer, BulkSerializerMixin):
+    raw_value_unit_string = serializers.StringRelatedField(source='raw_value_unit')
+    final_value_unit_string = serializers.StringRelatedField(source='final_value_unit')
+    method_detection_limit_unit_string = serializers.StringRelatedField(source='method_detection_limit_unit')
 
     class Meta:
+        list_serializer_class = BulkListSerializer
         model = MethodType
         fields = ('id', 'method_code', 'method', 'preparation', 'description',
-                  'method_detection_limit', 'method_detection_limit_unit', 'raw_value_unit', 'final_value_unit',
+                  'method_detection_limit', 'method_detection_limit_unit', 'method_detection_limit_unit_string',
+                  'raw_value_unit', 'raw_value_unit_string', 'final_value_unit', 'final_value_unit_string',
                   'decimal_places', 'significant_figures', 'standard_operating_procedure',
                   'nwis_parameter_code', 'nwis_parameter_name', 'nwis_method_code',)
 
 
 class FlatResultSerializer(serializers.ModelSerializer):
     result_id = serializers.IntegerField(source='id', read_only=True)
-    bottle = serializers.RelatedField(source='sample_bottle.bottle.bottle_unique_name')
-    tare_weight = serializers.RelatedField(source='sample_bottle.bottle.bottle_prefix.tare_weight')
-    project_name = serializers.RelatedField(source='sample_bottle.sample.project.name')
-    site_name = serializers.RelatedField(source='sample_bottle.sample.site.name')
+    bottle = serializers.StringRelatedField(source='sample_bottle.bottle.bottle_unique_name')
+    tare_weight = serializers.FloatField(source='sample_bottle.bottle.bottle_prefix.tare_weight', read_only=True)
+    project_name = serializers.StringRelatedField(source='sample_bottle.sample.project.name')
+    site_name = serializers.StringRelatedField(source='sample_bottle.sample.site.name')
     sample_date = serializers.DateTimeField(format='%m/%d/%y',
                                             source='sample_bottle.sample.sample_date_time', read_only=True)
     sample_time = serializers.DateTimeField(format='%H%M',
                                             source='sample_bottle.sample.sample_date_time', read_only=True)
-    depth = serializers.RelatedField(source='sample_bottle.sample.depth')
-    constituent = serializers.RelatedField(source='constituent')
-    isotope_flag = serializers.RelatedField(source='isotope_flag')
-    received_date = serializers.RelatedField(source='sample_bottle.sample.received_date')
-    comments = serializers.RelatedField(source='sample_bottle.sample.comment')
-    unit = serializers.RelatedField(source='method.final_value_unit')
-    detection_flag = serializers.RelatedField(source='detection_flag')
-    analyzed_date = serializers.DateTimeField(format='%m/%d/%y', source='analyzed_date', read_only=True)
+    depth = serializers.FloatField(source='sample_bottle.sample.depth', read_only=True)
+    constituent = serializers.StringRelatedField()
+    isotope_flag = serializers.StringRelatedField()
+    received_date = serializers.StringRelatedField(source='sample_bottle.sample.received_date')
+    comments = serializers.StringRelatedField(source='sample_bottle.sample.comment')
+    unit = serializers.StringRelatedField(source='method.final_value_unit')
+    detection_flag = serializers.StringRelatedField()
+    analyzed_date = serializers.DateTimeField(format='%m/%d/%y', read_only=True)
 
     class Meta:
         model = Result
@@ -404,66 +423,78 @@ class FlatResultSerializer(serializers.ModelSerializer):
 
 class FlatResultSampleSerializer(serializers.ModelSerializer):
     sample_id = serializers.IntegerField(source='sample_bottle.sample.id', read_only=True)
-    project_name = serializers.RelatedField(source='sample_bottle.sample.project.name')
-    site_name = serializers.RelatedField(source='sample_bottle.sample.site.name')
-    site_id = serializers.RelatedField(source='sample_bottle.sample.site.usgs_scode')
+    project_name = serializers.StringRelatedField(source='sample_bottle.sample.project.name')
+    project_id = serializers.StringRelatedField(source='sample_bottle.sample.project.id')
+    site_name = serializers.StringRelatedField(source='sample_bottle.sample.site.name')
+    site_id = serializers.StringRelatedField(source='sample_bottle.sample.site.usgs_scode')
     date = serializers.DateTimeField(format='%m/%d/%y', source='sample_bottle.sample.sample_date_time', read_only=True)
     time = serializers.DateTimeField(format='%H%M', source='sample_bottle.sample.sample_date_time', read_only=True)
-    depth = serializers.RelatedField(source='sample_bottle.sample.depth')
-    length = serializers.RelatedField(source='sample_bottle.sample.length')
-    received = serializers.RelatedField(source='sample_bottle.sample.received_date')
-    sample_comments = serializers.RelatedField(source='sample_bottle.sample.comment')
-    container_id = serializers.RelatedField(source='sample_bottle.bottle.bottle_unique_name')
-    lab_processing = serializers.RelatedField(source='sample_bottle.sample.lab_processing')
-    medium = serializers.RelatedField(source='sample_bottle.sample.medium_type')
-    analysis = serializers.RelatedField(source='constituent')
-    isotope = serializers.RelatedField(source='isotope_flag')
-    filter = serializers.RelatedField(source='sample_bottle.filter_type')
-    filter_vol = serializers.RelatedField(source='sample_bottle.volume_filtered')
-    preservation = serializers.RelatedField(source='sample_bottle.preservation_type')
-    acid = serializers.RelatedField(source='sample_bottle.preservation_acid')
-    acid_vol = serializers.RelatedField(source='sample_bottle.preservation_volume')
-    pres_comments = serializers.RelatedField(source='sample_bottle.preservation_comment')
+    depth = serializers.FloatField(source='sample_bottle.sample.depth', read_only=True)
+    length = serializers.FloatField(source='sample_bottle.sample.length', read_only=True)
+    replicate = serializers.StringRelatedField(source='sample_bottle.sample.replicate')
+    received = serializers.StringRelatedField(source='sample_bottle.sample.received_date')
+    sample_comments = serializers.StringRelatedField(source='sample_bottle.sample.comment')
+    container_id = serializers.StringRelatedField(source='sample_bottle.bottle.bottle_unique_name')
+    lab_processing = serializers.StringRelatedField(source='sample_bottle.sample.lab_processing')
+    medium = serializers.StringRelatedField(source='sample_bottle.sample.medium_type')
+    analysis = serializers.StringRelatedField(source='constituent')
+    isotope = serializers.StringRelatedField(source='isotope_flag')
+    filter = serializers.StringRelatedField(source='sample_bottle.filter_type')
+    filter_vol = serializers.FloatField(source='sample_bottle.volume_filtered', read_only=True)
+    preservation = serializers.StringRelatedField(source='sample_bottle.preservation_type')
+    acid = serializers.StringRelatedField(source='sample_bottle.preservation_acid')
+    acid_vol = serializers.FloatField(source='sample_bottle.preservation_volume', read_only=True)
+    pres_comments = serializers.StringRelatedField(source='sample_bottle.preservation_comment')
+    sample_bottle_id = serializers.IntegerField(source='sample_bottle.id', read_only=True)
+    result_id = serializers.IntegerField(source='id', read_only=True)
 
     class Meta:
         model = Result
-        fields = ('sample_id', 'project_name', 'site_name', 'site_id', 'date', 'time', 'depth', 'length',
-                  'received', 'sample_comments', 'container_id', 'lab_processing', 'medium', 'analysis', 'isotope',
-                  'filter', 'filter_vol', 'preservation', 'acid', 'acid_vol', 'pres_comments')
+        fields = ('sample_id', 'project_name', 'project_id', 'site_name', 'site_id', 'date', 'time', 'depth', 'length',
+                  'replicate', 'sample_comments', 'received', 'lab_processing', 'container_id', 'medium', 'analysis',
+                  'isotope', 'filter', 'filter_vol', 'preservation', 'acid', 'acid_vol', 'pres_comments',
+                  'sample_bottle_id', 'result_id')
 
 
-class FullResultSerializer(serializers.ModelSerializer):
-    entry_date = serializers.DateTimeField(format='%m/%d/%y', source='entry_date', read_only=True)
-    analyzed_date = serializers.DateTimeField(format='%m/%d/%y', source='analyzed_date', read_only=True)
-    created_date = serializers.DateTimeField(format='%m/%d/%y', source='created_date', read_only=True)
-    sample_bottle = FullSampleBottleSerializer(source='sample_bottle')
-    method = MethodTypeSerializer(source='method')
-    constituent = serializers.RelatedField(source='constituent')
-    isotope_flag = serializers.RelatedField(source='isotope_flag')
-    detection_flag = serializers.RelatedField(source='detection_flag')
+class FullResultSerializer(serializers.ModelSerializer, BulkSerializerMixin):
+    entry_date = serializers.DateField(format='%m/%d/%y', read_only=True)
+    analyzed_date = serializers.DateField(format='%m/%d/%y', read_only=True)
+    created_date = serializers.DateField(format='%m/%d/%y', read_only=True)
+    sample_bottle = FullSampleBottleSerializer()
+    method = MethodTypeSerializer()
+    constituent_string = serializers.StringRelatedField(source='constituent')
+    isotope_flag_string = serializers.StringRelatedField(source='isotope_flag')
+    detection_flag_string = serializers.StringRelatedField(source='detection_flag')
+    quality_assurances = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
 
     class Meta:
+        list_serializer_class = BulkListSerializer
         model = Result
-        fields = ('id', 'constituent', 'isotope_flag', 'raw_value', 'final_value', 'report_value',
-                  'detection_flag', 'raw_daily_detection_limit', 'final_daily_detection_limit',
+        fields = ('id', 'constituent', 'constituent_string', 'isotope_flag', 'isotope_flag_string',
+                  'raw_value', 'final_value', 'report_value', 'detection_flag', 'detection_flag_string',
+                  'raw_daily_detection_limit', 'final_daily_detection_limit',
                   'sediment_dry_weight', 'sample_mass_processed', 'entry_date', 'analyzed_date', 'created_date',
                   'analysis_comment', 'quality_assurances', 'method', 'sample_bottle',)
 
 
-class ResultSerializer(serializers.ModelSerializer):
-    entry_date = serializers.DateTimeField(format='%m/%d/%y', source='entry_date', read_only=True)
-    analyzed_date = serializers.DateTimeField(format='%m/%d/%y', source='analyzed_date', read_only=True)
-    created_date = serializers.DateTimeField(format='%m/%d/%y', source='created_date', read_only=True)
-    sample_bottle = serializers.RelatedField(source='sample_bottle')
-    constituent = serializers.RelatedField(source='constituent')
-    isotope_flag = serializers.RelatedField(source='isotope_flag')
+class ResultSerializer(serializers.ModelSerializer, BulkSerializerMixin):
+    entry_date = serializers.DateTimeField(format='%m/%d/%y', read_only=True)
+    analyzed_date = serializers.DateTimeField(format='%m/%d/%y', read_only=True)
+    created_date = serializers.DateTimeField(format='%m/%d/%y', read_only=True)
+    sample_bottle_unique_name = serializers.StringRelatedField(source='sample_bottle.bottle.bottle_unique_name')
+    constituent_string = serializers.StringRelatedField(source='constituent')
+    isotope_flag_string = serializers.StringRelatedField(source='isotope_flag')
+    detection_flag_string = serializers.StringRelatedField(source='detection_flag')
+    quality_assurances = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
 
     class Meta:
+        list_serializer_class = BulkListSerializer
         model = Result
-        fields = ('id', 'method', 'constituent', 'isotope_flag', 'raw_value', 'final_value', 'report_value',
-                  'detection_flag', 'raw_daily_detection_limit', 'final_daily_detection_limit',
+        fields = ('id', 'method', 'constituent', 'constituent_string', 'isotope_flag', 'isotope_flag_string',
+                  'raw_value', 'final_value', 'report_value', 'detection_flag', 'detection_flag_string',
+                  'raw_daily_detection_limit', 'final_daily_detection_limit',
                   'sediment_dry_weight', 'sample_mass_processed', 'entry_date', 'analyzed_date', 'created_date',
-                  'analysis_comment', 'quality_assurances', 'sample_bottle',)
+                  'analysis_comment', 'quality_assurances', 'sample_bottle', 'sample_bottle_unique_name')
 
 
 ######
@@ -483,7 +514,7 @@ class ReportResultsCountProjectsSerializer(serializers.Serializer):
     project_name = serializers.CharField()
     count = serializers.IntegerField()
     nwis_customer_code = serializers.CharField()
-    null = serializers.CharField()
+    #null = serializers.CharField()
     cooperator_email = serializers.EmailField()
 
 
@@ -506,7 +537,7 @@ class ReportSamplesNwisSerializer(serializers.Serializer):
     tissue_id = serializers.CharField()
     body_part_cd = serializers.CharField()
     lab_smp_comment = serializers.CharField()
-    field_smp_comment = models.TextField()
+    field_smp_comment = serializers.CharField()
     sample_tz_cd = serializers.CharField()
     tm_datum_rlblty_cd = serializers.CharField()
     coll_agency_cd = serializers.CharField()
@@ -538,11 +569,11 @@ class ReportResultsNwisSerializer(serializers.Serializer):
 class ReportResultsCooperatorSerializer(serializers.Serializer):
     site_name = serializers.CharField()
     usgs_scode = serializers.CharField()
-    sample_date_time = serializers.DateTimeField(format='%m/%d/%y %H:%M:%S', source='sample_date_time')
+    sample_date_time = serializers.DateTimeField(format='%m/%d/%y %H:%M:%S')
     medium = serializers.CharField()
     length = serializers.CharField()
     depth = serializers.CharField()
-    analysis_date = serializers.DateTimeField(format='%m/%d/%y', source='analysis_date')
+    analysis_date = serializers.DateField(format='%m/%d/%y')
     result_id = serializers.IntegerField()
     bottle = serializers.CharField()
     constituent = serializers.CharField()
