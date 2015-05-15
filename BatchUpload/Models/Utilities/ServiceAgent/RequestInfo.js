@@ -1,11 +1,11 @@
-define(["require", "exports"], function(require, exports) {
+define(["require", "exports"], function (require, exports) {
     var RequestInfo = (function () {
         function RequestInfo(url, isAsync, type, data, dType, doProcess) {
-            if (typeof isAsync === "undefined") { isAsync = true; }
-            if (typeof type === "undefined") { type = "GET"; }
-            if (typeof data === "undefined") { data = null; }
-            if (typeof dType === "undefined") { dType = "json"; }
-            if (typeof doProcess === "undefined") { doProcess = false; }
+            if (isAsync === void 0) { isAsync = true; }
+            if (type === void 0) { type = "GET"; }
+            if (data === void 0) { data = null; }
+            if (dType === void 0) { dType = "json"; }
+            if (doProcess === void 0) { doProcess = false; }
             this.URL = url;
             this.Type = type;
             this.DataType = dType;
@@ -15,8 +15,6 @@ define(["require", "exports"], function(require, exports) {
         }
         return RequestInfo;
     })();
-
-    
     return RequestInfo;
 });
 //# sourceMappingURL=RequestInfo.js.map

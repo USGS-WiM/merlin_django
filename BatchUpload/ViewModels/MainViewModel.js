@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 //----- MainVM ---------------------------------------------------------------
 //------------------------------------------------------------------------------
-define(["require", "exports", "Scripts/events/EventHandler", "Models/Utilities/ServiceAgent/MercuryServiceAgent", "Models/Messaging/Notification", "ViewModels/AuthenticationViewModel", "ViewModels/QualityAssuranceViewModel", "Models/Messaging/LogEntry", "knockout", "modernizr"], function(require, exports, EventHandler, MercuryServiceAgent, MSG, AuthenticationVM, QAViewModel, LogEntry) {
+define(["require", "exports", "Scripts/events/EventHandler", "Models/Utilities/ServiceAgent/MercuryServiceAgent", "Models/Messaging/Notification", "ViewModels/AuthenticationViewModel", "ViewModels/QualityAssuranceViewModel", "Models/Messaging/LogEntry", "knockout", "modernizr"], function (require, exports, EventHandler, MercuryServiceAgent, MSG, AuthenticationVM, QAViewModel, LogEntry) {
     // Class
     var MainViewModel = (function () {
         //Constructor
@@ -16,10 +16,8 @@ define(["require", "exports", "Scripts/events/EventHandler", "Models/Utilities/S
             var _this = this;
             // cancel event and hover styling
             this.HandleDrag(event);
-
             //take first only
             this.sm(new MSG.NotificationArgs("Loading File.", 0 /* INFORMATION */, 0, true));
-
             var files = event.target.files || event.originalEvent.dataTransfer.files;
             setTimeout(function () {
                 _this.HandleFiles(files);
@@ -40,11 +38,9 @@ define(["require", "exports", "Scripts/events/EventHandler", "Models/Utilities/S
             if (!this.canUpdateProceedure(pType))
                 return;
             this.SelectedProcedure(pType);
-
             switch (pType) {
                 case 3 /* SUBMIT */:
                     this.Authorization.Init();
-
                     this.Authorization.Login();
             }
         };
@@ -54,17 +50,17 @@ define(["require", "exports", "Scripts/events/EventHandler", "Models/Utilities/S
             }
         };
         MainViewModel.prototype.SetConstituentMethods = function (r) {
-            try  {
+            try {
                 if (!r.constituent())
                     throw Error();
                 var mAgent = new MercuryServiceAgent(false);
                 var c = mAgent.GetConstituentMethodList(r.constituent().id);
                 r.constituentMethods(c);
-            } catch (e) {
+            }
+            catch (e) {
                 r.constituentMethods([]);
             }
         };
-
         MainViewModel.prototype.SelectPreviousSample = function () {
             var index = this.SampleList.indexOf(this.SelectedSample()) - 1;
             if (index < 0)
@@ -77,7 +73,11 @@ define(["require", "exports", "Scripts/events/EventHandler", "Models/Utilities/S
                 index = 0;
             this.SelectedSample(this.SampleList()[index]);
         };
-
+        MainViewModel.prototype.Toggle = function () {
+            if (!this.CanToggle())
+                return;
+            $("#wrapper").toggleClass("toggled");
+        };
         //Helper Methods
         //-+-+-+-+-+-+-+-+-+-+-+-
         MainViewModel.prototype.init = function () {
@@ -90,16 +90,15 @@ define(["require", "exports", "Scripts/events/EventHandler", "Models/Utilities/S
             this.ConstituentList = [];
             this.UnitList = [];
             this.IsLoading = ko.observable(false);
-
             this.Authorization = new AuthenticationVM();
             this.QAViewModel = new QAViewModel();
             this.isInit = false;
+            this.CanToggle = ko.observable(false);
             this.SelectedSample = ko.observable(null);
             this.SelectedProcedure = ko.observable(1 /* IMPORT */);
             this.AllowDrop = (Modernizr.draganddrop) ? ko.observable(true) : ko.observable(false);
             this.mAgent = new MercuryServiceAgent();
             this.subscribeToEvents();
-
             //methods for knockout to work with
             this.ShowQAPopup = function () {
                 _this.QAViewModel.Show(true);
@@ -111,13 +110,12 @@ define(["require", "exports", "Scripts/events/EventHandler", "Models/Utilities/S
         };
         MainViewModel.prototype.onFileLoaded = function (agent) {
             var _this = this;
-            try  {
+            try {
                 this.SampleList(agent.SampleList);
                 this.ConstituentList = agent.ConstituentList;
                 this.UnitList = agent.UnitList;
                 this.IsotopeFlagList = agent.IsotopeList;
                 this.QAViewModel.QualityAssuranceList(agent.QualityAssuranceList);
-
                 this.fileLoaded = true;
                 this.fileValid = agent.FileValid;
                 if (this.fileValid) {
@@ -126,18 +124,20 @@ define(["require", "exports", "Scripts/events/EventHandler", "Models/Utilities/S
                     });
                     this.Authorization.onAuthenticated.subscribe(this._onAuthenticatedHandler);
                     this.SetProcedureType(2 /* VALIDATE */);
+                    this.CanToggle(true);
                     this.sm(new MSG.NotificationArgs("File successfully loaded", 1 /* SUCCESS */, 0, false));
                     this.sm(new MSG.NotificationArgs("Validate samples, then submit."));
                     this.unSubscribeToEvents();
                 }
-            } finally {
+            }
+            finally {
                 delete agent;
             }
         };
         MainViewModel.prototype.canUpdateProceedure = function (pType) {
             //Project flow:
             var msg;
-            try  {
+            try {
                 if (!this.isInit)
                     return;
                 switch (pType) {
@@ -146,7 +146,6 @@ define(["require", "exports", "Scripts/events/EventHandler", "Models/Utilities/S
                     case 2 /* VALIDATE */:
                         if (!this.fileLoaded || !this.fileValid)
                             this.sm(new MSG.NotificationArgs("Import a valid lab document", 2 /* WARNING */));
-
                         return this.fileLoaded && this.fileValid;
                     case 3 /* SUBMIT */:
                         var isOK = this.fileIsOK();
@@ -154,30 +153,29 @@ define(["require", "exports", "Scripts/events/EventHandler", "Models/Utilities/S
                             this.sm(new MSG.NotificationArgs("Import a valid lab document", 2 /* WARNING */));
                         if (!isOK)
                             this.sm(new MSG.NotificationArgs("Samples contains invalid entries. Please fix before submitting", 2 /* WARNING */));
-
                         return isOK && this.fileLoaded && this.fileValid;
-
                     case 4 /* LOG */:
                         if (!this.fileLoaded)
                             this.sm(new MSG.NotificationArgs("Import a valid lab document", 2 /* WARNING */));
-
                         return this.fileLoaded;
                     default:
                         return false;
                 }
-            } catch (e) {
+            }
+            catch (e) {
                 this.sm(new MSG.NotificationArgs(e.message, 0 /* INFORMATION */, 1.5));
                 return false;
             }
         };
         MainViewModel.prototype.fileIsOK = function () {
-            try  {
+            try {
                 for (var i = 0; i < this.SampleList().length; i++) {
                     if (this.SampleList()[i].Result().HasErrors())
                         return false;
                 }
                 return true;
-            } catch (e) {
+            }
+            catch (e) {
                 return false;
             }
         };
@@ -186,27 +184,27 @@ define(["require", "exports", "Scripts/events/EventHandler", "Models/Utilities/S
         };
         MainViewModel.prototype.onAuthenticated = function (agent) {
             var token = '';
-            try  {
+            try {
                 token = agent.AuthenticationToken();
                 if (token == '' || token == undefined || token == null)
                     throw new Error("Invalid token");
                 this.mAgent.SetTokenAuthentication(token);
                 this.submitSampleResults();
-            } catch (e) {
-            } finally {
+            }
+            catch (e) {
+            }
+            finally {
                 delete agent;
             }
         };
         MainViewModel.prototype.submitSampleResults = function () {
             var _this = this;
             this.sm(new MSG.NotificationArgs("Submitting sample results. Please wait....", 0 /* INFORMATION */, 0, true));
-
             //subscribe to mAgent.Onsubmit success
             this._onAgentSubmitCompleteHandler = new EventHandler(function (sender) {
                 _this.onSubmitComplete(sender);
             });
             this.mAgent.onSubmitComplete.subscribe(this._onAgentSubmitCompleteHandler);
-
             this.mAgent.SubmitSamples(this.SampleList());
         };
         MainViewModel.prototype.onSubmitComplete = function (sender) {
@@ -219,7 +217,6 @@ define(["require", "exports", "Scripts/events/EventHandler", "Models/Utilities/S
                 _this.onFileLoaded(sender);
             });
             this.mAgent.onLoadComplete.subscribe(this._onAgentCompleteHandler);
-
             this._onMsgReceivedHandler = new EventHandler(function (sender, e) {
                 _this.onRecieveMsg(sender, e);
             });
@@ -231,25 +228,23 @@ define(["require", "exports", "Scripts/events/EventHandler", "Models/Utilities/S
         };
         MainViewModel.prototype.sm = function (msg) {
             var _this = this;
-            try  {
+            try {
                 toastr.options = {
                     positionClass: "toast-bottom-right"
                 };
-
                 this.NotificationList.unshift(new LogEntry(msg.msg, msg.type));
-
                 setTimeout(function () {
                     toastr[msg.type](msg.msg);
                     if (msg.ShowWaitCursor != undefined)
                         _this.IsLoading(msg.ShowWaitCursor);
                 }, 0);
-            } catch (e) {
+            }
+            catch (e) {
             }
         };
         return MainViewModel;
     })();
-    exports.MainViewModel = MainViewModel;
-
+    exports.MainViewModel = MainViewModel; //end class
     (function (ProcedureType) {
         ProcedureType[ProcedureType["IMPORT"] = 1] = "IMPORT";
         ProcedureType[ProcedureType["VALIDATE"] = 2] = "VALIDATE";

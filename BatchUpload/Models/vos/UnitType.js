@@ -1,4 +1,4 @@
-define(["require", "exports"], function(require, exports) {
+define(["require", "exports"], function (require, exports) {
     // Class
     var UnitType = (function () {
         // Constructor
@@ -12,12 +12,10 @@ define(["require", "exports"], function(require, exports) {
             this.id = json.hasOwnProperty("id") ? json["id"] : -9999;
             this.unit = json.hasOwnProperty("unit") ? json["unit"] : "";
             this.description = json.hasOwnProperty("description") ? json["description"] : "";
-
             return this;
         };
         return UnitType;
     })();
-    
     return UnitType;
 });
 //# sourceMappingURL=UnitType.js.map

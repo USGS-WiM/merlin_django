@@ -1,4 +1,4 @@
-define(["require", "exports"], function(require, exports) {
+define(["require", "exports"], function (require, exports) {
     var EventHandler = (function () {
         function EventHandler(handler) {
             this._handler = handler;
@@ -8,8 +8,6 @@ define(["require", "exports"], function(require, exports) {
         };
         return EventHandler;
     })();
-
-    
     return EventHandler;
 });
 //# sourceMappingURL=EventHandler.js.map

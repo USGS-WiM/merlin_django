@@ -1,4 +1,4 @@
-define(["require", "exports"], function(require, exports) {
+define(["require", "exports"], function (require, exports) {
     // Class
     var Constituent = (function () {
         // Constructor
@@ -12,13 +12,10 @@ define(["require", "exports"], function(require, exports) {
             this.id = json.hasOwnProperty("id") ? json["id"] : -9999;
             this.constituent = json.hasOwnProperty("constituent") ? json["constituent"] : "";
             this.description = json.hasOwnProperty("description") ? json["description"] : "";
-
             return this;
         };
         return Constituent;
     })();
-
-    
     return Constituent;
 });
 //# sourceMappingURL=Constituent.js.map

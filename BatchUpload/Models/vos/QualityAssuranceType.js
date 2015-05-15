@@ -1,4 +1,4 @@
-define(["require", "exports"], function(require, exports) {
+define(["require", "exports"], function (require, exports) {
     // Class
     var QualityAssuranceType = (function () {
         // Constructor
@@ -12,13 +12,10 @@ define(["require", "exports"], function(require, exports) {
             this.id = json.hasOwnProperty("id") ? json["id"] : -9999;
             this.quality_assurance = json.hasOwnProperty("quality_assurance") ? json["quality_assurance"] : "";
             this.description = json.hasOwnProperty("description") ? json["description"] : "";
-
             return this;
         };
         return QualityAssuranceType;
     })();
-
-    
     return QualityAssuranceType;
 });
 //# sourceMappingURL=QualityAssuranceType.js.map

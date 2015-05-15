@@ -1,4 +1,4 @@
-define(["require", "exports"], function(require, exports) {
+define(["require", "exports"], function (require, exports) {
     // Class
     var User = (function () {
         // Constructor
@@ -9,7 +9,6 @@ define(["require", "exports"], function(require, exports) {
         User.prototype.ToJSON = function () {
             return ko.toJSON(this.Replacer());
         };
-
         //Helper methods
         User.prototype.Replacer = function () {
             return {
@@ -19,8 +18,6 @@ define(["require", "exports"], function(require, exports) {
         };
         return User;
     })();
-
-    
     return User;
 });
 //# sourceMappingURL=User.js.map

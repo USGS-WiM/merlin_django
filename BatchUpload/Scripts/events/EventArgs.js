@@ -1,4 +1,4 @@
-define(["require", "exports"], function(require, exports) {
+define(["require", "exports"], function (require, exports) {
     var EventArgs = (function () {
         function EventArgs() {
         }
@@ -11,7 +11,6 @@ define(["require", "exports"], function(require, exports) {
         });
         return EventArgs;
     })();
-    
     return EventArgs;
 });
 //# sourceMappingURL=EventArgs.js.map

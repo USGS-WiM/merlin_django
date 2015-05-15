@@ -1,9 +1,7 @@
 //------------------------------------------------------------------------------
 //----- AuthenticationVM ---------------------------------------------------------------
 //------------------------------------------------------------------------------
-define(["require", "exports", "Models/vos/User", "Models/Utilities/ServiceAgent/AuthenticationAgent", "Scripts/events/EventArgs", "Scripts/events/Delegate"], function(require, exports, User, AuthenticationAgent, EventArgs, Delegate) {
-    
-
+define(["require", "exports", "Models/vos/User", "Models/Utilities/ServiceAgent/AuthenticationAgent", "Scripts/events/EventArgs", "Scripts/events/Delegate"], function (require, exports, User, AuthenticationAgent, EventArgs, Delegate) {
     // Class
     var AuthenticationViewModel = (function () {
         //Constructor
@@ -23,7 +21,6 @@ define(["require", "exports", "Models/vos/User", "Models/Utilities/ServiceAgent/
             enumerable: true,
             configurable: true
         });
-
         //Methods
         //-+-+-+-+-+-+-+-+-+-+-+-
         AuthenticationViewModel.prototype.Init = function () {
@@ -36,11 +33,10 @@ define(["require", "exports", "Models/vos/User", "Models/Utilities/ServiceAgent/
         AuthenticationViewModel.prototype.AuthenticateUser = function () {
             var aAgent = null;
             var tokn = null;
-            try  {
+            try {
                 this.LoginMSG("");
                 if (this.User.UserName() == null || this.User.Password() == null)
                     return;
-
                 aAgent = new AuthenticationAgent(this.User);
                 tokn = aAgent.GetTokenAuthentication();
                 if (tokn != undefined && tokn != null && tokn != '') {
@@ -48,18 +44,18 @@ define(["require", "exports", "Models/vos/User", "Models/Utilities/ServiceAgent/
                     this.ShowLogin(false);
                     this.onAuthenticated.raise(this, EventArgs.Empty);
                 }
-            } catch (e) {
+            }
+            catch (e) {
                 this.LoginMSG('Authentication failed. Please try again');
-            } finally {
+            }
+            finally {
                 this.User.Password(null);
                 this.User.UserName(null);
                 delete aAgent;
             }
         };
         return AuthenticationViewModel;
-    })();
-
-    
+    })(); //end class
     return AuthenticationViewModel;
 });
 //# sourceMappingURL=AuthenticationViewModel.js.map
