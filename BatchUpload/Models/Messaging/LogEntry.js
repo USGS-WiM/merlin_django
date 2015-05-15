@@ -1,4 +1,4 @@
-define(["require", "exports"], function(require, exports) {
+define(["require", "exports"], function (require, exports) {
     // Class
     var LogEntry = (function () {
         // Constructor
@@ -6,13 +6,10 @@ define(["require", "exports"], function(require, exports) {
             this.dateTime = new Date();
             this.message = msg;
             this.type = t;
-
             this.displayedMSG = this.dateTime.toLocaleString() + " " + this.type + " " + this.message;
         }
         return LogEntry;
     })();
-
-    
     return LogEntry;
 });
 //# sourceMappingURL=LogEntry.js.map

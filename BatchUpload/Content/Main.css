@@ -86,6 +86,12 @@ textarea:focus{
 li.danger > button {
   background-color: #f2dede;
 }
+.sampleList {
+    overflow-x:hidden;
+    overflow-y:auto;
+    width:11em;
+    height:600px;
+}
 
 /*CSS for ID's*/
 #dropZone{
@@ -119,3 +125,4 @@ li.danger > button {
 	top: 40%;
 	display:none;
 }
+

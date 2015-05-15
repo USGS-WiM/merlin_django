@@ -1,4 +1,4 @@
-define(["require", "exports"], function(require, exports) {
+define(["require", "exports"], function (require, exports) {
     // Class
     var Project = (function () {
         // Constructor
@@ -8,22 +8,20 @@ define(["require", "exports"], function(require, exports) {
             this.description = "";
         }
         Project.Deserialize = function (json) {
-            try  {
+            try {
                 var p = new Project();
                 if (json.hasOwnProperty("results"))
                     json = json['results'][0];
-
                 p.id = json.hasOwnProperty("id") ? Number(json["id"]) : -9999;
                 p.name = json.hasOwnProperty("name") ? json["name"] : "---";
                 p.description = json.hasOwnProperty("description") ? json["description"] : "---";
                 return p;
-            } catch (e) {
+            }
+            catch (e) {
             }
         };
         return Project;
     })();
-
-    
     return Project;
 });
 //# sourceMappingURL=Project.js.map

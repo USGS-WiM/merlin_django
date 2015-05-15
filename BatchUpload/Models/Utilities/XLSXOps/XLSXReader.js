@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 //----- XLSXReader--------------------------------------------------------------
 //------------------------------------------------------------------------------
-define(["require", "exports", "Scripts/events/Delegate", "Scripts/events/EventArgs"], function(require, exports, Delegate, EventArgs) {
+define(["require", "exports", "Scripts/events/Delegate", "Scripts/events/EventArgs"], function (require, exports, Delegate, EventArgs) {
     // Class
     var XLSXReader = (function () {
         // Constructor
@@ -16,53 +16,40 @@ define(["require", "exports", "Scripts/events/Delegate", "Scripts/events/EventAr
             enumerable: true,
             configurable: true
         });
-
         // Methods
         XLSXReader.prototype.LoadFile = function () {
             var _this = this;
             var reader = new FileReader();
             var name = this.File.name;
-            reader.onload = function (event) {
-                return _this.readerOnload(event);
-            };
+            reader.onload = function (event) { return _this.readerOnload(event); };
             reader.readAsArrayBuffer(this.File);
         };
-
         XLSXReader.prototype.GetData = function (SheetName) {
             var results = [];
             var currentRow = 0;
             var thisRow = 0;
             var index = -1;
-
             var data = this.WorkBook.Sheets.hasOwnProperty(SheetName) ? this.WorkBook.Sheets[SheetName] : null;
-
             if (!data)
                 return results;
-
             for (var z in data) {
                 if (z[0] === '!')
                     continue;
                 thisRow = Number(z.match(/[0-9]+/)[0]);
-
                 if (currentRow != thisRow) {
                     index++;
                     currentRow = thisRow;
                     results.push({});
-                }
-
+                } //end if
                 results[index][z.match(/[A-Za-z]/)[0]] = (data[z].v);
             }
-
             return results;
         };
-
         //Helper Methods
         XLSXReader.prototype.readerOnload = function (e) {
             var data = e.target.result;
-
             this.WorkBook = XLSX.read(data, { type: 'binary' });
             this.Worksheets = this.WorkBook.SheetNames;
-
             this._onLoadComplete.raise(this, EventArgs.Empty);
         };
         XLSXReader.prototype.GetWorksheetIndex = function (itemSelected) {
@@ -77,9 +64,7 @@ define(["require", "exports", "Scripts/events/Delegate", "Scripts/events/EventAr
             return -1;
         };
         return XLSXReader;
-    })();
-
-    
+    })(); //end class
     return XLSXReader;
 });
 //# sourceMappingURL=XLSXReader.js.map

@@ -1,4 +1,4 @@
-define(["require", "exports"], function(require, exports) {
+define(["require", "exports"], function (require, exports) {
     // Class
     var ServiceAgent = (function () {
         // Constructor
@@ -29,29 +29,22 @@ define(["require", "exports"], function(require, exports) {
         ServiceAgent.prototype.SetTokenAuthentication = function (token) {
             this.authentication = "token " + token;
         };
-
         ServiceAgent.prototype.TransformDictionary = function (item) {
             var dictionary = {};
-
             for (var key in item) {
                 dictionary[item[key]] = key;
             }
-
             return dictionary;
         };
         ServiceAgent.prototype.HandleOnSerializableComplete = function (type, list, container) {
-            list.forEach(function (l) {
-                return container.push(new type().Deserialize(l));
-            });
+            list.forEach(function (l) { return container.push(new type().Deserialize(l)); });
         };
-
         ServiceAgent.prototype.HandleOnError = function (err) {
             //do something
             console.log(err);
         };
         return ServiceAgent;
     })();
-    
     return ServiceAgent;
 });
 //# sourceMappingURL=ServiceAgent.js.map

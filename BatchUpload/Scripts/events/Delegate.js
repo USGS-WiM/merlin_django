@@ -1,4 +1,4 @@
-define(["require", "exports"], function(require, exports) {
+define(["require", "exports"], function (require, exports) {
     var Delegate = (function () {
         function Delegate() {
             this._eventHandlers = new Array();
@@ -8,14 +8,12 @@ define(["require", "exports"], function(require, exports) {
                 this._eventHandlers.push(eventHandler);
             }
         };
-
         Delegate.prototype.unsubscribe = function (eventHandler) {
             var i = this._eventHandlers.indexOf(eventHandler);
             if (i != -1) {
                 this._eventHandlers.splice(i, 1);
             }
         };
-
         Delegate.prototype.raise = function (sender, e) {
             for (var i = 0; i < this._eventHandlers.length; i++) {
                 this._eventHandlers[i].handle(sender, e);
@@ -23,8 +21,6 @@ define(["require", "exports"], function(require, exports) {
         };
         return Delegate;
     })();
-
-    
     return Delegate;
 });
 //# sourceMappingURL=Delegate.js.map
