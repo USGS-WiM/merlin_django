@@ -538,19 +538,21 @@ def samples_update(request):
 
             # validate this sample already exists in the database, otherwise notify the user
             logger.info("VALIDATE Sample in Search Save")
-            sample_values_unique = [
-                row.get('project'), row.get('site'), row.get('sample_date_time'), row.get('depth'), row.get('replicate')
-            ]
-            this_sample_unique = dict(zip(SAMPLE_KEYS_UNIQUE, sample_values_unique))
-            logger.info(str(this_sample_unique))
+            #sample_values_unique = [
+            #    row.get('project'), row.get('site'), row.get('sample_date_time'), row.get('depth'), row.get('replicate')
+            #]
+            #this_sample_unique = dict(zip(SAMPLE_KEYS_UNIQUE, sample_values_unique))
+            #logger.info(str(this_sample_unique))
             # couldn't get requests.request() to work properly here, so using requests.get() instead
-            r = requests.get(REST_SERVICES_URL+'samples/', params=this_sample_unique)
+            #r = requests.get(REST_SERVICES_URL+'samples/', params=this_sample_unique)
+            r = requests.get(REST_SERVICES_URL+'samples/', params={"id": this_sample_id})
             logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
             response_data = r.json()
             logger.info("count: " + str(response_data['count']))
             # if response count equals zero, then this sample does not exist in the database
             if response_data['count'] == 0:
-                logger.warning("Validation Warning: " + str(sample_values_unique) + " count == 0")
+                #logger.warning("Validation Warning: " + str(sample_values_unique) + " count == 0")
+                logger.warning("Validation Warning: " + str(this_sample_id) + " count == 0")
                 r = requests.get(REST_SERVICES_URL+'projects/', params={'id': row.get('project')})
                 project_name = r.json()[0]['name']
                 r = requests.get(REST_SERVICES_URL+'sites/', params={'id': row.get('site')})
