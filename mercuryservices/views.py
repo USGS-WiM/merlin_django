@@ -108,7 +108,11 @@ class SiteViewSet(viewsets.ModelViewSet):
         # filter by site ID
         site_id = self.request.query_params.get('id', None)
         if site_id is not None:
-            queryset = queryset.filter(id__icontains=site_id)
+            queryset = queryset.filter(id__exact=site_id)
+        # filter by site usgs scode
+        usgs_scode = self.request.query_params.get('usgs_scode', None)
+        if usgs_scode is not None:
+            queryset = queryset.filter(usgs_scode__exact=usgs_scode)
         # filter by project name or ID
         project = self.request.query_params.get('project', None)
         if project is not None:
