@@ -21,7 +21,7 @@ define(["require", "exports", "./ServiceAgent", "./RequestInfo"], function (requ
         AuthenticationAgent.prototype.GetTokenAuthentication = function () {
             var json;
             var token = '';
-            this.Execute(new RequestInfo("/login", false, "POST", this.user.ToJSON(), "json"), function (x) { return json = x; }, this.HandleOnError);
+            this.Execute(new RequestInfo("/login/", false, "POST", this.user.ToJSON(), "json"), function (x) { return json = x; }, this.HandleOnError);
             token = json.hasOwnProperty("auth_token") ? json["auth_token"] : "";
             return token;
         };
