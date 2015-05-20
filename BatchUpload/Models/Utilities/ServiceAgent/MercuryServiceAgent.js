@@ -236,8 +236,12 @@ define(["require", "exports", "../XLSXOps/XLSXReader", "./ServiceAgent", "./Requ
         };
         MercuryServiceAgent.prototype.HandleSubmitComplete = function (successObj) {
             this.sm("submitting results completed", 1 /* SUCCESS */, false);
+            var msg = "";
+            var success = false;
             for (var i = 0; i < successObj.length; i++) {
-                this.sm(successObj[i].message, successObj[i].sucess ? 1 /* SUCCESS */ : 3 /* ERROR */);
+                msg = successObj[i].hasOwnProperty("message") ? successObj[i].message : "no message";
+                success = successObj[i].hasOwnProperty("success") ? successObj[i].success : false;
+                this.sm(msg, success ? 1 /* SUCCESS */ : 3 /* ERROR */);
             }
             this.onSubmitComplete.raise(this, EventArgs.Empty);
         };
