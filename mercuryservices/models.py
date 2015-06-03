@@ -362,6 +362,7 @@ class Result(models.Model):
     created_date = models.DateField(default=datetime.now, null=True, blank=True)
     modified_date = models.DateField(auto_now=True, null=True, blank=True)
     status = models.ForeignKey('Status', null=True, blank=True)
+    final_method_detection_limit = models.FloatField(null=True, blank=True)
 
     def __str__(self):
         return str(self.id)

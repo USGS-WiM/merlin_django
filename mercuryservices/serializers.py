@@ -494,7 +494,7 @@ class ResultSerializer(serializers.ModelSerializer, BulkSerializerMixin):
                   'raw_value', 'final_value', 'report_value', 'detection_flag', 'detection_flag_string',
                   'raw_daily_detection_limit', 'final_daily_detection_limit',
                   'sediment_dry_weight', 'sample_mass_processed', 'entry_date', 'analyzed_date', 'created_date',
-                  'analysis_comment', 'quality_assurances', 'sample_bottle', 'sample_bottle_unique_name')
+                  'analysis_comment', 'quality_assurances', 'sample_bottle', 'sample_bottle_unique_name','final_method_detection_limit')
 
 
 ######

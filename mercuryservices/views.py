@@ -1082,22 +1082,23 @@ class BatchUpload(views.APIView):
                 result_details.method_id = method_id
 
                 #get and process the final_value
-                result_details.final_value = float(display_value)
+                result_details.final_value = float(raw_value)
                 result_details.final_value = process_final_value(
                     result_details.final_value, method_id, volume_filtered, sediment_dry_weight, sample_mass_processed)
 
-                #calculate the report value
+                #calculate the final_method_detection_limit and report value
                 method_detection_limit, significant_figures, decimal_places = get_method_type(method_id)
-                final_method_detection_limit = process_daily_detection_limit(
-                    daily_detection_limit, method_id, volume_filtered, sediment_dry_weight, sample_mass_processed)
-                if (
-                        method_detection_limit is not None
-                        and result_details.final_value is not None
-                        and result_details.final_value < method_detection_limit
-                ):
-                    result_details.report_value = final_method_detection_limit
-                else:
-                    result_details.report_value = result_details.final_value
+                final_method_detection_limit = process_method_daily_detection_limit(
+                    method_detection_limit, method_id, volume_filtered, sediment_dry_weight, sample_mass_processed)
+                result_details.final_method_detection_limit = final_method_detection_limit
+#                if (
+#                        method_detection_limit is not None
+#                        and result_details.final_value is not None
+#                        and result_details.final_value < method_detection_limit
+#                ):
+#                    result_details.report_value = final_method_detection_limit
+#                else:
+                result_details.report_value = process_report_value(reported_value, method_id, volume_filtered, sediment_dry_weight, sample_mass_processed)
 
                 result_details.detection_flag = DetectionFlag.objects.get(detection_flag=detection_flag)
 
@@ -1375,7 +1376,6 @@ def eval_result(row, result_id):
         #get isotope flag
         result_details = Result.objects.get(id=result_id)
         isotope_flag = str(result_details.isotope_flag)
-
         try:
             analysis_date = dt.strptime(row["analyzed_date"], "%m/%d/%Y")
         except ValueError:
@@ -1658,22 +1658,51 @@ def process_final_value(final_value, method_id, volume_filtered, sediment_dry_we
     elif final_value == -999 or final_value == -888:
         value = final_value
     elif method_id in (86, 92, 103, 104):
-        value = round(final_value * 100, 2)
+        value = final_value * 100
     elif method_id == 42:
-        value = round(final_value / 1000, 4)
+        value = final_value / 1000
     elif method_id in (48, 49, 83, 84, 85, 233, 211):
         if volume_filtered is not None:
-            value = round(final_value * 1000 / volume_filtered, 3)
+            value = final_value * 1000 / volume_filtered
     elif method_id == 52 or method_id == 71:
         if sediment_dry_weight is not None and sediment_dry_weight != -999:
             if sample_mass_processed is not None and sample_mass_processed != -999:
-                value = round(final_value / sediment_dry_weight / sample_mass_processed, 2)
-    elif method_id in (73, 127, 157, 228):
+                value = final_value / sediment_dry_weight / sample_mass_processed
+    elif method_id in (73, 127, 157):
         if sample_mass_processed is not None and sample_mass_processed != -999:
-            value = round(final_value / sample_mass_processed, 2)
+            value = final_value / sample_mass_processed
     elif method_id in (50, 74, 82):
         if sediment_dry_weight is not None and sediment_dry_weight != -999:
-            value = round(final_value / sediment_dry_weight, 2)
+            value = final_value / sediment_dry_weight
+    elif method_id == 228:
+        if sample_mass_processed is not None and sample_mass_processed != -999:
+            value = final_value / sample_mass_processed
+    return value
+
+
+def process_report_value(report_value, method_id, volume_filtered, sediment_dry_weight, sample_mass_processed):
+    value = report_value
+    if method_id is None or report_value is None:
+        value = report_value
+    elif report_value == -999 or report_value == -888:
+        value = report_value
+    elif method_id in (86, 92, 103, 104):
+        value = round(report_value * 100, 2)
+    elif method_id == 42:
+        value = round(report_value / 1000, 4)
+    elif method_id in (48, 49, 83, 84, 85, 233, 211):
+        if volume_filtered is not None:
+            value = round(report_value * 1000 / volume_filtered, 3)
+    elif method_id == 52 or method_id == 71:
+        if sediment_dry_weight is not None and sediment_dry_weight != -999:
+            if sample_mass_processed is not None and sample_mass_processed != -999:
+                value = round(report_value / sediment_dry_weight / sample_mass_processed, 2)
+    elif method_id in (73, 127, 157, 228):
+        if sample_mass_processed is not None and sample_mass_processed != -999:
+            value = round(report_value / sample_mass_processed, 2)
+    elif method_id in (50, 74, 82):
+        if sediment_dry_weight is not None and sediment_dry_weight != -999:
+            value = round(report_value / sediment_dry_weight, 2)
     return value
 
 
@@ -1740,4 +1769,6 @@ def process_method_daily_detection_limit(
             value = -999
         else:
             value = method_daily_detection_limit / sample_mass_processed
+    if value is not None:
+        value = round(value,4)
     return value
