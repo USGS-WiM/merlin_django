@@ -329,7 +329,11 @@ class SampleBottleBrominationViewSet(viewsets.ModelViewSet):
             # if query values are IDs
             if bottle_list[0].isdigit():
                 #logger.info(bottle_list[0])
-                queryset = queryset.filter(sample_bottle__bottle__id__in=bottle_list)
+                #queryset = queryset.filter(sample_bottle__bottle__id__in=bottle_list)
+                clauses = ' '.join(['WHEN bottle_id=%s THEN %s' % (pk, i) for i, pk in enumerate(bottle_list)])
+                ordering = 'CASE %s END' % clauses
+                queryset = queryset.filter(sample_bottle__bottle__id__in=bottle_list).extra(
+                    select={'ordering': ordering}, order_by=('ordering',))
                 #logger.info(queryset)
             # if query values are names
             else:
@@ -558,11 +562,19 @@ class FullResultViewSet(viewsets.ModelViewSet):
             # if query values are IDs
             if bottle_list[0].isdigit():
                 #logger.info(bottle_list[0])
-                queryset = queryset.filter(sample_bottle__bottle__id__in=bottle_list)
+                #queryset = queryset.filter(sample_bottle__bottle__id__in=bottle_list)
+                clauses = ' '.join(['WHEN bottle_id=%s THEN %s' % (pk, i) for i, pk in enumerate(bottle_list)])
+                ordering = 'CASE %s END' % clauses
+                queryset = queryset.filter(sample_bottle__bottle__id__in=bottle_list).extra(
+                    select={'ordering': ordering}, order_by=('ordering',))
                 #logger.info(queryset)
             # if query values are names
             else:
-                queryset = queryset.filter(sample_bottle__bottle__bottle_unique_name__in=bottle_list)
+                #queryset = queryset.filter(sample_bottle__bottle__bottle_unique_name__in=bottle_list)
+                clauses = ' '.join(['WHEN bottle_unique_name=%s THEN %s' % (pk, i) for i, pk in enumerate(bottle_list)])
+                ordering = 'CASE %s END' % clauses
+                queryset = queryset.filter(sample_bottle__bottle__bottle_unique_name__in=bottle_list).extra(
+                    select={'ordering': ordering}, order_by=('ordering',))
             exclude_null_results = self.request.query_params.get('exclude_null_results')
             if exclude_null_results is not None:
                 if exclude_null_results == 'True' or exclude_null_results == 'true':
@@ -572,9 +584,9 @@ class FullResultViewSet(viewsets.ModelViewSet):
             return queryset
         # else, search by other params
         else:
-            barcode = self.request.query_params.get('barcode', None)
-            if barcode is not None:
-                queryset = queryset.filter(sample_bottle__exact=barcode)
+            #barcode = self.request.query_params.get('barcode', None)
+            #if barcode is not None:
+            #    queryset = queryset.filter(sample_bottle__exact=barcode)
             exclude_null_results = self.request.query_params.get('exclude_null_results')
             if exclude_null_results is not None:
                 if exclude_null_results == 'True' or exclude_null_results == 'true':

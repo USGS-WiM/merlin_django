@@ -32,6 +32,7 @@ class Cooperator(models.Model):
 
     class Meta:
         db_table = "mercury_cooperator"
+        unique_together = ("name", "agency")
 
 
 class Project(models.Model):
@@ -53,7 +54,7 @@ class Project(models.Model):
 class Site(models.Model):
     """A sampling location, usually an official USGS site. Can be used by more than one project."""
 
-    name = models.CharField(max_length=128, unique=True)
+    name = models.CharField(max_length=128)
     usgs_sid = models.CharField(max_length=128, blank=True)
     usgs_scode = models.CharField(max_length=128, blank=True)
     description = models.TextField(blank=True)
@@ -85,6 +86,7 @@ class ProjectSite(models.Model):
     class Meta:
         db_table = "mercury_projectsite"
         ordering = ['-id']
+        unique_together = ("project", "site")
 
 
 ######
@@ -239,13 +241,15 @@ class Sample(models.Model):
 
     class Meta:
         db_table = "mercury_sample"
+        unique_together = ("project", "site", "sample_date_time", "depth", "replicate")
 
 
 class SampleBottle(models.Model):
     """A bottle (reusable or disposable) containing a (portion of a) sample. Used for analysis methods."""
 
     sample = models.ForeignKey('Sample', related_name='sample_bottles', null=True)
-    bottle = models.ForeignKey('Bottle', related_name='sample_bottles', null=True)
+    #bottle = models.ForeignKey('Bottle', related_name='sample_bottles', unique=True, null=True)
+    bottle = models.OneToOneField('Bottle', related_name='sample_bottles', null=True)
     filter_type = models.ForeignKey('FilterType', null=True, blank=True)
     volume_filtered = models.FloatField(null=True, blank=True)
     preservation_type = models.ForeignKey('PreservationType', null=True, blank=True)
@@ -261,6 +265,7 @@ class SampleBottle(models.Model):
 
     class Meta:
         db_table = "mercury_samplebottle"
+        unique_together = ("sample", "bottle")
 
 
 # class FullSampleBottle(models.Model):
@@ -292,6 +297,7 @@ class SampleBottleBromination(models.Model):
     class Meta:
         db_table = "mercury_samplebottlebromination"
         ordering = ['-created_date']
+        unique_together = ("sample_bottle", "bromination", "bromination_event")
 
 
 ######
@@ -369,6 +375,7 @@ class Result(models.Model):
 
     class Meta:
         db_table = "mercury_result"
+        unique_together = ("sample_bottle", "constituent", "isotope_flag")
 
 
 ######
@@ -406,6 +413,7 @@ class ConstituentMedium(models.Model):
 
     class Meta:
         db_table = "mercury_constituentmedium"
+        unique_together = ("constituent_type", "medium_type")
 
 
 class ConstituentMethod(models.Model):
@@ -420,6 +428,7 @@ class ConstituentMethod(models.Model):
 
     class Meta:
         db_table = "mercury_constituentmethod"
+        unique_together = ("constituent_type", "method_type")
 
 
 ######
@@ -441,6 +450,7 @@ class QualityAssurance(models.Model):
 
     class Meta:
         db_table = "mercury_qualityassurance"
+        unique_together = ("quality_assurance", "result")
 
 
 class QualityAssuranceType(models.Model):
@@ -789,6 +799,7 @@ class ResultCooperator(models.Model):
 
     class Meta:
         db_table = "report_cooperator_results"
+        managed = False
 
 
 ######

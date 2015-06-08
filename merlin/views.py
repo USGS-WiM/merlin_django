@@ -151,11 +151,11 @@ def samples_create(request):
         r = requests.get(REST_SERVICES_URL+'samplebottles/', params={"bottle": this_bottle})
         logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
         response_data = r.json()
-        bottle_name = response_data['results'][0]['bottle_string']
         logger.info("count: " + str(response_data['count']))
         # if response count does not equal zero, then this bottle is already used by a sample in the database
         if response_data['count'] != 0:
             logger.warning("Validation Warning: " + str(this_bottle) + " count != 0")
+            bottle_name = response_data['results'][0]['bottle_string']
             r = requests.get(REST_SERVICES_URL+'projects/', params={'id': row.get('project')})
             project_name = r.json()[0]['name']
             r = requests.get(REST_SERVICES_URL+'sites/', params={'id': row.get('site')})

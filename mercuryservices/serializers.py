@@ -80,7 +80,7 @@ class BottleTypeSerializer(serializers.ModelSerializer, BulkSerializerMixin):
 
 
 class BottlePrefixSerializer(serializers.ModelSerializer, BulkSerializerMixin):
-    created_date = serializers.DateField(format='%m/%d/%y')
+    created_date = serializers.DateField(format='%m/%d/%y', input_formats=['%Y-%m-%d'])
     bottle_type_string = serializers.StringRelatedField(source='bottle_type')
 
     class Meta:
@@ -91,7 +91,7 @@ class BottlePrefixSerializer(serializers.ModelSerializer, BulkSerializerMixin):
 
 
 class BottleSerializer(serializers.ModelSerializer, BulkSerializerMixin):
-    created_date = serializers.DateField(format='%m/%d/%y')
+    created_date = serializers.DateField(format='%m/%d/%y', input_formats=['%Y-%m-%d'])
     bottle_prefix_string = serializers.StringRelatedField(source='bottle_prefix')
 
     class Meta:
@@ -101,7 +101,7 @@ class BottleSerializer(serializers.ModelSerializer, BulkSerializerMixin):
 
 
 class FullBottleSerializer(serializers.ModelSerializer, BulkSerializerMixin):
-    created_date = serializers.DateField(format='%m/%d/%y')
+    created_date = serializers.DateField(format='%m/%d/%y', input_formats=['%Y-%m-%d'])
     bottle_prefix = BottlePrefixSerializer()
 
     class Meta:
@@ -114,7 +114,7 @@ class SampleSerializer(serializers.ModelSerializer, BulkSerializerMixin):
     sample_date_time = serializers.DateTimeField(format='%Y-%m-%d %H:%M:%S')
     sample_date = serializers.DateTimeField(format='%m/%d/%y', source='sample_date_time', read_only=True)
     sample_time = serializers.DateTimeField(format='%H%M', source='sample_date_time', read_only=True)
-    received_date = serializers.DateField(format='%m/%d/%y')
+    received_date = serializers.DateField(format='%m/%d/%y', input_formats=['%Y-%m-%d'])
     project_string = serializers.StringRelatedField(source='project')
     site_string = serializers.StringRelatedField(source='site')
     site_usgs_scode = serializers.StringRelatedField(source='site.usgs_scode')
@@ -142,7 +142,7 @@ class SampleBottleSerializer(serializers.ModelSerializer, BulkSerializerMixin):
 
 class SampleBottleBrominationSerializer(serializers.ModelSerializer, BulkSerializerMixin):
     sample_bottle_unique_name = serializers.StringRelatedField(source='sample_bottle.bottle.bottle_unique_name')
-    created_date = serializers.DateField(format='%m/%d/%y')
+    created_date = serializers.DateField(format='%m/%d/%y', input_formats=['%Y-%m-%d'])
 
     class Meta:
         list_serializer_class = BulkListSerializer
@@ -261,7 +261,7 @@ class IsotopeFlagSerializer(serializers.ModelSerializer, BulkSerializerMixin):
 
 
 class AcidSerializer(serializers.ModelSerializer, BulkSerializerMixin):
-    created_date = serializers.DateField(format='%m/%d/%y')
+    created_date = serializers.DateField(format='%m/%d/%y', input_formats=['%Y-%m-%d'])
 
     class Meta:
         list_serializer_class = BulkListSerializer
@@ -270,7 +270,7 @@ class AcidSerializer(serializers.ModelSerializer, BulkSerializerMixin):
 
 
 class BlankWaterSerializer(serializers.ModelSerializer, BulkSerializerMixin):
-    created_date = serializers.DateField(format='%m/%d/%y')
+    created_date = serializers.DateField(format='%m/%d/%y', input_formats=['%Y-%m-%d'])
 
     class Meta:
         list_serializer_class = BulkListSerializer
@@ -279,7 +279,7 @@ class BlankWaterSerializer(serializers.ModelSerializer, BulkSerializerMixin):
 
 
 class BrominationSerializer(serializers.ModelSerializer, BulkSerializerMixin):
-    created_date = serializers.DateField(format='%m/%d/%y')
+    created_date = serializers.DateField(format='%m/%d/%y', input_formats=['%Y-%m-%d'])
 
     class Meta:
         list_serializer_class = BulkListSerializer
@@ -573,7 +573,7 @@ class ReportResultsCooperatorSerializer(serializers.Serializer):
     medium = serializers.CharField()
     length = serializers.CharField()
     depth = serializers.CharField()
-    analysis_date = serializers.DateField(format='%m/%d/%y')
+    analysis_date = serializers.DateField(format='%m/%d/%y', input_formats=['%Y-%m-%d'])
     result_id = serializers.IntegerField()
     bottle = serializers.CharField()
     constituent = serializers.CharField()

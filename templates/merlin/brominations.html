@@ -562,6 +562,7 @@
                                 }
                                 else {grid_console.text('Date is badly formed in row ' + (index + 1) + '. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); validTableBrominations = false; loading.hide(); button_state.button('reset'); return false;}
                             }
+                            if (objectFields[i] == "comment") {if (thisDataObject[objectFields[i]] == null) {thisDataObject[objectFields[i]] = "";}}
                             else {thisDataObject[objectFields[i]] = thisDataRow[i];}
                         }
                         changedDataArray.push(thisDataObject);
@@ -727,6 +728,7 @@
                     var thisDataObject = {};
                     thisDataObject['concentration'] = Number(form_add.find('input[name=concentration]').val());
                     thisDataObject['comment'] = form_add.find('input[name=comment]').val();
+                    if (thisDataObject['comment'] == null) {thisDataObject['comment'] = "";}
                     //thisDataObject['created_date'] = form_add.find('input[name=created_date]').val();
                     var baddate = form_add.find('input[name=created_date]').val();
                     if (dateRegEx.test(baddate)) {

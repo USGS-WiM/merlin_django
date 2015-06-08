@@ -78,11 +78,12 @@ function pad(n, width, z) {
   n = n + '';
   return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
 }
-var dateRegEx = /^(0[1-9]|1[012]|[1-9])[- /.](0[1-9]|[12][0-9]|3[01]|[1-9])[- /.]\d\d$/;
+var dateRegEx = /^(0[1-9]|1[012]|[1-9])[- /.](0[1-9]|[12][0-9]|3[01]|[1-9])[- /.](\d\d|\d\d\d\d)$/;
 function makeYear(thisDate) {
     var indexLastSlash = thisDate.lastIndexOf('/');
     var thisYear = thisDate.substring(indexLastSlash+1,thisDate.length);
     if (thisYear.length == 2) {return "20" + thisYear;}
+    if (thisYear.length == 4) {return thisYear;}
     else {return null;}
 }
 function makeMonth(thisDate) {
