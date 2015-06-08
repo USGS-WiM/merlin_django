@@ -181,18 +181,25 @@
                     loading.show();
                     var thisDataObject = {};
                     thisDataObject['name'] = form_add.find('input[name=name]').val();
+                    if (thisDataObject['name'] == null) {grid_console.text('Name is required!'); loading.hide(); button_state.button('reset'); return false;}
                     thisDataObject['agency'] = form_add.find('input[name=agency]').val();
+                    if (thisDataObject['agency'] == null) {grid_console.text('Agency is required!'); loading.hide(); button_state.button('reset'); return false;}
                     thisDataObject['email'] = form_add.find('input[name=email]').val();
+                    if (thisDataObject['email'] == null) {thisDataObject['email'] = "";}
                     thisDataObject['phone'] = form_add.find('input[name=phone]').val();
                     if (thisDataObject['phone'] == "") {delete thisDataObject['phone']}
                     thisDataObject['sec_phone'] = form_add.find('input[name=sec_phone]').val();
                     if (thisDataObject['sec_phone'] == "") {delete thisDataObject['sec_phone']}
                     thisDataObject['address'] = form_add.find('input[name=address]').val();
+                    if (thisDataObject['address'] == null) {thisDataObject['address'] = "";}
                     thisDataObject['city'] = form_add.find('input[name=city]').val();
+                    if (thisDataObject['city'] == null) {thisDataObject['city'] = "";}
                     thisDataObject['state'] = form_add.find('input[name=state]').val();
+                    if (thisDataObject['state'] == null) {thisDataObject['state'] = "";}
                     thisDataObject['zipcode'] = form_add.find('input[name=zipcode]').val();
                     if (thisDataObject['zipcode'] == "") {delete thisDataObject['zipcode']}
                     thisDataObject['country'] = form_add.find('input[name=country]').val();
+                    if (thisDataObject['county'] == null) {thisDataObject['country'] = "";}
                     var dataJSON = JSON.stringify(thisDataObject);
                     $.ajax({
                         url: "{% url 'merlin:cooperators_create' %}",
@@ -349,6 +356,9 @@
                         var thisDataRow = grid.data('handsontable').getDataAtRow(value);
                         var thisDataObject = {};
                         for (var i = 0; i < thisDataRow.length; i++) {
+                            if (thisDataRow[i] == null && i != 4 && i != 5 && i != 9) {
+                                thisDataRow[i] = "";
+                            }
                             thisDataObject[objectFields[i]] = thisDataRow[i];
                         }
                         changedDataArray.push(thisDataObject);

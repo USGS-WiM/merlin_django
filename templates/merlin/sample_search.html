@@ -288,13 +288,13 @@
                             // when site name is changed to a non-null, non-blank value
                             if (changedCol == 'sample_bottle.sample.site_string' && changedVal !== null && changedVal !== "") {
                                 // update site ID to match site name
-                                var newValue = updateValueAjax('/mercuryservices/sites/', 'name', 'usgs_scode', changedVal);
+                                var newValue = updateValueAjax('/mercuryservices/sites/', 'name', 'usgs_scode', changedVal, ('project=' + grid.handsontable('getInstance').getDataAtCell(changedRow, 2)));
                                 grid.handsontable('setDataAtCell', changedRow, 4, newValue);
                             }
                             // when site ID is changed to a non-null, non-blank value
                             if (changedCol == 'sample_bottle.sample.site_usgs_scode' && changedVal !== null && changedVal !== "") {
                                 // update site name to match site ID
-                                var newValue = updateValueAjax('/mercuryservices/sites/', 'usgs_scode', 'name', changedVal);
+                                var newValue = updateValueAjax('/mercuryservices/sites/', 'usgs_scode', 'name', changedVal, ('project=' + grid.handsontable('getInstance').getDataAtCell(changedRow, 2)));
                                 grid.handsontable('setDataAtCell', changedRow, 3, newValue);
                             }
                             // when medium is changed to a non-null, non-blank value
@@ -650,7 +650,7 @@
                                         // if it has a value, look up and return the ID, otherwise notify the user that this is a required field, and stop the submission
                                         if (!thisDataRow[i]) {grid_console.text('Site Name is required in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                         else {
-                                            thisID = updateValueAjax('/mercuryservices/sites/', 'name', 'id', thisDataRow[i]);
+                                            thisID = updateValueAjax('/mercuryservices/sites/', 'name', 'id', thisDataRow[i], ('project=' + grid.handsontable('getInstance').getDataAtCell(thisDataRow, 2)));
                                             if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Site Name must be a valid choice in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                             thisDataObject[objectFields[i]] = thisID;
                                         }
@@ -741,6 +741,12 @@
                                         }
                                         thisDataObject[objectFields[i]] = thisDataRow[i];
                                         break;
+                                    case 10: // sample comments
+                                        if (thisDataRow[i] == null) {
+                                            thisDataRow[i] = "";
+                                        }
+                                        thisDataObject[objectFields[i]] = thisDataRow[i];
+                                        break;
                                     case 11: // received date
                                         // validation is being handled in previous case (sample datetime)
                                         if (!thisDataRow[i]) {grid_console.text('Date Received is required!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
@@ -813,6 +819,12 @@
                                             if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Acid must be a valid choice, or empty, in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                             thisDataObject[objectFields[i]] = thisID;
                                         }
+                                        break;
+                                    case 22: // preservation comments
+                                        if (thisDataRow[i] == null) {
+                                            thisDataRow[i] = "";
+                                        }
+                                        thisDataObject[objectFields[i]] = thisDataRow[i];
                                         break;
                                     default: // all the rest
                                         if (thisDataRow[i] !== null && thisDataRow[i] !== "") {

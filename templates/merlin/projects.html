@@ -141,8 +141,11 @@
                     loading.show();
                     var thisDataObject = {};
                     thisDataObject['name'] = form_add.find('input[name=name]').val().toUpperCase();
+                    if (thisDataObject['name'] == null) {grid_console.text('Name is required!'); loading.hide(); button_state.button('reset'); return false;}
                     thisDataObject['description'] = form_add.find('input[name=description]').val();
+                    if (thisDataObject['description'] == null) {thisDataObject['description'] = "";}
                     thisDataObject['accounting_code'] = form_add.find('input[name=accounting_code]').val().toUpperCase();
+                    if (thisDataObject['accounting_code'] == null) {thisDataObject['accounting_code'] = "";}
                     thisDataObject['cooperator'] = Number(select_cooperator.val());
                     var dataJSON = JSON.stringify(thisDataObject);
                     $.ajax({
@@ -303,10 +306,15 @@
                         for (var i = 0; i < thisDataRow.length; i++) {
                             if (objectFields[i] == "cooperator") {
                                 var thisID = updateValueAjax('/mercuryservices/cooperators/', 'name', 'id', thisDataRow[i]);
-                                if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Cooperator must be a valid choice in row ' + (index + 1) + '!'); validTableBottle = false; loading.hide(); button_state.button('reset'); return false;}
+                                if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Cooperator must be a valid choice in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                 thisDataObject[objectFields[i]] = thisID;
                             }
-                            else {thisDataObject[objectFields[i]] = thisDataRow[i];}
+                            else {
+                                if (thisDataRow[i] == null) {
+                                    thisDataRow[i] = "";
+                                }
+                                thisDataObject[objectFields[i]] = thisDataRow[i];
+                            }
                         }
                         changedDataArray.push(thisDataObject);
                         // if we made it through the various validations above, then the table must be valid

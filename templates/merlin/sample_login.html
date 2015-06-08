@@ -633,6 +633,13 @@
                                         if (thisDataRow[i] !== 1) {
                                             if (!thisDataRow[i]) {grid_console.text('Rep is required in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                         }
+                                        thisDataObject[objectFields[i]] = thisDataRow[i];
+                                        break;
+                                    case 7: // sample comments
+                                        if (thisDataRow[i] == null) {
+                                            thisDataRow[i] = "";
+                                        }
+                                        thisDataObject[objectFields[i]] = thisDataRow[i];
                                         break;
                                     case 8: // bottle (container)
                                         // if it has a value, look up and return the ID, otherwise notify the user that this is a required field, and stop the submission
@@ -693,6 +700,12 @@
                                             if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Acid must be a valid choice, or empty, in row ' + (row + 1) + '!'); validTable = false; button_state.button('reset'); return false;}
                                             thisDataObject[objectFields[i]] = thisID;
                                         }
+                                        break;
+                                    case 17: // preservation comments
+                                        if (thisDataRow[i] == null) {
+                                            thisDataRow[i] = "";
+                                        }
+                                        thisDataObject[objectFields[i]] = thisDataRow[i];
                                         break;
                                     default: // all the rest
                                         if (thisDataRow[i] !== null && thisDataRow[i] !== "") {

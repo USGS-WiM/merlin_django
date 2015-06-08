@@ -46,7 +46,7 @@
                 <div class="form-group" style="padding:2px;text-align:center">
                     <label for="site_status">Site Status</label><br />
                     <select class="input-block-level" name="site_status" style="height:26px">
-                        <option value="ACTIVE">ACTIVE</option>
+                        <option value="ACTIVE" selected>ACTIVE</option>
                         <option value="INACTIVE">INACTIVE</option>
                     </select>
                 </div>
@@ -178,15 +178,23 @@
                     loading.show();
                     var thisDataObject = {};
                     thisDataObject['name'] = form_add.find('input[name=name]').val().toUpperCase();
+                    if (thisDataObject['name'] == null) {grid_console.text('Name is required!'); loading.hide(); button_state.button('reset'); return false;}
                     thisDataObject['usgs_sid'] = form_add.find('input[name=usgs_sid]').val().toUpperCase();
+                    if (thisDataObject['usgs_sid'] == null) {thisDataObject['usgs_sid'] = "";}
                     thisDataObject['usgs_scode'] = form_add.find('input[name=usgs_scode]').val().toUpperCase();
+                    if (thisDataObject['usgs_scode'] == null) {thisDataObject['usgs_scode'] = "";}
                     thisDataObject['description'] = form_add.find('input[name=description]').val().toUpperCase();
+                    if (thisDataObject['description'] == null) {thisDataObject['description'] = "";}
                     thisDataObject['latitude'] = Number(form_add.find('input[name=latitude]').val());
                     thisDataObject['longitude'] = Number(form_add.find('input[name=longitude]').val());
                     thisDataObject['datum'] = form_add.find('input[name=datum]').val().toUpperCase();
+                    if (thisDataObject['datum'] == null) {thisDataObject['datum'] = "";}
                     thisDataObject['method'] = form_add.find('input[name=method]').val().toUpperCase();
+                    if (thisDataObject['method'] == null) {thisDataObject['method'] = "";}
                     thisDataObject['site_status'] = form_add.find('select[name=site_status]').val().toUpperCase();
+                    if (thisDataObject['site_status'] == null) {thisDataObject['site_status'] = "";}
                     thisDataObject['nwis_customer_code'] = form_add.find('input[name=nwis_customer_code]').val().toUpperCase();
+                    if (thisDataObject['nwis_customer_code'] == null) {thisDataObject['nwis_customer_code'] = "";}
                     var dataJSON = JSON.stringify(thisDataObject);
                     $.ajax({
                         url: "{% url 'merlin:sites_create' %}",
@@ -205,6 +213,7 @@
                             // otherwise, it's JSON from the REST Services
                             else if (jqXHRequest.status === 200) {
                                 $(":input", "#form_add").not(":button").val("");
+                                form_add.find('select[name=site_status]').val("ACTIVE");
                                 form_add.parent().find('button[name=add]').click();
                                 //tools_prefixes.find('button[name=load]').click();
                                 grid_console.text(textStatus+': Data saved.');
@@ -406,6 +415,9 @@
                         var thisDataRow = grid.data('handsontable').getDataAtRow(value);
                         var thisDataObject = {};
                         for (var i = 0; i < thisDataRow.length; i++) {
+                            if (thisDataRow[i] == null && i != 5 && i != 6) {
+                                thisDataRow[i] = "";
+                            }
                             thisDataObject[objectFields[i]] = thisDataRow[i];
                         }
                         changedDataArray.push(thisDataObject);
