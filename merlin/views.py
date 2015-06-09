@@ -1386,6 +1386,17 @@ def samplebottlebrominations_search(request):
         return HttpResponse(r_json, content_type='application/json')
 
 
+def samplebottlebrominations_delete(request):
+    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
+    data = json.loads(request.body.decode('utf-8'))
+    this_id = data.pop("id")
+    url = REST_SERVICES_URL+'samplebottlebrominations/'+str(this_id)+'/'
+    r = requests.request(method='DELETE', url=url, headers=headers)
+    logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
+    return HttpResponse(r)
+
+
 def blankwaters(request):
     if not request.session.get('token'):
         return HttpResponseRedirect('/merlin/')
