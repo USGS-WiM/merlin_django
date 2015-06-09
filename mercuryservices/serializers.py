@@ -472,7 +472,7 @@ class FullResultSerializer(serializers.ModelSerializer, BulkSerializerMixin):
         model = Result
         fields = ('id', 'constituent', 'constituent_string', 'isotope_flag', 'isotope_flag_string',
                   'raw_value', 'final_value', 'report_value', 'detection_flag', 'detection_flag_string',
-                  'raw_daily_detection_limit', 'final_daily_detection_limit',
+                  'raw_daily_detection_limit', 'final_daily_detection_limit', 'final_method_detection_limit',
                   'sediment_dry_weight', 'sample_mass_processed', 'entry_date', 'analyzed_date', 'created_date',
                   'analysis_comment', 'quality_assurances', 'method', 'sample_bottle',)
 
@@ -492,9 +492,9 @@ class ResultSerializer(serializers.ModelSerializer, BulkSerializerMixin):
         model = Result
         fields = ('id', 'method', 'constituent', 'constituent_string', 'isotope_flag', 'isotope_flag_string',
                   'raw_value', 'final_value', 'report_value', 'detection_flag', 'detection_flag_string',
-                  'raw_daily_detection_limit', 'final_daily_detection_limit',
+                  'raw_daily_detection_limit', 'final_daily_detection_limit', 'final_method_detection_limit',
                   'sediment_dry_weight', 'sample_mass_processed', 'entry_date', 'analyzed_date', 'created_date',
-                  'analysis_comment', 'quality_assurances', 'sample_bottle', 'sample_bottle_unique_name','final_method_detection_limit')
+                  'analysis_comment', 'quality_assurances', 'sample_bottle', 'sample_bottle_unique_name',)
 
 
 ######
