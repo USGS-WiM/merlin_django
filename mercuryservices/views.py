@@ -961,6 +961,17 @@ class ReportSamplesNwis(generics.ListAPIView):
             queryset = queryset.filter(entry_date__gt=date_after_entry)
         elif date_before_entry is not None:
             queryset = queryset.filter(entry_date__lt=date_before_entry)
+        # Because of the design of the underlying database view (originally written in Oracle for Starlims, and migrated
+        # to PostgreSQL for Merlin), which uses entry_dates from the results table and not the sample table, there
+        # can be many records from the database view whose values are identical except for the entry_date column.
+        # This is a problem, because NWIS requires only one record per sample. The following distinct() method call
+        # will return just one record per occurrence of a unique sample_integer. Since all the other values are the same
+        # for each occurrence of a sample_integer (except for entry_date, which isn't sent to NWIS), there is no risk
+        # in doing this, and it gets us exactly the data we need, in the format we need. Finally, the reason for calling
+        # the .distinct() method at the end, rather than at the beginning, is because a user needs to be able to filter
+        # by any possible entry_date associated with a sample_integer, not just one entry_date, so we need the full set
+        # available for filtering, but just the distinct set to send back to the user after filtering.
+        queryset = queryset.distinct('sample_integer')
         return queryset
 
 

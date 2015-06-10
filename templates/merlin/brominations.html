@@ -80,7 +80,9 @@
                 <br />
                 <p>
                     <button type="button" class="btn btn-info" data-loading-text="Searching..." name="search">Search</button>
+                    {% if request.session.is_staff %}
                     <button type="button" class="btn btn-danger" data-loading-text="Deleting..." name="delete">Delete Row</button>
+                    {% endif %}
                 </p>
                 <h1>Brominated Samples</h1>
             </div>
