@@ -2,8 +2,8 @@
 
 configuration.appSettings =
     {
-        'MercuryService': 'http://54.174.81.42/mercuryservices',
-        'MercuryAuth': 'http://54.174.81.42/mercuryauth'
+        'MercuryService': 'http://54.175.85.7/mercuryservices',
+        'MercuryAuth': 'http://54.175.85.7/mercuryauth'
     }
 configuration.massProcessMethodIDs = [
     157,228
