@@ -180,17 +180,18 @@ define(['knockout', 'MainViewModel', 'toastr', 'bootstrap', 'datepicker'], funct
         target.hasWarning = ko.observable();
         target.validationMessage = ko.observable();
         target.show = ko.observable();
-        target.Constituent = option.constituent;
+        target.Method = option.method;
         //define a function to do validation
         function validate() {
             var warn = false;
             var msg = '';
             var show = false;
-            if (configuration.massProcessConstituentIDs.indexOf(target.Constituent().id) > -1) {
+            //check if the selected constituent.id is included in the inclusion list located in web.config.js
+            if (configuration.massProcessMethodIDs.indexOf(target.Method().id) > -1) {
                 show = true;
-                if (target.Constituent() == null) {
+                if (target.Method() == null) {
                     warn = true;
-                    msg = "Warning: Choose a Constituent";
+                    msg = "Warning: Choose a Method";
                 }
                 else {
                     if (target() == null) {

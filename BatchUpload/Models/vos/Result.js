@@ -12,7 +12,7 @@ define(["require", "exports"], function (require, exports) {
             this.isotope_flag = ko.observable(i).extend({ nullValidation: {} });
             this.daily_detection_limit = ko.observable(ddl).extend({ nullValidation: {} });
             this.unit = ko.observable(u).extend({ unitValidation: { method: this.method } });
-            this.massProcess = ko.observable(mp).extend({ massProcessValidation: { constituent: this.constituent } });
+            this.massProcess = ko.observable(mp).extend({ massProcessValidation: { method: this.method } });
             this.analyzed_date = ko.observable(dt).extend({ nullValidation: {} });
             this.analysis_comment = ko.observable(comment);
             this.qualityAssuranceList = ko.observableArray(qa);
