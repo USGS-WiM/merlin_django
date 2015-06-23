@@ -239,8 +239,8 @@ define(["require", "exports", "../XLSXOps/XLSXReader", "./ServiceAgent", "./Requ
             var msg = "";
             var success = false;
             for (var i = 0; i < successObj.length; i++) {
-                msg = successObj[i].hasOwnProperty("message") ? successObj[i].message : "no message";
-                success = successObj[i].hasOwnProperty("success") ? successObj[i].success : false;
+                msg = successObj[i].hasOwnProperty("message") ? successObj[i].message : "";
+                success = successObj[i].hasOwnProperty("success") ? Boolean(successObj[i].success) : false;
                 this.sm(msg, success ? 1 /* SUCCESS */ : 3 /* ERROR */);
             }
             this.onSubmitComplete.raise(this, EventArgs.Empty);
