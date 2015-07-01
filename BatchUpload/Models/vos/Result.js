@@ -24,14 +24,19 @@ define(["require", "exports"], function (require, exports) {
             this.HasErrors = ko.computed({
                 owner: this,
                 read: function () {
-                    var c = _this.constituent.hasWarning();
-                    var m = _this.method.hasWarning();
-                    var u = _this.unit.hasWarning();
-                    var r = _this.reported_value.hasWarning();
-                    var d = _this.daily_detection_limit.hasWarning();
-                    var i = _this.isotope_flag.hasWarning();
-                    var mp = _this.massProcess.hasWarning();
-                    return c || m || u || r || i || mp;
+                    try {
+                        var c = _this.constituent.hasWarning();
+                        var m = _this.method.hasWarning();
+                        var u = _this.unit.hasWarning();
+                        var r = _this.reported_value.hasWarning();
+                        var d = _this.daily_detection_limit.hasWarning();
+                        var i = _this.isotope_flag.hasWarning();
+                        var mp = _this.massProcess.hasWarning();
+                        return c || m || u || r || i || mp;
+                    }
+                    catch (e) {
+                        return true;
+                    }
                 }
             });
         }
