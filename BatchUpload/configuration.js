@@ -186,20 +186,14 @@ define(['knockout', 'MainViewModel', 'toastr', 'bootstrap', 'datepicker'], funct
             var warn = false;
             var msg = '';
             var show = false;
-            //check if the selected constituent.id is included in the inclusion list located in web.config.js
-            if (configuration.massProcessMethodIDs.indexOf(target.Method().id) > -1) {
+            //check if the selected method.id is included in the inclusion list located in web.config.js
+            if (target.Method() != null && configuration.massProcessMethodIDs.indexOf(target.Method().id) > -1) {
                 show = true;
-                if (target.Method() == null) {
+                if (target() == null) {
                     warn = true;
-                    msg = "Warning: Choose a Method";
-                }
-                else {
-                    if (target() == null) {
-                        warn = true;
-                        msg = "Item Cannot be null";
-                    } //endif
+                    msg = "Item Cannot be null";
                 } //endif
-            } //endif                
+            } //endif
             target.hasWarning(warn);
             target.validationMessage(msg);
             target.show(show);
