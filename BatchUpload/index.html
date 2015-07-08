@@ -228,13 +228,13 @@
                     </td>
                 </tr>
                 <!-- Detection Limit Row -->
-                <tr data-bind="attr:{'class': daily_detection_limit.hasWarning() ? 'danger' :'' }">
+                <tr data-bind="attr:{'class': daily_detection_limit.hasWarning() ? 'warning' :'' }">
                     <td>Detection Limit :</td>
                     <td><input type="text" class="form-control" data-bind="numeric, value: daily_detection_limit"></td>
                 </tr>
-                <tr class="danger" style="padding:6px;font-size:10px;" data-bind="visible: daily_detection_limit.hasWarning()">
+                <tr class="warning" style="padding:6px;font-size:10px;" data-bind="visible: daily_detection_limit.hasWarning()">
                     <td colspan="3">
-                        <i class="text-danger glyphicon glyphicon-warning-sign"></i><span class="text-danger" data-bind='text: daily_detection_limit.validationMessage()'></span>
+                        <i class="text-danger glyphicon glyphicon-warning-sign"></i><span class="text-warning" data-bind='text: daily_detection_limit.validationMessage()'></span>
                     </td>
                 </tr>
                 <!-- Analysis Date Row -->
