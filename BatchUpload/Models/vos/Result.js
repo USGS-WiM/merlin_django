@@ -10,7 +10,7 @@ define(["require", "exports"], function (require, exports) {
             this.method = ko.observable(m).extend({ nullValidation: {} });
             this.reported_value = ko.observable(vFinal).extend({ nullValidation: {} });
             this.isotope_flag = ko.observable(i).extend({ nullValidation: {} });
-            this.daily_detection_limit = ko.observable(ddl).extend({ nullValidation: {} });
+            this.daily_detection_limit = ko.observable(ddl).extend({ nullValidation: { msg: "Are you sure you do not want to specify a detection limit?" } });
             this.unit = ko.observable(u).extend({ unitValidation: { method: this.method } });
             this.massProcess = ko.observable(mp).extend({ massProcessValidation: { method: this.method } });
             this.analyzed_date = ko.observable(dt).extend({ nullValidation: {} });
@@ -29,10 +29,10 @@ define(["require", "exports"], function (require, exports) {
                         var m = _this.method.hasWarning();
                         var u = _this.unit.hasWarning();
                         var r = _this.reported_value.hasWarning();
-                        var d = _this.daily_detection_limit.hasWarning();
                         var i = _this.isotope_flag.hasWarning();
                         var mp = _this.massProcess.hasWarning();
-                        return c || m || u || r || i || mp;
+                        var ad = _this.analyzed_date.hasWarning();
+                        return c || m || u || r || i || mp || ad;
                     }
                     catch (e) {
                         return true;

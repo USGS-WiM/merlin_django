@@ -48,20 +48,21 @@ define(['knockout', 'MainViewModel', 'toastr', 'bootstrap', 'datepicker'], funct
         //add some sub-observables to our observable
         target.hasWarning = ko.observable();
         target.validationMessage = ko.observable();
+        target.option = option;
         //define a function to do validation
-        function validate(value, param) {
+        function validate(value) {
             var warn = false;
             var msg = '';
             if (value === null || value === '') {
                 warn = true;
-                msg = "Item Cannot be null";
+                msg = (target.option.msg == undefined) ? "Item Cannot be null" : target.option.msg;
                 toastr.error(msg);
             }
             target.hasWarning(warn);
             target.validationMessage(msg);
         }
         //initial validation
-        validate(target(), option);
+        validate(target());
         //validate whenever the value changes
         target.subscribe(validate);
         //return the original observable
