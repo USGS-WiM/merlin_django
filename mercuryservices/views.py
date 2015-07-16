@@ -1083,10 +1083,20 @@ class BatchUpload(views.APIView):
                 if not is_valid:
                     status.append({"message": message, "success": "false"})
                     continue
+                # get sample_mass_processed and sediment_dry_weight if given
+                try:
+                    sample_mass_processed = row["sample_mass_processed"]
+                except KeyError:
+                    sample_mass_processed = None
+                try:
+                    sediment_dry_weight = row["sediment_dry_weight"]
+                except KeyError:
+                    sediment_dry_weight = None
+        
                 #validate result
                 #get method id
                 method_id = row["method_id"]
-                is_valid, message, result_id, sediment_dry_weight, sample_mass_processed = validate_result(
+                is_valid, message, result_id = validate_result(
                     sample, constituent_id, method_id, row
                 )
                 if not is_valid:
@@ -1146,7 +1156,7 @@ class BatchUpload(views.APIView):
                 quality_assurance_id_array = quality_assurance_id_array + qa_flags
                 for quality_assurance_id in quality_assurance_id_array:
                     QualityAssurance.objects.create(result_id=result_id, quality_assurance_id=quality_assurance_id)
-                status.append({"success": "true", "result_id": result_id})
+                status.append({"success": "true", "result_id": result_id, "bottle_id": bottle_id})
         except BaseException as e:
             if isinstance(data, list) is False:
                 e = "Expecting an array of results"
@@ -1330,8 +1340,6 @@ def validate_result(sample_bottle_id, constituent_id, method_id, row):
     message = ""
     bottle_name = row["bottle_unique_name"]
     constituent_type = row["constituent"]
-    sediment_dry_weight = None
-    sample_mass_processed = None
     isotope_flag_id = row["isotope_flag_id"]
 
     #make sure that a result is given
@@ -1340,37 +1348,35 @@ def validate_result(sample_bottle_id, constituent_id, method_id, row):
         #make sure that it is numeric
         if isinstance(raw_value, Number) is False:
             message = "Expecting a numeric value for result"
-            return is_valid, message, result_id, sediment_dry_weight, sample_mass_processed
+            return is_valid, message, result_id
     except KeyError:
         message = "'raw_value' is required"
-        return is_valid, message, result_id, sediment_dry_weight, sample_mass_processed
+        return is_valid, message, result_id
 
     #Find the matching record in the Results table, using the unique combination of barcode + constituent { + isotope}
     try:
         result_details = Result.objects.get(
-            constituent=constituent_id, sample_bottle=sample_bottle_id, isotope_flag=isotope_flag_id, method=method_id)
+            constituent=constituent_id, sample_bottle=sample_bottle_id, isotope_flag=isotope_flag_id)
     except ObjectDoesNotExist:
         message = "There is no matching record in the result table for bottle '"
-        message += str(bottle_name)+"', constituent type '"+str(constituent_type)+"' isotope flag '"
-        message += str(isotope_flag_id)+"' and method "+str(method_id)+"'"
-        return is_valid, message, result_id, sediment_dry_weight, sample_mass_processed
+        message += str(bottle_name)+"', constituent type '"+str(constituent_type)+"' and isotope flag '"
+        message += str(isotope_flag_id)
+        return is_valid, message, result_id
     except MultipleObjectsReturned:
         message = "There are more than one matching records in the result table for bottle '"
-        message += str(bottle_name)+"', constituent type '"+str(constituent_type)+"' isotope flag '"
-        message += str(isotope_flag_id)+"' and method "+str(method_id)+"'"
-        return is_valid, message, result_id, sediment_dry_weight, sample_mass_processed
+        message += str(bottle_name)+"', constituent type '"+str(constituent_type)+"' and isotope flag '"
+        message += str(isotope_flag_id)
+        return is_valid, message, result_id
     #check if final value already exists
     final_value = result_details.final_value
     if final_value is not None:
         #print(result_details.id)
         message = "This result row cannot be updated as a final value already exists"
-        return is_valid, message, result_id, sediment_dry_weight, sample_mass_processed
+        return is_valid, message, result_id
 
     is_valid = True
     result_id = result_details.id
-    sediment_dry_weight = result_details.sediment_dry_weight
-    sample_mass_processed = result_details.sample_mass_processed
-    return is_valid, message, result_id, sediment_dry_weight, sample_mass_processed
+    return is_valid, message, result_id
 
 
 ######
@@ -1454,7 +1460,7 @@ def eval_result(row, result_id):
             #else:
             display_value = str(raw_value)
             detection_flag = 'NONE'
-            reported_value = display_value
+            reported_value = raw_value
     return display_value, reported_value, detection_flag, daily_detection_limit, qa_flags
 
 
