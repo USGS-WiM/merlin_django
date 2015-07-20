@@ -46,7 +46,7 @@ define(["require", "exports"], function (require, exports) {
         };
         //Helper methods
         Result.prototype.Replacer = function (bottleID) {
-            return {
+            var result = {
                 "bottle_unique_name": bottleID,
                 "constituent": this.constituent().constituent,
                 "method_id": this.method().id,
@@ -57,8 +57,12 @@ define(["require", "exports"], function (require, exports) {
                 "quality_assurance": $.map(this.qualityAssuranceList(), function (obj) {
                     return obj.quality_assurance;
                 }),
-                "analysis_comment": this.analysis_comment
+                "analysis_comment": this.analysis_comment,
+                "sample_mass_processed": this.massProcess()
             };
+            if (result.sample_mass_processed == null)
+                delete result.sample_mass_processed;
+            return result;
         };
         return Result;
     })();
