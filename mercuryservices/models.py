@@ -58,8 +58,8 @@ class Site(models.Model):
     usgs_sid = models.CharField(max_length=128, blank=True)
     usgs_scode = models.CharField(max_length=128, blank=True)
     description = models.TextField(blank=True)
-    latitude = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    longitude = models.DecimalField(max_digits=11, decimal_places=3, null=True, blank=True)
+    latitude = models.DecimalField(max_digits=12, decimal_places=10, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=13, decimal_places=10, null=True, blank=True)
     datum = models.CharField(max_length=128, blank=True)
     method = models.CharField(max_length=128, blank=True)
     site_status = models.CharField(max_length=128, blank=True)
@@ -81,7 +81,8 @@ class ProjectSite(models.Model):
     site = models.ForeignKey('Site')
 
     def __str__(self):
-        return str(self.id)
+        #return str(self.id)
+        return str(self.project) + " - " + str(self.site)
 
     class Meta:
         db_table = "mercury_projectsite"
@@ -409,7 +410,8 @@ class ConstituentMedium(models.Model):
     status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
-        return str(self.id)
+        #return str(self.id)
+        return str(self.constituent_type) + " - " + str(self.medium_type)
 
     class Meta:
         db_table = "mercury_constituentmedium"
@@ -424,7 +426,8 @@ class ConstituentMethod(models.Model):
     status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
-        return str(self.id)
+        #return str(self.id)
+        return str(self.constituent_type) + " - " + str(self.method_type)
 
     class Meta:
         db_table = "mercury_constituentmethod"

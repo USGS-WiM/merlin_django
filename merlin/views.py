@@ -338,6 +338,7 @@ def samples_create(request):
         method='POST', url=REST_SERVICES_URL+'bulksamplebottles/', data=sample_bottle_data, headers=headers)
     logger.info(r.request.method + " " + r.request.url + " " + r.reason + " " + str(r.status_code))
     if r.status_code != 201:
+        failed_create_status_code = r.status_code
         logger.warning("Could not save sample bottles!")
         logger.warning("Deleting samples that were just saved.")
         for sample_id in sample_ids:
@@ -350,7 +351,7 @@ def samples_create(request):
                 message += " Please contact the administrator.\""
                 logger.error(message)
                 return HttpResponse(message, content_type='text/html')
-        message = "\"Error " + str(r.status_code) + ": " + r.reason + "."
+        message = "\"Error " + str(failed_create_status_code) + ": " + r.reason + "."
         message += " Can save samples, but cannot save sample bottles. Please contact the administrator.\""
         logger.error(message)
         return HttpResponse(message, content_type='text/html')
@@ -407,6 +408,7 @@ def samples_create(request):
         method='POST', url=REST_SERVICES_URL+'bulkresults/', data=sample_analysis_data, headers=headers)
     logger.info(r.request.method + " " + r.request.url + " " + r.reason + " " + str(r.status_code))
     if r.status_code != 201:
+        failed_create_status_code = r.status_code
         logger.warning("Could not save sample analyses!")
         logger.warning("Deleting sample bottles that were just saved.")
         for sample_bottle_id in sample_bottle_ids:
@@ -430,7 +432,8 @@ def samples_create(request):
                 message += " Please contact the administrator.\""
                 logger.error(message)
                 return HttpResponse(message, content_type='text/html')
-        message = "\"Error: Can save samples and sample bottles, but cannot save analyses."
+        message = "\"Error " + str(failed_create_status_code) + ": " + r.reason + "."
+        message = "\"Can save samples and sample bottles, but cannot save analyses."
         message += " Please contact the administrator.\""
         logger.error(message)
         return HttpResponse(message, content_type='text/html')
@@ -1610,6 +1613,7 @@ def sites_create(request):
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     data = request.body
+    print(data)
     r = requests.request(method='POST', url=REST_SERVICES_URL+'bulksites/', data=data, headers=headers)
     logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
     return HttpResponse(r, content_type='application/json')

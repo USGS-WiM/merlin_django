@@ -23,10 +23,11 @@
 
 </head>
 <body id="MainApp" style="display:none">
+	<div class="navbar navbar-inverse navbar-fixed-top" role="navigation" style="background-color:darkred">
     <div class="" data-bind="attr:{class:CanToggle()?'btn pull-left visible-xs': 'hidden'}, click:Toggle()">
         <i class="fa fa-bars fa-3x"></i>
     </div>
-    <h1>USGS WI Mercury Lab Results Batch Uploader</h1>
+    <h1>USGS WI Mercury Lab Results Batch Uploader TEST</h1>
     <div class="modal fade" tabindex="-1" data-bind="modal:Authorization.ShowLogin, template:{name:'LoginTemplate', data:Authorization}"></div>
     <div class="modal fade" tabindex="-1" data-bind="modal:QAViewModel.Show, template:{name:'QATemplate', if: QAViewModel, data:QAViewModel}"></div>
     <section id="wrapper">
