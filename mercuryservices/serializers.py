@@ -20,11 +20,12 @@ class ProjectSerializer(serializers.ModelSerializer, BulkSerializerMixin):
 
 
 class SimpleProjectSerializer(serializers.ModelSerializer, BulkSerializerMixin):
+    # the only difference from the ProjectSerializer is that this one doesn't include related sites
 
     class Meta:
         list_serializer_class = BulkListSerializer
         model = Project
-        fields = ('id', 'name', 'description', 'accounting_code', 'cooperator',)
+        fields = ('id', 'name', 'description', 'accounting_code', 'cooperator', 'cooperator_string',)
 
 
 class CooperatorSerializer(serializers.ModelSerializer, BulkSerializerMixin):
@@ -33,7 +34,7 @@ class CooperatorSerializer(serializers.ModelSerializer, BulkSerializerMixin):
         list_serializer_class = BulkListSerializer
         model = Cooperator
         fields = ('id', 'name', 'agency', 'email', 'phone', 'sec_phone', 'address', 'city', 'state', 'zipcode',
-                  'country')
+                  'country',)
 
 
 class SiteSerializer(serializers.ModelSerializer, BulkSerializerMixin):
@@ -46,6 +47,7 @@ class SiteSerializer(serializers.ModelSerializer, BulkSerializerMixin):
 
 
 class SimpleSiteSerializer(serializers.ModelSerializer, BulkSerializerMixin):
+    # the only difference from the SiteSerializer is that this one doesn't include related projects
 
     class Meta:
         list_serializer_class = BulkListSerializer
@@ -101,6 +103,8 @@ class BottleSerializer(serializers.ModelSerializer, BulkSerializerMixin):
 
 
 class FullBottleSerializer(serializers.ModelSerializer, BulkSerializerMixin):
+    # the only difference from the BottleSerializer is that this one includes the entire related bottle prefixes,
+    # not just the related bottle prefix id and name
     created_date = serializers.DateField(format='%m/%d/%y', input_formats=['%Y-%m-%d'])
     bottle_prefix = BottlePrefixSerializer()
 
@@ -351,6 +355,9 @@ class ProcedureTypeSerializer(serializers.ModelSerializer, BulkSerializerMixin):
 
 
 class FullSampleBottleSerializer(serializers.ModelSerializer, BulkSerializerMixin):
+    # the only difference from the SampleSerializer is that this one includes the entire related samples and bottles,
+    # not just the related ids and names
+
     sample = SampleSerializer()
     bottle = FullBottleSerializer()
     filter_type_string = serializers.StringRelatedField(source='filter_type')
@@ -396,6 +403,8 @@ class MethodTypeSerializer(serializers.ModelSerializer, BulkSerializerMixin):
 
 
 class FlatResultSerializer(serializers.ModelSerializer):
+    # a flattened (not nested) version of the essential fields of the FullResultSerializer, to populate CSV files
+    # requested from the Result Search
     result_id = serializers.IntegerField(source='id', read_only=True)
     bottle = serializers.StringRelatedField(source='sample_bottle.bottle.bottle_unique_name')
     tare_weight = serializers.FloatField(source='sample_bottle.bottle.bottle_prefix.tare_weight', read_only=True)
@@ -422,6 +431,8 @@ class FlatResultSerializer(serializers.ModelSerializer):
 
 
 class FlatResultSampleSerializer(serializers.ModelSerializer):
+    # a flattened (not nested) version of the essential fields of the FullResultSerializer, to populate CSV files
+    # requested from the Sample Search
     sample_id = serializers.IntegerField(source='sample_bottle.sample.id', read_only=True)
     project_name = serializers.StringRelatedField(source='sample_bottle.sample.project.name')
     project_id = serializers.StringRelatedField(source='sample_bottle.sample.project.id')

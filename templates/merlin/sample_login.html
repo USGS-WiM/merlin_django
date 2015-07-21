@@ -540,9 +540,9 @@
                         // grab all the data for this row
                         var thisDataRow = grid.data('handsontable').getDataAtRow(row);
                         // check if this row still has (non-default) data; it's possible the user cleared the row after entering data, in which case we no longer want it
-                        // here, we're only checking for a value in the first column (Site Name), which is a required field; if it is empty, it is safe to assume that any...
+                        // here, we're only checking for a value in the eighth column (Container ID (Bottle)), which is a required field; if it is empty, it is safe to assume that any...
                         // ...possible data in the rest of the row doesn't need to be checked, because the row can't be saved without a valid value in the first column
-                        if (thisDataRow[0] !== null && thisDataRow[0] !== "" && thisDataRow[0] !== 0 && typeof thisDataRow[0] !== 'undefined') {
+                        if (thisDataRow[8] !== null && thisDataRow[8] !== "" && thisDataRow[8] !== 0 && typeof thisDataRow[8] !== 'undefined') {
                             // an object container for the data in this row
                             var thisDataObject = {};
                             // add the sample header object properties to this object

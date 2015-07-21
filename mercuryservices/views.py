@@ -56,6 +56,7 @@ class CooperatorViewSet(viewsets.ModelViewSet):
     # override the default queryset to allow filtering by URL arguments
     def get_queryset(self):
         queryset = Cooperator.objects.all()
+        # filter by cooperator name, case-insensitive contain
         name = self.request.query_params.get('name', None)
         if name is not None:
             queryset = queryset.filter(name__icontains=name)
@@ -75,12 +76,14 @@ class ProjectViewSet(viewsets.ModelViewSet):
     # override the default queryset to allow filtering by URL arguments
     def get_queryset(self):
         queryset = Project.objects.all()
+        # filter by project name, case-insensitive contain
         name = self.request.query_params.get('name', None)
         if name is not None:
             queryset = queryset.filter(name__icontains=name)
+        # filter by project ID, exact
         project_id = self.request.query_params.get('id', None)
         if project_id is not None:
-            queryset = queryset.filter(id__icontains=project_id)
+            queryset = queryset.filter(id__exact=project_id)
         return queryset
 
 
@@ -94,6 +97,8 @@ class SiteViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = SiteSerializer
     paginate_by = 100
+    # if the URL param 'project' is included, all records belonging to the indicated project will be returned,
+    # even if the count is greater than the paginate_by setting, up to the max number set by the max_paginate_by setting
     paginate_by_param = 'project'
     max_paginate_by = 2000
 
@@ -101,30 +106,30 @@ class SiteViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = Site.objects.all()
         #queryset = Site.objects.exclude(usgs_scode__exact="''")
-        # filter by site name
+        # filter by site name, case-insensitive contain
         name = self.request.query_params.get('name', None)
         if name is not None:
             queryset = queryset.filter(name__icontains=name)
-        # filter by site ID
+        # filter by site ID, exact
         site_id = self.request.query_params.get('id', None)
         if site_id is not None:
             queryset = queryset.filter(id__exact=site_id)
-        # filter by site usgs scode
+        # filter by site usgs scode, exact
         usgs_scode = self.request.query_params.get('usgs_scode', None)
         if usgs_scode is not None:
             queryset = queryset.filter(usgs_scode__exact=usgs_scode)
         # filter by project name or ID
         project = self.request.query_params.get('project', None)
         if project is not None:
-            # if query value is a Project ID
+            # if query value is a project ID
             if project.isdigit():
-                # get the Sites related to this Project ID
+                # get the sites related to this project ID, exact
                 queryset = queryset.filter(projects__exact=project)
-            # if query value is a Site name
+            # else query value is a site name
             else:
-                # lookup the Project ID that matches this Project name
+                # lookup the project ID that matches this project name, exact
                 project_id = Project.objects.get(name__exact=project)
-                # get the Sites related to this Project ID
+                # get the sites related to this project ID, exact
                 queryset = queryset.filter(projects__exact=project_id)
         return queryset
 
@@ -139,6 +144,8 @@ class ProjectSiteViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = ProjectSiteSerializer
     paginate_by = 100
+    # if the URL param 'project' is included, all records belonging to the indicated project will be returned,
+    # even if the count is greater than the paginate_by setting, up to the max number set by the max_paginate_by setting
     paginate_by_param = 'project'
     max_paginate_by = 2000
 
@@ -147,23 +154,23 @@ class ProjectSiteViewSet(viewsets.ModelViewSet):
         queryset = ProjectSite.objects.all()
         project = self.request.query_params.get('project', None)
         if project is not None:
-            # if query value is a Project ID
+            # if query value is a project ID
             if project.isdigit():
-                # get the Projects-Sites with this Project ID
+                # get the projects-sites with this project ID, exact
                 queryset = queryset.filter(project__exact=project)
-            # if query value is a Project name
+            # else query value is a project name
             else:
-                # lookup the Projects-Sites whose related Projects contain this Project name
+                # lookup the projects-sites whose related projects contain this project name, case-insensitive
                 queryset = queryset.filter(project__name__icontains=project)
         site = self.request.query_params.get('site', None)
         if site is not None:
-            # if query value is a Site ID
+            # if query value is a site ID
             if site.isdigit():
-                # get the Projects-Sites with this Site ID
+                # get the projects-sites with this site ID, eact
                 queryset = queryset.filter(site__exact=site)
-            # if query value is a Project name
+            # else query value is a project name
             else:
-                # lookup the Projects-Sites whose related Sites contain this Site name
+                # lookup the projects-sites whose related sites contain this site name, case-insensitive
                 queryset = queryset.filter(site__name__icontains=site)
         return queryset
 
@@ -186,24 +193,31 @@ class SampleViewSet(viewsets.ModelViewSet):
     serializer_class = SampleSerializer
     paginate_by = 100
 
+    # Note that a unique field sample is determined by project+site+time_stamp+depth+replicate
+
     def get_queryset(self):
         queryset = Sample.objects.all()
+        # filter by sample ID, exact
         sample_id = self.request.query_params.get('id', None)
         if sample_id is not None:
             queryset = queryset.filter(id__exact=sample_id)
-        # a unique field sample is determined by project+site+time_stamp+depth+replicate
+        # filter by project ID, exact
         project = self.request.query_params.get('project', None)
         if project is not None:
             queryset = queryset.filter(project__exact=project)
+        # filter by site ID, exact
         site = self.request.query_params.get('site', None)
         if site is not None:
             queryset = queryset.filter(site__exact=site)
+        # filter by sample datetime, exact
         sample_date_time = self.request.query_params.get('sample_date_time', None)
         if sample_date_time is not None:
             queryset = queryset.filter(sample_date_time__exact=sample_date_time)
+        # filter by depth, exact
         depth = self.request.query_params.get('depth', None)
         if depth is not None:
             queryset = queryset.filter(depth__exact=depth)
+        # filter by replicate, exact
         replicate = self.request.query_params.get('replicate', None)
         if replicate is not None:
             queryset = queryset.filter(replicate__exact=replicate)
@@ -220,25 +234,32 @@ class SampleBottleViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = SampleBottleSerializer
     paginate_by = 100
+    # if URL param 'bottle_string' is included, all records belonging to the indicated bottle_string will be returned,
+    # even if the count is greater than the paginate_by setting, up to the max number set by the max_paginate_by setting
     paginate_by_param = 'bottle_string'
     max_paginate_by = 2000
 
     def get_queryset(self):
         queryset = SampleBottle.objects.all().select_related('sample')
+        # filter by samplebottle ID, exact
         samplebottle_id = self.request.query_params.get('id', None)
         if samplebottle_id is not None:
             queryset = queryset.filter(id__exact=samplebottle_id)
+        # filter by project IDs, exact list
         project = self.request.query_params.get('project', None)
         if project is not None:
             project_list = project.split(',')
             queryset = queryset.filter(sample__project__in=project_list)
+        # filter by site IDs, exact list
         site = self.request.query_params.get('site', None)
         if site is not None:
             site_list = site.split(',')
             queryset = queryset.filter(sample__site__in=site_list)
+        # filter by bottle ID, exact
         bottle = self.request.query_params.get('bottle', None)
         if bottle is not None:
             queryset = queryset.filter(bottle__exact=bottle)
+        # filter by bottle_string (bottle unique name)
         bottle_string = self.request.query_params.get('bottle_string', None)
         if bottle_string is not None:
             bottle_string_list = bottle_string.split(',')
@@ -257,10 +278,12 @@ class SampleBottleViewSet(viewsets.ModelViewSet):
                     queryset = queryset.filter(bottle__bottle_unique_name__icontains=bottle_string_list[0])
             else:
                 queryset = queryset.filter(bottle__bottle_unique_name__in=bottle_string_list)
+        # filter by constituent IDs, exact list
         constituent = self.request.query_params.get('constituent', None)
         if constituent is not None:
             constituent_list = constituent.split(',')
             queryset = queryset.filter(results__constituent_id__in=constituent_list)
+        # filter by sample datetime (after only, before only, or between both, depending on which URL params appear)
         date_after = self.request.query_params.get('date_after', None)
         date_before = self.request.query_params.get('date_before', None)
         if date_after is not None and date_before is not None:
@@ -279,25 +302,31 @@ class FullSampleBottleViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = SampleBottle.objects.all().select_related()
+        # filter by samplebottle ID, exact
         samplebottle_id = self.request.query_params.get('id', None)
         if samplebottle_id is not None:
             queryset = queryset.filter(id__exact=samplebottle_id)
+        # filter by project IDs, exact list
         project = self.request.query_params.get('project', None)
         if project is not None:
             project_list = project.split(',')
             queryset = queryset.filter(sample__project__in=project_list)
+        # filter by site IDs, exact list
         site = self.request.query_params.get('site', None)
         if site is not None:
             site_list = site.split(',')
             queryset = queryset.filter(sample__site__in=site_list)
+        # filter by bottle ID, exact
         bottle = self.request.query_params.get('bottle', None)
         if bottle is not None:
             bottle_list = bottle.split(',')
             queryset = queryset.filter(bottle__bottle_unique_name__in=bottle_list)
+        # filter by constituent IDs, exact list
         constituent = self.request.query_params.get('constituent', None)
         if constituent is not None:
             constituent_list = constituent.split(',')
             queryset = queryset.filter(results__constituent_id__in=constituent_list)
+        # filter by sample datetime (after only, before only, or between both, depending on which URL params appear)
         date_after = self.request.query_params.get('date_after', None)
         date_before = self.request.query_params.get('date_before', None)
         if date_after is not None and date_before is not None:
@@ -323,6 +352,7 @@ class SampleBottleBrominationViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         #logger.info(self.request.query_params)
         queryset = SampleBottleBromination.objects.all()
+        # filter by bottle name or ID
         bottle = self.request.query_params.get('bottle', None)
         if bottle is not None:
             bottle_list = bottle.split(',')
@@ -335,10 +365,11 @@ class SampleBottleBrominationViewSet(viewsets.ModelViewSet):
                 queryset = queryset.filter(sample_bottle__bottle__id__in=bottle_list).extra(
                     select={'ordering': ordering}, order_by=('ordering',))
                 #logger.info(queryset)
-            # if query values are names
+            # else query values are names
             else:
                 queryset = queryset.filter(sample_bottle__bottle__bottle_unique_name__in=bottle_list)
             return queryset
+        # filter by created date (after only, before only, or between both, depending on which URL params appear)
         date_after = self.request.query_params.get('date_after', None)
         date_before = self.request.query_params.get('date_before', None)
         if date_after is not None and date_before is not None:
@@ -363,9 +394,11 @@ class BottleViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = Bottle.objects.all()
+        # filter by bottle ID, exact
         bottle_id = self.request.query_params.get('id', None)
         if bottle_id is not None:
             queryset = queryset.filter(id__exact=bottle_id)
+        # filter by bottle name, case-insensitive contain
         bottle_unique_name = self.request.query_params.get('bottle_unique_name', None)
         if bottle_unique_name is not None:
             queryset = queryset.filter(bottle_unique_name__icontains=bottle_unique_name)
@@ -385,22 +418,24 @@ class BottlePrefixViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = BottlePrefix.objects.all()
+        # filter by bottle prefix ID, exact
         bottleprefix_id = self.request.query_params.get('id', None)
         if bottleprefix_id is not None:
             queryset = queryset.filter(id__exact=bottleprefix_id)
+        # filter by bottle prefix name, exact
         bottle_prefix_exact = self.request.query_params.get('bottle_prefix_exact', None)
         if bottle_prefix_exact is not None:
-            # get the Bottle Prefix
             queryset = queryset.filter(bottle_prefix__exact=bottle_prefix_exact)
+        # filter by bottle prefix ID or name
         bottle_prefix = self.request.query_params.get('bottle_prefix', None)
         if bottle_prefix is not None:
-            # if query value is a Bottle Prefix ID
+            # if query value is a bottle prefix ID
             if bottle_prefix.isdigit():
-                # get the Bottle Prefix
+                # get the bottle prefix by ID, exact
                 queryset = queryset.filter(id__exact=bottle_prefix)
-            # if query value is a Bottle Prefix name
+            # if query value is a bottle prefix name
             else:
-                # get the Bottle Prefix
+                # get the bottle prefix by name, case-insensitive contain
                 queryset = queryset.filter(bottle_prefix__icontains=bottle_prefix)
         return queryset
 
@@ -411,6 +446,7 @@ class BottleTypeViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = BottleType.objects.all()
+        # filter by bottle_type_string (bottle type name), exact
         bottle_type_string = self.request.query_params.get('bottle_type_string', None)
         if bottle_type_string is not None:
             queryset = queryset.filter(bottle_type__exact=bottle_type_string)
@@ -460,9 +496,11 @@ class MethodTypeViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = MethodType.objects.all()
+        # filter by constituent ID, exact
         constituent = self.request.query_params.get('constituent', None)
         if constituent is not None:
             queryset = queryset.filter(constituents__exact=constituent)
+        # filter by method ID, exact
         method_id = self.request.query_params.get('id', None)
         if method_id is not None:
             queryset = queryset.filter(id__exact=method_id)
@@ -489,7 +527,7 @@ class FullResultViewSet(viewsets.ModelViewSet):
 
     # override the default renderers to use a custom csv renderer when requested
     # note that these custom renderers have hard-coded field name headers that match the their respective serialzers
-    # when this code was originally written, so if the serializer fields change, these renderer field name headers
+    # from when this code was originally written, so if the serializer fields change, these renderer field name headers
     # won't match the serializer data, until the renderer code is manually updated to match the serializer fields
     def get_renderers(self):
         frmt = self.request.QUERY_PARAMS.get('format', None)
@@ -524,13 +562,9 @@ class FullResultViewSet(viewsets.ModelViewSet):
                 return FlatResultSerializer
         else:
             return FullResultSerializer
-        # table = self.request.QUERY_PARAMS.get('table', None)
-        # if table is not None and table == 'sample':
-        #         return FlatResultSampleSerializer
-        # else:
-        #     return FlatResultSerializer
 
     # override the default finalize_response to assign a filename to CSV files
+    # see https://github.com/mjumbewu/django-rest-framework-csv/issues/15
     def finalize_response(self, request, *args, **kwargs):
         response = super(viewsets.ModelViewSet, self).finalize_response(request, *args, **kwargs)
         if self.request.accepted_renderer.format == 'csv':
@@ -548,6 +582,7 @@ class FullResultViewSet(viewsets.ModelViewSet):
     # override the default queryset to allow filtering by URL arguments
     def get_queryset(self):
         #queryset = Result.objects.all()
+        # prefetch_related only the exact, necessary fields to greatly improve the response time of the query
         queryset = Result.objects.all().prefetch_related(
             'sample_bottle', 'sample_bottle__bottle',
             'sample_bottle__bottle__bottle_prefix', 'sample_bottle__sample',
@@ -559,22 +594,25 @@ class FullResultViewSet(viewsets.ModelViewSet):
         bottle = self.request.query_params.get('bottle', None)
         if bottle is not None:
             bottle_list = bottle.split(',')
-            # if query values are IDs
+            # if query values are IDs, match exact list of bottle IDs
             if bottle_list[0].isdigit():
                 #logger.info(bottle_list[0])
                 #queryset = queryset.filter(sample_bottle__bottle__id__in=bottle_list)
+                # maintain the order of the bottles that were queried
                 clauses = ' '.join(['WHEN bottle_id=%s THEN %s' % (pk, i) for i, pk in enumerate(bottle_list)])
                 ordering = 'CASE %s END' % clauses
                 queryset = queryset.filter(sample_bottle__bottle__id__in=bottle_list).extra(
                     select={'ordering': ordering}, order_by=('ordering',))
                 #logger.info(queryset)
-            # if query values are names
+            # if query values are names, match exact list of bottle unique names
             else:
                 #queryset = queryset.filter(sample_bottle__bottle__bottle_unique_name__in=bottle_list)
+                # maintain the order of the bottles that were queried
                 clauses = ' '.join(['WHEN bottle_unique_name=%s THEN %s' % (pk, i) for i, pk in enumerate(bottle_list)])
                 ordering = 'CASE %s END' % clauses
                 queryset = queryset.filter(sample_bottle__bottle__bottle_unique_name__in=bottle_list).extra(
                     select={'ordering': ordering}, order_by=('ordering',))
+            # if exclude_null_results is a param, then exclude null results, otherwise return all results
             exclude_null_results = self.request.query_params.get('exclude_null_results')
             if exclude_null_results is not None:
                 if exclude_null_results == 'True' or exclude_null_results == 'true':
@@ -582,38 +620,46 @@ class FullResultViewSet(viewsets.ModelViewSet):
                 #elif exclude_null_results == 'False' or exclude_null_results == 'false':
                 #    queryset = queryset.filter(final_value__isnull=True)
             return queryset
-        # else, search by other params
+        # else, search by other params (that don't include bottle ID or name)
         else:
             #barcode = self.request.query_params.get('barcode', None)
             #if barcode is not None:
             #    queryset = queryset.filter(sample_bottle__exact=barcode)
+            # if exclude_null_results is a param, then exclude null results, otherwise return all results
             exclude_null_results = self.request.query_params.get('exclude_null_results')
             if exclude_null_results is not None:
                 if exclude_null_results == 'True' or exclude_null_results == 'true':
                     queryset = queryset.filter(final_value__isnull=False)
                 #elif exclude_null_results == 'False' or exclude_null_results == 'false':
                 #    queryset = queryset.filter(final_value__isnull=True)
+            # filter by constituent ID, exact list
             constituent = self.request.query_params.get('constituent', None)
             if constituent is not None:
                 constituent_list = constituent.split(',')
                 queryset = queryset.filter(constituent__in=constituent_list)
+            # filter by isotope ID, exact
             isotope = self.request.query_params.get('isotope', None)
             if isotope is not None:
                 queryset = queryset.filter(isotope_flag__exact=isotope)
+            # filter by project ID, exact list
             project = self.request.query_params.get('project', None)
             if project is not None:
                 project_list = project.split(',')
                 queryset = queryset.filter(sample_bottle__sample__project__in=project_list)
+            # filter by site ID, exact list
             site = self.request.query_params.get('site', None)
             if site is not None:
                 site_list = site.split(',')
                 queryset = queryset.filter(sample_bottle__sample__site__in=site_list)
+            # filter by depth, exact
             depth = self.request.query_params.get('depth', None)
             if depth is not None:
                 queryset = queryset.filter(sample_bottle__sample__depth__exact=depth)
+            # filter by replicate, exact
             replicate = self.request.query_params.get('replicate', None)
             if replicate is not None:
                 queryset = queryset.filter(sample_bottle__sample__replicate__exact=replicate)
+            # filter by sample date (after only, before only, or between both, depending on which URL params appear)
             date_after_sample = self.request.query_params.get('date_after_sample', None)
             date_before_sample = self.request.query_params.get('date_before_sample', None)
             if date_after_sample is not None and date_before_sample is not None:
@@ -624,6 +670,7 @@ class FullResultViewSet(viewsets.ModelViewSet):
                 queryset = queryset.filter(sample_bottle__sample__sample_date_time__gt=date_after_sample)
             elif date_before_sample is not None:
                 queryset = queryset.filter(sample_bottle__sample__sample_date_time__lt=date_before_sample)
+            # filter by entry date (after only, before only, or between both, depending on which URL params appear)
             date_after_entry = self.request.query_params.get('date_after_entry', None)
             date_before_entry = self.request.query_params.get('date_before_entry', None)
             if date_after_entry is not None and date_before_entry is not None:
@@ -649,36 +696,41 @@ class ConstituentTypeViewSet(viewsets.ModelViewSet):
     # override the default queryset to allow filtering by URL arguments
     def get_queryset(self):
         queryset = ConstituentType.objects.all()
+        # filter by method ID or name
         method = self.request.query_params.get('method', None)
         if method is not None:
-            # if query value is a Method ID
+            # if query value is a method ID
             if method.isdigit():
-                # get the Constituents related to this Method ID
+                # get the constituents related to this method ID, exact
                 queryset = queryset.filter(methods__exact=method)
-            # if query value is a Method name
+            # else query value is a method name
             else:
-                # lookup the Method ID that matches this Method name
+                # lookup the method ID that matches this method name, exact
                 method_id = MethodType.objects.get(method__exact=method)
-                # get the Constituents related to this Medium ID
+                # get the constituents related to this medium ID, exact
                 queryset = queryset.filter(methods__exact=method_id)
+        # filter by medium ID or name
         medium = self.request.query_params.get('medium', None)
         if medium is not None:
-            # if query value is a Medium ID
+            # if query value is a medium ID
             if medium.isdigit():
-                # get the Constituents related to this Medium ID
+                # get the constituents related to this medium ID, exact
                 queryset = queryset.filter(mediums__exact=medium)
-            # if query value is a Medium name
+            # else query value is a medium name
             else:
-                # lookup the Medium ID that matches this Medium name
+                # lookup the medium ID that matches this medium name, exact
                 medium_id = MediumType.objects.get(medium__exact=medium)
-                # get the Constituents related to this Medium ID
+                # get the constituents related to this medium ID, exact
                 queryset = queryset.filter(mediums__exact=medium_id)
+        # filter by nwis code, exact
         nwis_code = self.request.query_params.get('nwis_code', None)
         if nwis_code is not None:
             queryset = queryset.filter(mediums__nwis_code__exact=nwis_code)
+        # filter by constituent name, case-insensitive contain
         constituent = self.request.query_params.get('constituent', None)
         if constituent is not None:
             queryset = queryset.filter(constituent__icontains=constituent)
+        # filter by constituent ID, exact
         constituent_id = self.request.query_params.get('id', None)
         if constituent_id is not None:
             queryset = queryset.filter(id__exact=constituent_id)
@@ -729,6 +781,7 @@ class IsotopeFlagViewSet(viewsets.ModelViewSet):
     # override the default queryset to allow filtering by URL arguments
     def get_queryset(self):
         queryset = IsotopeFlag.objects.all()
+        # filter by isotope ID, case-insensitive contain
         isotope_id = self.request.query_params.get('id', None)
         if isotope_id is not None:
             queryset = queryset.filter(id__icontains=isotope_id)
@@ -756,9 +809,11 @@ class AcidViewSet(viewsets.ModelViewSet):
     # override the default queryset to allow filtering by URL arguments
     def get_queryset(self):
         queryset = Acid.objects.all()
+        # filter by acid code, exact
         code_exact = self.request.query_params.get('code_exact', None)
         if code_exact is not None:
             queryset = queryset.filter(code__exact=code_exact)
+        # filter by acid code, case-insensitive contain
         code = self.request.query_params.get('code', None)
         if code is not None:
             queryset = queryset.filter(code__icontains=code)
@@ -779,6 +834,7 @@ class BlankWaterViewSet(viewsets.ModelViewSet):
     # override the default queryset to allow filtering by URL arguments
     def get_queryset(self):
         queryset = BlankWater.objects.all()
+        # filter by lot number, case-insensitive contain
         lot_number = self.request.query_params.get('lot_number', None)
         if lot_number is not None:
             queryset = queryset.filter(lot_number__icontains=lot_number)
@@ -799,9 +855,11 @@ class BrominationViewSet(viewsets.ModelViewSet):
     # override the default queryset to allow filtering by URL arguments
     def get_queryset(self):
         queryset = Bromination.objects.all()
+        # filter by bromination ID, case-insensitive contain
         bromination_id = self.request.query_params.get('id', None)
         if bromination_id is not None:
             queryset = queryset.filter(id__icontains=bromination_id)
+        # filter by created date
         date = self.request.query_params.get('date', None)
         if date is not None:
             queryset = queryset.filter(created_date__icontains=date)
@@ -821,6 +879,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = User.objects.all()
+        # filter by username, exact
         username = self.request.query_params.get('username', None)
         if username is not None:
             queryset = queryset.filter(username__exact=username)
@@ -905,6 +964,7 @@ class ReportResultsCountNawqa(generics.ListAPIView):
 
     def get_queryset(self):
         queryset = ResultCountNawqa.objects.all()
+        # filter by entry date (after only, before only, or between both, depending on which URL params appear)
         date_after_entry = self.request.query_params.get('date_after_entry', None)
         date_before_entry = self.request.query_params.get('date_before_entry', None)
         if date_after_entry is not None and date_before_entry is not None:
@@ -913,6 +973,9 @@ class ReportResultsCountNawqa(generics.ListAPIView):
             queryset = queryset.filter(entry_date__gt=date_after_entry)
         elif date_before_entry is not None:
             queryset = queryset.filter(entry_date__lt=date_before_entry)
+        # create a new column for counts that doesn't appear in the database view, using the Django annotate() method,
+        # which will count the number of records after the date filter has been applied, rather than before,
+        # (which is what would happen if we had a count column in the database view)
         queryset = queryset.values('project_name', 'site_name').annotate(count=Count('project_name'))
         return queryset
 
@@ -924,6 +987,7 @@ class ReportResultsCountProjects(generics.ListAPIView):
 
     def get_queryset(self):
         queryset = ResultCountProjects.objects.all()
+        # filter by entry date (after only, before only, or between both, depending on which URL params appear)
         date_after_entry = self.request.query_params.get('date_after_entry', None)
         date_before_entry = self.request.query_params.get('date_before_entry', None)
         if date_after_entry is not None and date_before_entry is not None:
@@ -932,6 +996,9 @@ class ReportResultsCountProjects(generics.ListAPIView):
             queryset = queryset.filter(entry_date__gt=date_after_entry)
         elif date_before_entry is not None:
             queryset = queryset.filter(entry_date__lt=date_before_entry)
+        # create a new column for counts that doesn't appear in the database view, using the Django annotate() method,
+        # which will count the number of records after the date filter has been applied, rather than before,
+        # (which is what would happen if we had a count column in the database view)
         queryset = queryset.values(
             'project_name', 'nwis_customer_code', 'cooperator_email').annotate(count=Count('project_name'))
         return queryset

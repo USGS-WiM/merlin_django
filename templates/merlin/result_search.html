@@ -136,7 +136,7 @@
                         {title: 'Isotope', data: 'isotope_flag_string', readOnly: true, width: 60},
                         {title: 'Received Date', data: 'sample_bottle.sample.received_date', readOnly: true, width: 100},
                         {title: 'Comments', data: 'sample_bottle.sample.comment', readOnly: true, width: 200},
-                        {title: 'Result Value', data: 'final_value', readOnly: true, width: 100, format: '0.00000000'},
+                        {title: 'Result Value', data: 'report_value', readOnly: true, width: 100, format: '0.00000000'},
                         {title: 'Unit', data: 'method.final_value_unit_string', readOnly: true, width: 60},
                         {title: 'Detection Flag', data: 'detection_flag_string', readOnly: true, width: 100},
                         {title: 'Analyzed Date', data: 'analyzed_date', readOnly: true, width: 100}
@@ -317,6 +317,15 @@
                                     data_data['results'][i]['method'] === null ? data_data['results'][i]['method'] = {"final_value_unit": ""} : data_data['results'][i]['method'];
                                 }
                                 grid.data('handsontable').loadData(data_data.results);
+                                var settings = grid.handsontable('getInstance').getSettings();
+                                if ($("input[type=radio][name=valueType]:checked").val() == "report") {
+                                    settings.columns[12] = {title: 'Result Value', data: 'report_value', readOnly: true, width: 100, format: '0.00000000'};
+                                    grid.handsontable('getInstance').updateSettings(settings);
+                                }
+                                else {
+                                    settings.columns[12] = {title: 'Result Value', data: 'final_value', readOnly: true, width: 100, format: '0.00000000'};
+                                    grid.handsontable('getInstance').updateSettings(settings);
+                                }
                                 loading.hide();
                                 button_state.button('reset');
                             }
@@ -395,7 +404,9 @@
                     }
                 });
 
-                $("input[type=radio][name=valueType]").change(function () {
+                var resultValueType = $("input[type=radio][name=valueType]");
+
+                resultValueType.change(function () {
                     var settings = grid.handsontable('getInstance').getSettings();
                     if (this.value == "report") {
                         settings.columns[12] = {title: 'Result Value', data: 'report_value', readOnly: true, width: 100, format: '0.00000000'};

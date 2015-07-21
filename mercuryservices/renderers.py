@@ -1,5 +1,9 @@
 from rest_framework_csv.renderers import CSVRenderer
 
+# these custom renderers have hard-coded field name headers that match the their respective serialzers
+# from when this code was originally written, so if the serializer fields change, these renderer field name headers
+# won't match the serializer data, until the renderer code is manually updated to match the serializer fields
+
 
 class PaginatedResultSampleCSVRenderer(CSVRenderer):
     results_field = 'results'

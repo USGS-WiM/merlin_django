@@ -635,22 +635,29 @@
                             for (var i = 0; i < thisDataRow.length; i++) {
                                 switch(i){
                                     case 1: // project name
-                                        // if it has a value, look up and return the ID, otherwise notify the user that this is a required field, and stop the submission
-                                        if (!thisDataRow[i]) {grid_console.text('Project Name is required in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
-                                        else {
-                                            thisID = updateValueAjax('/mercuryservices/projects/', 'name', 'id', thisDataRow[i]);
-                                            if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Project Name must be a valid choice in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
-                                            thisDataObject[objectFields[i]] = thisID;
-                                        }
+                                        // do nothing with this column
+                                        //// if it has a value, look up and return the ID, otherwise notify the user that this is a required field, and stop the submission
+                                        //if (!thisDataRow[i]) {grid_console.text('Project Name is required in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
+                                        //else {
+                                        //    thisID = updateValueAjax('/mercuryservices/projects/', 'name', 'id', thisDataRow[i]);
+                                        //    if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Project Name must be a valid choice in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
+                                        //    thisDataObject[objectFields[i]] = thisID;
+                                        //}
                                         break;
                                     case 2: // project ID
-                                        // do nothing with this column
+                                        // grab the project ID and ignore the project Name, since the ID would have automatically been updated to match the Name by the event settings in this grid's init settings.
+                                        if (!thisDataRow[i]) {grid_console.text('Project ID is required in row ' + (index + 1) + '! It might be missing if the associated Project Name cannot be found.'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
+                                        else {
+                                            thisID = thisDataRow[i];
+                                            if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Project ID must be a valid choice in row ' + (index + 1) + '! It might be invalid if the associated Project Name cannot be found.'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
+                                            thisDataObject[objectFields[i]] = thisID;
+                                        }
                                         break;
                                     case 3: // site name
                                         // if it has a value, look up and return the ID, otherwise notify the user that this is a required field, and stop the submission
                                         if (!thisDataRow[i]) {grid_console.text('Site Name is required in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                         else {
-                                            thisID = updateValueAjax('/mercuryservices/sites/', 'name', 'id', thisDataRow[i], ('project=' + grid.handsontable('getInstance').getDataAtCell(thisDataRow, 2)));
+                                            thisID = updateValueAjax('/mercuryservices/sites/', 'name', 'id', thisDataRow[i], ('project=' + grid.handsontable('getInstance').getDataAtCell(index, 2)));
                                             if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Site Name must be a valid choice in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                             thisDataObject[objectFields[i]] = thisID;
                                         }
@@ -881,6 +888,10 @@
                                     button_state.button('reset');
                                 }
                             });
+                        }
+                        else {
+                            loading.hide();
+                            button_state.button('reset');
                         }
                     }
                 });
