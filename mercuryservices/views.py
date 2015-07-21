@@ -1060,28 +1060,32 @@ class BatchUpload(views.APIView):
                 if not is_valid:
                     status.append({"message": message, "success": "false"})
                     continue
+                
+                #get bottle_unique_name
+                bottle_unique_name = row["bottle_unique_name"]
+                
                 #validate constituent type
                 is_valid, message, constituent_id = validate_constituent_type(row)
                 if not is_valid:
-                    status.append({"message": message, "success": "false"})
+                    status.append({"message": message, "success": "false", "bottle_unique_name": bottle_unique_name})
                     continue
                 #validate constituent method type
                 is_valid, message, constituent_method_id = validate_constituent_method(constituent_id, row)
                 if not is_valid:
-                    status.append({"message": message, "success": "false"})
+                    status.append({"message": message, "success": "false", "bottle_unique_name": bottle_unique_name})
                     continue
                 is_valid, message, isotope_flag_id = validate_isotope_flag(row)
                 if not is_valid:
-                    status.append({"message": message, "success": "false"})
+                    status.append({"message": message, "success": "false", "bottle_unique_name": bottle_unique_name})
                     continue
                 #validate quality assurance
                 is_valid, message, quality_assurance_id_array = validate_quality_assurance(row)
                 if not is_valid:
-                    status.append({"message": message, "success": "false"})
+                    status.append({"message": message, "success": "false", "bottle_unique_name": bottle_unique_name})
                     continue
                 is_valid, message = validate_analyzed_date(row)
                 if not is_valid:
-                    status.append({"message": message, "success": "false"})
+                    status.append({"message": message, "success": "false", "bottle_unique_name": bottle_unique_name})
                     continue
                 # get sample_mass_processed and sediment_dry_weight if given
                 try:
@@ -1100,7 +1104,7 @@ class BatchUpload(views.APIView):
                     sample, constituent_id, method_id, row
                 )
                 if not is_valid:
-                    status.append({"message": message, "success": "false"})
+                    status.append({"message": message, "success": "false", "bottle_unique_name": bottle_unique_name})
                     continue
 
                 #calculate the result
@@ -1156,11 +1160,11 @@ class BatchUpload(views.APIView):
                 quality_assurance_id_array = quality_assurance_id_array + qa_flags
                 for quality_assurance_id in quality_assurance_id_array:
                     QualityAssurance.objects.create(result_id=result_id, quality_assurance_id=quality_assurance_id)
-                status.append({"success": "true", "result_id": result_id, "bottle_id": bottle_id})
+                status.append({"success": "true", "result_id": result_id, "bottle_unique_name": bottle_unique_name})
         except BaseException as e:
             if isinstance(data, list) is False:
                 e = "Expecting an array of results"
-            status.append({"success": "false", "message": str(e)})
+            status.append({"success": "false", "message": str(e), "bottle_unique_name": bottle_unique_name})
             #traceback.print_exc()
         return HttpResponse(json.dumps(status), content_type='application/json')
 
@@ -1681,6 +1685,7 @@ def get_method_type(method_code):
 
 
 def process_final_value(final_value, method_id, volume_filtered, sediment_dry_weight, sample_mass_processed):
+    print(final_value)
     value = final_value
     if method_id is None or final_value is None:
         value = final_value
@@ -1710,6 +1715,7 @@ def process_final_value(final_value, method_id, volume_filtered, sediment_dry_we
 
 
 def process_report_value(report_value, method_id, volume_filtered, sediment_dry_weight, sample_mass_processed):
+    print(report_value)
     value = report_value
     if method_id is None or report_value is None:
         value = report_value
