@@ -1571,9 +1571,9 @@ def get_lost_sample_result(raw_value, daily_detection_limit):
     detection_flag = 'L'
     display_value = str(raw_value)
     qa_flags = []
-    qa = QualityAssuranceType.objects.get(quality_assurance='LS')
-    qa_flag_id = qa.id
-    qa_flags.append(qa_flag_id)
+    #qa = QualityAssuranceType.objects.get(quality_assurance='LS')
+    #qa_flag_id = qa.id
+    #qa_flags.append(qa_flag_id)
     return display_value, reported_value, detection_flag, daily_detection_limit, qa_flags
 
 
