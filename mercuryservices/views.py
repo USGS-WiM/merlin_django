@@ -14,6 +14,7 @@ from rest_framework_bulk import BulkCreateModelMixin, BulkUpdateModelMixin
 from mercuryservices.serializers import *
 from mercuryservices.models import *
 from mercuryservices.renderers import *
+#import traceback
 
 
 ########################################################################################################################
@@ -1570,7 +1571,8 @@ def get_lost_sample_result(raw_value, daily_detection_limit):
     detection_flag = 'L'
     display_value = str(raw_value)
     qa_flags = []
-    qa_flag_id = QualityAssuranceType.objects.get(quality_assurance='LS')
+    qa = QualityAssuranceType.objects.get(quality_assurance='LS')
+    qa_flag_id = qa.id
     qa_flags.append(qa_flag_id)
     return display_value, reported_value, detection_flag, daily_detection_limit, qa_flags
 
@@ -1752,7 +1754,6 @@ def get_method_type(method_code):
 
 
 def process_final_value(final_value, method_id, volume_filtered, sediment_dry_weight, sample_mass_processed):
-    print(final_value)
     value = final_value
     if method_id is None or final_value is None:
         value = final_value
@@ -1782,7 +1783,6 @@ def process_final_value(final_value, method_id, volume_filtered, sediment_dry_we
 
 
 def process_report_value(report_value, method_id, volume_filtered, sediment_dry_weight, sample_mass_processed):
-    print(report_value)
     value = report_value
     if method_id is None or report_value is None:
         value = report_value
