@@ -43,7 +43,7 @@ HEADERS_CONTENT_JSON = {'content-type': 'application/json'}
 HEADERS_CONTENT_FORM = {'content-type': 'application/x-www-form-urlencoded'}
 
 
-SAMPLE_KEYS_UNIQUE = ["project", "site", "sample_date_time", "depth", "replicate"]
+SAMPLE_KEYS_UNIQUE = ["project", "site", "sample_date_time", "depth", "replicate", "medium_type"]
 SAMPLE_KEYS = ["project", "site", "sample_date_time", "depth", "length", "received_date", "comment",
                "replicate", "medium_type", "lab_processing"]
 SAMPLE_BOTTLE_KEYS = ["sample", "bottle", "filter_type", "volume_filtered",
@@ -86,6 +86,7 @@ def samples_create(request):
     logger.info("submitted table contains " + str(table_rows) + " rows")
     row_number = 0
     unique_sample_ids = []
+    unique_sample_bottle_ids = []
     unique_bottles = []
     bottle_filter_volumes = []
     unique_sample_bottles = []
@@ -105,7 +106,8 @@ def samples_create(request):
         if this_depth.startswith("."):
             this_depth = "0" + this_depth
         this_sample_id = str(row.get('project'))+"|"+str(row.get('site'))+"|"
-        this_sample_id += str(row.get('sample_date_time'))+"|"+this_depth+"|"+str(row.get('replicate'))
+        this_sample_id += str(row.get('sample_date_time'))+"|"+this_depth+"|"+str(row.get('replicate'))+"|"
+        this_sample_id += str(row.get('medium_type'))
         logger.info("this sample id: " + this_sample_id)
         # if this sample ID is not already in the unique list, add it, otherwise skip the sample data for this row
         if this_sample_id not in unique_sample_ids:
@@ -115,6 +117,7 @@ def samples_create(request):
             logger.info("VALIDATE Sample")
             sample_values_unique = [
                 row.get('project'), row.get('site'), row.get('sample_date_time'), row.get('depth'), row.get('replicate')
+                , row.get('medium_type')
             ]
             this_sample_unique = dict(zip(SAMPLE_KEYS_UNIQUE, sample_values_unique))
             logger.info(str(this_sample_unique))
@@ -132,7 +135,8 @@ def samples_create(request):
                 site_name = r.json()['results'][0]['name']
                 message = "\"Error in row " + str(row_number) + ": This Sample already exists in the database: "
                 message += project_name + "|" + site_name + "|" + str(row.get('sample_date_time')) + "|"
-                message += str(row.get('depth')) + "|" + str(row.get('replicate')) + "\""
+                message += str(row.get('depth')) + "|" + str(row.get('replicate')) + "|"
+                message += str(row.get('medium_type')) + "\""
                 logger.error(message)
                 return HttpResponse(message, content_type='text/html')
 
@@ -156,10 +160,10 @@ def samples_create(request):
         if response_data['count'] != 0:
             logger.warning("Validation Warning: " + str(this_bottle) + " count != 0")
             bottle_name = response_data['results'][0]['bottle_string']
-            r = requests.get(REST_SERVICES_URL+'projects/', params={'id': row.get('project')})
-            project_name = r.json()[0]['name']
-            r = requests.get(REST_SERVICES_URL+'sites/', params={'id': row.get('site')})
-            site_name = r.json()['results'][0]['name']
+            #r = requests.get(REST_SERVICES_URL+'projects/', params={'id': row.get('project')})
+            #project_name = r.json()[0]['name']
+            #r = requests.get(REST_SERVICES_URL+'sites/', params={'id': row.get('site')})
+            #site_name = r.json()['results'][0]['name']
             message = "\"Error in row " + str(row_number) + ": This Bottle already used by a Sample in the database: "
             message += bottle_name + "\""
             logger.error(message)
@@ -227,16 +231,25 @@ def samples_create(request):
                     logger.error(message)
                     return HttpResponse(message, content_type='text/html')
 
-        # create a sample bottle object using the sample bottle data within this row
-        sample_bottle_values = [
-            this_sample_id, row.get('bottle'), row.get('filter_type'), row.get('volume_filtered'),
-            row.get('preservation_type'), row.get('preservation_volume'), row.get('preservation_acid'),
-            row.get('preservation_comment')
-        ]
-        this_sample_bottle = dict(zip(SAMPLE_BOTTLE_KEYS, sample_bottle_values))
-        logger.info("Creating sample bottle: " + str(this_sample_bottle))
-        # add this new sample bottle object to the list
-        sample_bottle_data.append(this_sample_bottle)
+        # grab the data that uniquely identifies each sample bottle
+        this_sample_bottle_id = this_sample_id+"|"+str(row.get('bottle'))
+        logger.info("this sample bottle id: " + this_sample_bottle_id)
+
+        # if this sample bottle ID is not already in the unique list, add it,
+        # otherwise skip the sample bottle data for this row
+        if this_sample_bottle_id not in unique_sample_bottle_ids:
+            unique_sample_bottle_ids.append(this_sample_bottle_id)
+
+            # create a sample bottle object using the sample bottle data within this row
+            sample_bottle_values = [
+                this_sample_id, row.get('bottle'), row.get('filter_type'), row.get('volume_filtered'),
+                row.get('preservation_type'), row.get('preservation_volume'), row.get('preservation_acid'),
+                row.get('preservation_comment')
+            ]
+            this_sample_bottle = dict(zip(SAMPLE_BOTTLE_KEYS, sample_bottle_values))
+            logger.info("Creating sample bottle: " + str(this_sample_bottle))
+            # add this new sample bottle object to the list
+            sample_bottle_data.append(this_sample_bottle)
 
         # create a result object using the result data within this row
         sample_analysis_values = [str(row.get('bottle')), row.get('constituent_type'), row.get('isotope_flag')]
@@ -300,7 +313,7 @@ def samples_create(request):
         # using a hacky workaround here to handle the "T" in the time_stamp; there's likely a better way to handle this
         combo_id = str(item.get('project')) + "|"+str(item.get('site')) + "|"
         combo_id += str(item.get('sample_date_time')).replace("T", " ") + "|"
-        combo_id += str(item.get('depth')) + "|"+str(item.get('replicate'))
+        combo_id += str(item.get('depth')) + "|" +str(item.get('replicate')) + "|" +str(item.get('medium_type'))
         sample_id = {'combo_id': combo_id, 'db_id': item.get('id')}
         logger.info("item " + str(item_number) + ": " + str(sample_id))
         sample_ids.append(sample_id)
@@ -522,6 +535,7 @@ def samples_update(request):
     logger.info("submitted table contains " + str(table_rows) + " rows")
     row_number = 0
     unique_sample_ids = []
+    unique_sample_bottle_ids = []
     sample_data = []
     sample_bottle_data = []
     sample_analysis_data = []
@@ -563,7 +577,8 @@ def samples_update(request):
                 message = "\"Error in row " + str(row_number) + ":"
                 message += " Cannot save because this Sample does not exist in the database: "
                 message += project_name + "|" + site_name + "|" + str(row.get('sample_date_time')) + "|"
-                message += str(row.get('depth')) + "|" + str(row.get('replicate')) + "."
+                message += str(row.get('depth')) + "|" + str(row.get('replicate')) + "|"
+                message += str(row.get('medium_type')) + "."
                 message += " Please use the Sample Login tool to add it.\""
                 logger.error(message)
                 return HttpResponse(message, content_type='text/html')
@@ -583,21 +598,30 @@ def samples_update(request):
             logger.info("Creating sample: " + str(this_sample))
             sample_data.append(this_sample)
 
-        # create a sample bottle object using the sample bottle data within this row
-        sample_bottle_values = [
-            row.get('sample_bottle.id'), row.get('sample_bottle.sample.id'), row.get('bottle'),
-            row.get('filter_type'), row.get('volume_filtered'), row.get('preservation_type'),
-            row.get('preservation_volume'), row.get('preservation_acid'), row.get('preservation_comment')
-        ]
-        this_sample_bottle_keys = [
-            "id", "sample", "bottle",
-            "filter_type", "volume_filtered", "preservation_type",
-            "preservation_volume", "preservation_acid", "preservation_comment"
-        ]
-        this_sample_bottle = dict(zip(this_sample_bottle_keys, sample_bottle_values))
-        logger.info("Creating sample bottle: " + str(this_sample_bottle))
-        # add this new sample bottle object to the list
-        sample_bottle_data.append(this_sample_bottle)
+        # grab the data that uniquely identifies each sample bottle
+        this_sample_bottle_id = this_sample_id+"|"+str(row.get('sample_bottle.id'))
+        logger.info("this sample bottle id: " + this_sample_bottle_id)
+
+        # if this sample bottle ID is not already in the unique list, add it,
+        # otherwise skip the sample bottle data for this row
+        if this_sample_bottle_id not in unique_sample_bottle_ids:
+            unique_sample_bottle_ids.append(this_sample_bottle_id)
+
+            # create a sample bottle object using the sample bottle data within this row
+            sample_bottle_values = [
+                row.get('sample_bottle.id'), row.get('sample_bottle.sample.id'), row.get('bottle'),
+                row.get('filter_type'), row.get('volume_filtered'), row.get('preservation_type'),
+                row.get('preservation_volume'), row.get('preservation_acid'), row.get('preservation_comment')
+            ]
+            this_sample_bottle_keys = [
+                "id", "sample", "bottle",
+                "filter_type", "volume_filtered", "preservation_type",
+                "preservation_volume", "preservation_acid", "preservation_comment"
+            ]
+            this_sample_bottle = dict(zip(this_sample_bottle_keys, sample_bottle_values))
+            logger.info("Creating sample bottle: " + str(this_sample_bottle))
+            # add this new sample bottle object to the list
+            sample_bottle_data.append(this_sample_bottle)
 
         # create a result object using the result data within this row
         sample_analysis_values = [

@@ -242,7 +242,7 @@ class Sample(models.Model):
 
     class Meta:
         db_table = "mercury_sample"
-        unique_together = ("project", "site", "sample_date_time", "depth", "replicate")
+        unique_together = ("project", "site", "sample_date_time", "depth", "replicate", "medium_type")
 
 
 class SampleBottle(models.Model):

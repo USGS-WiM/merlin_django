@@ -221,6 +221,10 @@ class SampleViewSet(viewsets.ModelViewSet):
         replicate = self.request.query_params.get('replicate', None)
         if replicate is not None:
             queryset = queryset.filter(replicate__exact=replicate)
+        # filter by medium type, exact
+        medium_type = self.request.query_params.get('medium_type', None)
+        if medium_type is not None:
+            queryset = queryset.filter(medium_type__exact=medium_type)
         return queryset
 
 
