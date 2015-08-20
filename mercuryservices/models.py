@@ -242,7 +242,7 @@ class Sample(models.Model):
 
     class Meta:
         db_table = "mercury_sample"
-        unique_together = ("project", "site", "sample_date_time", "depth", "replicate")
+        unique_together = ("project", "site", "sample_date_time", "depth", "replicate", "medium_type")
 
 
 class SampleBottle(models.Model):
@@ -357,7 +357,7 @@ class Result(models.Model):
     isotope_flag = models.ForeignKey('IsotopeFlag')
     detection_flag = models.ForeignKey('DetectionFlag', null=True, blank=True)
     raw_value = models.FloatField(null=True, blank=True)
-    final_value = models.FloatField(max_length=128, null=True, blank=True)
+    final_value = models.FloatField(null=True, blank=True)
     report_value = models.CharField(max_length=128, null=True, blank=True)
     raw_daily_detection_limit = models.FloatField(null=True, blank=True)
     final_daily_detection_limit = models.FloatField(null=True, blank=True)

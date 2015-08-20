@@ -222,6 +222,10 @@ class SampleViewSet(viewsets.ModelViewSet):
         replicate = self.request.query_params.get('replicate', None)
         if replicate is not None:
             queryset = queryset.filter(replicate__exact=replicate)
+        # filter by medium type, exact
+        medium_type = self.request.query_params.get('medium_type', None)
+        if medium_type is not None:
+            queryset = queryset.filter(medium_type__exact=medium_type)
         return queryset
 
 
@@ -246,6 +250,10 @@ class SampleBottleViewSet(viewsets.ModelViewSet):
         samplebottle_id = self.request.query_params.get('id', None)
         if samplebottle_id is not None:
             queryset = queryset.filter(id__exact=samplebottle_id)
+        # filter by sample ID, exact
+        sample_id = self.request.query_params.get('id', None)
+        if sample_id is not None:
+            queryset = queryset.filter(sample__id__exact=sample_id)
         # filter by project IDs, exact list
         project = self.request.query_params.get('project', None)
         if project is not None:
@@ -307,6 +315,10 @@ class FullSampleBottleViewSet(viewsets.ModelViewSet):
         samplebottle_id = self.request.query_params.get('id', None)
         if samplebottle_id is not None:
             queryset = queryset.filter(id__exact=samplebottle_id)
+        # filter by sample ID, exact
+        sample_id = self.request.query_params.get('id', None)
+        if sample_id is not None:
+            queryset = queryset.filter(sample__id__exact=sample_id)
         # filter by project IDs, exact list
         project = self.request.query_params.get('project', None)
         if project is not None:
@@ -516,9 +528,24 @@ class ResultBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkUpdateModelMixin, 
 
 class ResultViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    queryset = Result.objects.all()
     serializer_class = ResultSerializer
     paginate_by = 100
+
+    def get_queryset(self):
+        queryset = Result.objects.all()
+        # filter by sample bottle ID, exact
+        sample_bottle = self.request.query_params.get('sample_bottle', None)
+        if sample_bottle is not None:
+            queryset = queryset.filter(sample_bottle__exact=sample_bottle)
+        # filter by constituent ID, exact
+        constituent = self.request.query_params.get('constituent', None)
+        if constituent is not None:
+            queryset = queryset.filter(constituent__exact=constituent)
+        # filter by isotope ID, exact
+        isotope_flag = self.request.query_params.get('isotope_flag', None)
+        if isotope_flag is not None:
+            queryset = queryset.filter(isotope_flag__exact=isotope_flag)
+        return queryset
 
 
 class FullResultViewSet(viewsets.ModelViewSet):
@@ -639,9 +666,9 @@ class FullResultViewSet(viewsets.ModelViewSet):
                 constituent_list = constituent.split(',')
                 queryset = queryset.filter(constituent__in=constituent_list)
             # filter by isotope ID, exact
-            isotope = self.request.query_params.get('isotope', None)
-            if isotope is not None:
-                queryset = queryset.filter(isotope_flag__exact=isotope)
+            isotope_flag = self.request.query_params.get('isotope_flag', None)
+            if isotope_flag is not None:
+                queryset = queryset.filter(isotope_flag__exact=isotope_flag)
             # filter by project ID, exact list
             project = self.request.query_params.get('project', None)
             if project is not None:
