@@ -446,7 +446,7 @@ def samples_create(request):
                 logger.error(message)
                 return HttpResponse(message, content_type='text/html')
         message = "\"Error " + str(failed_create_status_code) + ": " + r.reason + "."
-        message = "\"Can save samples and sample bottles, but cannot save analyses."
+        message += "\"Can save samples and sample bottles, but cannot save analyses."
         message += " Please contact the administrator.\""
         logger.error(message)
         return HttpResponse(message, content_type='text/html')
@@ -599,7 +599,7 @@ def samples_update(request):
             sample_data.append(this_sample)
 
         # grab the data that uniquely identifies each sample bottle
-        this_sample_bottle_id = this_sample_id+"|"+str(row.get('sample_bottle.id'))
+        this_sample_bottle_id = str(this_sample_id)+"|"+str(row.get('sample_bottle.id'))
         logger.info("this sample bottle id: " + this_sample_bottle_id)
 
         # if this sample bottle ID is not already in the unique list, add it,
@@ -625,8 +625,10 @@ def samples_update(request):
 
         # create a result object using the result data within this row
         sample_analysis_values = [
-            row.get('id'), row.get('sample_bottle.id'), row.get('constituent_type'), row.get('isotope_flag')]
-        this_sample_analysis_keys = ["id", "sample_bottle", "constituent", "isotope_flag"]
+            row.get('id'), row.get('sample_bottle.id'), row.get('constituent_type'), row.get('isotope_flag'),
+            row.get('sample_bottle.sample.id'), row.get('bottle')]
+        this_sample_analysis_keys = ["id", "sample_bottle", "constituent", "isotope_flag",
+                                     "temp_sample", "temp_bottle"]
         this_sample_analysis = dict(zip(this_sample_analysis_keys, sample_analysis_values))
         logger.info("Creating result: " + str(this_sample_analysis))
         # add this new sample bottle object to the list
@@ -679,25 +681,72 @@ def samples_update(request):
     for item in sample_bottle_data:
         item_number += 1
         this_id = item.pop("id")
+        this_bottle = item.get("bottle")
+        this_sample = item.get("sample")
         item = json.dumps(item)
         logger.info("Item #" + str(item_number) + ": " + item)
-        url = REST_SERVICES_URL+'samplebottles/'+str(this_id)+'/'
-        r = requests.request(method='PUT', url=url, data=item, headers=headers)
-        logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
-        # if r.status_code != 200 or r.status_code != 201:
-        #     message = "\"Error in row " + str(item_number) + ": Encountered an error while attempting to save"
-        #     message += " sample bottle in sample " + str(this_id) + ": " + str(r.status_code) + "\""
-        #     logger.error(message)
-        #     return HttpResponse(message, content_type='text/html')
-        # else:
-        #     this_response_data = r.json()
-        #     logger.info(str(len(this_response_data)) + " sample bottles saved")
-        #     sample_bottle_response_data.append(this_response_data)
-        this_response_data = r.json()
-        logger.info(r.request.body)
-        logger.info(this_response_data)
-        logger.info("1 sample bottles saved")
-        sample_bottle_response_data.append(this_response_data)
+        # if id is null, that means it might be a new record, otherwise it is an update to an existing record
+        if not this_id:
+            # validate if this bottle + sample combo exists, which means this is an update to an existing record,
+            # but the sample bottle id is null because there is a new related sample analysis being submitted
+            logger.info("VALIDATE Sample Bottle in Search Save")
+            url = REST_SERVICES_URL+'samplebottles/'
+            r = requests.get(url, params={"bottle": this_bottle, "sample_id": this_sample})
+            logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
+            response_data = r.json()
+            logger.info("count: " + str(response_data['count']))
+            # if response count equals zero, then this sample bottle does not exist in the database, so create one
+            if response_data['count'] == 0:
+                url = REST_SERVICES_URL+'samplebottles/'
+                r = requests.request(method='POST', url=url, data=item, headers=headers)
+                logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
+                # if r.status_code != 200 or r.status_code != 201:
+                #     message = "\"Error in row " + str(item_number) + ": Encountered an error while attempting to save"
+                #     message += " sample bottle in sample " + str(this_id) + ": " + str(r.status_code) + "\""
+                #     logger.error(message)
+                #     return HttpResponse(message, content_type='text/html')
+                # else:
+                #     this_response_data = r.json()
+                #     logger.info(str(len(this_response_data)) + " sample bottles created")
+                #     sample_bottle_response_data.append(this_response_data)
+                this_response_data = r.json()
+                logger.info("1 sample bottles created")
+                sample_bottle_response_data.append(this_response_data)
+            # otherwise the sample bottle does exist, so grab the id and update the record with the submitted data
+            else:
+                this_id = response_data["results"][0]["id"]
+                url = REST_SERVICES_URL+'samplebottles/'+str(this_id)+'/'
+                r = requests.request(method='PUT', url=url, data=item, headers=headers)
+                logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
+                # if r.status_code != 200 or r.status_code != 201:
+                #     message = "\"Error in row " + str(item_number) + ": Encountered an error while attempting to save"
+                #     message += " sample bottle in sample " + str(this_id) + ": " + str(r.status_code) + "\""
+                #     logger.error(message)
+                #     return HttpResponse(message, content_type='text/html')
+                # else:
+                #     this_response_data = r.json()
+                #     logger.info(str(len(this_response_data)) + " sample bottles saved")
+                #     sample_bottle_response_data.append(this_response_data)
+                this_response_data = r.json()
+                logger.info("1 sample bottles saved")
+                sample_bottle_response_data.append(this_response_data)
+        else:
+            url = REST_SERVICES_URL+'samplebottles/'+str(this_id)+'/'
+            r = requests.request(method='PUT', url=url, data=item, headers=headers)
+            logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
+            # if r.status_code != 200 or r.status_code != 201:
+            #     message = "\"Error in row " + str(item_number) + ": Encountered an error while attempting to save"
+            #     message += " sample bottle in sample " + str(this_id) + ": " + str(r.status_code) + "\""
+            #     logger.error(message)
+            #     return HttpResponse(message, content_type='text/html')
+            # else:
+            #     this_response_data = r.json()
+            #     logger.info(str(len(this_response_data)) + " sample bottles saved")
+            #     sample_bottle_response_data.append(this_response_data)
+            this_response_data = r.json()
+            logger.info("1 sample bottles saved")
+            sample_bottle_response_data.append(this_response_data)
+    logger.info(sample_bottle_response_data)
 
     ## SAVE SAMPLE ANALYSES (placeholder records in Results table) ##
     # update the sample analyses with the sample bottle IDs, rather than the bottle IDs
@@ -712,23 +761,99 @@ def samples_update(request):
     for item in sample_analysis_data:
         item_number += 1
         this_id = item.pop("id")
-        item = json.dumps(item)
-        logger.info("Item #" + str(item_number) + ": " + item)
-        url = REST_SERVICES_URL+'results/'+str(this_id)+'/'
-        r = requests.request(method='PUT', url=url, data=item, headers=headers)
-        logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
-        # if r.status_code != 200 or r.status_code != 201:
-        #     message = "\"Error in row " + str(item_number) + ": Encountered an error while attempting to save"
-        #     message += " sample analysis " + str(this_id) + ": " + str(r.status_code) + "\""
-        #     logger.error(message)
-        #     return HttpResponse(message, content_type='text/html')
-        # else:
-        #     this_response_data = r.json()
-        #     logger.info(str(len(this_response_data)) + " sample analyses saved")
-        #     sample_analysis_response_data.append(this_response_data)
-        this_response_data = r.json()
-        logger.info("1 sample analyses saved")
-        sample_analysis_response_data.append(this_response_data)
+        # also pop the temp sample and temp bottle, which removes those values from the object
+        this_sample = item.pop("temp_sample")
+        this_bottle = item.pop("temp_bottle")
+        logger.info("Item #" + str(item_number) + ": " + str(item))
+        # if id is null, that means it might be a new record, otherwise it is an update to an existing record
+        if not this_id:
+            # validate if this bottle + sample combo exists, which means this is an update to an existing record,
+            # but the sample bottle id is null because there is a new related sample analysis being submitted
+            logger.info("VALIDATE Sample Analysis in Search Save")
+            # first grab the sample bottle id
+            url = REST_SERVICES_URL+'samplebottles/'
+            r = requests.get(url, params={"bottle": this_bottle, "sample_id": this_sample})
+            logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
+            response_data = r.json()
+            logger.info("count: " + str(response_data['count']))
+            # if there is at least one record in the response, the sample bottle already exists, so grab the id,
+            # otherwise,  matching sample bottle doesn't exist, which is a problem.
+            if not response_data['count'] == 0:
+                # a sample bottle was found
+                this_sample_bottle = response_data["results"][0]["id"]
+                logger.info("found this sample bottle: " + str(this_sample_bottle))
+                item['sample_bottle'] = this_sample_bottle
+                r = requests.get(
+                    url=REST_SERVICES_URL+'results/',
+                    params={"sample_bottle": item.get("sample_bottle"), "constituent": item.get("constituent"),
+                            "isotope_flag": item.get("isotope_flag")})
+                logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
+                response_data = r.json()
+                logger.info("count: " + str(response_data['count']))
+                # if response count equals zero, then this sample analysis does not exist in the database, so create one
+                item = json.dumps(item)
+                if response_data['count'] == 0:
+                    url = REST_SERVICES_URL+'results/'
+                    r = requests.request(method='POST', url=url, data=item, headers=headers)
+                    logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
+                    # if r.status_code != 200 or r.status_code != 201:
+                    #     message = "\"Error in row " + str(item_number) + ": Encountered an error while attempting to save"
+                    #     message += " sample bottle in sample " + str(this_id) + ": " + str(r.status_code) + "\""
+                    #     logger.error(message)
+                    #     return HttpResponse(message, content_type='text/html')
+                    # else:
+                    #     this_response_data = r.json()
+                    #     logger.info(str(len(this_response_data)) + " sample bottles created")
+                    #     sample_bottle_response_data.append(this_response_data)
+                    this_response_data = r.json()
+                    logger.info("1 sample analyses created")
+                    sample_analysis_response_data.append(this_response_data)
+                # otherwise the sample analysis does exist, so grab the id and update the record with the submitted data
+                else:
+                    this_id = response_data["results"][0]["id"]
+                    url = REST_SERVICES_URL+'results/'+str(this_id)+'/'
+                    r = requests.request(method='PUT', url=url, data=item, headers=headers)
+                    logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
+                    # if r.status_code != 200 or r.status_code != 201:
+                    #     message = "\"Error in row " + str(item_number) + ": Encountered an error while attempting to save"
+                    #     message += " sample bottle in sample " + str(this_id) + ": " + str(r.status_code) + "\""
+                    #     logger.error(message)
+                    #     return HttpResponse(message, content_type='text/html')
+                    # else:
+                    #     this_response_data = r.json()
+                    #     logger.info(str(len(this_response_data)) + " sample bottles saved")
+                    #     sample_bottle_response_data.append(this_response_data)
+                    this_response_data = r.json()
+                    logger.info("1 sample analyses saved")
+                    sample_analysis_response_data.append(this_response_data)
+            else:
+                message = "\"Error " + str(r.status_code) + ": " + r.reason + "."
+                r = requests.get(url=REST_SERVICES_URL+'bottles/', params={"id": this_bottle})
+                logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
+                response_data = r.json()
+                message += " Unable to save sample analysis; could not find a sample bottle for this sample analysis."
+                message += " Tried finding a sample bottle with Sample ID " + this_sample
+                message += " and Bottle Code " + response_data["results"][0]["bottle_unique_name"] + "."
+                message += " Please contact the administrator.\""
+                logger.error(message)
+                return HttpResponse(message, content_type='text/html')
+        else:
+            item = json.dumps(item)
+            url = REST_SERVICES_URL+'results/'+str(this_id)+'/'
+            r = requests.request(method='PUT', url=url, data=item, headers=headers)
+            logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
+            # if r.status_code != 200 or r.status_code != 201:
+            #     message = "\"Error in row " + str(item_number) + ": Encountered an error while attempting to save"
+            #     message += " sample analysis " + str(this_id) + ": " + str(r.status_code) + "\""
+            #     logger.error(message)
+            #     return HttpResponse(message, content_type='text/html')
+            # else:
+            #     this_response_data = r.json()
+            #     logger.info(str(len(this_response_data)) + " sample analyses saved")
+            #     sample_analysis_response_data.append(this_response_data)
+            this_response_data = r.json()
+            logger.info("1 sample analyses saved")
+            sample_analysis_response_data.append(this_response_data)
     sample_analysis_response_data = json.dumps(sample_analysis_response_data)
     # send the response (data & messages) back to the user interface
     return HttpResponse(sample_analysis_response_data, content_type='application/json')
