@@ -1305,6 +1305,7 @@ def validate_constituent_type(row):
 def validate_isotope_flag(row):
     is_valid = False
     message = ""
+    isotope_flag_id = -1
 
     #get isotope flag
     try:
@@ -1312,17 +1313,17 @@ def validate_isotope_flag(row):
         #make sure that it is numeric
         if isinstance(isotope_flag_id, Number) is False:
             message = "Expecting a numeric value for isotope_flag_id"
-            return is_valid, message
+            return is_valid, message, isotope_flag_id
     except KeyError:
         message = "'isotope_flag_id' is required"
-        return is_valid, message
+        return is_valid, message, isotope_flag_id
 
     #get isotope flag id
     try:
         isotope_flag_details = IsotopeFlag.objects.get(id=isotope_flag_id)
     except ObjectDoesNotExist:
         message = "The isotope flag '"+str(isotope_flag_id)+"' does not exist"
-        return is_valid, message
+        return is_valid, message, isotope_flag_id
 
     isotope_flag_id = isotope_flag_details.id
     is_valid = True
@@ -1497,7 +1498,7 @@ def eval_result(row, result_id):
                 )
             else:
                 #evaluate according to significant_figures & decimal_places
-                display_value, reported_value, detection_flag, daily_detection_limit, qa_flags = eval_sigfigs_decimals(
+                display_value, reported_value, detection_flag, daily_detection_limit, qa_flags = eval_detection(
                     raw_value, daily_detection_limit, method_detection_limit, significant_figures, decimal_places
                 )
         elif (isotope_flag in ['X-198', 'X-199', 'X-200', 'X-201', 'X-202']) or (
@@ -1523,7 +1524,7 @@ def eval_result(row, result_id):
                 if isotope_flag in ['X-198', 'X-199', 'X-200', 'X-201', 'X-202']:
                     decimal_places = 3
                 #evaluate according to significant_figures & decimal_places
-                display_value, reported_value, detection_flag, daily_detection_limit, qa_flags = eval_sigfigs_decimals(
+                display_value, reported_value, detection_flag, daily_detection_limit, qa_flags = eval_detection(
                     raw_value, daily_detection_limit, method_detection_limit, significant_figures, decimal_places
                 )
         else:
@@ -1588,40 +1589,67 @@ def eval_mdl(daily_detection_limit, method_detection_limit):
     return display_value, reported_value, detection_flag, daily_detection_limit, []
 
 
-def eval_sigfigs_decimals(
+# def eval_sigfigs_decimals(
+#         raw_value, daily_detection_limit, method_detection_limit, significant_figures, decimal_places):
+#     num_infront, num_behind, is_decimal_exists = get_decimal_info(raw_value)
+
+#     if num_infront >= significant_figures+1:
+#         sigfig_value = truncate_float(raw_value, significant_figures+1-num_infront)
+#     elif num_behind == 0:
+#         sigfig_value = raw_value
+#     elif num_infront == 0:
+#         sigfig_value = truncate_float(raw_value, decimal_places+1)
+#     elif (num_infront+num_behind) == significant_figures+1:
+#         sigfig_value = truncate_float(raw_value, num_behind)
+#     elif (num_infront+num_behind) != significant_figures+1:
+#         sigfig_value = truncate_float(
+#             raw_value, (num_behind - ((num_infront + num_behind) - (significant_figures + 1))))
+#     else:
+#         sigfig_value = raw_value
+
+#     #pad sigfig_value with zeroes
+#     sigfig_value_str = pad_value(sigfig_value, significant_figures+1, decimal_places+1)
+#     rounded_val = round_by_rule_of_five(sigfig_value, sigfig_value_str, significant_figures, decimal_places)
+#     #if the daily_detection_limit is null, assign the MDL
+#     if daily_detection_limit is None:
+#         daily_detection_limit = method_detection_limit
+#     #set the reported value to the value
+#     reported_value = rounded_val
+#     #determine the reported value and detection flag according to the DDL
+#     #if the value is greater than the MDL and less than the DDL (MDL < VALUE < DDL),
+#     #set the reported value to the value and the flag to E
+#     if method_detection_limit <= rounded_val < daily_detection_limit:
+#         detection_flag = 'E'
+#     #if the value is greater than the MDL and greater than the DDL (MDL < VALUE > DDL),
+#     #set the reported value to the value and the flag to NONE
+#     elif method_detection_limit <= rounded_val >= daily_detection_limit:
+#         detection_flag = 'NONE'
+#     else:
+#         detection_flag = 'NONE'
+#     #Determine the display value by padding with trailing zeros if necessary
+#     #Pad the reported_value with trailing zeros if length < sigfigs + 1 (and decimal point)
+#     display_value_str = pad_value(reported_value, significant_figures, decimal_places)
+#     #pad a leading zero if the value is less than 1
+#     #if reported_value < 1 and reported_value > 0:
+#     #    display_value_str = '0'+display_value_str
+#     return display_value_str, reported_value, detection_flag, daily_detection_limit, []
+
+def eval_detection(
         raw_value, daily_detection_limit, method_detection_limit, significant_figures, decimal_places):
-    num_infront, num_behind, is_decimal_exists = get_decimal_info(raw_value)
 
-    if num_infront >= significant_figures+1:
-        sigfig_value = truncate_float(raw_value, significant_figures+1-num_infront)
-    elif num_behind == 0:
-        sigfig_value = raw_value
-    elif num_infront == 0:
-        sigfig_value = truncate_float(raw_value, decimal_places+1)
-    elif (num_infront+num_behind) == significant_figures+1:
-        sigfig_value = truncate_float(raw_value, num_behind)
-    elif (num_infront+num_behind) != significant_figures+1:
-        sigfig_value = truncate_float(
-            raw_value, (num_behind - ((num_infront + num_behind) - (significant_figures + 1))))
-    else:
-        sigfig_value = raw_value
-
-    #pad sigfig_value with zeroes
-    sigfig_value_str = pad_value(sigfig_value, significant_figures+1, decimal_places+1)
-    rounded_val = round_by_rule_of_five(sigfig_value, sigfig_value_str, significant_figures, decimal_places)
     #if the daily_detection_limit is null, assign the MDL
     if daily_detection_limit is None:
         daily_detection_limit = method_detection_limit
     #set the reported value to the value
-    reported_value = rounded_val
+    reported_value = raw_value
     #determine the reported value and detection flag according to the DDL
     #if the value is greater than the MDL and less than the DDL (MDL < VALUE < DDL),
     #set the reported value to the value and the flag to E
-    if method_detection_limit <= rounded_val < daily_detection_limit:
+    if method_detection_limit <= raw_value < daily_detection_limit:
         detection_flag = 'E'
     #if the value is greater than the MDL and greater than the DDL (MDL < VALUE > DDL),
     #set the reported value to the value and the flag to NONE
-    elif method_detection_limit <= rounded_val >= daily_detection_limit:
+    elif method_detection_limit <= raw_value >= daily_detection_limit:
         detection_flag = 'NONE'
     else:
         detection_flag = 'NONE'
@@ -1629,8 +1657,9 @@ def eval_sigfigs_decimals(
     #Pad the reported_value with trailing zeros if length < sigfigs + 1 (and decimal point)
     display_value_str = pad_value(reported_value, significant_figures, decimal_places)
     #pad a leading zero if the value is less than 1
-    #if reported_value < 1 and reported_value > 0:
-    #    display_value_str = '0'+display_value_str
+    if reported_value < 1 and reported_value > 0:
+        display_value_str = '0'+display_value_str
+ 
     return display_value_str, reported_value, detection_flag, daily_detection_limit, []
 
 
