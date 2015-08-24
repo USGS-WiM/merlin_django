@@ -48,9 +48,6 @@
                     </div>
                 </p>
                 <p>
-                    {% if request.session.is_staff %}
-                    <button type="button" class="btn btn-warning" data-loading-text="Saving..." name="save">Save</button>
-                    {% endif %}
                     <button type="button" class="btn btn-info" data-loading-text="Searching..." name="search">Search</button>
                     <button type="button" class="btn btn-default" name="exportCSV">Export CSV</button>
                     <button type="button" class="btn btn-default" data-loading-text="Getting Previous..." name="prev">Previous Page</button>
@@ -62,7 +59,14 @@
                     <button type="button" class="btn btn-info" data-loading-text="Exporting..." name="exportCSVCurrentPage">Current Page</button>
                     <button type="button" class="btn btn-info" data-loading-text="Exporting..." name="exportCSVAllPages">All Pages</button>
                     <span id="note">NOTE: Each page requested takes about 0.33 seconds to process, e.g. 100 pages will take about 33 seconds.</span>
-                </div>
+                </div><br />
+                <p>
+                    {% if request.session.is_staff %}
+                    <button type="button" class="btn btn-warning" data-loading-text="Saving..." name="save">Save</button>
+                    <button type="button" class="btn btn-default" data-loading-text="Inserting..." name="insert">Clone Sample</button>
+                    <button type="button" class="btn btn-default" data-loading-text="Removing..." name="remove">Remove Clone</button>
+                    {% endif %}
+                </p>
             </form>
         </div>
 
@@ -150,7 +154,7 @@
                             break;
                     }
                 };
-                var objectFields = ["sample_bottle.sample.id", "project", "project_id", "site", "site_id", "skip_date", "sample_date_time", "depth", "length", "replicate", "comment", "received_date", "lab_processing", "bottle", "medium_type", "constituent_type", "isotope_flag", "filter_type", "volume_filtered", "preservation_type", "preservation_acid", "preservation_volume", "preservation_comment", "sample_bottle.id", "id"];
+                var objectFields = ["sample_bottle.sample.id", "project_name", "project", "site", "site_id", "skip_date", "sample_date_time", "depth", "length", "replicate", "comment", "received_date", "lab_processing", "bottle", "medium_type", "constituent_type", "isotope_flag", "filter_type", "volume_filtered", "preservation_type", "preservation_acid", "preservation_volume", "preservation_comment", "sample_bottle.id", "id"];
                 var changedRowIndices = [];
                 var selectionRowIndices = [];
                 var dateToday = new Date(); //toISOString().split("T")[0];
@@ -166,10 +170,10 @@
                             getValuesAjax('/mercuryservices/projects/', 'id', query, process)}
                         },
                         {title: 'Site Name', data: 'sample_bottle.sample.site_string', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 75, type: 'autocomplete', strict: true, source: function (query, process) {
-                            getValuesAjax('/mercuryservices/sites/', 'name', query, process, ('project=' + grid.handsontable('getInstance').getDataAtCell(grid.handsontable('getInstance').getSelected()[0], 2)))}
+                            getValuesAjax('/mercuryservices/sites/', 'name', query, process, ('project=' + grid.handsontable('getInstance').getDataAtCell(selectionRowIndices[0], 2)))}
                         },
                         {title: 'Site ID', data: 'sample_bottle.sample.site_usgs_scode', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 70, type: 'autocomplete', strict: true, source: function (query, process) {
-                            getValuesAjax('/mercuryservices/sites/', 'usgs_scode', query, process, ('project=' + grid.handsontable('getInstance').getDataAtCell(grid.handsontable('getInstance').getSelected()[0], 2)))}
+                            getValuesAjax('/mercuryservices/sites/', 'usgs_scode', query, process, ('project=' + grid.handsontable('getInstance').getDataAtCell(selectionRowIndices[0], 2)))}
                         },
                         // Date, Hour, and Minute as separate columns is temporary until a single column datetime editor can be found for handsontable
                         {title: 'Date', data: 'sample_bottle.sample.sample_date', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 100, type: 'date', dateFormat: 'mm/dd/y', maxDate: 0},
@@ -187,9 +191,9 @@
                         {title: 'Container ID', data: 'sample_bottle.bottle.bottle_unique_name', width: 110, type: 'text'},
                         {title: 'Medium', data: 'sample_bottle.sample.medium_type_string', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 100, type: 'autocomplete', strict: true, source: getValuesDom(data_mediums,"display_text")},
                         {title: 'Analysis', data: 'constituent_string', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 70, type: 'autocomplete', strict: true, source: function (query, process) {
-                            getValuesAjax('/mercuryservices/constituents/', 'constituent', query, process, ('medium=' + getIdDom(data_mediums,'display_text', grid.handsontable('getInstance').getDataAtCell(grid.handsontable('getInstance').getSelected()[0], 14))))}
+                            getValuesAjax('/mercuryservices/constituents/', 'constituent', query, process, ('medium=' + getIdDom(data_mediums,'display_text', grid.handsontable('getInstance').getDataAtCell(selectionRowIndices[0], 14))))}
                         },
-                        {title: 'Isotope', data: 'isotope_flag_string', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 55, type: 'dropdown', source: data_isotopeflags},
+                        {title: 'Isotope', data: 'isotope_flag_string', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 55, type: 'dropdown', source: getValuesDom(data_isotopeflags,"isotope_flag")},
                         {title: 'Filter', data: 'sample_bottle.filter_type_string', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 100, type: 'autocomplete', strict: true, source: getValuesDom(data_filters,"filter")},
                         {title: 'Filter Vol.', data: 'sample_bottle.volume_filtered', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 65, type: 'numeric', format: '0.00'},
                         {title: 'Preservation', data: 'sample_bottle.preservation_type_string', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 100, type: 'autocomplete', strict: true, source: getValuesDom(data_preservations, "preservation")},
@@ -204,6 +208,8 @@
                 var grid_options = {
                     startRows: 0,
                     data: data_data,
+                    currentRowClassName: 'customCurrentRow',
+                    outsideClickDeselects: false,
                     manualColumnResize: true,
                     manualRowResize: true,
                     invalidCellClassName: 'customHtInvalid',
@@ -221,6 +227,10 @@
                         var changedCol = changes[0][1];
                         // get value of changed cell
                         var changedVal = changes[0][3];
+
+                        if (changedCol == 17) {
+                            alert("in Filter");
+                        }
 
                         // remember the indices of all changed rows
                         if (source != 'loadData') {
@@ -356,9 +366,11 @@
                     },
                     // get list of selected rows
                     afterSelectionEnd: function(r, c, r2, c2) {
-                        //for (var i = r; i < (r2+1); i++){
-                            selectionRowIndices.push(r);
-                        //}
+                        // clear the array
+                        selectionRowIndices.length = 0;
+                        // add the beginning and ending indices
+                        selectionRowIndices[0] = r;
+                        selectionRowIndices[1] = r2;
 
                     }
                 };
@@ -610,6 +622,42 @@
                     }
                 });
 
+                grid.parent().find('button[name=insert]').click(function () {
+                    var button_state = $(this).button('loading');
+                    var sourceRowIndex = selectionRowIndices[0];
+                    if (typeof sourceRowIndex == 'undefined') {grid_console.text('There is no selected row to clone!'); button_state.button('reset'); return false;}
+                    grid.data('handsontable').alter('insert_row', (sourceRowIndex + 1));
+                    // get all the data for the source row
+                    var sourceDataRow = grid.data('handsontable').getDataAtRow(sourceRowIndex);
+                    // set the data in the target row for all sample header columns (1 through 12) and empty for the rest
+                    for (var i = 0; i < sourceDataRow.length; i++) {
+                        if (i < 13) {
+                            grid.data('handsontable').setDataAtCell((sourceRowIndex + 1), i, sourceDataRow[i]);
+                        }
+                        else {
+                            grid.data('handsontable').setDataAtCell((sourceRowIndex + 1), i, null);
+                        }
+                    }
+                    grid_console.text('Inserted Row.');
+                    button_state.button('reset');
+                });
+
+                grid.parent().find('button[name=remove]').click(function () {
+                    var button_state = $(this).button('loading');
+                    loading.show();
+                    var selectedRows = grid.handsontable('getInstance').getSelectedRange();
+                    // check if a row has been selected for removal
+                    if (typeof selectedRows == 'undefined') {grid_console.text('There are no selected rows to remove!');  loading.hide(); button_state.button('reset'); return false;}
+                    var firstSelectedRow = selectedRows['from']['row'];
+                    //var lastSelectedRow = selectedRows['to']['row'];
+                    //grid.data('handsontable').alter('remove_row', firstSelectedRow, (lastSelectedRow != firstSelectedRow ? (lastSelectedRow - firstSelectedRow) + 1 : 1));
+                    // check
+                    if (grid.data('handsontable').getDataAtCell(firstSelectedRow, 24)) {grid_console.text('The selected row is not a clone and cannot be removed!');  loading.hide(); button_state.button('reset'); return false;}
+                    else {grid.data('handsontable').alter('remove_row', firstSelectedRow, 1);}
+                    loading.hide();
+                    button_state.button('reset');
+                });
+
                 // when the save button is clicked, loop through the list of changed rows and build a JSON object containing the changed rows
                 //grid.parent().find('button[name=save]').click(function () {
                 //    grid_console.text('Saving is disabled at the moment.');
@@ -831,6 +879,12 @@
                                         if (thisDataRow[i] == null) {
                                             thisDataRow[i] = "";
                                         }
+                                        thisDataObject[objectFields[i]] = thisDataRow[i];
+                                        break;
+                                    case 23: // sample bottle ID
+                                        thisDataObject[objectFields[i]] = thisDataRow[i];
+                                        break;
+                                    case 24: // result ID
                                         thisDataObject[objectFields[i]] = thisDataRow[i];
                                         break;
                                     default: // all the rest

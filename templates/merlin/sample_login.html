@@ -486,6 +486,7 @@
 
                 grid.parent().find('button[name=delete]').click(function () {
                     var button_state = $(this).button('loading');
+                    var selectedRows = grid.handsontable('getInstance').getSelectedRange();
                     if (typeof selectedRows == 'undefined') {grid_console.text('There are no selected rows to delete!'); button_state.button('reset'); return false;}
                     grid.data('handsontable').alter('remove_row', selectionRowIndices[0], (selectionRowIndices[1] != selectionRowIndices[0]  ? (selectionRowIndices[1] - selectionRowIndices[0]) + 1 : 1));
                     grid_console.text('Deleted Rows.');
