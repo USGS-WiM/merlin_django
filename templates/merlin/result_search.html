@@ -34,23 +34,23 @@
                 <p>
                     <div class="form-group">
                         <label for="date_after_sample">After Sample Date</label><br />
-                        <input id="date_after_sample" class="select2-container select2-container-multi" style="width:297px;height:34px;font-size:15px;padding-left:4px;"/>
+                        <input id="date_after_sample" class="select2-container select2-container-multi" style="width:237px;height:34px;font-size:15px;padding-left:4px;"/>
                     </div>
                     <div class="form-group">
                         <label for="date_before_sample">Before Sample Date</label><br />
-                        <input id="date_before_sample" class="select2-container select2-container-multi" style="width:297px;height:34px;font-size:15px;padding-left:4px;"/>
+                        <input id="date_before_sample" class="select2-container select2-container-multi" style="width:237px;height:34px;font-size:15px;padding-left:4px;"/>
                     </div>
                     <div class="form-group">
                         <label for="date_after_entry">After Entry Date</label><br />
-                        <input id="date_after_entry" class="select2-container select2-container-multi" style="width:297px;height:34px;font-size:15px;padding-left:4px;"/>
+                        <input id="date_after_entry" class="select2-container select2-container-multi" style="width:237px;height:34px;font-size:15px;padding-left:4px;"/>
                     </div>
                     <div class="form-group">
                         <label for="date_before_entry">Before Entry Date</label><br />
-                        <input id="date_before_entry" class="select2-container select2-container-multi" style="width:297px;height:34px;font-size:15px;padding-left:4px;"/>
+                        <input id="date_before_entry" class="select2-container select2-container-multi" style="width:237px;height:34px;font-size:15px;padding-left:4px;"/>
                     </div>
                     <div class="form-group">
                         <label for="select_constituent">Constituent</label><br />
-                        <input id="select_constituent" type="hidden" style="width:297px"/>
+                        <input id="select_constituent" type="hidden" style="width:237px"/>
                     </div>
                 </p>
                 <p>
@@ -148,22 +148,26 @@
                 var monthToday = (dateToday.getMonth() + 1).toString();
                 var dayToday = dateToday.getDate().toString();
                 var grid_columns = [
-                        {title: 'Result ID', data: 'id', readOnly: true, width: 100},
+                        {title: 'Result ID', data: 'id', readOnly: true, width: 80},
                         {title: 'Bottle', data: 'sample_bottle.bottle.bottle_unique_name', readOnly: true, width: 100},
-                        {title: 'Tare Weight', data: 'sample_bottle.bottle.bottle_prefix.tare_weight', readOnly: true, width: 100, format: '0.0000'},
-                        {title: 'Project', data: 'sample_bottle.sample.project_string', readOnly: true, width: 200},
-                        {title: 'Site', data: 'sample_bottle.sample.site_string', readOnly: true, width: 200},
-                        {title: 'Sample Date', data: 'sample_bottle.sample.sample_date', readOnly: true, width: 100},
+                        {title: 'Tare Weight', data: 'sample_bottle.bottle.bottle_prefix.tare_weight', readOnly: true, width: 90, format: '0.0000'},
+                        {title: 'Project', data: 'sample_bottle.sample.project_string', readOnly: true, width: 180},
+                        {title: 'Site', data: 'sample_bottle.sample.site_string', readOnly: true, width: 180},
+                        {title: 'Sample Date', data: 'sample_bottle.sample.sample_date', readOnly: true, width: 90},
                         {title: 'Sample Time', data: 'sample_bottle.sample.sample_time', readOnly: true, width: 100},
-                        {title: 'Depth', data:'sample_bottle.sample.depth', readOnly: true, width: 60, format: '0.00'},
-                        {title: 'Constituent', data: 'constituent_string', readOnly: true, width: 100},
+                        {title: 'Depth', data: 'sample_bottle.sample.depth', readOnly: true, width: 50, format: '0.00'},
+                        {title: 'Medium', data: 'sample_bottle.sample.medium_type_string', readOnly: true, width: 60},
+                        {title: 'Analysis', data: 'analysis_string', readOnly: true, width: 60},
+                        {title: 'Constituent', data: 'constituent_string', readOnly: true, width: 80},
                         {title: 'Isotope', data: 'isotope_flag_string', readOnly: true, width: 60},
-                        {title: 'Received Date', data: 'sample_bottle.sample.received_date', readOnly: true, width: 100},
-                        {title: 'Comments', data: 'sample_bottle.sample.comment', readOnly: true, width: 200},
-                        {title: 'Result Value', data: 'report_value', readOnly: true, width: 100, format: '0.00000000'},
+                        {title: 'Received', data: 'sample_bottle.sample.received_date', readOnly: true, width: 65},
+                        {title: 'Comments', data: 'sample_bottle.sample.comment', readOnly: true, width: 160},
+                        {title: 'Result Value', data: 'report_value', readOnly: true, width: 90, format: '0.00000000'},
                         {title: 'Unit', data: 'method.final_value_unit_string', readOnly: true, width: 60},
                         {title: 'Detection Flag', data: 'detection_flag_string', readOnly: true, width: 100},
-                        {title: 'Analyzed Date', data: 'analyzed_date', readOnly: true, width: 100}
+                        {title: 'QA Flags', data: 'quality_assurances_strings', readOnly: true, width: 100},
+                        {title: 'Analysis Comments', data: 'analysis_comment', readOnly: true, width: 140},
+                        {title: 'Analyzed', data: 'analyzed_date', readOnly: true, width: 65}
                     ];
                 var grid_options = {
                     startRows: 0,
@@ -348,11 +352,11 @@
                                 grid.data('handsontable').loadData(data_data.results);
                                 var settings = grid.handsontable('getInstance').getSettings();
                                 if ($("input[type=radio][name=valueType]:checked").val() == "report") {
-                                    settings.columns[12] = {title: 'Result Value', data: 'report_value', readOnly: true, width: 100, format: '0.00000000'};
+                                    settings.columns[14] = {title: 'Result Value', data: 'report_value', readOnly: true, width: 90, format: '0.00000000'};
                                     grid.handsontable('getInstance').updateSettings(settings);
                                 }
                                 else {
-                                    settings.columns[12] = {title: 'Result Value', data: 'final_value', readOnly: true, width: 100, format: '0.00000000'};
+                                    settings.columns[14] = {title: 'Result Value', data: 'final_value', readOnly: true, width: 90, format: '0.00000000'};
                                     grid.handsontable('getInstance').updateSettings(settings);
                                 }
                                 loading.hide();
@@ -438,11 +442,11 @@
                 resultValueType.change(function () {
                     var settings = grid.handsontable('getInstance').getSettings();
                     if (this.value == "report") {
-                        settings.columns[12] = {title: 'Result Value', data: 'report_value', readOnly: true, width: 100, format: '0.00000000'};
+                        settings.columns[14] = {title: 'Result Value', data: 'report_value', readOnly: true, width: 90, format: '0.00000000'};
                         grid.handsontable('getInstance').updateSettings(settings);
                     }
                     else {
-                        settings.columns[12] = {title: 'Result Value', data: 'final_value', readOnly: true, width: 100, format: '0.00000000'};
+                        settings.columns[14] = {title: 'Result Value', data: 'final_value', readOnly: true, width: 90, format: '0.00000000'};
                         grid.handsontable('getInstance').updateSettings(settings);
                     }
                 });
@@ -488,6 +492,7 @@
                     thisDataObject['exclude_null_results'] = $('#excludeNullResults').is(':checked');
                     thisDataObject['format'] = "csv";
                     thisDataObject['table'] = "result";
+                    thisDataObject['result'] = $("input[type=radio][name=valueType]:checked").val();
                     // page_size is the parameter that will override our self-defined default 100-record pagination
                     // setting it to the nearest hundred above the record count will ensure we get all matching records
                     thisDataObject['page_size'] = (resultPages * 100);

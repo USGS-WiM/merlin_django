@@ -251,7 +251,7 @@ class SampleBottleViewSet(viewsets.ModelViewSet):
         if samplebottle_id is not None:
             queryset = queryset.filter(id__exact=samplebottle_id)
         # filter by sample ID, exact
-        sample_id = self.request.query_params.get('id', None)
+        sample_id = self.request.query_params.get('sample_id', None)
         if sample_id is not None:
             queryset = queryset.filter(sample__id__exact=sample_id)
         # filter by project IDs, exact list
@@ -316,7 +316,7 @@ class FullSampleBottleViewSet(viewsets.ModelViewSet):
         if samplebottle_id is not None:
             queryset = queryset.filter(id__exact=samplebottle_id)
         # filter by sample ID, exact
-        sample_id = self.request.query_params.get('id', None)
+        sample_id = self.request.query_params.get('sample_id', None)
         if sample_id is not None:
             queryset = queryset.filter(sample__id__exact=sample_id)
         # filter by project IDs, exact list
@@ -717,13 +717,13 @@ class FullResultViewSet(viewsets.ModelViewSet):
 ######
 
 
-class ConstituentTypeViewSet(viewsets.ModelViewSet):
+class AnalysisTypeViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    serializer_class = ConstituentTypeSerializer
+    serializer_class = AnalysisTypeSerializer
 
     # override the default queryset to allow filtering by URL arguments
     def get_queryset(self):
-        queryset = ConstituentType.objects.all()
+        queryset = AnalysisType.objects.all()
         # filter by method ID or name
         method = self.request.query_params.get('method', None)
         if method is not None:
@@ -734,7 +734,7 @@ class ConstituentTypeViewSet(viewsets.ModelViewSet):
             # else query value is a method name
             else:
                 # lookup the method ID that matches this method name, exact
-                method_id = MethodType.objects.get(method__exact=method)
+                method_id = MethodType.objects.get(methods__exact=method)
                 # get the constituents related to this medium ID, exact
                 queryset = queryset.filter(methods__exact=method_id)
         # filter by medium ID or name
@@ -747,13 +747,66 @@ class ConstituentTypeViewSet(viewsets.ModelViewSet):
             # else query value is a medium name
             else:
                 # lookup the medium ID that matches this medium name, exact
-                medium_id = MediumType.objects.get(medium__exact=medium)
+                medium_id = MediumType.objects.get(mediums__exact=medium)
                 # get the constituents related to this medium ID, exact
                 queryset = queryset.filter(mediums__exact=medium_id)
         # filter by nwis code, exact
         nwis_code = self.request.query_params.get('nwis_code', None)
         if nwis_code is not None:
             queryset = queryset.filter(mediums__nwis_code__exact=nwis_code)
+        return queryset
+
+
+class ConstituentTypeViewSet(viewsets.ModelViewSet):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    serializer_class = ConstituentTypeSerializer
+
+    # override the default queryset to allow filtering by URL arguments
+    def get_queryset(self):
+        queryset = ConstituentType.objects.all()
+        # filter by analysis ID or name
+        analysis = self.request.query_params.get('analysis', None)
+        if analysis is not None:
+            # if query value is an analysis ID
+            if analysis.isdigit():
+                # get the constituents related to this analysis ID, exact
+                queryset = queryset.filter(analysis__exact=analysis)
+            # else query value is an analysis name
+            else:
+                # lookup the analysis ID that matches this analysis name, exact
+                analysis_id = MethodType.objects.get(analysis__analysis__exact=analysis)
+                # get the constituents related to this analysis ID, exact
+                queryset = queryset.filter(analysis__exact=analysis_id)
+        # filter by method ID or name
+        method = self.request.query_params.get('method', None)
+        if method is not None:
+            # if query value is a method ID
+            if method.isdigit():
+                # get the constituents related to this method ID, exact
+                queryset = queryset.filter(analysis__methods__exact=method)
+            # else query value is a method name
+            else:
+                # lookup the method ID that matches this method name, exact
+                method_id = MethodType.objects.get(analysis__methods__exact=method)
+                # get the constituents related to this medium ID, exact
+                queryset = queryset.filter(analysis__methods__exact=method_id)
+        # filter by medium ID or name
+        medium = self.request.query_params.get('medium', None)
+        if medium is not None:
+            # if query value is a medium ID
+            if medium.isdigit():
+                # get the constituents related to this medium ID, exact
+                queryset = queryset.filter(analysis__mediums__exact=medium)
+            # else query value is a medium name
+            else:
+                # lookup the medium ID that matches this medium name, exact
+                medium_id = MediumType.objects.get(analysis__mediums__exact=medium)
+                # get the constituents related to this medium ID, exact
+                queryset = queryset.filter(analysis__mediums__exact=medium_id)
+        # filter by nwis code, exact
+        nwis_code = self.request.query_params.get('nwis_code', None)
+        if nwis_code is not None:
+            queryset = queryset.filter(analysis__mediums__nwis_code__exact=nwis_code)
         # filter by constituent name, case-insensitive contain
         constituent = self.request.query_params.get('constituent', None)
         if constituent is not None:
@@ -765,16 +818,16 @@ class ConstituentTypeViewSet(viewsets.ModelViewSet):
         return queryset
 
 
-class ConstituentMediumViewSet(viewsets.ModelViewSet):
+class AnalysisMediumViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    queryset = ConstituentMedium.objects.all()
-    serializer_class = ConstituentMediumSerializer
+    queryset = AnalysisMedium.objects.all()
+    serializer_class = AnalysisMediumSerializer
 
 
-class ConstituentMethodViewSet(viewsets.ModelViewSet):
+class AnalysisMethodViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    queryset = ConstituentMethod.objects.all()
-    serializer_class = ConstituentMethodSerializer
+    queryset = AnalysisMethod.objects.all()
+    serializer_class = AnalysisMethodSerializer
 
 
 ######
@@ -814,6 +867,12 @@ class IsotopeFlagViewSet(viewsets.ModelViewSet):
         if isotope_id is not None:
             queryset = queryset.filter(id__icontains=isotope_id)
         return queryset
+
+
+class ResultDataFileViewSet(viewsets.ModelViewSet):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    queryset = ResultDataFile.objects.all()
+    serializer_class = ResultDataFileSerializer
 
 
 ######
@@ -954,28 +1013,28 @@ class UserViewSet(viewsets.ModelViewSet):
 ######
 
 
-class StatusViewSet(viewsets.ModelViewSet):
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    queryset = Status.objects.all()
-    serializer_class = StatusSerializer
+# class StatusViewSet(viewsets.ModelViewSet):
+#     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+#     queryset = Status.objects.all()
+#     serializer_class = StatusSerializer
 
 
-class ProcedureStatusTypeViewSet(viewsets.ModelViewSet):
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    queryset = ProcedureStatusType.objects.all()
-    serializer_class = ProcedureStatusTypeSerializer
+# class ProcedureStatusTypeViewSet(viewsets.ModelViewSet):
+#     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+#     queryset = ProcedureStatusType.objects.all()
+#     serializer_class = ProcedureStatusTypeSerializer
 
 
-class StatusTypeViewSet(viewsets.ModelViewSet):
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    queryset = StatusType.objects.all()
-    serializer_class = StatusTypeSerializer
+# class StatusTypeViewSet(viewsets.ModelViewSet):
+#     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+#     queryset = StatusType.objects.all()
+#     serializer_class = StatusTypeSerializer
 
 
-class ProcedureTypeViewSet(viewsets.ModelViewSet):
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    queryset = ProcedureType.objects.all()
-    serializer_class = ProcedureTypeSerializer
+# class ProcedureTypeViewSet(viewsets.ModelViewSet):
+#     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+#     queryset = ProcedureType.objects.all()
+#     serializer_class = ProcedureTypeSerializer
 
 
 ######
@@ -1164,8 +1223,8 @@ class BatchUpload(views.APIView):
                 if not is_valid:
                     status.append({"message": message, "success": "false", "bottle_unique_name": bottle_unique_name})
                     continue
-                #validate constituent method type
-                is_valid, message, constituent_method_id = validate_constituent_method(constituent_id, row)
+                #validate analysis method type
+                is_valid, message, analysis_method_id = validate_analysis_method(constituent_id, row)
                 if not is_valid:
                     status.append({"message": message, "success": "false", "bottle_unique_name": bottle_unique_name})
                     continue
@@ -1357,31 +1416,33 @@ def validate_isotope_flag(row):
     return is_valid, message, isotope_flag_id
 
 
-def validate_constituent_method(constituent_id, row):
+def validate_analysis_method(constituent_id, row):
     is_valid = False
-    constituent_method_id = -1
+    analysis_method_id = -1
     message = ""
     constituent_type = row["constituent"]
     try:
         method = row["method_id"]
     except KeyError:
         message = "'method_id' is required"
-        return is_valid, message, constituent_method_id
+        return is_valid, message, analysis_method_id
 
     if isinstance(method, int) is False:
         message = "Expecting an int for method_id"
-        return is_valid, message, constituent_method_id
+        return is_valid, message, analysis_method_id
 
     try:
-        constituent_type_details = ConstituentMethod.objects.get(
-            constituent_type=str(constituent_id), method_type=str(method))
+        analysis_type_details = AnalysisMethod.objects.get(
+            analysis_type=str(
+                ConstituentType.objects.get(id=constituent_id).values_list('analysis', flat=True)),
+            method_type=str(method))
     except ObjectDoesNotExist:
         message = "The method code '"+str(method)+"' is not allowed for the constituent '"+constituent_type+"'"
-        return is_valid, message, constituent_method_id
+        return is_valid, message, analysis_method_id
 
     is_valid = True
-    constituent_method_id = constituent_type_details.id
-    return is_valid, message, constituent_method_id
+    analysis_method_id = analysis_type_details.id
+    return is_valid, message, analysis_method_id
 
 
 def validate_quality_assurance(row):

@@ -130,11 +130,11 @@
                 var data_data = JSON.parse(grid_brominations.attr("data-data"));
                 var resultPages = Math.ceil(data_data['count'] / 100);
                 var grid_console = $("#grid_console");
-                var changedBrominationRowIndices = [];
-                var selectionBrominationRowIndices = [];
-                var selectedBrominationRow;
-                var selectionSampleRowIndices = [];
-                var selectedSampleRow;
+                var changedRowIndicesBrominations = [];
+                var selectionRowIndicesBrominations = [];
+                var selectedRowBromination;
+                var selectionRowIndicesSamples = [];
+                var selectedRowSamples;
 
                 grid_console.text('Loading data.');
                 grid_brominations.handsontable({
@@ -166,24 +166,24 @@
                                 // get the row of this cell
                                 var thisRow = changes[i][0];
                                 // find index of this row in the changed rows array
-                                var changedRowIndex = changedBrominationRowIndices.indexOf(thisRow);
+                                var changedRowIndex = changedRowIndicesBrominations.indexOf(thisRow);
                                 // if not in the array (index == -1), add it to the array, otherwise ignore
                                 if (changedRowIndex == -1) {
-                                    changedBrominationRowIndices.push(thisRow);
+                                    changedRowIndicesBrominations.push(thisRow);
                                 }
                             }
                         }
                     },
                     // get list of selected rows
                     afterSelectionEnd: function(r, c, r2, c2) {
-                        selectedBrominationRow = r;
-                        $('#selected_bromination_id').html("Selected Bromination ID: <strong>" + grid_brominations.handsontable('getInstance').getDataAtCell(selectedBrominationRow, 0) + "</strong>");
+                        selectedRowBromination = r;
+                        $('#selected_bromination_id').html("Selected Bromination ID: <strong>" + grid_brominations.handsontable('getInstance').getDataAtCell(selectedRowBromination, 0) + "</strong>");
                         $('#selected_bromination_id_warning').hide();
                         // clear the array
-                        selectionBrominationRowIndices.length = 0;
+                        selectionRowIndicesBrominations.length = 0;
                         // add the beginning and ending indices
-                        selectionBrominationRowIndices[0] = r;
-                        selectionBrominationRowIndices[1] = r2;
+                        selectionRowIndicesBrominations[0] = r;
+                        selectionRowIndicesBrominations[1] = r2;
                     }
                 });
                 //grid_brominations.data('handsontable').sort(0);
@@ -193,7 +193,7 @@
                 var grid_add = $('#grid_add');
                 grid_add.css("z-index", "0");
                 var validTableAdd = false;
-                var gridAdd_changedBrominationRowIndices = [];
+                var changedRowIndicesBrominationsAdd = [];
                 grid_add.handsontable({
                     //minSpareRows: 1,
                     startRows: 8,
@@ -225,10 +225,10 @@
                                 // get the row of this cell
                                 var thisRow = changes[i][0];
                                 // find index of this row in the changed rows array
-                                var changedRowIndex = gridAdd_changedBrominationRowIndices.indexOf(thisRow);
+                                var changedRowIndex = changedRowIndicesBrominationsAdd.indexOf(thisRow);
                                 // if not in the array (index == -1), add it to the array, otherwise ignore
                                 if (changedRowIndex == -1) {
-                                    gridAdd_changedBrominationRowIndices.push(thisRow);
+                                    changedRowIndicesBrominationsAdd.push(thisRow);
                                 }
                             }
                         }
@@ -285,12 +285,12 @@
                     columnSorting: true,
                     // get list of selected rows
                     afterSelectionEnd: function(r, c, r2, c2) {
-                        selectedSampleRow = r;
+                        selectedRowSamples = r;
                         // clear the array
-                        selectionSampleRowIndices.length = 0;
+                        selectionRowIndicesSamples.length = 0;
                         // add the beginning and ending indices
-                        selectionSampleRowIndices[0] = r;
-                        selectionSampleRowIndices[1] = r2;
+                        selectionRowIndicesSamples[0] = r;
+                        selectionRowIndicesSamples[1] = r2;
                     }
                 });
                 //grid_samples.data('handsontable').sort(0);
@@ -349,8 +349,8 @@
                 tools_samples.find('button[name=delete]').click(function () {
                     var button_state = $(this).button('loading');
                     loading.show();
-                    if (typeof selectionSampleRowIndices[0] == 'undefined') {grid_console.text('There are no selected rows to delete!'); loading.hide(); button_state.button('reset'); return false;}
-                    var thisDataRow = grid_samples.data('handsontable').getDataAtRow(selectionSampleRowIndices[0]);
+                    if (typeof selectionRowIndicesSamples[0] == 'undefined') {grid_console.text('There are no selected rows to delete!'); loading.hide(); button_state.button('reset'); return false;}
+                    var thisDataRow = grid_samples.data('handsontable').getDataAtRow(selectionRowIndicesSamples[0]);
                     var thisDataObject = {"id": thisDataRow[0]};
                     var changedDataJSON = JSON.stringify(thisDataObject);
                     $.ajax({
@@ -424,6 +424,14 @@
                     return data.bottle_unique_name;
                 }
 
+                function clearChangedRowIndicesBrominationsAdd() {
+                    changedRowIndicesBrominationsAdd.length = 0;
+                }
+                
+                function clearChangedRowIndicesBrominations() {
+                    changedRowIndicesBrominations.length = 0;
+                }
+
                 $('#search_field').on('keyup', function (event) {
                     grid_brominations.handsontable('getInstance').search.query(this.value);
                     grid_brominations.handsontable('getInstance').render();
@@ -487,6 +495,7 @@
                             button_state.button('reset');
                         }
                     });
+                    clearChangedRowIndicesBrominations()
                 });
 
                 tools_brominations.find('button[name=next]').click(function () {
@@ -518,6 +527,7 @@
                         loading.hide();
                         button_state.button('reset');
                     }
+                    clearChangedRowIndicesBrominations()
                 });
 
                 tools_brominations.find('button[name=prev]').click(function () {
@@ -549,13 +559,14 @@
                         loading.hide();
                         button_state.button('reset');
                     }
+                    clearChangedRowIndicesBrominations()
                 });
 
                 tools_brominations.find('button[name=delete]').click(function () {
                     var button_state = $(this).button('loading');
                     loading.show();
-                    if (typeof selectionBrominationRowIndices[0] == 'undefined') {grid_console.text('There are no selected rows to delete!'); loading.hide(); button_state.button('reset'); return false;}
-                    var thisDataRow = grid_brominations.data('handsontable').getDataAtRow(selectionBrominationRowIndices[0]);
+                    if (typeof selectionRowIndicesBrominations[0] == 'undefined') {grid_console.text('There are no selected rows to delete!'); loading.hide(); button_state.button('reset'); return false;}
+                    var thisDataRow = grid_brominations.data('handsontable').getDataAtRow(selectionRowIndicesBrominations[0]);
                     var thisDataObject = {"id": thisDataRow[0]};
                     var changedDataJSON = JSON.stringify(thisDataObject);
                     $.ajax({
@@ -590,9 +601,9 @@
                     loading.show();
                     var changedDataArray = [];
                     // if there are no changed rows, notify the user and stop the submission
-                    if (typeof changedBrominationRowIndices == 'undefined' || changedBrominationRowIndices.length < 1) {grid_console.text('There are no changed rows to save!'); validTableBrominations = false; loading.hide(); button_state.button('reset'); return false;}
+                    if (typeof changedRowIndicesBrominations == 'undefined' || changedRowIndicesBrominations.length < 1) {grid_console.text('There are no changed rows to save!'); validTableBrominations = false; loading.hide(); button_state.button('reset'); return false;}
                     // otherwise loop through all changed rows
-                    $.each(changedBrominationRowIndices, function(index, value) {
+                    $.each(changedRowIndicesBrominations, function(index, value) {
                         var thisDataRow = grid_brominations.data('handsontable').getDataAtRow(value);
                         var thisDataObject = {};
                         for (var i = 0; i < thisDataRow.length; i++) {
@@ -612,7 +623,7 @@
                                 }
                                 else {grid_console.text('Date is badly formed in row ' + (index + 1) + '. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); validTableBrominations = false; loading.hide(); button_state.button('reset'); return false;}
                             }
-                            if (objectFields[i] == "comment") {if (thisDataObject[objectFields[i]] == null) {thisDataObject[objectFields[i]] = "";}}
+                            else if (objectFields[i] == "comment") {if (thisDataObject[objectFields[i]] == null) {thisDataObject[objectFields[i]] = "";}}
                             else {thisDataObject[objectFields[i]] = thisDataRow[i];}
                         }
                         changedDataArray.push(thisDataObject);
@@ -655,6 +666,7 @@
                             }
                         });
                     }
+                    clearChangedRowIndicesBrominations()
                 });
 
                 tools_brominations.find('button[name=gridAdd]').click(function () {
@@ -664,7 +676,7 @@
                         $("#tools_add").hide();
                     }
                     else {
-                        grid_brominations.handsontable('getInstance').selectCell(selectedBrominationRow,0,selectedBrominationRow,3);
+                        grid_brominations.handsontable('getInstance').selectCell(selectedRowBromination,0,selectedRowBromination,3);
                         gridAddClicked = true;
                         $("#grid_add").show();
                         $("#tools_add").show();
@@ -695,16 +707,16 @@
                 grid_add.find('button[name=sampleSave]').click(function() {
                     var button_state = $(this).button('loading');
                     loading.show();
-                    if (typeof(selectedBrominationRow) === 'undefined' || selectedBrominationRow == null) {$('#selected_bromination_id_warning').show(); loading.hide(); button_state.button('reset'); return;}
+                    if (typeof(selectedRowBromination) === 'undefined' || selectedRowBromination == null) {$('#selected_bromination_id_warning').show(); loading.hide(); button_state.button('reset'); return;}
                     else {$('#selected_bromination_id_warning').hide();}
-                    var selected_bromination_id = grid_brominations.handsontable('getInstance').getDataAtCell(selectedBrominationRow, 0);
-                    var selected_bromination_date = grid_brominations.handsontable('getInstance').getDataAtCell(selectedBrominationRow, 2);
+                    var selected_bromination_id = grid_brominations.handsontable('getInstance').getDataAtCell(selectedRowBromination, 0);
+                    var selected_bromination_date = grid_brominations.handsontable('getInstance').getDataAtCell(selectedRowBromination, 2);
                     var gooddate_selected_bromination_date = makeYear(selected_bromination_date) + "-" + makeMonth(selected_bromination_date) + "-" + makeDay(selected_bromination_date);
                     //var date_today = new Date().toISOString().split("T")[0];
                     var dataArray = [];
-                    //$.each(gridAdd_changedBrominationRowIndices, function(index, value) {
+                    //$.each(changedRowIndicesBrominationsAdd, function(index, value) {
                     // if there are no changed rows, notify the user and stop the submission
-                    if (typeof gridAdd_changedBrominationRowIndices == 'undefined' || gridAdd_changedBrominationRowIndices.length < 1) {grid_console.text('Table is empty!'); validTableAdd = false; loading.hide(); button_state.button('reset'); return false;}
+                    if (typeof changedRowIndicesBrominationsAdd == 'undefined' || changedRowIndicesBrominationsAdd.length < 1) {grid_console.text('Table is empty!'); validTableAdd = false; loading.hide(); button_state.button('reset'); return false;}
                     // otherwise loop through all rows
                     var allRows = grid_add.handsontable('getInstance').countRows();
                     for (var row = 0; row < allRows; row++) {
@@ -749,10 +761,10 @@
                                     var rows = grid_add.handsontable('getInstance').countRows();
                                     grid_add.data('handsontable').alter('remove_row', 0, rows);
                                     grid_add.data('handsontable').alter('insert_row', null, 8);
-                                    selectedBrominationRow = null;
+                                    selectedRowBromination = null;
                                     grid_brominations.handsontable('getInstance').deselectCell();
                                     $('#selected_bromination_id').html("Selected Bromination ID: <strong>NULL</strong>");
-                                    $('#tools_samples').find('button[name=search]').click()
+                                    $('#tools_samples').find('button[name=search]').click();
                                     loading.hide();
                                     button_state.button('reset');
                                 }
@@ -769,6 +781,7 @@
                             }
                         });
                     }
+                    clearChangedRowIndicesBrominationsAdd();
                 });
 
                 var form_add = $("#form_add");

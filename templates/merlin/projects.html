@@ -225,6 +225,10 @@
                     return data.name;
                 }
 
+                function clearChangedRowIndices() {
+                    changedRowIndices.length = 0;
+                }
+
                 grid.parent().find('button[name=load]').click(function () {
                     var button_state = $(this).button('loading');
                     loading.show();
@@ -246,6 +250,7 @@
                             button_state.button('reset');
                         }
                     });
+                    clearChangedRowIndices();
                 });
 
                 grid.parent().find('button[name=add]').click(function () {
@@ -357,6 +362,7 @@
                             }
                         });
                     }
+                    clearChangedRowIndices();
                 });
 
             });

@@ -44,7 +44,7 @@
             </form>
         </div>
         <br />
-        <div id="grid" data-projects="{{ projects }}" data-processings="{{ processings }}" data-mediums="{{ mediums }}" data-constituents="{{ constituents }}" data-isotopeflags="{{ isotope_flags }}" data-filters="{{ filters }}" data-preservations="{{ preservations }}" ></div>
+        <div id="grid" data-projects="{{ projects }}" data-processings="{{ processings }}" data-mediums="{{ mediums }}" data-analyses="{{ analyses }}" data-isotopeflags="{{ isotope_flags }}" data-filters="{{ filters }}" data-preservations="{{ preservations }}" ></div>
 
 
 		<script>
@@ -83,7 +83,7 @@
                     var item = data_mediums[key];
                     item.display_text = item.nwis_code + " - " + item.medium;
                 }
-                var data_constituents = JSON.parse(grid.attr('data-constituents'));
+                var data_analyses = JSON.parse(grid.attr('data-analyses'));
                 var data_isotopeflags = JSON.parse(grid.attr('data-isotopeflags'));
                 data_isotopeflags.sort(function (a, b) {
                     var textA = a.isotope_flag.toUpperCase();
@@ -94,7 +94,7 @@
                 var data_preservations = JSON.parse(grid.attr('data-preservations'));
 
                 // some handsontable helper arrays
-                var objectFields = ["site", "skip_site_code", "skip_date", "sample_date_time", "depth", "length", "replicate", "comment", "bottle", "medium_type", "constituent_type", "isotope_flag", "filter_type", "volume_filtered", "preservation_type", "preservation_acid", "preservation_volume", "preservation_comment"];
+                var objectFields = ["site", "skip_site_code", "skip_date", "sample_date_time", "depth", "length", "replicate", "comment", "bottle", "medium_type", "analysis_type", "isotope_flag", "filter_type", "volume_filtered", "preservation_type", "preservation_acid", "preservation_volume", "preservation_comment"];
                 var changedRowIndices = [];
                 var selectionRowIndices = [];
 
@@ -164,7 +164,7 @@
                         //    getValuesAjax('/mercuryservices/bottles/', 'bottle_unique_name', query, process)}},
                         {title: 'Container ID', width: 120, type: 'text', validator: validateRequired},
                         {title: 'Medium', width: 180, type: 'autocomplete', strict: true, validator: validateRequired, source: getValuesDom(data_mediums,"display_text")},
-                        {title: 'Analysis', width: 80, type: 'autocomplete', strict: true, validator: validateRequired, source: getValuesDom(data_constituents,"constituent")},
+                        {title: 'Analysis', width: 80, type: 'autocomplete', strict: true, validator: validateRequired, source: getValuesDom(data_analyses,"analysis")},
                         {title: 'Isotope', width: 60, type: 'dropdown', validator: validateRequired, source: getValuesDom(data_isotopeflags,"isotope_flag")}, //type: 'autocomplete', strict: true, validator: validateRequired, source: getValuesDom(data_isotopeflags,"isotope_flag"), validator: validateRequired},
                         {title: 'Filter', width: 130, type: 'autocomplete', strict: true, source: getValuesDom(data_filters,"filter")},
                         {title: 'Filter Vol', width: 65, type: 'numeric', format: '0.00'},
@@ -249,23 +249,23 @@
                             // when medium is changed to a non-null, non-blank value
                             if (changedCol == 9 && changedVal !== null && changedVal !== "") {
                                 var thisVal = updateValueDom(data_mediums, 'display_text', 'nwis_code', changedVal);
-                                // update list of constituents filtered by the selected medium value
+                                // update list of analyses filtered by the selected medium value
                                 $.ajax({
-                                    url: '/mercuryservices/constituents/',
+                                    url: '/mercuryservices/analyses/',
                                     dataType: 'json',
                                     data: {
                                         nwis_code: thisVal
                                     },
                                     success: function (response) {
                                         // grab just just the values from the object
-                                        var values = getValuesDom(response, "constituent");
+                                        var values = getValuesDom(response, "analysis");
                                         // get range of selected rows
                                         if (source == 'edit') {
                                             // if there is a previously entered value in this cell, set it to null, otherwise leave it alone (this avoids unnecessary triggering of cell validation)
                                             if (grid.handsontable('getDataAtCell', changedRow, 10) != null) {
                                                 grid.handsontable('setDataAtCell', changedRow, 10, null);
                                             }
-                                            // get the cell object for the constituents column in this row
+                                            // get the cell object for the analyses column in this row
                                             var cellProperties = grid.handsontable('getInstance').getCellMeta(changedRow, 10);
                                             // update the dropdown list of this cell
                                             cellProperties.source = values;
@@ -280,7 +280,7 @@
                                                 if (grid.handsontable('getDataAtCell', i, 10) != null) {
                                                     grid.handsontable('setDataAtCell', i, 10, null);
                                                 }
-                                                // get the cell object for the constituents column in this row
+                                                // get the cell object for the analyses column in this row
                                                 var cellProperties = grid.handsontable('getInstance').getCellMeta(i, 10);
                                                 // update the dropdown list of this cell
                                                 cellProperties.source = values;
@@ -289,7 +289,7 @@
 
                                     },
                                     error: function (jqXHRequest, textStatus, errorThrown) {
-                                        grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve constituents.");
+                                        grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve analyses.");
                                     }
                                 });
                             }
@@ -660,11 +660,11 @@
                                             thisDataObject[objectFields[i]] = thisID;
                                         }
                                         break;
-                                    case 10: // constituent (analysis)
+                                    case 10: // analysis
                                         // if it has a value, look up and return the ID, otherwise notify the user that this is a required field, and stop the submission
                                         if (!thisDataRow[i]) {grid_console.text('Analysis is required in row ' + (row + 1) + '!'); validTable = false; button_state.button('reset'); return false;}
                                         else {
-                                            thisID = getIdDom(data_constituents,'constituent',thisDataRow[i]);
+                                            thisID = getIdDom(data_analyses,'analysis',thisDataRow[i]);
                                             if (thisID === null) {grid_console.text('Analysis must be a valid choice in row ' + (row + 1) + '!'); validTable = false; button_state.button('reset'); return false;}
                                             thisDataObject[objectFields[i]] = thisID;
                                         }
