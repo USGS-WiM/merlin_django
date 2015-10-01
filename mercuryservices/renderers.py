@@ -25,6 +25,6 @@ class PaginatedResultCSVRenderer(CSVRenderer):
         if not isinstance(data, list):
             data = data.get(self.results_field, [])
         self.headers = ['result_id', 'bottle', 'tare_weight', 'project_name', 'site_name', 'sample_date', 'sample_time',
-                        'depth', 'constituent', 'isotope_flag', 'received_date', 'comments', 'final_value',
-                        'report_value', 'unit', 'detection_flag', 'analyzed_date']
+                        'depth', 'medium', 'analysis', 'constituent', 'isotope_flag', 'received_date', 'comments',
+                        'result_value', 'unit', 'detection_flag', 'qa_flags', 'analysis_comments', 'analyzed_date']
         return super(PaginatedResultCSVRenderer, self).render(data, media_type, renderer_context)

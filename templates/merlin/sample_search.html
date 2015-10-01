@@ -28,23 +28,23 @@
                 <p>
                     <div class="form-group">
                         <label for="date_after_sample">After Sample Date</label><br />
-                        <input id="date_after_sample" class="select2-container select2-container-multi" style="width:297px;height:34px;font-size:15px;padding-left:4px;"/>
+                        <input id="date_after_sample" class="select2-container select2-container-multi" style="width:237px;height:34px;font-size:15px;padding-left:4px;"/>
                     </div>
                     <div class="form-group">
                         <label for="date_before_sample">Before Sample Date</label><br />
-                        <input id="date_before_sample" class="select2-container select2-container-multi" style="width:297px;height:34px;font-size:15px;padding-left:4px;"/>
+                        <input id="date_before_sample" class="select2-container select2-container-multi" style="width:237px;height:34px;font-size:15px;padding-left:4px;"/>
                     </div>
                     <div class="form-group">
                         <label for="select_depth">Depth</label><br />
-                        <input id="select_depth" type="number" class="select2-container select2-container-multi" style="width:297px;height:34px;font-size:15px;padding-left:4px;"/>
+                        <input id="select_depth" type="number" class="select2-container select2-container-multi" style="width:237px;height:34px;font-size:15px;padding-left:4px;"/>
                     </div>
                     <div class="form-group">
                         <label for="select_replicate">Replicate</label><br />
-                        <input id="select_replicate" type="number" class="select2-container select2-container-multi" style="width:297px;height:34px;font-size:15px;padding-left:4px;"/>
+                        <input id="select_replicate" type="number" class="select2-container select2-container-multi" style="width:237px;height:34px;font-size:15px;padding-left:4px;"/>
                     </div>
                     <div class="form-group">
-                        <label for="select_constituent">Analysis</label><br />
-                        <input id="select_constituent" type="hidden" style="width:297px"/>
+                        <label for="select_constituent">Constituent</label><br />
+                        <input id="select_constituent" type="hidden" style="width:237px"/>
                     </div>
                 </p>
                 <p>
@@ -176,7 +176,7 @@
                             getValuesAjax('/mercuryservices/sites/', 'usgs_scode', query, process, ('project=' + grid.handsontable('getInstance').getDataAtCell(selectionRowIndices[0], 2)))}
                         },
                         // Date, Hour, and Minute as separate columns is temporary until a single column datetime editor can be found for handsontable
-                        {title: 'Date', data: 'sample_bottle.sample.sample_date', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 100, type: 'date', dateFormat: 'mm/dd/y', maxDate: 0},
+                        {title: 'Date', data: 'sample_bottle.sample.sample_date', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 90, type: 'date', dateFormat: 'mm/dd/y', maxDate: 0},
                         {title: 'Time', data: 'sample_bottle.sample.sample_time', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 60, type: 'numeric', validator: validateTime},
                         //{title: 'Hour', width: 50, type: 'autocomplete', source: getRange(24)},
                         //{title: 'Minute', width: 50, type: 'autocomplete', source: getRange(60)},
@@ -184,13 +184,13 @@
                         {title: 'Length', data: 'sample_bottle.sample.length', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 50, type: 'numeric'},
                         {title: 'Rep', data: 'sample_bottle.sample.replicate', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 50, type: 'numeric'},
                         {title: 'Sample Comments', data: 'sample_bottle.sample.comment', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 130, type: 'text'},
-                        {title: 'Received', data: 'sample_bottle.sample.received_date', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 100, type: 'date', dateFormat: 'mm/dd/y', maxDate: 0},
+                        {title: 'Received', data: 'sample_bottle.sample.received_date', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 90, type: 'date', dateFormat: 'mm/dd/y', maxDate: 0},
                         {title: 'Lab Processing', data: 'sample_bottle.sample.lab_processing_string', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 105, type: 'autocomplete', strict: true, source: getValuesDom(data_processings,"processing")},
                         //{title: 'Container ID', width: 110, type: 'autocomplete', strict: true, validator: validateRequired,  source: function (query, process) {
                         //    getValuesAjax('/mercuryservices/bottles/', 'bottle_unique_name', query, process)}},
                         {title: 'Container ID', data: 'sample_bottle.bottle.bottle_unique_name', width: 110, type: 'text'},
                         {title: 'Medium', data: 'sample_bottle.sample.medium_type_string', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 100, type: 'autocomplete', strict: true, source: getValuesDom(data_mediums,"display_text")},
-                        {title: 'Analysis', data: 'constituent_string', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 70, type: 'autocomplete', strict: true, source: function (query, process) {
+                        {title: 'Constituent', data: 'constituent_string', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 80, type: 'autocomplete', strict: true, source: function (query, process) {
                             getValuesAjax('/mercuryservices/constituents/', 'constituent', query, process, ('medium=' + getIdDom(data_mediums,'display_text', grid.handsontable('getInstance').getDataAtCell(selectionRowIndices[0], 14))))}
                         },
                         {title: 'Isotope', data: 'isotope_flag_string', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 55, type: 'dropdown', source: getValuesDom(data_isotopeflags,"isotope_flag")},
@@ -208,8 +208,7 @@
                 var grid_options = {
                     startRows: 0,
                     data: data_data,
-                    currentRowClassName: 'customCurrentRow',
-                    outsideClickDeselects: false,
+                    {% if request.session.is_staff %} currentRowClassName: 'customCurrentRow', {% endif %}
                     manualColumnResize: true,
                     manualRowResize: true,
                     invalidCellClassName: 'customHtInvalid',
@@ -478,6 +477,10 @@
                     return data.constituent;
                 }
 
+                function clearChangedRowIndices() {
+                    changedRowIndices.length = 0;
+                }
+
                 var date_after_sample = $("#date_after_sample").datepicker({
                     dateFormat: "mm/dd/y",
                     maxDate: 0
@@ -577,6 +580,7 @@
                         loading.hide();
                         button_state.button('reset');
                     }
+                    clearChangedRowIndices();
                 });
 
                 grid.parent().find('button[name=prev]').click(function () {
@@ -607,23 +611,31 @@
                         loading.hide();
                         button_state.button('reset');
                     }
+                    clearChangedRowIndices();
                 });
 
                 $('#lookupContainers').change(function () {
                     var settings = grid.handsontable('getInstance').getSettings();
                     if (this.checked) {
-                        settings.columns[8] = {title: 'Container ID', data: 'sample_bottle.bottle.bottle_unique_name', width: 110, type: 'autocomplete', strict: true, source: function (query, process) {
+                        settings.columns[13] = {title: 'Container ID', data: 'sample_bottle.bottle.bottle_unique_name', width: 110, type: 'autocomplete', strict: true, source: function (query, process) {
                             getValuesAjax('/mercuryservices/bottles/', 'bottle_unique_name', query, process)}};
                         grid.handsontable('getInstance').updateSettings(settings);
                     }
                     else {
-                        settings.columns[8] = {title: 'Container ID', data: 'sample_bottle.bottle.bottle_unique_name', width: 110, type: 'text'};
+                        settings.columns[13] = {title: 'Container ID', data: 'sample_bottle.bottle.bottle_unique_name', width: 110, type: 'text'};
                         grid.handsontable('getInstance').updateSettings(settings);
                     }
                 });
 
                 grid.parent().find('button[name=insert]').click(function () {
                     var button_state = $(this).button('loading');
+                    loading.show();
+                    var settings = grid.handsontable('getInstance').getSettings();
+                    function tempRenderer(instance, td) {
+                        Handsontable.renderers.TextRenderer.apply(this, arguments);
+                        td.style.backgroundColor = '#FFFFFF';
+                        return td;
+                    }
                     var sourceRowIndex = selectionRowIndices[0];
                     if (typeof sourceRowIndex == 'undefined') {grid_console.text('There is no selected row to clone!'); button_state.button('reset'); return false;}
                     grid.data('handsontable').alter('insert_row', (sourceRowIndex + 1));
@@ -634,12 +646,26 @@
                         if (i < 13) {
                             grid.data('handsontable').setDataAtCell((sourceRowIndex + 1), i, sourceDataRow[i]);
                         }
+                        else if (i == 15) {
+                            settings.columns[i] = {title: 'Constituent', data: 'constituent_string', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 80, type: 'autocomplete', strict: true, source: function (query, process) {
+                                getValuesAjax('/mercuryservices/constituents/', 'constituent', query, process)}};
+                            grid.handsontable('getInstance').updateSettings(settings);
+                        }
+                        else if (i == 16) {
+                            grid.data('handsontable').setDataAtCell((sourceRowIndex + 1), i, "NA");
+                        }
                         else {
                             grid.data('handsontable').setDataAtCell((sourceRowIndex + 1), i, null);
+                            settings.columns[i]['renderer'] = tempRenderer;
+                            grid.handsontable('getInstance').updateSettings(settings);
+                            delete settings.columns[i]['renderer'];
+                            grid.handsontable('getInstance').updateSettings(settings);
                         }
                     }
+                    grid.handsontable('getInstance').deselectCell();
                     grid_console.text('Inserted Row.');
                     button_state.button('reset');
+                    loading.hide();
                 });
 
                 grid.parent().find('button[name=remove]').click(function () {
@@ -833,12 +859,12 @@
                                             thisDataObject[objectFields[i]] = thisID;
                                         }
                                         break;
-                                    case 15: // constituent (analysis)
+                                    case 15: // constituent
                                         // if it has a value, look up and return the ID, otherwise notify the user that this is a required field, and stop the submission
-                                        if (!thisDataRow[i]) {grid_console.text('Analysis is required in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
+                                        if (!thisDataRow[i]) {grid_console.text('Constituent is required in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                         else {
                                             thisID = getIdDom(data_constituents,'constituent',thisDataRow[i]);
-                                            if (thisID === null) {grid_console.text('Analysis must be a valid choice in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
+                                            if (thisID === null) {grid_console.text('Constituent must be a valid choice in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                             thisDataObject[objectFields[i]] = thisID;
                                         }
                                         break;
@@ -947,6 +973,7 @@
                             loading.hide();
                             button_state.button('reset');
                         }
+                    clearChangedRowIndices();
                     }
                 });
 

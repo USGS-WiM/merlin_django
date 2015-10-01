@@ -63,8 +63,8 @@ def sample_login(request):
     processings = json.dumps(r.json(), sort_keys=True)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'mediums/', headers=headers_auth_token)
     mediums = json.dumps(r.json(), sort_keys=True)
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'constituents/', headers=headers_auth_token)
-    constituents = json.dumps(r.json(), sort_keys=True)
+    r = requests.request(method='GET', url=REST_SERVICES_URL+'analyses/', headers=headers_auth_token)
+    analyses = json.dumps(r.json(), sort_keys=True)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'filters/', headers=headers_auth_token)
     filters = json.dumps(r.json(), sort_keys=True)
     r = requests.request(method='GET', url=REST_SERVICES_URL+'preservations/', headers=headers_auth_token)
@@ -72,7 +72,7 @@ def sample_login(request):
     r = requests.request(method='GET', url=REST_SERVICES_URL+'isotopeflags/', headers=headers_auth_token)
     isotope_flags = json.dumps(r.json(), sort_keys=True)
     context_dict = {'projects': projects, 'processings': processings, 'mediums': mediums,
-                    'constituents': constituents, 'filters': filters, 'preservations': preservations,
+                    'analyses': analyses, 'filters': filters, 'preservations': preservations,
                     'isotope_flags': isotope_flags}
     return render_to_response('merlin/sample_login.html', context_dict, context)
 
@@ -182,7 +182,7 @@ def samples_create(request):
 
         # validate no analysis(+isotope) is used more than once per sample, otherwise notify the user
         logger.info("VALIDATE Analysis")
-        this_analysis = this_sample_id+"|"+str(row.get('constituent_type'))+"|"+str(row.get('isotope_flag'))
+        this_analysis = this_sample_id+"|"+str(row.get('analysis_type'))+"|"+str(row.get('isotope_flag'))
         logger.info(this_analysis)
         if this_analysis not in unique_sample_analyses:
             logger.info(this_analysis + " is unique")
@@ -193,7 +193,7 @@ def samples_create(request):
             project_name = r.json()[0]['name']
             r = requests.get(REST_SERVICES_URL+'sites/', params={'id': row.get('site')})
             site_name = r.json()['results'][0]['name']
-            r = requests.get(REST_SERVICES_URL+'constituents/', params={'id': row.get('constituent_type')})
+            r = requests.get(REST_SERVICES_URL+'analyses/', params={'id': row.get('analysis_type')})
             constituent_name = r.json()[0]['constituent']
             r = requests.get(REST_SERVICES_URL+'isotopeflags/', params={'id': row.get('isotope_flag')})
             isotope_flag = r.json()[0]['isotope_flag']
@@ -251,12 +251,18 @@ def samples_create(request):
             # add this new sample bottle object to the list
             sample_bottle_data.append(this_sample_bottle)
 
-        # create a result object using the result data within this row
-        sample_analysis_values = [str(row.get('bottle')), row.get('constituent_type'), row.get('isotope_flag')]
-        this_sample_analysis = dict(zip(SAMPLE_ANALYSIS_KEYS, sample_analysis_values))
-        logger.info("Creating result: " + str(this_sample_analysis))
-        # add this new sample bottle object to the list
-        sample_analysis_data.append(this_sample_analysis)
+        # look up constituents that are related to this analysis
+        params = {"analysis": row.get('analysis_type')}
+        r = requests.get(REST_SERVICES_URL+'constituents/', params=params)
+        logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
+        constituents = r.json()
+        # create result objects (one for each constituent) for the analysis type within this row
+        for constituent in constituents:
+            sample_analysis_values = [str(row.get('bottle')), constituent['id'], row.get('isotope_flag')]
+            this_sample_analysis = dict(zip(SAMPLE_ANALYSIS_KEYS, sample_analysis_values))
+            logger.info("Creating result: " + str(this_sample_analysis))
+            # add this new sample bottle object to the list
+            sample_analysis_data.append(this_sample_analysis)
 
     # validate this bottle is used in only one sample in this sample login session,
     # otherwise notify the user (it can be used more than once within a sample, however)
@@ -599,7 +605,7 @@ def samples_update(request):
             sample_data.append(this_sample)
 
         # grab the data that uniquely identifies each sample bottle
-        this_sample_bottle_id = str(this_sample_id)+"|"+str(row.get('sample_bottle.id'))
+        this_sample_bottle_id = str(this_sample_id)+"|"+str(row.get('sample_bottle.id'))+"|"+str(row.get('bottle'))
         logger.info("this sample bottle id: " + this_sample_bottle_id)
 
         # if this sample bottle ID is not already in the unique list, add it,
@@ -832,7 +838,7 @@ def samples_update(request):
                 logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
                 response_data = r.json()
                 message += " Unable to save sample analysis; could not find a sample bottle for this sample analysis."
-                message += " Tried finding a sample bottle with Sample ID " + this_sample
+                message += " Tried finding a sample bottle with Sample ID " + str(this_sample)
                 message += " and Bottle Code " + response_data["results"][0]["bottle_unique_name"] + "."
                 message += " Please contact the administrator.\""
                 logger.error(message)

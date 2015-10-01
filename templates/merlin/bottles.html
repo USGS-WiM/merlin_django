@@ -479,6 +479,7 @@
                             }
                         });
                     }
+                    clearChangedRowIndicesBottlesAdd();
                 });
 
                 var form_bottle_prefix_add = $("#form_bottle_prefix_add");
@@ -837,6 +838,18 @@
                     return data.bottle_unique_name;
                 }
 
+                function clearChangedRowIndicesBottlesAdd() {
+                    changedRowIndicesBottlesAdd.length = 0;
+                }
+
+                function clearChangedRowIndicesPrefixes() {
+                    changedRowIndicesPrefixes.length = 0;
+                }
+
+                function clearChangedRowIndicesBottles() {
+                    changedRowIndicesBottles.length = 0;
+                }
+
                 form_bottle_prefix_add.parent().find('button[name=bottle_prefix_add]').click(function () {
                     if (bottleAddClicked) {
                         bottleAddClicked = false;
@@ -916,6 +929,7 @@
                             button_state.button('reset');
                         }
                     });
+                    clearChangedRowIndicesPrefixes();
                 });
 
                 tools_prefixes.find('button[name=next]').click(function () {
@@ -947,6 +961,7 @@
                         loading.hide();
                         button_state.button('reset');
                     }
+                    clearChangedRowIndicesPrefixes();
                 });
 
                 tools_prefixes.find('button[name=prev]').click(function () {
@@ -978,6 +993,7 @@
                         loading.hide();
                         button_state.button('reset');
                     }
+                    clearChangedRowIndicesPrefixes();
                 });
 
                 tools_prefixes.find('button[name=delete]').click(function () {
@@ -1094,6 +1110,7 @@
                             }
                         });
                     }
+                    clearChangedRowIndicesPrefixes();
                 });
                 
                 ////////////////////
@@ -1123,6 +1140,7 @@
                             button_state.button('reset');
                         }
                     });
+                    clearChangedRowIndicesBottles();
                 });
 
                 tools_bottles.find('button[name=next]').click(function () {
@@ -1154,6 +1172,7 @@
                         loading.hide();
                         button_state.button('reset');
                     }
+                    clearChangedRowIndicesBottles();
                 });
 
                 tools_bottles.find('button[name=prev]').click(function () {
@@ -1185,6 +1204,7 @@
                         loading.hide();
                         button_state.button('reset');
                     }
+                    clearChangedRowIndicesBottles();
                 });
 
                 tools_bottles.find('button[name=delete]').click(function () {
@@ -1300,6 +1320,7 @@
                             }
                         });
                     }
+                    clearChangedRowIndicesBottles();
                 });
 
             });
