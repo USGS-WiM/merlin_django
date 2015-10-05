@@ -1739,7 +1739,7 @@ def eval_sigfigs_decimals(
         sigfig_value = truncate_float(
             value, (num_behind - ((num_infront + num_behind) - (significant_figures + 1))))
     else:
-        sigfig_value = raw_value
+        sigfig_value = value
 
     #pad sigfig_value with zeroes
     sigfig_value_str = pad_value(sigfig_value, significant_figures+1, decimal_places+1)
