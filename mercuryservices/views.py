@@ -1290,7 +1290,9 @@ class BatchUpload(views.APIView):
 #                    result_details.report_value = final_method_detection_limit
 #                else:
                 result_details.report_value = process_report_value(reported_value, method_id, volume_filtered, sediment_dry_weight, sample_mass_processed)
-
+                #round by sigfigs
+                result_details.report_value = eval_sigfigs_decimals(result_details.report_value, significant_figures, decimal_places)
+                
                 result_details.detection_flag = DetectionFlag.objects.get(detection_flag=detection_flag)
 
                 #daily detection limit
@@ -1421,6 +1423,7 @@ def validate_analysis_method(constituent_id, row):
     analysis_method_id = -1
     message = ""
     constituent_type = row["constituent"]
+    analysis_type = ""
     try:
         method = row["method_id"]
     except KeyError:
@@ -1431,11 +1434,9 @@ def validate_analysis_method(constituent_id, row):
         message = "Expecting an int for method_id"
         return is_valid, message, analysis_method_id
 
-    try:
-        analysis_type_details = AnalysisMethod.objects.get(
-            analysis_type=str(
-                ConstituentType.objects.get(id=constituent_id).values_list('analysis', flat=True)),
-            method_type=str(method))
+    analysis_type = ConstituentType.objects.filter(id=constituent_id).values_list('analysis', flat=True)[0]
+    try:        
+        analysis_type_details = AnalysisMethod.objects.get(analysis_type=str(analysis_type),method_type=str(method))
     except ObjectDoesNotExist:
         message = "The method code '"+str(method)+"' is not allowed for the constituent '"+constituent_type+"'"
         return is_valid, message, analysis_method_id
@@ -1721,6 +1722,33 @@ def eval_mdl(daily_detection_limit, method_detection_limit):
 #     #if reported_value < 1 and reported_value > 0:
 #     #    display_value_str = '0'+display_value_str
 #     return display_value_str, reported_value, detection_flag, daily_detection_limit, []
+
+def eval_sigfigs_decimals(
+        value, significant_figures, decimal_places):
+    num_infront, num_behind, is_decimal_exists = get_decimal_info(value)
+
+    if num_infront >= significant_figures+1:
+        sigfig_value = truncate_float(value, significant_figures+1-num_infront)
+    elif num_behind == 0:
+        sigfig_value = value
+    elif num_infront == 0:
+        sigfig_value = truncate_float(value, decimal_places+1)
+    elif (num_infront+num_behind) == significant_figures+1:
+        sigfig_value = truncate_float(value, num_behind)
+    elif (num_infront+num_behind) != significant_figures+1:
+        sigfig_value = truncate_float(
+            value, (num_behind - ((num_infront + num_behind) - (significant_figures + 1))))
+    else:
+        sigfig_value = raw_value
+
+    #pad sigfig_value with zeroes
+    sigfig_value_str = pad_value(sigfig_value, significant_figures+1, decimal_places+1)
+    rounded_val = round_by_rule_of_five(sigfig_value, sigfig_value_str, significant_figures, decimal_places)
+
+    #set the reported value to the value
+    reported_value = rounded_val
+
+    return reported_value
 
 def eval_detection(
         raw_value, daily_detection_limit, method_detection_limit, significant_figures, decimal_places):
