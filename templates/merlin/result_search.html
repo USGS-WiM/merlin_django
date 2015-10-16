@@ -13,9 +13,9 @@
                 {% csrf_token %}
                 <p>
                     <div class="form-group">
-                        <label for="select_bottle">Bottle Code</label> 
+                        <label for="select_bottle">Bottle Code</label><br />
                         <!-- <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#multiBottleSearchModal"> -->
-                            <span class="glyphicon glyphicon-search" data-toggle="modal" data-target="#multiBottleSearchModal"></span>
+                            <!-- <span class="glyphicon glyphicon-search" data-toggle="modal" data-target="#multiBottleSearchModal"></span><br /> -->
                         <!-- </button><br /> -->
                         <input id="select_bottle" type="hidden" style="width:1200px"/>                       
                     </div>
@@ -80,15 +80,14 @@
             </form>
         </div>
 
-        <p>
-            <div class="select2-container select2-container-multi" style="width:600px">
-                <ul class="select2-choices">
-                    <li class="select2-search-field">
-                        <label class="select2-offscreen"></label>
-                        <input id="search_field" type="search" placeholder="Highlight in table." class="select2-input select2-default" style="width:593px;height:40px;font-size:21px;"/>
-                    </li>
-                </ul>
-            </div>
+        <div class="select2-container select2-container-multi" style="width:600px">
+            <ul class="select2-choices">
+                <li class="select2-search-field">
+                    <label class="select2-offscreen"></label>
+                    <input id="search_field" type="search" placeholder="Highlight in table." class="select2-input select2-default" style="width:593px;height:40px;font-size:21px;"/>
+                </li>
+            </ul>
+        </div>
         <!-- <p><input id="search_field" type="search" placeholder="Highlight in table." style="width:600px; border:1px solid darkgray; height:42px"/></p> -->
         <br /><br />
         <div id="grid" data-projects="{{ projects }}" data-constituents="{{ constituents }}" ></div>
@@ -154,18 +153,18 @@
                         {title: 'Project', data: 'sample_bottle.sample.project_string', readOnly: true, width: 180},
                         {title: 'Site', data: 'sample_bottle.sample.site_string', readOnly: true, width: 180},
                         {title: 'Sample Date', data: 'sample_bottle.sample.sample_date', readOnly: true, width: 90},
-                        {title: 'Sample Time', data: 'sample_bottle.sample.sample_time', readOnly: true, width: 100},
+                        {title: 'Sample Time', data: 'sample_bottle.sample.sample_time', readOnly: true, width: 90},
                         {title: 'Depth', data: 'sample_bottle.sample.depth', readOnly: true, width: 50, format: '0.00'},
                         {title: 'Medium', data: 'sample_bottle.sample.medium_type_string', readOnly: true, width: 60},
                         {title: 'Analysis', data: 'analysis_string', readOnly: true, width: 60},
                         {title: 'Constituent', data: 'constituent_string', readOnly: true, width: 80},
-                        {title: 'Isotope', data: 'isotope_flag_string', readOnly: true, width: 60},
+                        {title: 'Isotope', data: 'isotope_flag_string', readOnly: true, width: 55},
                         {title: 'Received', data: 'sample_bottle.sample.received_date', readOnly: true, width: 65},
-                        {title: 'Comments', data: 'sample_bottle.sample.comment', readOnly: true, width: 160},
+                        {title: 'Comments', data: 'sample_bottle.sample.comment', readOnly: true, width: 140},
                         {title: 'Result Value', data: 'report_value', readOnly: true, width: 90, format: '0.00000000'},
                         {title: 'Unit', data: 'method.final_value_unit_string', readOnly: true, width: 60},
                         {title: 'Detection Flag', data: 'detection_flag_string', readOnly: true, width: 100},
-                        {title: 'QA Flags', data: 'quality_assurances_strings', readOnly: true, width: 100},
+                        {title: 'QA Flags', data: 'quality_assurances_strings', readOnly: true, width: 65},
                         {title: 'Analysis Comments', data: 'analysis_comment', readOnly: true, width: 140},
                         {title: 'Analyzed', data: 'analyzed_date', readOnly: true, width: 65}
                     ];

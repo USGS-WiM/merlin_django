@@ -770,13 +770,13 @@ class ConstituentTypeViewSet(viewsets.ModelViewSet):
             # if query value is an analysis ID
             if analysis.isdigit():
                 # get the constituents related to this analysis ID, exact
-                queryset = queryset.filter(analysis__exact=analysis)
+                queryset = queryset.filter(analyses__exact=analysis)
             # else query value is an analysis name
             else:
                 # lookup the analysis ID that matches this analysis name, exact
-                analysis_id = MethodType.objects.get(analysis__analysis__exact=analysis)
+                analysis_id = AnalysisType.objects.get(analysis__exact=analysis)
                 # get the constituents related to this analysis ID, exact
-                queryset = queryset.filter(analysis__exact=analysis_id)
+                queryset = queryset.filter(analyses__exact=analysis_id)
         # filter by method ID or name
         method = self.request.query_params.get('method', None)
         if method is not None:
@@ -816,6 +816,12 @@ class ConstituentTypeViewSet(viewsets.ModelViewSet):
         if constituent_id is not None:
             queryset = queryset.filter(id__exact=constituent_id)
         return queryset
+
+
+class AnalysisConstituentViewSet(viewsets.ModelViewSet):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    queryset = AnalysisConstituent.objects.all()
+    serializer_class = AnalysisConstituentSerializer
 
 
 class AnalysisMediumViewSet(viewsets.ModelViewSet):
@@ -1008,37 +1014,6 @@ class UserViewSet(viewsets.ModelViewSet):
 
 ######
 ##
-## Status
-##
-######
-
-
-# class StatusViewSet(viewsets.ModelViewSet):
-#     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-#     queryset = Status.objects.all()
-#     serializer_class = StatusSerializer
-
-
-# class ProcedureStatusTypeViewSet(viewsets.ModelViewSet):
-#     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-#     queryset = ProcedureStatusType.objects.all()
-#     serializer_class = ProcedureStatusTypeSerializer
-
-
-# class StatusTypeViewSet(viewsets.ModelViewSet):
-#     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-#     queryset = StatusType.objects.all()
-#     serializer_class = StatusTypeSerializer
-
-
-# class ProcedureTypeViewSet(viewsets.ModelViewSet):
-#     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-#     queryset = ProcedureType.objects.all()
-#     serializer_class = ProcedureTypeSerializer
-
-
-######
-##
 ## Reports
 ##
 ######
@@ -1209,21 +1184,21 @@ class BatchUpload(views.APIView):
         try:
             data = json.loads(request.body.decode('utf-8'))
             for row in data:
-                #validate sample id/bottle bar code
+                # validate sample id/bottle bar code
                 is_valid, message, bottle_id, sample, volume_filtered = validate_bottle_bar_code(row)
                 if not is_valid:
                     status.append({"message": message, "success": "false"})
                     continue
                 
-                #get bottle_unique_name
+                # get bottle_unique_name
                 bottle_unique_name = row["bottle_unique_name"]
                 
-                #validate constituent type
+                # validate constituent type
                 is_valid, message, constituent_id = validate_constituent_type(row)
                 if not is_valid:
                     status.append({"message": message, "success": "false", "bottle_unique_name": bottle_unique_name})
                     continue
-                #validate analysis method type
+                # validate analysis method type
                 is_valid, message, analysis_method_id = validate_analysis_method(constituent_id, row)
                 if not is_valid:
                     status.append({"message": message, "success": "false", "bottle_unique_name": bottle_unique_name})
@@ -1232,7 +1207,7 @@ class BatchUpload(views.APIView):
                 if not is_valid:
                     status.append({"message": message, "success": "false", "bottle_unique_name": bottle_unique_name})
                     continue
-                #validate quality assurance
+                # validate quality assurance
                 is_valid, message, quality_assurance_id_array = validate_quality_assurance(row)
                 if not is_valid:
                     status.append({"message": message, "success": "false", "bottle_unique_name": bottle_unique_name})
@@ -1251,8 +1226,8 @@ class BatchUpload(views.APIView):
                 except KeyError:
                     sediment_dry_weight = None
         
-                #validate result
-                #get method id
+                # validate result
+                # get method id
                 method_id = row["method_id"]
                 is_valid, message, result_id = validate_result(
                     sample, constituent_id, method_id, row
@@ -1261,23 +1236,23 @@ class BatchUpload(views.APIView):
                     status.append({"message": message, "success": "false", "bottle_unique_name": bottle_unique_name})
                     continue
 
-                #calculate the result
+                # calculate the result
                 display_value, reported_value, detection_flag, daily_detection_limit, qa_flags = eval_result(
                     row, result_id
                 )
                 raw_value = row["raw_value"]
 
-                ###save the result###
+                ### save the result ###
                 result_details = Result.objects.get(id=result_id)
                 result_details.raw_value = float(raw_value)
                 result_details.method_id = method_id
 
-                #get and process the final_value
+                # get and process the final_value
                 result_details.final_value = float(raw_value)
                 result_details.final_value = process_final_value(
                     result_details.final_value, method_id, volume_filtered, sediment_dry_weight, sample_mass_processed)
 
-                #calculate the final_method_detection_limit and report value
+                # calculate the final_method_detection_limit and report value
                 method_detection_limit, significant_figures, decimal_places = get_method_type(method_id)
                 final_method_detection_limit = process_method_daily_detection_limit(
                     method_detection_limit, method_id, volume_filtered, sediment_dry_weight, sample_mass_processed)
@@ -1289,13 +1264,15 @@ class BatchUpload(views.APIView):
 #                ):
 #                    result_details.report_value = final_method_detection_limit
 #                else:
-                result_details.report_value = process_report_value(reported_value, method_id, volume_filtered, sediment_dry_weight, sample_mass_processed)
-                #round by sigfigs
-                result_details.report_value = eval_sigfigs_decimals(result_details.report_value, significant_figures, decimal_places)
+                result_details.report_value = process_report_value(reported_value, method_id, volume_filtered,
+                                                                   sediment_dry_weight, sample_mass_processed)
+                # round by sigfigs
+                result_details.report_value = eval_sigfigs_decimals(result_details.report_value, significant_figures,
+                                                                    decimal_places)
                 
                 result_details.detection_flag = DetectionFlag.objects.get(detection_flag=detection_flag)
 
-                #daily detection limit
+                # daily detection limit
                 result_details.raw_daily_detection_limit = daily_detection_limit
                 result_details.final_daily_detection_limit = process_daily_detection_limit(
                     daily_detection_limit, method_id, volume_filtered, sediment_dry_weight, sample_mass_processed)
@@ -1312,7 +1289,7 @@ class BatchUpload(views.APIView):
                 else:
                     result_details.analyzed_date = ""
                 result_details.save()
-                #save quality assurance
+                # save quality assurance
                 quality_assurance_id_array = quality_assurance_id_array + qa_flags
                 for quality_assurance_id in quality_assurance_id_array:
                     QualityAssurance.objects.create(result_id=result_id, quality_assurance_id=quality_assurance_id)
@@ -1351,10 +1328,10 @@ def validate_bottle_bar_code(row):
         message = "The bottle '"+bottle_name+"' does not exist"
         return is_valid, message, bottle_id, sample, volume_filtered
 
-    #get bottle id
+    # get bottle id
     bottle_id = bottle_details.id
 
-    #find the sample bottle id
+    # find the sample bottle id
     try:
         sample_bottle_details = SampleBottle.objects.get(bottle=bottle_id)
     except ObjectDoesNotExist:
@@ -1378,7 +1355,7 @@ def validate_constituent_type(row):
         message = "'constituent' is required"
         return is_valid, message, constituent_id
 
-    #get constituent id
+    # get constituent id
     try:
         constituent_type_details = ConstituentType.objects.get(constituent=constituent_type)
     except ObjectDoesNotExist:
@@ -1395,10 +1372,10 @@ def validate_isotope_flag(row):
     message = ""
     isotope_flag_id = -1
 
-    #get isotope flag
+    # get isotope flag
     try:
         isotope_flag_id = row["isotope_flag_id"]
-        #make sure that it is numeric
+        # make sure that it is numeric
         if isinstance(isotope_flag_id, Number) is False:
             message = "Expecting a numeric value for isotope_flag_id"
             return is_valid, message, isotope_flag_id
@@ -1406,7 +1383,7 @@ def validate_isotope_flag(row):
         message = "'isotope_flag_id' is required"
         return is_valid, message, isotope_flag_id
 
-    #get isotope flag id
+    # get isotope flag id
     try:
         isotope_flag_details = IsotopeFlag.objects.get(id=isotope_flag_id)
     except ObjectDoesNotExist:
@@ -1423,7 +1400,6 @@ def validate_analysis_method(constituent_id, row):
     analysis_method_id = -1
     message = ""
     constituent_type = row["constituent"]
-    analysis_type = ""
     try:
         method = row["method_id"]
     except KeyError:
@@ -1434,16 +1410,24 @@ def validate_analysis_method(constituent_id, row):
         message = "Expecting an int for method_id"
         return is_valid, message, analysis_method_id
 
-    analysis_type = ConstituentType.objects.filter(id=constituent_id).values_list('analysis', flat=True)[0]
-    try:        
-        analysis_type_details = AnalysisMethod.objects.get(analysis_type=str(analysis_type),method_type=str(method))
+    analysis_types = AnalysisConstituent.objects.filter(constituent_id=constituent_id).values_list('analysis_id',
+                                                                                                   flat=True)
+    try:
+        analysis_type_details = AnalysisMethod.objects.filter(analysis_type__in=analysis_types,
+                                                              method_type__exact=method)
+        #analysis_type_details = AnalysisMethod.objects.get(analysis_type=str(analysis_type),method_type=str(method))
     except ObjectDoesNotExist:
         message = "The method code '"+str(method)+"' is not allowed for the constituent '"+constituent_type+"'"
         return is_valid, message, analysis_method_id
 
-    is_valid = True
-    analysis_method_id = analysis_type_details.id
-    return is_valid, message, analysis_method_id
+    if len(analysis_type_details) != 1:
+        message = "More than one analysis type was found for method code '"+str(method)+"'"
+        message += ", please contact the database administrator."
+        return is_valid, message, analysis_method_id
+    else:
+        is_valid = True
+        analysis_method_id = analysis_type_details[0].id
+        return is_valid, message, analysis_method_id
 
 
 def validate_quality_assurance(row):
@@ -1453,7 +1437,7 @@ def validate_quality_assurance(row):
     quality_assurance_array = []
     try:
         quality_assurance_array = row["quality_assurance"]
-        #check if it's an array
+        #  check if it's an array
         if isinstance(quality_assurance_array, list) is False:
             message = "'quality_assurance' needs to be a list of values"
             return is_valid, message, quality_assurance_id_array
@@ -1476,7 +1460,7 @@ def validate_quality_assurance(row):
 
 
 def validate_analyzed_date(row):
-    #get the date
+    # get the date
     if row["analyzed_date"]:
         analyzed_date = row["analyzed_date"]
     else:
@@ -1504,10 +1488,10 @@ def validate_result(sample_bottle_id, constituent_id, method_id, row):
     constituent_type = row["constituent"]
     isotope_flag_id = row["isotope_flag_id"]
 
-    #make sure that a result is given
+    # make sure that a result is given
     try:
         raw_value = row["raw_value"]
-        #make sure that it is numeric
+        # make sure that it is numeric
         if isinstance(raw_value, Number) is False:
             message = "Expecting a numeric value for result"
             return is_valid, message, result_id
@@ -1515,7 +1499,7 @@ def validate_result(sample_bottle_id, constituent_id, method_id, row):
         message = "'raw_value' is required"
         return is_valid, message, result_id
 
-    #Find the matching record in the Results table, using the unique combination of barcode + constituent { + isotope}
+    # Find the matching record in the Results table, using the unique combination of barcode + constituent { + isotope}
     try:
         result_details = Result.objects.get(
             constituent=constituent_id, sample_bottle=sample_bottle_id, isotope_flag=isotope_flag_id)
@@ -1529,10 +1513,10 @@ def validate_result(sample_bottle_id, constituent_id, method_id, row):
         message += str(bottle_name)+"', constituent type '"+str(constituent_type)+"' and isotope flag '"
         message += str(isotope_flag_id)
         return is_valid, message, result_id
-    #check if final value already exists
+    # check if final value already exists
     final_value = result_details.final_value
     if final_value is not None:
-        #print(result_details.id)
+        # print(result_details.id)
         message = "This result row cannot be updated as a final value already exists"
         return is_valid, message, result_id
 
@@ -1550,7 +1534,7 @@ def validate_result(sample_bottle_id, constituent_id, method_id, row):
 
 def eval_result(row, result_id):
     qa_flags = []
-    #check if it is an archived sample
+    # check if it is an archived sample
     raw_value = row["raw_value"]
     try:
         daily_detection_limit = row["daily_detection_limit"]
@@ -1558,13 +1542,13 @@ def eval_result(row, result_id):
         daily_detection_limit = None
     if raw_value == -888:
         display_value, reported_value, detection_flag, daily_detection_limit, qa_flags = get_archived_sample_result()
-    #check if lost sample
+    # check if lost sample
     elif raw_value == -999:
         display_value, reported_value, detection_flag, daily_detection_limit, qa_flags = get_lost_sample_result(
             raw_value, daily_detection_limit
         )
     else:
-        #get isotope flag
+        # get isotope flag
         result_details = Result.objects.get(id=result_id)
         isotope_flag = str(result_details.isotope_flag)
         try:
@@ -1574,19 +1558,19 @@ def eval_result(row, result_id):
         constituent_type = row["constituent"]
         method_code = row["method_id"]
         if (isotope_flag == 'NA' or isotope_flag == 'A') and (
-            (constituent_type in ['FMHG', 'FTHG', 'UMHG', 'UTHG'])
-            or ((constituent_type in ['PTHG', 'PMHG']) and (analysis_date >= dt.strptime("01/01/2003", "%m/%d/%Y")))
-            or ((constituent_type in ['SMHG', 'STHG']) and (analysis_date >= dt.strptime("01/01/2004", "%m/%d/%Y")))
-            and method_code != 165 or (constituent_type in ['BMHG'] and method_code in [108, 184])
+            (constituent_type in ['FMHG', 'FTHG', 'UMHG', 'UTHG']) or
+            ((constituent_type in ['PTHG', 'PMHG']) and (analysis_date >= dt.strptime("01/01/2003", "%m/%d/%Y"))) or
+            ((constituent_type in ['SMHG', 'STHG']) and (analysis_date >= dt.strptime("01/01/2004", "%m/%d/%Y"))) and
+            method_code != 165 or (constituent_type in ['BMHG'] and method_code in [108, 184])
         ):
-            #evaluate according to MDL
+            # evaluate according to MDL
             method_detection_limit, significant_figures, decimal_places = get_method_type(method_code)
             if raw_value < method_detection_limit:
                 display_value, reported_value, detection_flag, daily_detection_limit, qa_flags = eval_mdl(
                     daily_detection_limit, method_detection_limit
                 )
             else:
-                #evaluate according to significant_figures & decimal_places
+                # evaluate according to significant_figures & decimal_places
                 display_value, reported_value, detection_flag, daily_detection_limit, qa_flags = eval_detection(
                     raw_value, daily_detection_limit, method_detection_limit, significant_figures, decimal_places
                 )
@@ -1597,22 +1581,22 @@ def eval_result(row, result_id):
                     (constituent_type in ['DMHG', 'DTHG', 'STHG', 'PMHG', 'PTHG', 'SMHG', 'SRHG'])
                 )
         ):
-            #set DDL to -999 for DTHG because it does not have a DDL
+            # set DDL to -999 for DTHG because it does not have a DDL
             if constituent_type == 'DTHG':
                 daily_detection_limit = -999
-            #set MDL to DDL
+            # set MDL to DDL
             method_detection_limit, significant_figures, decimal_places = get_method_type(method_code)
             method_detection_limit = daily_detection_limit
             if raw_value < method_detection_limit:
-                #evaluate according to MDL
+                # evaluate according to MDL
                 display_value, reported_value, detection_flag, daily_detection_limit, qa_flags = eval_mdl(
                     daily_detection_limit, method_detection_limit
                 )
             else:
-                #all isotopes should use a decplaces of 3 despite what is in the
+                # all isotopes should use a decplaces of 3 despite what is in the
                 if isotope_flag in ['X-198', 'X-199', 'X-200', 'X-201', 'X-202']:
                     decimal_places = 3
-                #evaluate according to significant_figures & decimal_places
+                # evaluate according to significant_figures & decimal_places
                 display_value, reported_value, detection_flag, daily_detection_limit, qa_flags = eval_detection(
                     raw_value, daily_detection_limit, method_detection_limit, significant_figures, decimal_places
                 )
@@ -1626,15 +1610,15 @@ def eval_result(row, result_id):
     return display_value, reported_value, detection_flag, daily_detection_limit, qa_flags
 
 
-#Archived Sample
-#A value of -888 indicates an archived sample
-#an archived sample is one for which no near-term analysis is expected
-#in order to not leave a "hole", a value of -888 is used
-#VALUE should remain -888
-#REPORTED_VALUE and DISPLAY_VALUE should be -888
-#DETECTION_FLAG should be 'A'
-#DAILY_DETECTION_LIMIT should be set to -888
-#No QA flag for the result
+# Archived Sample
+# A value of -888 indicates an archived sample
+# an archived sample is one for which no near-term analysis is expected
+# in order to not leave a "hole", a value of -888 is used
+# VALUE should remain -888
+# REPORTED_VALUE and DISPLAY_VALUE should be -888
+# DETECTION_FLAG should be 'A'
+# DAILY_DETECTION_LIMIT should be set to -888
+# No QA flag for the result
 def get_archived_sample_result():
     qa_flags = []
     reported_value = -888
@@ -1644,14 +1628,14 @@ def get_archived_sample_result():
     return display_value, reported_value, detection_flag, daily_detection_limit, qa_flags
 
 
-#Lost Sample
-#A value of -999 indicates a lost sample
-#VALUE should remain -999
-#REPORTED_VALUE and DISPLAY_VALUE should be -999
-#DETECTION_FLAG should be 'L'
-#DAILY_DETECTION_LIMIT should be set to -999 if not otherwise provided
-#Separately, a QA flag of LS should be added for the result
-#but that should be accomplished by the batch load process, not this trigger
+# Lost Sample
+# A value of -999 indicates a lost sample
+# VALUE should remain -999
+# REPORTED_VALUE and DISPLAY_VALUE should be -999
+# DETECTION_FLAG should be 'L'
+# DAILY_DETECTION_LIMIT should be set to -999 if not otherwise provided
+# Separately, a QA flag of LS should be added for the result
+# but that should be accomplished by the batch load process, not this trigger
 def get_lost_sample_result(raw_value, daily_detection_limit):
     if daily_detection_limit is None:
         daily_detection_limit = -999
@@ -1741,39 +1725,40 @@ def eval_sigfigs_decimals(
     else:
         sigfig_value = value
 
-    #pad sigfig_value with zeroes
+    # pad sigfig_value with zeroes
     sigfig_value_str = pad_value(sigfig_value, significant_figures+1, decimal_places+1)
     rounded_val = round_by_rule_of_five(sigfig_value, sigfig_value_str, significant_figures, decimal_places)
 
-    #set the reported value to the value
+    # set the reported value to the value
     reported_value = rounded_val
 
     return reported_value
 
+
 def eval_detection(
         raw_value, daily_detection_limit, method_detection_limit, significant_figures, decimal_places):
 
-    #if the daily_detection_limit is null, assign the MDL
+    # if the daily_detection_limit is null, assign the MDL
     if daily_detection_limit is None:
         daily_detection_limit = method_detection_limit
-    #set the reported value to the value
+    # set the reported value to the value
     reported_value = raw_value
-    #determine the reported value and detection flag according to the DDL
-    #if the value is greater than the MDL and less than the DDL (MDL < VALUE < DDL),
-    #set the reported value to the value and the flag to E
+    # determine the reported value and detection flag according to the DDL
+    # if the value is greater than the MDL and less than the DDL (MDL < VALUE < DDL),
+    # set the reported value to the value and the flag to E
     if method_detection_limit <= raw_value < daily_detection_limit:
         detection_flag = 'E'
-    #if the value is greater than the MDL and greater than the DDL (MDL < VALUE > DDL),
-    #set the reported value to the value and the flag to NONE
+    # if the value is greater than the MDL and greater than the DDL (MDL < VALUE > DDL),
+    # set the reported value to the value and the flag to NONE
     elif method_detection_limit <= raw_value >= daily_detection_limit:
         detection_flag = 'NONE'
     else:
         detection_flag = 'NONE'
-    #Determine the display value by padding with trailing zeros if necessary
-    #Pad the reported_value with trailing zeros if length < sigfigs + 1 (and decimal point)
+    # Determine the display value by padding with trailing zeros if necessary
+    # Pad the reported_value with trailing zeros if length < sigfigs + 1 (and decimal point)
     display_value_str = pad_value(reported_value, significant_figures, decimal_places)
-    #pad a leading zero if the value is less than 1
-    if reported_value < 1 and reported_value > 0:
+    # pad a leading zero if the value is less than 1
+    if 0 < reported_value < 1:
         display_value_str = '0'+display_value_str
  
     return display_value_str, reported_value, detection_flag, daily_detection_limit, []
@@ -1783,7 +1768,7 @@ def pad_value(value, significant_figures, decimal_places):
     num_infront, num_behind, is_decimal_exists = get_decimal_info(value)
     value_str = str(value)
     counter = len(value_str)
-    #if decimal exists
+    # if decimal exists
     if num_behind > 0:
         if value >= 1:
             num_padding = significant_figures+1-counter
@@ -1815,26 +1800,26 @@ def get_rounded_value(sigfig_value, sigfig_value_str, value):
     num_infront, num_behind, is_decimal_exists = get_decimal_info(sigfig_value)
     is_last_digit_five, is_last_digit_zero = get_sigfig_info(sigfig_value_str)
     ndigits = num_behind-(num_infront+num_behind-value)
-    #confirm that this is ok
-    #if last digit is a (trailing) zero, do not do anything if no decimal place
+    # confirm that this is ok
+    # if last digit is a (trailing) zero, do not do anything if no decimal place
     if is_last_digit_zero and is_decimal_exists:
         rounded_val = sigfig_value
-    #if last digit is a (trailing) zero, round if there is a decimal place
-    #Or if last digit is not a 5 and there isn't a decimal place, round,-1
-    #Or if last digit is not a 5 and there is a decimal place, round,-1
+    # if last digit is a (trailing) zero, round if there is a decimal place
+    # Or if last digit is not a 5 and there isn't a decimal place, round,-1
+    # Or if last digit is not a 5 and there is a decimal place, round,-1
     elif (
-            (is_last_digit_zero and not is_decimal_exists)
-            or (not is_last_digit_five and not is_decimal_exists)
-            or (not is_last_digit_five and is_decimal_exists)
+            (is_last_digit_zero and not is_decimal_exists) or
+            (not is_last_digit_five and not is_decimal_exists) or
+            (not is_last_digit_five and is_decimal_exists)
     ):
         rounded_val = round(sigfig_value, ndigits)
-    #if last digit is a 5 round off or up based on 2nd last digit
+    # if last digit is a 5 round off or up based on 2nd last digit
     elif is_last_digit_five:
         digit_before_last = get_digit_before_last(sigfig_value_str, num_behind)
-        #if last digit is a 5 and second to last digit is even, trunc
+        # if last digit is a 5 and second to last digit is even, trunc
         if digit_before_last % 2 == 0:
             rounded_val = truncate_float(sigfig_value, ndigits)
-        #if last digit is a 5 and second to last digit is odd, round
+        # if last digit is a 5 and second to last digit is odd, round
         else:
             rounded_val = math.ceil(sigfig_value*pow(10, ndigits))/pow(10, ndigits)
     else:
@@ -1845,11 +1830,11 @@ def get_rounded_value(sigfig_value, sigfig_value_str, value):
 def get_digit_before_last(value_str, num_behind):
     length = len(value_str)
     if(num_behind > 0) and num_behind == 1:
-        #if decimal exists and the decimal point is in the second to last position,
+        # if decimal exists and the decimal point is in the second to last position,
         # take the number just before the decimal point
         digit_before_last = value_str[length-3:length-2]
     else:
-        #else take the second to last digit
+        # else take the second to last digit
         digit_before_last = value_str[length-2:length-1]
     return int(digit_before_last)
 

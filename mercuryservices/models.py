@@ -25,7 +25,6 @@ class Cooperator(models.Model):
     state = models.CharField(max_length=2, blank=True)
     zipcode = models.BigIntegerField(null=True, blank=True)
     country = models.CharField(max_length=128, blank=True)
-    #status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -42,7 +41,6 @@ class Project(models.Model):
     description = models.CharField(max_length=128, blank=True)
     accounting_code = models.CharField(max_length=128, blank=True)
     cooperator = models.ForeignKey('Cooperator', related_name='projects', null=True)
-    #status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -65,7 +63,6 @@ class Site(models.Model):
     site_status = models.CharField(max_length=128, blank=True)
     nwis_customer_code = models.CharField(max_length=128, blank=True)
     projects = models.ManyToManyField('Project', through='ProjectSite', related_name='sites')
-    #status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -102,7 +99,6 @@ class BottleType(models.Model):
 
     bottle_type = models.CharField(max_length=128, unique=True)
     description = models.TextField(blank=True)
-    #status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
         return self.bottle_type
@@ -120,7 +116,6 @@ class BottlePrefix(models.Model):
     description = models.TextField(blank=True)
     created_date = models.DateField(default=datetime.now, null=True, blank=True, db_index=True)
     modified_date = models.DateField(auto_now=True, null=True, blank=True)
-    #status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
         return self.bottle_prefix
@@ -143,7 +138,6 @@ class Bottle(models.Model):
     modified_date = models.DateField(auto_now=True, null=True, blank=True)
     #modified_by = LastUserField()
     #modified_by = models.ForeignKey(settings.AUTH_USER_MODEL)
-    #status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
         return self.bottle_unique_name
@@ -175,12 +169,6 @@ class Sample(models.Model):
     medium_type = models.ForeignKey('MediumType')
     created_date = models.DateField(default=datetime.now, null=True, blank=True)
     modified_date = models.DateField(auto_now=True, null=True, blank=True)
-    #status = models.ForeignKey('Status', null=True, blank=True)
-
-    # def get_results(self):
-    #     sample_bottles = SampleBottle.objects.filter(sample=self)
-    #     results = Result.objects.filter(sample_bottle__in=sample_bottles)
-    #     return results
 
     def __str__(self):
         return str(self.id)
@@ -204,7 +192,6 @@ class SampleBottle(models.Model):
     preservation_comment = models.TextField(blank=True)
     created_date = models.DateField(default=datetime.now, null=True, blank=True)
     modified_date = models.DateField(auto_now=True, null=True, blank=True)
-    #status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
         return str(self.id)
@@ -224,7 +211,6 @@ class SampleBottleBromination(models.Model):
     bromination_volume = models.FloatField(null=True, blank=True)
     created_date = models.DateField(default=datetime.now, null=True, blank=True, db_index=True)
     modified_date = models.DateField(auto_now=True, null=True, blank=True)
-    #status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
         return str(self.id)
@@ -240,7 +226,6 @@ class FilterType(models.Model):
 
     filter = models.CharField(max_length=128, unique=True)
     description = models.TextField(blank=True)
-    #status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
         return self.filter
@@ -254,7 +239,6 @@ class PreservationType(models.Model):
 
     preservation = models.CharField(max_length=128, unique=True)
     description = models.TextField(blank=True)
-    #status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
         return self.preservation
@@ -271,7 +255,6 @@ class ProcessingType(models.Model):
 
     processing = models.CharField(max_length=128, unique=True)
     description = models.TextField(blank=True)
-    #status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
         return self.processing
@@ -288,7 +271,6 @@ class MediumType(models.Model):
     medium = models.CharField(max_length=128, unique=True)
     description = models.TextField(blank=True)
     comment = models.TextField(blank=True)
-    #status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
         return self.nwis_code
@@ -325,7 +307,6 @@ class Result(models.Model):
     analysis_comment = models.TextField(null=True, blank=True)
     created_date = models.DateField(default=datetime.now, null=True, blank=True)
     modified_date = models.DateField(auto_now=True, null=True, blank=True)
-    #status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
         return str(self.id)
@@ -342,7 +323,6 @@ class DetectionFlag(models.Model):
 
     detection_flag = models.CharField(max_length=128, unique=True)  # A, <, E, L
     description = models.TextField(blank=True)  # less than, estimated, lost
-    #status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
         return str(self.detection_flag)
@@ -356,7 +336,6 @@ class IsotopeFlag(models.Model):
 
     isotope_flag = models.CharField(max_length=128, unique=True)  # A, X-198, X-199, X-200, X-201, X-202, X-204
     description = models.TextField(blank=True)  # Ambient, Excess of 199, Excess of 200, etc
-    #status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
         return str(self.isotope_flag)
@@ -372,7 +351,6 @@ class ResultDataFile(models.Model):
     file = models.FileField()
     result = models.ForeignKey('Result', related_name='result_data_files')
     uploaded_date = models.DateField(auto_now_add=True, null=True, blank=True)
-    #status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
         return str(self.name)
@@ -386,7 +364,6 @@ class QualityAssurance(models.Model):
 
     quality_assurance = models.ForeignKey('QualityAssuranceType')
     result = models.ForeignKey('Result', related_name='quality_assurances')  # usually three QAs per one result
-    #status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
         return str(self.quality_assurance)
@@ -403,7 +380,6 @@ class QualityAssuranceType(models.Model):
     description = models.TextField(blank=True)
     nwis_value_qualifier = models.CharField(max_length=128, blank=True)
     nwis_value_qualifier_comment = models.TextField(blank=True)
-    #status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
         return self.quality_assurance
@@ -426,7 +402,6 @@ class AnalysisType(models.Model):
     description = models.TextField(blank=True)
     mediums = models.ManyToManyField('MediumType', through='AnalysisMedium', related_name='analyses')
     methods = models.ManyToManyField('MethodType', through='AnalysisMethod', related_name='analyses')
-    #status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
         return self.analysis
@@ -440,14 +415,29 @@ class ConstituentType(models.Model):
 
     constituent = models.CharField(max_length=128, unique=True)
     description = models.TextField(blank=True)
-    analysis = models.ForeignKey('AnalysisType', related_name='constituents')
-    #status = models.ForeignKey('Status', null=True, blank=True)
+    analyses = models.ManyToManyField('AnalysisType', through='AnalysisConstituent', related_name='constituents')
 
     def __str__(self):
         return self.constituent
 
     class Meta:
         db_table = "mercury_constituenttype"
+
+
+class AnalysisConstituent(models.Model):
+    """Table to allow many-to-many relationship between Analyses and Constituents."""
+
+    analysis = models.ForeignKey('AnalysisType')
+    constituent = models.ForeignKey('ConstituentType')
+
+    def __str__(self):
+        #return str(self.id)
+        return str(self.analysis) + " - " + str(self.constituent)
+
+    class Meta:
+        db_table = "mercury_analysisconstituent"
+        ordering = ['-id']
+        unique_together = ("analysis", "constituent")
 
 
 class MethodType(models.Model):
@@ -467,7 +457,6 @@ class MethodType(models.Model):
     nwis_parameter_code = models.CharField(max_length=128, blank=True)
     nwis_parameter_name = models.CharField(max_length=128, blank=True)
     nwis_method_code = models.CharField(max_length=128, blank=True)
-    #status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
         return self.method
@@ -481,7 +470,6 @@ class UnitType(models.Model):
 
     unit = models.CharField(max_length=128, unique=True)
     description = models.TextField(blank=True)
-    #status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
         return self.unit
@@ -495,7 +483,6 @@ class AnalysisMedium(models.Model):
 
     analysis_type = models.ForeignKey('AnalysisType')
     medium_type = models.ForeignKey('MediumType')
-    #status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
         #return str(self.id)
@@ -511,7 +498,6 @@ class AnalysisMethod(models.Model):
 
     analysis_type = models.ForeignKey('AnalysisType')
     method_type = models.ForeignKey('MethodType')
-    #status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
         #return str(self.id)
@@ -537,7 +523,6 @@ class Acid(models.Model):
     comment = models.TextField(blank=True)
     created_date = models.DateField(default=datetime.now, null=True, blank=True, db_index=True)
     modified_date = models.DateField(auto_now=True, null=True, blank=True)
-    #status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
         return self.code
@@ -555,7 +540,6 @@ class BlankWater(models.Model):
     comment = models.TextField(blank=True)
     created_date = models.DateField(default=datetime.now, null=True, blank=True, db_index=True)
     modified_date = models.DateField(auto_now=True, null=True, blank=True)
-    #status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
         return self.lot_number
@@ -572,7 +556,6 @@ class Bromination(models.Model):
     comment = models.TextField(blank=True)
     created_date = models.DateField(default=datetime.now, null=True, blank=True, db_index=True)
     modified_date = models.DateField(auto_now=True, null=True, blank=True)
-    #status = models.ForeignKey('Status', null=True, blank=True)
 
     def __str__(self):
         return str(self.id)
@@ -603,60 +586,6 @@ class UserProfile(models.Model):
 
     class Meta:
         db_table = "mercury_userprofile"
-
-
-######
-##
-## Status (not implemented)
-##
-######
-
-
-# class Status(models.Model):
-#     status_id = models.BigIntegerField()
-#     status_type = models.ForeignKey('StatusType')
-#     procedure_type = models.ForeignKey('ProcedureType')
-#     user = models.ForeignKey(User)
-#     date_time_stamp = models.DateTimeField()
-#     note = models.TextField(blank=True)
-#
-#     def __str__(self):
-#         return str(self.status_id)
-#
-#     class Meta:
-#         db_table = "mercury_status"
-#         verbose_name_plural = "Statuses"
-
-
-# class ProcedureStatusType(models.Model):
-#     procedure_type = models.ForeignKey('ProcedureType')
-#     status_type = models.ForeignKey('StatusType')
-#
-#     def __str__(self):
-#         return str(self.id)
-#
-#     class Meta:
-#         db_table = "mercury_procedurestatustype"
-
-
-# class StatusType(models.Model):
-#     status_type = models.CharField(max_length=128)
-#
-#     def __str__(self):
-#         return self.status_type
-#
-#     class Meta:
-#         db_table = "mercury_statustype"
-
-
-# class ProcedureType(models.Model):
-#     procedure = models.CharField(max_length=128)
-#
-#     def __str__(self):
-#         return self.procedure
-#
-#     class Meta:
-#         db_table = "mercury_proceduretype"
 
 
 ######
