@@ -208,7 +208,17 @@ class ConstituentTypeSerializer(serializers.ModelSerializer, BulkSerializerMixin
     class Meta:
         list_serializer_class = BulkListSerializer
         model = ConstituentType
-        fields = ('id', 'constituent', 'description', 'analysis',)
+        fields = ('id', 'constituent', 'description', 'analyses',)
+
+
+class AnalysisConstituentSerializer(serializers.ModelSerializer, BulkSerializerMixin):
+    analysis_string = serializers.StringRelatedField(source='analysis')
+    constituent_string = serializers.StringRelatedField(source='constituent')
+
+    class Meta:
+        list_serializer_class = BulkListSerializer
+        model = AnalysisConstituent
+        fields = ('id', 'analysis', 'analysis_string', 'constituent', 'constituent_string')
 
 
 class AnalysisMediumSerializer(serializers.ModelSerializer, BulkSerializerMixin):
