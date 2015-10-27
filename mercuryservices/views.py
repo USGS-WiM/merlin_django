@@ -512,7 +512,7 @@ class MethodTypeViewSet(viewsets.ModelViewSet):
         # filter by constituent ID, exact
         constituent = self.request.query_params.get('constituent', None)
         if constituent is not None:
-            queryset = queryset.filter(constituents__exact=constituent)
+            queryset = queryset.filter(analyses__constituents__exact=constituent)
         # filter by method ID, exact
         method_id = self.request.query_params.get('id', None)
         if method_id is not None:
@@ -783,30 +783,30 @@ class ConstituentTypeViewSet(viewsets.ModelViewSet):
             # if query value is a method ID
             if method.isdigit():
                 # get the constituents related to this method ID, exact
-                queryset = queryset.filter(analysis__methods__exact=method)
+                queryset = queryset.filter(analyses__methods__exact=method)
             # else query value is a method name
             else:
                 # lookup the method ID that matches this method name, exact
-                method_id = MethodType.objects.get(analysis__methods__exact=method)
+                method_id = MethodType.objects.get(analyses__methods__exact=method)
                 # get the constituents related to this medium ID, exact
-                queryset = queryset.filter(analysis__methods__exact=method_id)
+                queryset = queryset.filter(analyses__methods__exact=method_id)
         # filter by medium ID or name
         medium = self.request.query_params.get('medium', None)
         if medium is not None:
             # if query value is a medium ID
             if medium.isdigit():
                 # get the constituents related to this medium ID, exact
-                queryset = queryset.filter(analysis__mediums__exact=medium)
+                queryset = queryset.filter(analyses__mediums__exact=medium)
             # else query value is a medium name
             else:
                 # lookup the medium ID that matches this medium name, exact
-                medium_id = MediumType.objects.get(analysis__mediums__exact=medium)
+                medium_id = MediumType.objects.get(analyses__mediums__exact=medium)
                 # get the constituents related to this medium ID, exact
-                queryset = queryset.filter(analysis__mediums__exact=medium_id)
+                queryset = queryset.filter(analyses__mediums__exact=medium_id)
         # filter by nwis code, exact
         nwis_code = self.request.query_params.get('nwis_code', None)
         if nwis_code is not None:
-            queryset = queryset.filter(analysis__mediums__nwis_code__exact=nwis_code)
+            queryset = queryset.filter(analyses__mediums__nwis_code__exact=nwis_code)
         # filter by constituent name, case-insensitive contain
         constituent = self.request.query_params.get('constituent', None)
         if constituent is not None:
