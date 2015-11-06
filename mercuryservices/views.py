@@ -640,7 +640,7 @@ class FullResultViewSet(viewsets.ModelViewSet):
             else:
                 #queryset = queryset.filter(sample_bottle__bottle__bottle_unique_name__in=bottle_list)
                 # maintain the order of the bottles that were queried
-                clauses = ' '.join(['WHEN bottle_unique_name=%s THEN %s' % (pk, i) for i, pk in enumerate(bottle_list)])
+                clauses = ' '.join(["WHEN bottle_unique_name='%s' THEN %s" % (pk, i) for i, pk in enumerate(bottle_list)])
                 ordering = 'CASE %s END' % clauses
                 queryset = queryset.filter(sample_bottle__bottle__bottle_unique_name__in=bottle_list).extra(
                     select={'ordering': ordering}, order_by=('ordering',))

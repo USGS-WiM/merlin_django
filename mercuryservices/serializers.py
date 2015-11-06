@@ -539,7 +539,6 @@ class FullResultSerializer(serializers.ModelSerializer, BulkSerializerMixin):
     sample_bottle = FullSampleBottleSerializer()
     method = MethodTypeSerializer()
     constituent_string = serializers.StringRelatedField(source='constituent')
-    #analysis_string = serializers.StringRelatedField(source='constituent.analyses')
     analysis_string = serializers.SerializerMethodField()
     isotope_flag_string = serializers.StringRelatedField(source='isotope_flag')
     detection_flag_string = serializers.StringRelatedField(source='detection_flag')

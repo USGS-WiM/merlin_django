@@ -13,9 +13,9 @@
                 {% csrf_token %}
                 <p>
                     <div class="form-group">
-                        <label for="select_bottle">Bottle Code</label><br />
+                        <label for="select_bottle">Bottle Code</label><!-- <br /> -->
                         <!-- <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#multiBottleSearchModal"> -->
-                            <!-- <span class="glyphicon glyphicon-search" data-toggle="modal" data-target="#multiBottleSearchModal"></span><br /> -->
+                            <span class="glyphicon glyphicon-search" data-toggle="modal" data-target="#multiBottleSearchModal"></span><br />
                         <!-- </button><br /> -->
                         <input id="select_bottle" type="hidden" style="width:1200px"/>                       
                     </div>
@@ -366,6 +366,7 @@
                                 loading.hide();
                                 button_state.button('reset');
                             }
+                            $("#bottle_search_list").val("");
                         },
                         error: function (jqXHRequest, textStatus, errorThrown) {
                             grid_console.text(errorThrown + " ... " + textStatus);
@@ -513,42 +514,18 @@
                     $('#s2id_select_bottle .select2-search-choice').remove();
                     var textValue = $("#bottle_search_list").val();
                     var bottle_list = textValue.split('\n');
-                    var deferred = [];
-                    var bottles = {};
                     var bottleIds = [];
-                    var errors = [];
-                    //get bottle ids
+                    //check for empty strings
                     for(var i = 0; i < bottle_list.length; i++){
-                        bottles[bottle_list[i]] = null;
-                        deferred.push(
-                            $.get("/mercuryservices/bottles/?bottle_unique_name="+bottle_list[i]).success(function(data) {
-                                if(data.count!=0){
-                                    bottles[data.results[0].bottle_unique_name] = data.results[0];
-                                }
-                            })
-                        );
+                        if(bottle_list[i].trim()){
+                            bottleIds.push(bottle_list[i]);
+                        }                       
                     }
-                    //get bottles
-                    $.when.apply(null, deferred).done(function() {
-                        for (var name in bottles) {
-                            if(bottles[name]){
-                                bottleIds.push(bottles[name].id);
-                            }else{
-                                errors.push(name);
-                            }
-                        }
-                        if(errors.length > 0){
-                            $("#grid_console_error").text("errors: There were no bottles matching the names '"+errors.join(", ")+"'");
-                            $("#grid_console_error").show();
-                        }else{
-                            $("#grid_console_error").hide();
-                        }
-                        $('#multiBottleSearchModal').modal('hide');
-                        if(bottleIds.length > 0){
-                            searchBottles('#multi_bottle_search',bottleIds.join(","));
-                        }
-                    });
-
+                    //get bottles                   
+                    $('#multiBottleSearchModal').modal('hide');
+                    if(bottleIds.length > 0){
+                        searchBottles('#multi_bottle_search',bottleIds.join(","));
+                    }                 
                 });
 
             });
