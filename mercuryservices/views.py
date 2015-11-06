@@ -107,6 +107,10 @@ class SiteViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = Site.objects.all()
         #queryset = Site.objects.exclude(usgs_scode__exact="''")
+        # filter by site name, exact
+        name_exact = self.request.query_params.get('name_exact', None)
+        if name_exact is not None:
+            queryset = queryset.filter(name__exact=name_exact)
         # filter by site name, case-insensitive contain
         name = self.request.query_params.get('name', None)
         if name is not None:
@@ -512,7 +516,7 @@ class MethodTypeViewSet(viewsets.ModelViewSet):
         # filter by constituent ID, exact
         constituent = self.request.query_params.get('constituent', None)
         if constituent is not None:
-            queryset = queryset.filter(constituents__exact=constituent)
+            queryset = queryset.filter(analyses__constituents__exact=constituent)
         # filter by method ID, exact
         method_id = self.request.query_params.get('id', None)
         if method_id is not None:
@@ -783,30 +787,30 @@ class ConstituentTypeViewSet(viewsets.ModelViewSet):
             # if query value is a method ID
             if method.isdigit():
                 # get the constituents related to this method ID, exact
-                queryset = queryset.filter(analysis__methods__exact=method)
+                queryset = queryset.filter(analyses__methods__exact=method)
             # else query value is a method name
             else:
                 # lookup the method ID that matches this method name, exact
-                method_id = MethodType.objects.get(analysis__methods__exact=method)
+                method_id = MethodType.objects.get(analyses__methods__exact=method)
                 # get the constituents related to this medium ID, exact
-                queryset = queryset.filter(analysis__methods__exact=method_id)
+                queryset = queryset.filter(analyses__methods__exact=method_id)
         # filter by medium ID or name
         medium = self.request.query_params.get('medium', None)
         if medium is not None:
             # if query value is a medium ID
             if medium.isdigit():
                 # get the constituents related to this medium ID, exact
-                queryset = queryset.filter(analysis__mediums__exact=medium)
+                queryset = queryset.filter(analyses__mediums__exact=medium)
             # else query value is a medium name
             else:
                 # lookup the medium ID that matches this medium name, exact
-                medium_id = MediumType.objects.get(analysis__mediums__exact=medium)
+                medium_id = MediumType.objects.get(analyses__mediums__exact=medium)
                 # get the constituents related to this medium ID, exact
-                queryset = queryset.filter(analysis__mediums__exact=medium_id)
+                queryset = queryset.filter(analyses__mediums__exact=medium_id)
         # filter by nwis code, exact
         nwis_code = self.request.query_params.get('nwis_code', None)
         if nwis_code is not None:
-            queryset = queryset.filter(analysis__mediums__nwis_code__exact=nwis_code)
+            queryset = queryset.filter(analyses__mediums__nwis_code__exact=nwis_code)
         # filter by constituent name, case-insensitive contain
         constituent = self.request.query_params.get('constituent', None)
         if constituent is not None:
@@ -1111,12 +1115,12 @@ class ReportResultsNwis(generics.ListAPIView):
     paginate_by_param = 'page_size'
 
     def get_queryset(self):
-        queryset = ResultNwisLD.objects.all()
-        exclude_ld = self.request.query_params.get('exclude_ld', None)
-        if exclude_ld is not None:
-            if exclude_ld == 'True' or exclude_ld == 'true':
-                # parameter_cd for length is '00024' and depth is '00098'
-                queryset = queryset.exclude(parameter_cd__exact='00024').exclude(parameter_cd__exact='00098')
+        queryset = ResultNwis.objects.all()
+        # exclude_ld = self.request.query_params.get('exclude_ld', None)
+        # if exclude_ld is not None:
+        #     if exclude_ld == 'True' or exclude_ld == 'true':
+        #         # parameter_cd for length is '00024' and depth is '00098'
+        #         queryset = queryset.exclude(parameter_cd__exact='00024').exclude(parameter_cd__exact='00098')
         project = self.request.query_params.get('project', None)
         if project is not None:
             project_list = project.split(',')

@@ -210,7 +210,7 @@
                                     // if site name is changed
                                     if (changedCol == 0) {
                                         // update site code to match site name
-                                        if (typeof data_sites === 'undefined') {siteValue = updateValueAjax('/mercuryservices/sites/', 'name', 'usgs_scode', changedVal);}
+                                        if (typeof data_sites === 'undefined') {siteValue = updateValueAjax('/mercuryservices/sites/', 'name_exact', 'usgs_scode', changedVal);}
                                         else {siteValue = updateValueDom(data_sites, 'name', 'usgs_scode', changedVal);}
                                         grid.handsontable('setDataAtCell', changedRow, 1, siteValue);
                                     }
@@ -232,7 +232,7 @@
                                         // if site name is changed
                                         if (changedCol == 0) {
                                             // update site code to match site name
-                                            if (typeof data_sites === 'undefined') {siteValue = updateValueAjax('/mercuryservices/sites/', 'name', 'usgs_scode', changedVal);}
+                                            if (typeof data_sites === 'undefined') {siteValue = updateValueAjax('/mercuryservices/sites/', 'name_exact', 'usgs_scode', changedVal);}
                                         else {siteValue = updateValueDom(data_sites, 'name', 'usgs_scode', changedVal);}
                                             grid.handsontable('setDataAtCell', i, 1, siteValue);
                                         }

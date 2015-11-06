@@ -175,7 +175,7 @@ class Sample(models.Model):
 
     class Meta:
         db_table = "mercury_sample"
-        unique_together = ("project", "site", "sample_date_time", "depth", "replicate", "medium_type")
+        unique_together = ("project", "site", "sample_date_time", "depth", "length", "replicate", "medium_type")
 
 
 class SampleBottle(models.Model):
@@ -291,6 +291,7 @@ class Result(models.Model):
 
     sample_bottle = models.ForeignKey('SampleBottle', related_name='results')
     method = models.ForeignKey('MethodType', null=True, blank=True)
+    analysis = models.ForeignKey('AnalysisType', null=True, blank=True)
     constituent = models.ForeignKey('ConstituentType')
     isotope_flag = models.ForeignKey('IsotopeFlag')
     detection_flag = models.ForeignKey('DetectionFlag', null=True, blank=True)
@@ -313,7 +314,7 @@ class Result(models.Model):
 
     class Meta:
         db_table = "mercury_result"
-        unique_together = ("sample_bottle", "constituent", "isotope_flag")
+        unique_together = ("sample_bottle", "analysis", "constituent", "isotope_flag")
 
 
 class DetectionFlag(models.Model):
@@ -689,7 +690,7 @@ class SampleNwis(models.Model):
         managed = False
 
 
-class ResultNwisLD(models.Model):
+class ResultNwis(models.Model):
     sample_integer = models.IntegerField()
     parameter_cd = models.CharField(max_length=128)
     result_value = models.CharField(max_length=128)
@@ -718,7 +719,7 @@ class ResultNwisLD(models.Model):
         return str(self.row_num)
 
     class Meta:
-        db_table = "report_nwis_results_ld"
+        db_table = "report_nwis_results"
         managed = False
 
 
