@@ -10,7 +10,10 @@
                 {% csrf_token %}
                 <p>
                     <div class="form-group">
-                        <label for="select_bottle">Bottle Code</label><br />
+                        <label for="select_bottle">Bottle Code</label><!-- <br /> -->
+                        <!-- <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#multiBottleSearchModal"> -->
+                            <span class="glyphicon glyphicon-search" data-toggle="modal" data-target="#multiBottleSearchModal"></span><br />
+                        <!-- </button><br /> -->
                         <input id="select_bottle" type="hidden" style="width:1200px"/>
                     </div>
                 </p>
@@ -83,6 +86,26 @@
         <br /><br />
         <div id="grid" data-projects="{{ projects }}" data-processings="{{ processings }}" data-constituents="{{ constituents }}" data-mediums="{{ mediums }}" data-filters="{{ filters }}" data-preservations="{{ preservations }}" data-isotopeflags="{{ isotope_flags }}" ></div>
         <div id="tempgrid" style="display:none"></div>
+
+                    <!-- Multi Bottle Search Modal -->
+        <div class="modal fade" id="multiBottleSearchModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">Multi Bottle Search</h4>
+              </div>
+              <div class="modal-body">
+                <textarea id="bottle_search_list" style="width:100%;height: 200px;"></textarea>
+                <div class="alert alert-warning" role="alert" style="display:none">...</div>
+              </div>
+              <div class="modal-footer">
+                  <button id="multi_bottle_search" type="button" class="btn btn-info" data-loading-text="Searching...">Search</button>
+                  <!-- <button type="button" class="btn btn-default" data-dismiss="modal">Close</button> -->
+              </div>
+            </div>
+          </div>
+        </div>
 
 		<script>
             $(document).ready(function() {
@@ -491,14 +514,19 @@
                     maxDate: 0
                 });
 
-                grid.parent().find('button[name=search]').click(function () {
-                    var button_state = $(this).button('loading');
+                grid.parent().find('button[name=search]').click(function(){
+                    $("#grid_console_error").hide();
+                    searchBottles('button[name=search]',$(select_bottle).val());
+                });
+
+                var searchBottles = function(button,bottle){
+                    var button_state = $(button).button('loading');
                     loading.show();
                     grid_console.text('Attempting to search...');
                     var thisDataObject = {};
                     //var theID = $(select_project).select2('data').id;
                     //var theSelection = $(select_project).select2('data').text;
-                    thisDataObject['bottle'] = $(select_bottle).val();
+                    thisDataObject['bottle'] = bottle;
                     thisDataObject['project'] = $(select_project).val();
                     thisDataObject['site'] = $(select_site).val();//.slice(0, -1);
                     thisDataObject['depth'] = $("#select_depth").val();
@@ -542,6 +570,7 @@
                                 loading.hide();
                                 button_state.button('reset');
                             }
+                            $("#bottle_search_list").val("");
                         },
                         error: function (jqXHRequest, textStatus, errorThrown) {
                             grid_console.text(errorThrown + " ... " + textStatus);
@@ -550,7 +579,7 @@
                         }
                     });
                     currentPage = 1;
-                });
+                };
 
                 grid.parent().find('button[name=next]').click(function () {
                     var button_state = $(this).button('loading');
@@ -1032,6 +1061,26 @@
                     setTimeout(function(){grid.parent().find('button[name=exportCSV]').click();}, (resultPages * 330));
                     setTimeout(function(){loading.hide();}, (resultPages * 330));
                     setTimeout(function(){button_state.button('reset');}, (resultPages * 330));
+                });
+
+                $("#multi_bottle_search").click(function(){
+                    $("#multi_bottle_search").button('loading');
+                    $('#s2id_select_bottle .select2-search-choice').remove();
+                    var textValue = $("#bottle_search_list").val();
+                    // split the values with a newline, tab, or comma
+                    var bottle_list = textValue.split(/[\n\t,]+/);
+                    var bottleIds = [];
+                    //check for empty strings
+                    for(var i = 0; i < bottle_list.length; i++){
+                        if(bottle_list[i].trim()){
+                            bottleIds.push(bottle_list[i]);
+                        }
+                    }
+                    //get bottles
+                    $('#multiBottleSearchModal').modal('hide');
+                    if(bottleIds.length > 0){
+                        searchBottles('#multi_bottle_search',bottleIds.join(","));
+                    }
                 });
 
             });

@@ -76,7 +76,7 @@
                     <button type="button" class="btn btn-info" data-loading-text="Exporting..." name="exportCSVCurrentPage">Current Page</button>
                     <button type="button" class="btn btn-info" data-loading-text="Exporting..." name="exportCSVAllPages">All Pages</button>
                     <span id="note">NOTE: Each page requested takes about 0.066 seconds to process, e.g. 100 pages will take about 6.6 seconds.</span>
-                </div>
+                </div><br />
             </form>
         </div>
 
@@ -106,8 +106,12 @@
                 <div class="alert alert-warning" role="alert" style="display:none">...</div>
               </div>
               <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                <button id="multi_bottle_search" type="button" class="btn btn-info" data-loading-text="Searching...">Search</button>
+                  <div class="form-group" class="form-inline">
+                      <input type="checkbox" name="excludeNullResultsModal" id="excludeNullResultsModal" checked />
+                      <label for="excludeNullResultsModal">Exclude Null Results</label>
+                  </div>
+                  <button id="multi_bottle_search" type="button" class="btn btn-info" data-loading-text="Searching...">Search</button>
+                  <!-- <button type="button" class="btn btn-default" data-dismiss="modal">Close</button> -->
               </div>
             </div>
           </div>
@@ -305,6 +309,27 @@
                     searchBottles('button[name=search]',$(select_bottle).val());
                 });
 
+                var checkbox_excludeNullResults = $('#excludeNullResults');
+                var checkbox_excludeNullResultsModal = $('#excludeNullResultsModal');
+
+                checkbox_excludeNullResults.click(function() {
+                    var $this = $(this);
+                    if ($this.is(':checked')) {
+                        checkbox_excludeNullResultsModal.prop('checked', true);
+                    } else {
+                        checkbox_excludeNullResultsModal.prop('checked', false);
+                    }
+                });
+
+                checkbox_excludeNullResultsModal.click(function() {
+                    var $this = $(this);
+                    if ($this.is(':checked')) {
+                        checkbox_excludeNullResults.prop('checked', true);
+                    } else {
+                        checkbox_excludeNullResults.prop('checked', false);
+                    }
+                });
+
                 var searchBottles = function(button,bottle){
                     var button_state = $(button).button('loading');
                     loading.show();
@@ -318,7 +343,7 @@
                     thisDataObject['date_after_entry'] = $(date_after_entry).val();
                     thisDataObject['date_before_entry'] = $(date_before_entry).val();
                     thisDataObject['constituent'] = $(select_constituent).val();
-                    thisDataObject['exclude_null_results'] = $('#excludeNullResults').is(':checked');
+                    thisDataObject['exclude_null_results'] = checkbox_excludeNullResults.is(':checked');
                     thisDataObject['format'] = "";
                     thisDataObject['table'] = "result";
                     thisDataObject['page_size'] = "";
@@ -513,7 +538,8 @@
                     $("#multi_bottle_search").button('loading');
                     $('#s2id_select_bottle .select2-search-choice').remove();
                     var textValue = $("#bottle_search_list").val();
-                    var bottle_list = textValue.split('\n');
+                    // split the values with a newline, tab, or comma
+                    var bottle_list = textValue.split(/[\n\t,]+/);
                     var bottleIds = [];
                     //check for empty strings
                     for(var i = 0; i < bottle_list.length; i++){
