@@ -697,7 +697,8 @@
                     // loop through the list of changed rows
                     $.each(changedRowIndices, function(index, value) {
                         // grab all the data for this row
-                        var thisDataRow = grid.data('handsontable').getDataAtRow(value);
+                        var thisChangedRowIndex = value;
+                        var thisDataRow = grid.data('handsontable').getDataAtRow(thisChangedRowIndex);
                         // check if this row still has data; it's possible the user cleared the row after entering data, in which case we no longer want it
                         if (thisDataRow[0] !== null && thisDataRow[0] !== ""){
                             // an object container for the data in this row
@@ -720,19 +721,19 @@
                                         break;
                                     case 2: // project ID
                                         // grab the project ID and ignore the project Name, since the ID would have automatically been updated to match the Name by the event settings in this grid's init settings.
-                                        if (!thisDataRow[i]) {grid_console.text('Project ID is required in row ' + (index + 1) + '! It might be missing if the associated Project Name cannot be found.'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
+                                        if (!thisDataRow[i]) {grid_console.text('Project ID is required in row ' + (thisChangedRowIndex + 1) + '! It might be missing if the associated Project Name cannot be found.'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                         else {
                                             thisID = thisDataRow[i];
-                                            if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Project ID must be a valid choice in row ' + (index + 1) + '! It might be invalid if the associated Project Name cannot be found.'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
+                                            if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Project ID must be a valid choice in row ' + (thisChangedRowIndex + 1) + '! It might be invalid if the associated Project Name cannot be found.'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                             thisDataObject[objectFields[i]] = thisID;
                                         }
                                         break;
                                     case 3: // site name
                                         // if it has a value, look up and return the ID, otherwise notify the user that this is a required field, and stop the submission
-                                        if (!thisDataRow[i]) {grid_console.text('Site Name is required in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
+                                        if (!thisDataRow[i]) {grid_console.text('Site Name is required in row ' + (thisChangedRowIndex + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                         else {
-                                            thisID = updateValueAjax('/mercuryservices/sites/', 'name', 'id', thisDataRow[i], ('project=' + grid.handsontable('getInstance').getDataAtCell(index, 2)));
-                                            if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Site Name must be a valid choice in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
+                                            thisID = updateValueAjax('/mercuryservices/sites/', 'name_exact', 'id', thisDataRow[i], ('project=' + grid.handsontable('getInstance').getDataAtCell(thisChangedRowIndex, 2)));
+                                            if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Site Name must be a valid choice in row ' + (thisChangedRowIndex + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                             thisDataObject[objectFields[i]] = thisID;
                                         }
                                         break;
@@ -745,13 +746,13 @@
                                         break;
                                     case 5: // date
                                         // if it doesn't have a value, notify the user that this is a required field, and stop the submission
-                                        if (!thisDataRow[i]) {grid_console.text('Sample Date is required in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
+                                        if (!thisDataRow[i]) {grid_console.text('Sample Date is required in row ' + (thisChangedRowIndex + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                         // if it has a value but with bad formatting, notify the user, and stop the submission
-                                        if (!(dateRegEx.test(thisDataRow[i]))) {grid_console.text('Sample Date is badly formed in row ' + (index + 1) + '. Expecting a date in mm/dd/yy format but found ' + thisDataRow[i] + '!'); validTable = false; button_state.button('reset'); return false;}
+                                        if (!(dateRegEx.test(thisDataRow[i]))) {grid_console.text('Sample Date is badly formed in row ' + (thisChangedRowIndex + 1) + '. Expecting a date in mm/dd/yy format but found ' + thisDataRow[i] + '!'); validTable = false; button_state.button('reset'); return false;}
                                         break;
                                     case 6: // time
                                         // if it doesn't have a value, notify the user that this is a required field, and stop the submission
-                                        if (!thisDataRow[i]) {grid_console.text('Time is required in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
+                                        if (!thisDataRow[i]) {grid_console.text('Time is required in row ' + (thisChangedRowIndex + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                         if (thisDataRow[i] !== null && thisDataRow[i] !== "" && thisDataRow[i-1] !== null && thisDataRow[i-1] !== "") {
                                             var changedVal = thisDataRow[i].toString();
                                             var newValue;
@@ -783,7 +784,7 @@
                                                 }
                                                 else {grid_console.text('There is a problem with Received Date. Please contact the administrator.'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                             }
-                                            else {grid_console.text('Date Received is badly formed in row ' + (index + 1) + '. Expecting a date in mm/dd/yy format but found ' + dateReceived + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
+                                            else {grid_console.text('Date Received is badly formed in row ' + (thisChangedRowIndex + 1) + '. Expecting a date in mm/dd/yy format but found ' + dateReceived + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                             var baddate_sample = thisDataRow[i - 1];
                                             if (makeYear(baddate_sample)!= null && makeMonth(baddate_sample)!= null && makeDay(baddate_sample) != null) {
                                                 var gooddate_sample_string = makeYear(baddate_sample) + "-" + makeMonth(baddate_sample) + "-" + makeDay(baddate_sample);
@@ -798,13 +799,13 @@
                                                 //dateTodayLastYear.setTime(dateTodayLastYear.valueOf() - (365 * 24 * 60 * 60 * 1000));
                                                 dateTodayLastYear.setFullYear(dateTodayLastYear.getFullYear() - 1);
                                                 if (dateTodayLastYear > gooddate_sample) {
-                                                    grid_console.text('Sample Date is more than one year before today in row ' + (index + 1) + '!');
-                                                    var confirmOldDate = confirm("WARNING: Sample Date is more than one year before today in row " + (index + 1) + "!\nContinue and Save with the date entered, or Cancel?");
+                                                    grid_console.text('Sample Date is more than one year before today in row ' + (thisChangedRowIndex + 1) + '!');
+                                                    var confirmOldDate = confirm("WARNING: Sample Date is more than one year before today in row " + (thisChangedRowIndex + 1) + "!\nContinue and Save with the date entered, or Cancel?");
                                                     if (confirmOldDate == false) {validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                                 }
                                                 thisDataObject[objectFields[i]] = gooddate_sample_string + " " + newValue + ":00";
                                             }
-                                            else {grid_console.text('There is a problem with Sample Date in row ' + (index + 1) + '. Please contact the administrator.'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
+                                            else {grid_console.text('There is a problem with Sample Date in row ' + (thisChangedRowIndex + 1) + '. Please contact the administrator.'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                             //var gooddate_sample = "20" + baddate_sample.substr(6,4) + "-" + baddate_sample.substr(0,2) + "-" + baddate_sample.substr(3,2);
                                             //thisDataObject[objectFields[i]] = gooddate_sample + " " + newValue + ":00";
                                             //thisDataObject[objectFields[i]] = thisDataRow[i-1]+" "+newValue+":00";
@@ -812,13 +813,13 @@
                                         break;
                                     case 7: // depth
                                         if (thisDataRow[i] !== 0) {
-                                            if (!thisDataRow[i]) {grid_console.text('Depth is required in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
+                                            if (!thisDataRow[i]) {grid_console.text('Depth is required in row ' + (thisChangedRowIndex + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                         }
                                         thisDataObject[objectFields[i]] = (thisDataRow[i] % 1 === 0 ? (thisDataRow[i].toFixed(1)) : thisDataRow[i]);
                                         break;
                                     case 9: // rep
                                         if (thisDataRow[i] !== 1) {
-                                            if (!thisDataRow[i]) {grid_console.text('Rep is required in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
+                                            if (!thisDataRow[i]) {grid_console.text('Rep is required in row ' + (thisChangedRowIndex + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                         }
                                         thisDataObject[objectFields[i]] = thisDataRow[i];
                                         break;
@@ -837,43 +838,43 @@
                                         // if it has a value, look up and return the ID, otherwise skip this field (won't be included in submission to database)
                                         if (thisDataRow[i] !== null && thisDataRow[i] !== "" && thisDataRow[i] !== 0 && typeof thisDataRow[i] !== 'undefined') {
                                             thisID = getIdDom(data_processings,'processing',thisDataRow[i]);
-                                            if (thisID === null) {grid_console.text('Lab Processing must be a valid choice, or empty, in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
+                                            if (thisID === null) {grid_console.text('Lab Processing must be a valid choice, or empty, in row ' + (thisChangedRowIndex + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                             thisDataObject[objectFields[i]] = thisID;
                                         }
                                         break;
                                     case 13: // bottle (container)
                                         // if it has a value, look up and return the ID, otherwise notify the user that this is a required field, and stop the submission
-                                        if (!thisDataRow[i]) {grid_console.text('Container ID is required in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
+                                        if (!thisDataRow[i]) {grid_console.text('Container ID is required in row ' + (thisChangedRowIndex + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                         else {
                                             thisID = updateValueAjax('/mercuryservices/bottles/', 'bottle_unique_name', 'id', thisDataRow[i]);
-                                            if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Container ID must be a valid choice in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
+                                            if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Container ID must be a valid choice in row ' + (thisChangedRowIndex + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                             thisDataObject[objectFields[i]] = thisID;
                                         }
                                         break;
                                     case 14: // medium
                                         // if it has a value, look up and return the ID, otherwise notify the user that this is a required field, and stop the submission
-                                        if (!thisDataRow[i]) {grid_console.text('Medium is required in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
+                                        if (!thisDataRow[i]) {grid_console.text('Medium is required in row ' + (thisChangedRowIndex + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                         else {
                                             thisID = getIdDom(data_mediums,'display_text',thisDataRow[i]);
-                                            if (thisID === null) {grid_console.text('Medium must be a valid choice in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
+                                            if (thisID === null) {grid_console.text('Medium must be a valid choice in row ' + (thisChangedRowIndex + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                             thisDataObject[objectFields[i]] = thisID;
                                         }
                                         break;
                                     case 15: // constituent
                                         // if it has a value, look up and return the ID, otherwise notify the user that this is a required field, and stop the submission
-                                        if (!thisDataRow[i]) {grid_console.text('Constituent is required in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
+                                        if (!thisDataRow[i]) {grid_console.text('Constituent is required in row ' + (thisChangedRowIndex + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                         else {
                                             thisID = getIdDom(data_constituents,'constituent',thisDataRow[i]);
-                                            if (thisID === null) {grid_console.text('Constituent must be a valid choice in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
+                                            if (thisID === null) {grid_console.text('Constituent must be a valid choice in row ' + (thisChangedRowIndex + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                             thisDataObject[objectFields[i]] = thisID;
                                         }
                                         break;
                                     case 16: // isotope flag
                                         // if it has a value, look up and return the ID, otherwise notify the user that this is a required field, and stop the submission
-                                        if (!thisDataRow[i]) {grid_console.text('Isotope is required in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
+                                        if (!thisDataRow[i]) {grid_console.text('Isotope is required in row ' + (thisChangedRowIndex + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                         else {
                                             thisID = getIdDom(data_isotopeflags,'isotope_flag',thisDataRow[i]);
-                                            if (thisID === null) {grid_console.text('Isotope must be a valid choice in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
+                                            if (thisID === null) {grid_console.text('Isotope must be a valid choice in row ' + (thisChangedRowIndex + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                             thisDataObject[objectFields[i]] = thisID;
                                         }
                                         break;
@@ -881,7 +882,7 @@
                                         // if it has a value, look up and return the ID, otherwise skip this field (won't be included in submission to database)
                                         if (thisDataRow[i] !== null && thisDataRow[i] !== "" && thisDataRow[i] !== 0 && typeof thisDataRow[i] !== 'undefined') {
                                             thisID = getIdDom(data_filters,'filter',thisDataRow[i]);
-                                            if (thisID === null) {grid_console.text('Filter must be a valid choice, or empty, in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
+                                            if (thisID === null) {grid_console.text('Filter must be a valid choice, or empty, in row ' + (thisChangedRowIndex + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                             thisDataObject[objectFields[i]] = thisID;
                                         }
                                         break;
@@ -889,7 +890,7 @@
                                         // if it has a value, look up and return the ID, otherwise skip this field (won't be included in submission to database)
                                         if (thisDataRow[i] !== null && thisDataRow[i] !== "" && thisDataRow[i] !== 0 && typeof thisDataRow[i] !== 'undefined') {
                                             thisID = getIdDom(data_preservations,'preservation',thisDataRow[i]);
-                                            if (thisID === null) {grid_console.text('Preservation must be a valid choice, or empty, in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
+                                            if (thisID === null) {grid_console.text('Preservation must be a valid choice, or empty, in row ' + (thisChangedRowIndex + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                             thisDataObject[objectFields[i]] = thisID;
                                         }
                                         break;
@@ -897,7 +898,7 @@
                                         // if it has a value, look up and return the ID, otherwise skip this field (won't be included in submission to database)
                                         if (thisDataRow[i] !== null && thisDataRow[i] !== "" && thisDataRow[i] !== 0 && typeof thisDataRow[i] !== 'undefined') {
                                             thisID = updateValueAjax('/mercuryservices/acids/', 'code_exact', 'id', thisDataRow[i]);
-                                            if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Acid must be a valid choice, or empty, in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
+                                            if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Acid must be a valid choice, or empty, in row ' + (thisChangedRowIndex + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                                             thisDataObject[objectFields[i]] = thisID;
                                         }
                                         break;

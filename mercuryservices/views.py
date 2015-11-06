@@ -107,6 +107,10 @@ class SiteViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = Site.objects.all()
         #queryset = Site.objects.exclude(usgs_scode__exact="''")
+        # filter by site name, exact
+        name_exact = self.request.query_params.get('name_exact', None)
+        if name_exact is not None:
+            queryset = queryset.filter(name__exact=name_exact)
         # filter by site name, case-insensitive contain
         name = self.request.query_params.get('name', None)
         if name is not None:
@@ -1111,12 +1115,12 @@ class ReportResultsNwis(generics.ListAPIView):
     paginate_by_param = 'page_size'
 
     def get_queryset(self):
-        queryset = ResultNwisLD.objects.all()
-        exclude_ld = self.request.query_params.get('exclude_ld', None)
-        if exclude_ld is not None:
-            if exclude_ld == 'True' or exclude_ld == 'true':
-                # parameter_cd for length is '00024' and depth is '00098'
-                queryset = queryset.exclude(parameter_cd__exact='00024').exclude(parameter_cd__exact='00098')
+        queryset = ResultNwis.objects.all()
+        # exclude_ld = self.request.query_params.get('exclude_ld', None)
+        # if exclude_ld is not None:
+        #     if exclude_ld == 'True' or exclude_ld == 'true':
+        #         # parameter_cd for length is '00024' and depth is '00098'
+        #         queryset = queryset.exclude(parameter_cd__exact='00024').exclude(parameter_cd__exact='00098')
         project = self.request.query_params.get('project', None)
         if project is not None:
             project_list = project.split(',')
