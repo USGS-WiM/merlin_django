@@ -414,22 +414,6 @@ class FlatResultSerializer(serializers.ModelSerializer):
             qas += qa
         return qas
 
-    def get_analysis(self, obj):
-        return ""
-        # constituent_analyses_values = obj.constituent.analyses.values_list('id', flat=True)
-        # print(constituent_analyses_values)
-        # method_analyses_values = obj.method.analyses.values_list('id', flat=True)
-        # print(method_analyses_values)
-        # analysis_set = set(constituent_analyses_values) & set(method_analyses_values)
-        # print(analysis_set)
-        # if len(analysis_set) != 1:
-        #     return "ERROR: Not Found"
-        # else:
-        #     analysis_id = analysis_set.pop()
-        #     print(analysis_id)
-        #     analysis_string = AnalysisType.objects.filter(id=analysis_id).values_list('analysis', flat=True)[0]
-        #     return analysis_string
-
     result_id = serializers.IntegerField(source='id', read_only=True)
     bottle = serializers.StringRelatedField(source='sample_bottle.bottle.bottle_unique_name')
     tare_weight = serializers.FloatField(source='sample_bottle.bottle.bottle_prefix.tare_weight', read_only=True)
@@ -441,10 +425,9 @@ class FlatResultSerializer(serializers.ModelSerializer):
                                             source='sample_bottle.sample.sample_date_time', read_only=True)
     depth = serializers.FloatField(source='sample_bottle.sample.depth', read_only=True)
     medium = serializers.StringRelatedField(source='sample_bottle.sample.medium_type')
-    #analysis = serializers.StringRelatedField(source='constituent.analyses')
-    analysis = serializers.SerializerMethodField()
+    analysis = serializers.StringRelatedField()
     constituent = serializers.StringRelatedField()
-    isotope_flag = serializers.StringRelatedField()
+    isotope = serializers.StringRelatedField()
     received_date = serializers.StringRelatedField(source='sample_bottle.sample.received_date')
     comments = serializers.StringRelatedField(source='sample_bottle.sample.comment')
     result_value = serializers.SerializerMethodField()
@@ -456,27 +439,11 @@ class FlatResultSerializer(serializers.ModelSerializer):
     class Meta:
         model = Result
         fields = ('result_id', 'bottle', 'tare_weight', 'project_name', 'site_name', 'sample_date', 'sample_time',
-                  'depth', 'medium', 'analysis', 'constituent', 'isotope_flag', 'received_date', 'comments',
+                  'depth', 'medium', 'analysis', 'constituent', 'isotope', 'received_date', 'comments',
                   'result_value', 'unit', 'detection_flag', 'qa_flags', 'analysis_comment', 'analyzed_date',)
 
 
 class FlatResultSampleSerializer(serializers.ModelSerializer):
-
-    def get_analysis(self, obj):
-        return ""
-        # constituent_analyses_values = obj.constituent.analyses.values_list('id', flat=True)
-        # print(constituent_analyses_values)
-        # method_analyses_values = obj.method.analyses.values_list('id', flat=True)
-        # print(method_analyses_values)
-        # analysis_set = set(constituent_analyses_values) & set(method_analyses_values)
-        # print(analysis_set)
-        # if len(analysis_set) != 1:
-        #     return "ERROR: Not Found"
-        # else:
-        #     analysis_id = analysis_set.pop()
-        #     print(analysis_id)
-        #     analysis_string = AnalysisType.objects.filter(id=analysis_id).values_list('analysis', flat=True)[0]
-        #     return analysis_string
 
     # a flattened (not nested) version of the essential fields of the FullResultSerializer, to populate CSV files
     # requested from the Sample Search
@@ -495,9 +462,9 @@ class FlatResultSampleSerializer(serializers.ModelSerializer):
     container_id = serializers.StringRelatedField(source='sample_bottle.bottle.bottle_unique_name')
     lab_processing = serializers.StringRelatedField(source='sample_bottle.sample.lab_processing')
     medium = serializers.StringRelatedField(source='sample_bottle.sample.medium_type')
-    #analysis = serializers.StringRelatedField(source='constituent.analyses')
-    analysis = serializers.SerializerMethodField()
-    isotope = serializers.StringRelatedField(source='isotope_flag')
+    analysis = serializers.StringRelatedField()
+    constituent = serializers.StringRelatedField()
+    isotope = serializers.StringRelatedField()
     filter = serializers.StringRelatedField(source='sample_bottle.filter_type')
     filter_vol = serializers.FloatField(source='sample_bottle.volume_filtered', read_only=True)
     preservation = serializers.StringRelatedField(source='sample_bottle.preservation_type')
@@ -511,35 +478,19 @@ class FlatResultSampleSerializer(serializers.ModelSerializer):
         model = Result
         fields = ('sample_id', 'project_name', 'project_id', 'site_name', 'site_id', 'date', 'time', 'depth', 'length',
                   'replicate', 'sample_comments', 'received', 'lab_processing', 'container_id', 'medium', 'analysis',
-                  'isotope', 'filter', 'filter_vol', 'preservation', 'acid', 'acid_vol', 'pres_comments',
+                  'constituent', 'isotope', 'filter', 'filter_vol', 'preservation', 'acid', 'acid_vol', 'pres_comments',
                   'sample_bottle_id', 'result_id',)
 
 
 class FullResultSerializer(serializers.ModelSerializer, BulkSerializerMixin):
-
-    def get_analysis_string(self, obj):
-        return ""
-        # constituent_analyses_values = obj.constituent.analyses.values_list('id', flat=True)
-        # print(constituent_analyses_values)
-        # method_analyses_values = obj.method.analyses.values_list('id', flat=True)
-        # print(method_analyses_values)
-        # analysis_set = set(constituent_analyses_values) & set(method_analyses_values)
-        # print(analysis_set)
-        # if len(analysis_set) != 1:
-        #     return "ERROR: Not Found"
-        # else:
-        #     analysis_id = analysis_set.pop()
-        #     print(analysis_id)
-        #     analysis_string = AnalysisType.objects.filter(id=analysis_id).values_list('analysis', flat=True)[0]
-        #     return analysis_string
 
     entry_date = serializers.DateField(format='%m/%d/%y', read_only=True)
     analyzed_date = serializers.DateField(format='%m/%d/%y', read_only=True)
     created_date = serializers.DateField(format='%m/%d/%y', read_only=True)
     sample_bottle = FullSampleBottleSerializer()
     method = MethodTypeSerializer()
+    analysis_string = serializers.StringRelatedField(source='analysis')
     constituent_string = serializers.StringRelatedField(source='constituent')
-    analysis_string = serializers.SerializerMethodField()
     isotope_flag_string = serializers.StringRelatedField(source='isotope_flag')
     detection_flag_string = serializers.StringRelatedField(source='detection_flag')
     quality_assurances = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
@@ -548,11 +499,12 @@ class FullResultSerializer(serializers.ModelSerializer, BulkSerializerMixin):
     class Meta:
         list_serializer_class = BulkListSerializer
         model = Result
-        fields = ('id', 'constituent', 'constituent_string', 'analysis_string', 'isotope_flag', 'isotope_flag_string',
-                  'raw_value', 'final_value', 'report_value', 'detection_flag', 'detection_flag_string',
-                  'raw_daily_detection_limit', 'final_daily_detection_limit', 'final_method_detection_limit',
-                  'sediment_dry_weight', 'sample_mass_processed', 'entry_date', 'analyzed_date', 'created_date',
-                  'analysis_comment', 'quality_assurances', 'quality_assurances_strings', 'method', 'sample_bottle',)
+        fields = ('id', 'method', 'analysis', 'analysis_string', 'constituent', 'constituent_string',
+                  'isotope_flag', 'isotope_flag_string', 'raw_value', 'final_value', 'report_value',
+                  'detection_flag', 'detection_flag_string', 'raw_daily_detection_limit', 'final_daily_detection_limit',
+                  'final_method_detection_limit', 'sediment_dry_weight', 'sample_mass_processed', 'entry_date',
+                  'analyzed_date', 'created_date', 'analysis_comment', 'sample_bottle',
+                  'quality_assurances', 'quality_assurances_strings',)
 
 
 class ResultSerializer(serializers.ModelSerializer, BulkSerializerMixin):
@@ -560,6 +512,7 @@ class ResultSerializer(serializers.ModelSerializer, BulkSerializerMixin):
     analyzed_date = serializers.DateTimeField(format='%m/%d/%y', read_only=True)
     created_date = serializers.DateTimeField(format='%m/%d/%y', read_only=True)
     sample_bottle_unique_name = serializers.StringRelatedField(source='sample_bottle.bottle.bottle_unique_name')
+    analysis_string = serializers.StringRelatedField(source='analysis')
     constituent_string = serializers.StringRelatedField(source='constituent')
     isotope_flag_string = serializers.StringRelatedField(source='isotope_flag')
     detection_flag_string = serializers.StringRelatedField(source='detection_flag')
@@ -568,11 +521,12 @@ class ResultSerializer(serializers.ModelSerializer, BulkSerializerMixin):
     class Meta:
         list_serializer_class = BulkListSerializer
         model = Result
-        fields = ('id', 'method', 'constituent', 'constituent_string', 'isotope_flag', 'isotope_flag_string',
-                  'raw_value', 'final_value', 'report_value', 'detection_flag', 'detection_flag_string',
-                  'raw_daily_detection_limit', 'final_daily_detection_limit', 'final_method_detection_limit',
-                  'sediment_dry_weight', 'sample_mass_processed', 'entry_date', 'analyzed_date', 'created_date',
-                  'analysis_comment', 'quality_assurances', 'sample_bottle', 'sample_bottle_unique_name',)
+        fields = ('id', 'method', 'analysis', 'analysis_string', 'constituent', 'constituent_string',
+                  'isotope_flag', 'isotope_flag_string', 'raw_value', 'final_value', 'report_value',
+                  'detection_flag', 'detection_flag_string', 'raw_daily_detection_limit', 'final_daily_detection_limit',
+                  'final_method_detection_limit', 'sediment_dry_weight', 'sample_mass_processed', 'entry_date',
+                  'analyzed_date', 'created_date', 'analysis_comment', 'quality_assurances', 'sample_bottle',
+                  'sample_bottle_unique_name',)
 
 
 ######

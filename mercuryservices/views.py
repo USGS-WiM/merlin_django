@@ -513,6 +513,10 @@ class MethodTypeViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = MethodType.objects.all()
+        # filter by analysis ID, exact
+        analysis = self.request.query_params.get('analysis', None)
+        if analysis is not None:
+            queryset = queryset.filter(analyses__exact=analysis)
         # filter by constituent ID, exact
         constituent = self.request.query_params.get('constituent', None)
         if constituent is not None:
@@ -664,6 +668,11 @@ class FullResultViewSet(viewsets.ModelViewSet):
                     queryset = queryset.filter(final_value__isnull=False)
                 #elif exclude_null_results == 'False' or exclude_null_results == 'false':
                 #    queryset = queryset.filter(final_value__isnull=True)
+            # filter by analysis ID, exact list
+            analysis = self.request.query_params.get('analysis', None)
+            if analysis is not None:
+                analysis_list = analysis.split(',')
+                queryset = queryset.filter(analysis__in=analysis_list)
             # filter by constituent ID, exact list
             constituent = self.request.query_params.get('constituent', None)
             if constituent is not None:
@@ -758,6 +767,14 @@ class AnalysisTypeViewSet(viewsets.ModelViewSet):
         nwis_code = self.request.query_params.get('nwis_code', None)
         if nwis_code is not None:
             queryset = queryset.filter(mediums__nwis_code__exact=nwis_code)
+        # filter by analysis name, case-insensitive contain
+        analysis = self.request.query_params.get('analysis', None)
+        if analysis is not None:
+            queryset = queryset.filter(analysis__icontains=analysis)
+        # filter by analysis ID, exact
+        analysis_id = self.request.query_params.get('id', None)
+        if analysis_id is not None:
+            queryset = queryset.filter(id__exact=analysis_id)
         return queryset
 
 

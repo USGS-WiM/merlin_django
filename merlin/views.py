@@ -48,7 +48,7 @@ SAMPLE_KEYS = ["project", "site", "sample_date_time", "depth", "length", "receiv
                "replicate", "medium_type", "lab_processing"]
 SAMPLE_BOTTLE_KEYS = ["sample", "bottle", "filter_type", "volume_filtered",
                       "preservation_type", "preservation_volume", "preservation_acid", "preservation_comment"]
-SAMPLE_ANALYSIS_KEYS = ["sample_bottle", "constituent", "isotope_flag"]
+SAMPLE_ANALYSIS_KEYS = ["sample_bottle", "analysis", "constituent", "isotope_flag"]
 BOTTLE_KEYS = ["bottle_prefix", "bottle_unique_name", "created_date", "description"]
 
 
@@ -194,10 +194,10 @@ def samples_create(request):
             r = requests.get(REST_SERVICES_URL+'sites/', params={'id': row.get('site')})
             site_name = r.json()['results'][0]['name']
             r = requests.get(REST_SERVICES_URL+'analyses/', params={'id': row.get('analysis_type')})
-            constituent_name = r.json()[0]['constituent']
+            analysis_name = r.json()[0]['analysis']
             r = requests.get(REST_SERVICES_URL+'isotopeflags/', params={'id': row.get('isotope_flag')})
             isotope_flag = r.json()[0]['isotope_flag']
-            message = "\"Error in row " + str(row_number) + ": This Analysis (" + constituent_name + ")"
+            message = "\"Error in row " + str(row_number) + ": This Analysis (" + analysis_name + ")"
             message += " and Isotope (" + isotope_flag + ") combination appears more than once in this sample: "
             message += project_name + "|" + site_name + "|" + str(row.get('sample_date_time')) + "|"
             message += str(row.get('depth')) + "|" + str(row.get('replicate')) + "\""
@@ -258,7 +258,8 @@ def samples_create(request):
         constituents = r.json()
         # create result objects (one for each constituent) for the analysis type within this row
         for constituent in constituents:
-            sample_analysis_values = [str(row.get('bottle')), constituent['id'], row.get('isotope_flag')]
+            sample_analysis_values = [
+                str(row.get('bottle')), row.get('analysis_type'), constituent['id'], row.get('isotope_flag')]
             this_sample_analysis = dict(zip(SAMPLE_ANALYSIS_KEYS, sample_analysis_values))
             logger.info("Creating result: " + str(this_sample_analysis))
             # add this new sample bottle object to the list
@@ -482,8 +483,8 @@ def samples_search(request):
             params_dict["depth"] = str(params['depth']).strip('[]')
         if params['replicate']:
             params_dict["replicate"] = str(params['replicate']).strip('[]')
-        if params['constituent']:
-            params_dict["constituent"] = str(params['constituent']).strip('[]')
+        if params['analysis']:
+            params_dict["analysis"] = str(params['analysis']).strip('[]')
         if params['date_after_sample']:
             params_dict["date_after_sample"] = datetime.strptime(
                 str(params['date_after_sample']).strip('[]'), '%m/%d/%y').strftime('%Y-%m-%d')
@@ -515,8 +516,8 @@ def samples_search(request):
         projects = json.dumps(r.json(), sort_keys=True)
         r = requests.request(method='GET', url=REST_SERVICES_URL+'processings/', headers=headers_auth_token)
         processings = json.dumps(r.json(), sort_keys=True)
-        r = requests.request(method='GET', url=REST_SERVICES_URL+'constituents/', headers=headers_auth_token)
-        constituents = json.dumps(r.json(), sort_keys=True)
+        r = requests.request(method='GET', url=REST_SERVICES_URL+'analyses/', headers=headers_auth_token)
+        analyses = json.dumps(r.json(), sort_keys=True)
         r = requests.request(method='GET', url=REST_SERVICES_URL+'mediums/', headers=headers_auth_token)
         mediums = json.dumps(r.json(), sort_keys=True)
         r = requests.request(method='GET', url=REST_SERVICES_URL+'filters/', headers=headers_auth_token)
@@ -526,7 +527,7 @@ def samples_search(request):
         r = requests.request(method='GET', url=REST_SERVICES_URL+'isotopeflags/', headers=headers_auth_token)
         isotope_flags = json.dumps(r.json(), sort_keys=True)
         context_dict = {'projects': projects, 'processings': processings,
-                        'constituents': constituents, 'mediums': mediums, 'filters': filters,
+                        'analyses': analyses, 'mediums': mediums, 'filters': filters,
                         'preservations': preservations, 'isotope_flags': isotope_flags}
 
         return render_to_response('merlin/sample_search.html', context_dict, context)
@@ -631,9 +632,9 @@ def samples_update(request):
 
         # create a result object using the result data within this row
         sample_analysis_values = [
-            row.get('id'), row.get('sample_bottle.id'), row.get('constituent_type'), row.get('isotope_flag'),
-            row.get('sample_bottle.sample.id'), row.get('bottle')]
-        this_sample_analysis_keys = ["id", "sample_bottle", "constituent", "isotope_flag",
+            row.get('id'), row.get('sample_bottle.id'), row.get('analysis_type'), row.get('constituent_type'),
+            row.get('isotope_flag'), row.get('sample_bottle.sample.id'), row.get('bottle')]
+        this_sample_analysis_keys = ["id", "sample_bottle", "analysis", "constituent", "isotope_flag",
                                      "temp_sample", "temp_bottle"]
         this_sample_analysis = dict(zip(this_sample_analysis_keys, sample_analysis_values))
         logger.info("Creating result: " + str(this_sample_analysis))
@@ -811,8 +812,8 @@ def samples_update(request):
                 item['sample_bottle'] = this_sample_bottle
                 r = requests.get(
                     url=REST_SERVICES_URL+'results/',
-                    params={"sample_bottle": item.get("sample_bottle"), "constituent": item.get("constituent"),
-                            "isotope_flag": item.get("isotope_flag")})
+                    params={"sample_bottle": item.get("sample_bottle"), "analysis": item.get("analysis"),
+                            "constituent": item.get("constituent"), "isotope_flag": item.get("isotope_flag")})
                 logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
                 response_data = r.json()
                 logger.info("count: " + str(response_data['count']))
