@@ -28,6 +28,7 @@
         </div>
         <br />
         <pre id="grid_console" class="console" style="width:600px"></pre>
+        <pre id="grid_console_error" class="alert alert-warning" style="width:600px;display:none;"></pre>
         <div class="row">
             <div id="tools_brominations" class="col-md-4">
                 <p><input id="select_field" type="hidden" placeholder="Filter by bromination date." style="width:400px"/></p>
@@ -71,8 +72,11 @@
                             </div>
                             <br />
                             <div class="form-group">
-                                <label for="select_bottle">Bottle ID</label><br />
-                                <input id="select_bottle" type="hidden" style="width:400px" />  <!-- class="select2-container select2-container-multi" style="width:397px;height:34px;font-size:14px;"/> -->
+                                <label for="select_bottle">Bottle Code</label><!-- <br /> -->
+                                <!-- <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#multiBottleSearchModal"> -->
+                                    <span class="glyphicon glyphicon-search" data-toggle="modal" data-target="#multiBottleSearchModal"></span><br />
+                                <!-- </button><br /> -->
+                                <input id="select_bottle" type="hidden" style="width:400px"/>
                             </div>
                         </form>
                     </div>
@@ -97,6 +101,25 @@
                 <button type="button" class="btn btn-danger" data-loading-text="Deleting..." name="deleteRows">Delete Rows</button>
             </div>
             <div class="col-md-4" id="grid_samples" data-samples="{{ samples }}"></div>
+        </div>
+
+        <div class="modal fade" id="multiBottleSearchModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">Multi Bottle Search</h4>
+              </div>
+              <div class="modal-body">
+                <textarea id="bottle_search_list" style="width:100%;height: 200px;"></textarea>
+                <div class="alert alert-warning" role="alert" style="display:none">...</div>
+              </div>
+              <div class="modal-footer">
+                  <button id="multi_bottle_search" type="button" class="btn btn-info" data-loading-text="Searching...">Search</button>
+                  <!-- <button type="button" class="btn btn-default" data-dismiss="modal">Close</button> -->
+              </div>
+            </div>
+          </div>
         </div>
 
 		<script>
@@ -296,16 +319,21 @@
                 //grid_samples.data('handsontable').sort(0);
                 grid_console.text('Data loaded.');
                 
-                var tools_samples = $('#tools_samples'); 
+                var tools_samples = $('#tools_samples');
 
-                tools_samples.find('button[name=search]').click(function () {
-                    var button_state = $(this).button('loading');
+                tools_samples.parent().find('button[name=search]').click(function(){
+                    $("#grid_console_error").hide();
+                    searchBottles('button[name=search]',$(select_bottle).val());
+                });
+
+                var searchBottles = function(button,bottle){
+                    var button_state = $(button).button('loading');
                     loading.show();
                     grid_console.text('Attempting to search...');
                     var thisDataObject = {};
                     //var theID = $(select_project).select2('data').id;
                     //var theSelection = $(select_project).select2('data').text;
-                    thisDataObject['bottle'] = select_bottle.val();
+                    thisDataObject['bottle'] = bottle;
                     thisDataObject['date_after'] = $(date_after).val();
                     thisDataObject['date_before'] = $(date_before).val();
                     var dataJSON = JSON.stringify(thisDataObject);
@@ -344,7 +372,7 @@
                             button_state.button('reset');
                         }
                     });
-                });
+                };
                 
                 tools_samples.find('button[name=delete]').click(function () {
                     var button_state = $(this).button('loading');
@@ -852,6 +880,26 @@
                     else {
                         formAddClicked = true;
                         $("#form_add").show();
+                    }
+                });
+
+                $("#multi_bottle_search").click(function(){
+                    $("#multi_bottle_search").button('loading');
+                    $('#s2id_select_bottle .select2-search-choice').remove();
+                    var textValue = $("#bottle_search_list").val();
+                    // split the values with a newline, tab, or comma
+                    var bottle_list = textValue.split(/[\n\t,]+/);
+                    var bottleIds = [];
+                    //check for empty strings
+                    for(var i = 0; i < bottle_list.length; i++){
+                        if(bottle_list[i].trim()){
+                            bottleIds.push(bottle_list[i]);
+                        }
+                    }
+                    //get bottles
+                    $('#multiBottleSearchModal').modal('hide');
+                    if(bottleIds.length > 0){
+                        searchBottles('#multi_bottle_search',bottleIds.join(","));
                     }
                 });
 
