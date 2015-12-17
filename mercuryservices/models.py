@@ -291,7 +291,7 @@ class Result(models.Model):
 
     sample_bottle = models.ForeignKey('SampleBottle', related_name='results')
     method = models.ForeignKey('MethodType', null=True, blank=True)
-    analysis = models.ForeignKey('AnalysisType', null=True, blank=True)
+    analysis = models.ForeignKey('AnalysisType')
     constituent = models.ForeignKey('ConstituentType')
     isotope_flag = models.ForeignKey('IsotopeFlag')
     detection_flag = models.ForeignKey('DetectionFlag', null=True, blank=True)
