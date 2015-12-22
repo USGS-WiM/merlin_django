@@ -1079,8 +1079,8 @@ def results_nwis_report(request):
                 str(params['date_before_entry']).strip('[]'), '%m/%d/%y').strftime('%Y-%m-%d')
         if params['page_size']:
             params_dict["page_size"] = str(params['page_size']).strip('[]')
-        #if params['exclude_ld']:
-        #    params_dict["exclude_ld"] = str(params['exclude_ld']).strip('[]')
+        if params['exclude_ld']:
+            params_dict["exclude_ld"] = str(params['exclude_ld']).strip('[]')
 
         r = requests.request(
             method='GET', url=REST_SERVICES_URL+'reportresultsnwis/', params=params_dict, headers=headers)

@@ -25,12 +25,12 @@
                         <input id="date_before_entry" class="select2-container select2-container-multi" style="width:297px;height:34px;font-size:15px;padding-left:4px;"/>
                     </div>
                 </p>
-{#                <p>#}
-{#                    <div class="form-group">#}
-{#                        <input type="checkbox" name="excludeLD" id="excludeLD" />#}
-{#                        <label for="excludeLD">Exclude Length and Depth Parameters</label>#}
-{#                    </div>#}
-{#                </p>#}
+                <p>
+                    <div class="form-group">
+                        <input type="checkbox" name="excludeLD" id="excludeLD" />
+                        <label for="excludeLD">Exclude Length and Depth Parameters</label>
+                    </div>
+                </p>
                 <p>
                     <div class="form-group">
                         <button type="button" class="btn btn-info" data-loading-text="Searching..." name="search">Search</button>
@@ -166,7 +166,7 @@
                     thisDataObject['date_after_entry'] = $(date_after_entry).val();
                     thisDataObject['date_before_entry'] = $(date_before_entry).val();
                     thisDataObject['page_size'] = "";
-                    //thisDataObject['exclude_ld'] = $('#excludeLD').is(':checked');
+                    thisDataObject['exclude_ld'] = $('#excludeLD').is(':checked');
                     var dataJSON = JSON.stringify(thisDataObject);
                     $.ajax({
                         url: "{% url 'merlin:results_nwis_report' %}",
@@ -304,7 +304,7 @@
                     // page_size is the parameter that will override our self-defined default 100-record pagination
                     // setting it to the nearest hundred above the record count will ensure we get all matching records
                     thisDataObject['page_size'] = (resultPages * 100);
-                    //thisDataObject['exclude_ld'] = $('#excludeLD').is(':checked');
+                    thisDataObject['exclude_ld'] = $('#excludeLD').is(':checked');
                     var dataJSON = JSON.stringify(thisDataObject);
                     $.ajax({
                         url: "{% url 'merlin:results_nwis_report' %}",
