@@ -518,6 +518,8 @@ def samples_search(request):
         processings = json.dumps(r.json(), sort_keys=True)
         r = requests.request(method='GET', url=REST_SERVICES_URL+'analyses/', headers=headers_auth_token)
         analyses = json.dumps(r.json(), sort_keys=True)
+        r = requests.request(method='GET', url=REST_SERVICES_URL+'constituents/', headers=headers_auth_token)
+        constituents = json.dumps(r.json(), sort_keys=True)
         r = requests.request(method='GET', url=REST_SERVICES_URL+'mediums/', headers=headers_auth_token)
         mediums = json.dumps(r.json(), sort_keys=True)
         r = requests.request(method='GET', url=REST_SERVICES_URL+'filters/', headers=headers_auth_token)
@@ -527,7 +529,7 @@ def samples_search(request):
         r = requests.request(method='GET', url=REST_SERVICES_URL+'isotopeflags/', headers=headers_auth_token)
         isotope_flags = json.dumps(r.json(), sort_keys=True)
         context_dict = {'projects': projects, 'processings': processings,
-                        'analyses': analyses, 'mediums': mediums, 'filters': filters,
+                        'analyses': analyses, 'constituents': constituents, 'mediums': mediums, 'filters': filters,
                         'preservations': preservations, 'isotope_flags': isotope_flags}
 
         return render_to_response('merlin/sample_search.html', context_dict, context)
