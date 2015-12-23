@@ -1796,7 +1796,6 @@ def sites_create(request):
     headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     data = request.body
-    print(data)
     r = requests.request(method='POST', url=REST_SERVICES_URL+'bulksites/', data=data, headers=headers)
     logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
     return HttpResponse(r, content_type='application/json')
