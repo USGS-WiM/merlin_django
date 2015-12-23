@@ -719,7 +719,7 @@ class ResultNwis(models.Model):
         return str(self.row_num)
 
     class Meta:
-        db_table = "report_nwis_results"
+        db_table = "report_nwis_results_ld"
         managed = False
 
 

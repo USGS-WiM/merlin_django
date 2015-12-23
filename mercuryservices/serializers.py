@@ -419,6 +419,7 @@ class FlatResultSerializer(serializers.ModelSerializer):
     tare_weight = serializers.FloatField(source='sample_bottle.bottle.bottle_prefix.tare_weight', read_only=True)
     project_name = serializers.StringRelatedField(source='sample_bottle.sample.project.name')
     site_name = serializers.StringRelatedField(source='sample_bottle.sample.site.name')
+    site_id = serializers.StringRelatedField(source='sample_bottle.sample.site.usgs_scode')
     sample_date = serializers.DateTimeField(format='%m/%d/%y',
                                             source='sample_bottle.sample.sample_date_time', read_only=True)
     sample_time = serializers.DateTimeField(format='%H%M',
@@ -427,7 +428,7 @@ class FlatResultSerializer(serializers.ModelSerializer):
     medium = serializers.StringRelatedField(source='sample_bottle.sample.medium_type')
     analysis = serializers.StringRelatedField()
     constituent = serializers.StringRelatedField()
-    isotope = serializers.StringRelatedField()
+    isotope = serializers.StringRelatedField(source='isotope_flag')
     received_date = serializers.StringRelatedField(source='sample_bottle.sample.received_date')
     comments = serializers.StringRelatedField(source='sample_bottle.sample.comment')
     result_value = serializers.SerializerMethodField()
@@ -438,8 +439,8 @@ class FlatResultSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Result
-        fields = ('result_id', 'bottle', 'tare_weight', 'project_name', 'site_name', 'sample_date', 'sample_time',
-                  'depth', 'medium', 'analysis', 'constituent', 'isotope', 'received_date', 'comments',
+        fields = ('result_id', 'bottle', 'tare_weight', 'project_name', 'site_name', 'site_id', 'sample_date',
+                  'sample_time', 'depth', 'medium', 'analysis', 'constituent', 'isotope', 'received_date', 'comments',
                   'result_value', 'unit', 'detection_flag', 'qa_flags', 'analysis_comment', 'analyzed_date',)
 
 
@@ -464,7 +465,7 @@ class FlatResultSampleSerializer(serializers.ModelSerializer):
     medium = serializers.StringRelatedField(source='sample_bottle.sample.medium_type')
     analysis = serializers.StringRelatedField()
     constituent = serializers.StringRelatedField()
-    isotope = serializers.StringRelatedField()
+    isotope = serializers.StringRelatedField(source='isotope_flag')
     filter = serializers.StringRelatedField(source='sample_bottle.filter_type')
     filter_vol = serializers.FloatField(source='sample_bottle.volume_filtered', read_only=True)
     preservation = serializers.StringRelatedField(source='sample_bottle.preservation_type')

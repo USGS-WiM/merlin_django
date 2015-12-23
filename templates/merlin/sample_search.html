@@ -85,7 +85,7 @@
             </div>
         <!-- <p><input id="search_field" type="search" placeholder="Highlight in table." style="width:600px; border:1px solid darkgray; height:42px"/></p> -->
         <br /><br />
-        <div id="grid" data-projects="{{ projects }}" data-processings="{{ processings }}" data-analyses="{{ analyses }}" data-mediums="{{ mediums }}" data-filters="{{ filters }}" data-preservations="{{ preservations }}" data-isotopeflags="{{ isotope_flags }}" ></div>
+        <div id="grid" data-projects="{{ projects }}" data-processings="{{ processings }}" data-analyses="{{ analyses }}" data-constituents="{{ constituents }}" data-mediums="{{ mediums }}" data-filters="{{ filters }}" data-preservations="{{ preservations }}" data-isotopeflags="{{ isotope_flags }}" ></div>
         <div id="tempgrid" style="display:none"></div>
 
                     <!-- Multi Bottle Search Modal -->
@@ -153,7 +153,7 @@
                 var data_projects = JSON.parse(grid.attr('data-projects'));
                 var data_sites;
                 var data_analyses = JSON.parse(grid.attr('data-analyses'));
-                var data_constituents;
+                var data_constituents = JSON.parse(grid.attr('data-constituents'));
                 function split( val ) {return val.split( /,/ );}
                 var validateTime = function(value, callback) {
                     // convert the string to number to allow math operations; also trims off leading zeroes

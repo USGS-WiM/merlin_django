@@ -1133,11 +1133,11 @@ class ReportResultsNwis(generics.ListAPIView):
 
     def get_queryset(self):
         queryset = ResultNwis.objects.all()
-        # exclude_ld = self.request.query_params.get('exclude_ld', None)
-        # if exclude_ld is not None:
-        #     if exclude_ld == 'True' or exclude_ld == 'true':
-        #         # parameter_cd for length is '00024' and depth is '00098'
-        #         queryset = queryset.exclude(parameter_cd__exact='00024').exclude(parameter_cd__exact='00098')
+        exclude_ld = self.request.query_params.get('exclude_ld', None)
+        if exclude_ld is not None:
+            if exclude_ld == 'True' or exclude_ld == 'true':
+                # parameter_cd for length is '00024' and depth is '00098'
+                queryset = queryset.exclude(parameter_cd__exact='00024').exclude(parameter_cd__exact='00098')
         project = self.request.query_params.get('project', None)
         if project is not None:
             project_list = project.split(',')
