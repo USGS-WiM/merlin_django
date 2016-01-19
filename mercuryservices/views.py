@@ -2,6 +2,7 @@ import logging
 import json
 import time
 import math
+import datetime as dtmod
 from numbers import Number
 from datetime import datetime as dt
 from django.core.exceptions import MultipleObjectsReturned
@@ -299,16 +300,24 @@ class SampleBottleViewSet(viewsets.ModelViewSet):
         # filter by sample datetime (after only, before only, or between both, depending on which URL params appear)
         date_after = self.request.query_params.get('date_after', None)
         date_before = self.request.query_params.get('date_before', None)
+        # filtering datetime fields using only date is problematic
+        # (see warning at https://docs.djangoproject.com/en/dev/ref/models/querysets/#range)
+        # to properly do the date math on datetime fields,
+        # set date_after to the 0am of the following date and date_before to 0am of the same day
+        if date_after is not None:
+            date_after_plus = dt.strptime(date_after, '%Y-%m-%d') + dtmod.timedelta(days=1)
+        if date_before is not None:
+            date_before_minus = dt.combine(dt.strptime(date_before, '%Y-%m-%d').date(), dtmod.time.min)
         if date_after is not None and date_before is not None:
             # the filter below using __range is date-inclusive
-            #queryset = queryset.filter(sample__sample_date_time__range=(date_after.date(), date_before.date()))
+            #queryset = queryset.filter(sample__sample_date_time__range=(date_after_plus, date_before_minus))
             # the filter below is date-exclusive
-            queryset = queryset.filter(sample__sample_date_time__gt=date_after.date(),
-                                       sample__sample_date_time__lt=date_before.date())
+            queryset = queryset.filter(sample__sample_date_time__gt=date_after_plus,
+                                       sample__sample_date_time__lt=date_before_minus)
         elif date_after is not None:
-            queryset = queryset.filter(sample__sample_date_time__gt=date_after.date())
+            queryset = queryset.filter(sample__sample_date_time__gt=date_after_plus)
         elif date_before is not None:
-            queryset = queryset.filter(sample__sample_date_time__lt=date_before.date())
+            queryset = queryset.filter(sample__sample_date_time__lt=date_before_minus)
         return queryset
 
 
@@ -350,16 +359,24 @@ class FullSampleBottleViewSet(viewsets.ModelViewSet):
         # filter by sample datetime (after only, before only, or between both, depending on which URL params appear)
         date_after = self.request.query_params.get('date_after', None)
         date_before = self.request.query_params.get('date_before', None)
+        # filtering datetime fields using only date is problematic
+        # (see warning at https://docs.djangoproject.com/en/dev/ref/models/querysets/#range)
+        # to properly do the date math on datetime fields,
+        # set date_after to the 0am of the following date and date_before to 0am of the same day
+        if date_after is not None:
+            date_after_plus = dt.strptime(date_after, '%Y-%m-%d') + dtmod.timedelta(days=1)
+        if date_before is not None:
+            date_before_minus = dt.combine(dt.strptime(date_before, '%Y-%m-%d').date(), dtmod.time.min)
         if date_after is not None and date_before is not None:
             # the filter below using __range is date-inclusive
-            #queryset = queryset.filter(sample__sample_date_time__range=(date_after.date(), date_before.date()))
+            #queryset = queryset.filter(sample__sample_date_time__range=(date_after_plus, date_before_minus))
             # the filter below is date-exclusive
-            queryset = queryset.filter(sample__sample_date_time__gt=date_after.date(),
-                                       sample__sample_date_time__lt=date_before.date())
+            queryset = queryset.filter(sample__sample_date_time__gt=date_after_plus,
+                                       sample__sample_date_time__lt=date_before_minus)
         elif date_after is not None:
-                queryset = queryset.filter(sample__sample_date_time__gt=date_after.date())
+            queryset = queryset.filter(sample__sample_date_time__gt=date_after_plus)
         elif date_before is not None:
-            queryset = queryset.filter(sample__sample_date_time__lt=date_before.date())
+            queryset = queryset.filter(sample__sample_date_time__lt=date_before_minus)
         return queryset
 
 
@@ -716,17 +733,26 @@ class FullResultViewSet(viewsets.ModelViewSet):
             # remember that sample date is actually a date time object, so convert it to date before doing date math
             date_after_sample = self.request.query_params.get('date_after_sample', None)
             date_before_sample = self.request.query_params.get('date_before_sample', None)
+            # filtering datetime fields using only date is problematic
+            # (see warning at https://docs.djangoproject.com/en/dev/ref/models/querysets/#range)
+            # to properly do the date math on datetime fields,
+            # set date_after to the 0am of the following date and date_before to 0am of the same day
+            if date_after_sample is not None:
+                date_after_sample_plus = dt.strptime(date_after_sample, '%Y-%m-%d') + dtmod.timedelta(days=1)
+            if date_before_sample is not None:
+                date_before_sample_minus = dt.combine(
+                        dt.strptime(date_before_sample, '%Y-%m-%d').date(), dtmod.time.min)
             if date_after_sample is not None and date_before_sample is not None:
                 # the filter below using __range is date-inclusive
-                #queryset = queryset.filter(
-                #    sample_bottle__sample__sample_date_time__range=(date_after_sample, date_before_sample))
+                #queryset = queryset.filter(sample_bottle__sample__sample_date_time__range=(
+                #    date_after_sample_plus, date_before_sample_minus))
                 # the filter below is date-exclusive
-                queryset = queryset.filter(sample_bottle__sample__sample_date_time__gt=date_after_sample.date(),
-                                           sample_bottle__sample__sample_date_time__lt=date_before_sample.date())
+                queryset = queryset.filter(sample_bottle__sample__sample_date_time__gt=date_after_sample_plus,
+                                           sample_bottle__sample__sample_date_time__lt=date_before_sample_minus)
             elif date_after_sample is not None:
-                queryset = queryset.filter(sample_bottle__sample__sample_date_time__gt=date_after_sample.date())
+                queryset = queryset.filter(sample_bottle__sample__sample_date_time__gt=date_after_sample_plus)
             elif date_before_sample is not None:
-                queryset = queryset.filter(sample_bottle__sample__sample_date_time__lt=date_before_sample.date())
+                queryset = queryset.filter(sample_bottle__sample__sample_date_time__lt=date_before_sample_minus)
             # filter by entry date (after only, before only, or between both, depending on which URL params appear)
             date_after_entry = self.request.query_params.get('date_after_entry', None)
             date_before_entry = self.request.query_params.get('date_before_entry', None)
