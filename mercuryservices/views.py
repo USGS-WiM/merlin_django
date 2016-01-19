@@ -300,7 +300,11 @@ class SampleBottleViewSet(viewsets.ModelViewSet):
         date_after = self.request.query_params.get('date_after', None)
         date_before = self.request.query_params.get('date_before', None)
         if date_after is not None and date_before is not None:
-            queryset = queryset.filter(sample__sample_date_time__range=(date_after, date_before))
+            # the filter below using __range is date-inclusive
+            #queryset = queryset.filter(sample__sample_date_time__range=(date_after, date_before))
+            # the filter below is date-exclusive
+            queryset = queryset.filter(sample__sample_date_time__gt=date_after,
+                                       sample__sample_date_time__lt=date_before)
         elif date_after is not None:
             queryset = queryset.filter(sample__sample_date_time__gt=date_after)
         elif date_before is not None:
@@ -347,7 +351,11 @@ class FullSampleBottleViewSet(viewsets.ModelViewSet):
         date_after = self.request.query_params.get('date_after', None)
         date_before = self.request.query_params.get('date_before', None)
         if date_after is not None and date_before is not None:
-            queryset = queryset.filter(sample__sample_date_time__range=(date_after, date_before))
+            # the filter below using __range is date-inclusive
+            #queryset = queryset.filter(sample__sample_date_time__range=(date_after, date_before))
+            # the filter below is date-exclusive
+            queryset = queryset.filter(sample__sample_date_time__gt=date_after,
+                                       sample__sample_date_time__lt=date_before)
         elif date_after is not None:
                 queryset = queryset.filter(sample__sample_date_time__gt=date_after)
         elif date_before is not None:
@@ -390,7 +398,11 @@ class SampleBottleBrominationViewSet(viewsets.ModelViewSet):
         date_after = self.request.query_params.get('date_after', None)
         date_before = self.request.query_params.get('date_before', None)
         if date_after is not None and date_before is not None:
-            queryset = queryset.filter(created_date__range=(date_after, date_before))
+            # the filter below using __range is date-inclusive
+            #queryset = queryset.filter(created_date__range=(date_after, date_before))
+            # the filter below is date-exclusive
+            queryset = queryset.filter(created_date__gt=date_after,
+                                       created_date__lt=date_before)
         elif date_after is not None:
                 queryset = queryset.filter(created_date__gt=date_after)
         elif date_before is not None:
@@ -704,9 +716,12 @@ class FullResultViewSet(viewsets.ModelViewSet):
             date_after_sample = self.request.query_params.get('date_after_sample', None)
             date_before_sample = self.request.query_params.get('date_before_sample', None)
             if date_after_sample is not None and date_before_sample is not None:
-                queryset = queryset.filter(
-                    sample_bottle__sample__sample_date_time__range=(date_after_sample, date_before_sample)
-                )
+                # the filter below using __range is date-inclusive
+                #queryset = queryset.filter(
+                #    sample_bottle__sample__sample_date_time__range=(date_after_sample, date_before_sample))
+                # the filter below is date-exclusive
+                queryset = queryset.filter(sample_bottle__sample__sample_date_time__gt=date_after_sample,
+                                           sample_bottle__sample__sample_date_time__lt=date_before_sample)
             elif date_after_sample is not None:
                 queryset = queryset.filter(sample_bottle__sample__sample_date_time__gt=date_after_sample)
             elif date_before_sample is not None:
@@ -715,7 +730,10 @@ class FullResultViewSet(viewsets.ModelViewSet):
             date_after_entry = self.request.query_params.get('date_after_entry', None)
             date_before_entry = self.request.query_params.get('date_before_entry', None)
             if date_after_entry is not None and date_before_entry is not None:
-                queryset = queryset.filter(entry_date__range=(date_after_entry, date_before_entry))
+                # the filter below using __range is date-inclusive
+                #queryset = queryset.filter(entry_date__range=(date_after_entry, date_before_entry))
+                # the filter below is date-exclusive
+                queryset = queryset.filter(entry_date__gt=date_after_entry, entry_date__lt=date_before_entry)
             elif date_after_entry is not None:
                 queryset = queryset.filter(entry_date__gt=date_after_entry)
             elif date_before_entry is not None:
@@ -1051,7 +1069,10 @@ class ReportResultsCountNawqa(generics.ListAPIView):
         date_after_entry = self.request.query_params.get('date_after_entry', None)
         date_before_entry = self.request.query_params.get('date_before_entry', None)
         if date_after_entry is not None and date_before_entry is not None:
-            queryset = queryset.filter(entry_date__range=(date_after_entry, date_before_entry))
+            # the filter below using __range is date-inclusive
+            #queryset = queryset.filter(entry_date__range=(date_after_entry, date_before_entry))
+            # the filter below is date-exclusive
+            queryset = queryset.filter(entry_date__gt=date_after_entry, entry_date__lt=date_before_entry)
         elif date_after_entry is not None:
             queryset = queryset.filter(entry_date__gt=date_after_entry)
         elif date_before_entry is not None:
@@ -1074,7 +1095,10 @@ class ReportResultsCountProjects(generics.ListAPIView):
         date_after_entry = self.request.query_params.get('date_after_entry', None)
         date_before_entry = self.request.query_params.get('date_before_entry', None)
         if date_after_entry is not None and date_before_entry is not None:
-            queryset = queryset.filter(entry_date__range=(date_after_entry, date_before_entry))
+            # the filter below using __range is date-inclusive
+            #queryset = queryset.filter(entry_date__range=(date_after_entry, date_before_entry))
+            # the filter below is date-exclusive
+            queryset = queryset.filter(entry_date__gt=date_after_entry, entry_date__lt=date_before_entry)
         elif date_after_entry is not None:
             queryset = queryset.filter(entry_date__gt=date_after_entry)
         elif date_before_entry is not None:
@@ -1106,7 +1130,10 @@ class ReportSamplesNwis(generics.ListAPIView):
         date_after_entry = self.request.query_params.get('date_after_entry', None)
         date_before_entry = self.request.query_params.get('date_before_entry', None)
         if date_after_entry is not None and date_before_entry is not None:
-            queryset = queryset.filter(entry_date__range=(date_after_entry, date_before_entry))
+            # the filter below using __range is date-inclusive
+            #queryset = queryset.filter(entry_date__range=(date_after_entry, date_before_entry))
+            # the filter below is date-exclusive
+            queryset = queryset.filter(entry_date__gt=date_after_entry, entry_date__lt=date_before_entry)
         elif date_after_entry is not None:
             queryset = queryset.filter(entry_date__gt=date_after_entry)
         elif date_before_entry is not None:
@@ -1149,7 +1176,10 @@ class ReportResultsNwis(generics.ListAPIView):
         date_after_entry = self.request.query_params.get('date_after_entry', None)
         date_before_entry = self.request.query_params.get('date_before_entry', None)
         if date_after_entry is not None and date_before_entry is not None:
-            queryset = queryset.filter(entry_date__range=(date_after_entry, date_before_entry))
+            # the filter below using __range is date-inclusive
+            #queryset = queryset.filter(entry_date__range=(date_after_entry, date_before_entry))
+            # the filter below is date-exclusive
+            queryset = queryset.filter(entry_date__gt=date_after_entry, entry_date__lt=date_before_entry)
         elif date_after_entry is not None:
             queryset = queryset.filter(entry_date__gt=date_after_entry)
         elif date_before_entry is not None:
@@ -1180,7 +1210,10 @@ class ReportResultsCooperator(generics.ListAPIView):
         date_after_entry = self.request.query_params.get('date_after_entry', None)
         date_before_entry = self.request.query_params.get('date_before_entry', None)
         if date_after_entry is not None and date_before_entry is not None:
-            queryset = queryset.filter(entry_date__range=(date_after_entry, date_before_entry))
+            # the filter below using __range is date-inclusive
+            #queryset = queryset.filter(entry_date__range=(date_after_entry, date_before_entry))
+            # the filter below is date-exclusive
+            queryset = queryset.filter(entry_date__gt=date_after_entry, entry_date__lt=date_before_entry)
         elif date_after_entry is not None:
             queryset = queryset.filter(entry_date__gt=date_after_entry)
         elif date_before_entry is not None:
