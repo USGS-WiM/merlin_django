@@ -303,9 +303,9 @@ class SampleBottleViewSet(viewsets.ModelViewSet):
         # filtering datetime fields using only date is problematic
         # (see warning at https://docs.djangoproject.com/en/dev/ref/models/querysets/#range)
         # to properly do the date math on datetime fields,
-        # set date_after to the 0am of the following date and date_before to 0am of the same day
+        # set date_after to 23:59 of that date and date_before to 00:00 of that date
         if date_after is not None:
-            date_after_plus = dt.strptime(date_after, '%Y-%m-%d') + dtmod.timedelta(days=1)
+            date_after_plus = dt.combine(dt.strptime(date_after, '%Y-%m-%d').date(), dtmod.time.max)
         if date_before is not None:
             date_before_minus = dt.combine(dt.strptime(date_before, '%Y-%m-%d').date(), dtmod.time.min)
         if date_after is not None and date_before is not None:
@@ -362,9 +362,9 @@ class FullSampleBottleViewSet(viewsets.ModelViewSet):
         # filtering datetime fields using only date is problematic
         # (see warning at https://docs.djangoproject.com/en/dev/ref/models/querysets/#range)
         # to properly do the date math on datetime fields,
-        # set date_after to the 0am of the following date and date_before to 0am of the same day
+        # set date_after to 23:59 of that date and date_before to 00:00 of that date
         if date_after is not None:
-            date_after_plus = dt.strptime(date_after, '%Y-%m-%d') + dtmod.timedelta(days=1)
+            date_after_plus = dt.combine(dt.strptime(date_after, '%Y-%m-%d').date(), dtmod.time.max)
         if date_before is not None:
             date_before_minus = dt.combine(dt.strptime(date_before, '%Y-%m-%d').date(), dtmod.time.min)
         if date_after is not None and date_before is not None:
@@ -736,9 +736,9 @@ class FullResultViewSet(viewsets.ModelViewSet):
             # filtering datetime fields using only date is problematic
             # (see warning at https://docs.djangoproject.com/en/dev/ref/models/querysets/#range)
             # to properly do the date math on datetime fields,
-            # set date_after to the 0am of the following date and date_before to 0am of the same day
+            # set date_after to 23:59 of the current date and date_before to 00:00 of the same day
             if date_after_sample is not None:
-                date_after_sample_plus = dt.strptime(date_after_sample, '%Y-%m-%d') + dtmod.timedelta(days=1)
+                date_after_sample_plus = dt.combine(dt.strptime(date_after_sample, '%Y-%m-%d').date(), dtmod.time.max)
             if date_before_sample is not None:
                 date_before_sample_minus = dt.combine(
                         dt.strptime(date_before_sample, '%Y-%m-%d').date(), dtmod.time.min)
