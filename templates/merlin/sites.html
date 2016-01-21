@@ -186,7 +186,9 @@
                     thisDataObject['description'] = form_add.find('input[name=description]').val().toUpperCase();
                     if (thisDataObject['description'] == null) {thisDataObject['description'] = "";}
                     thisDataObject['latitude'] = Number(form_add.find('input[name=latitude]').val());
+                    if (isNaN(thisDataObject['latitude'])) {grid_console.text('Latitude must be numeric (decimal degrees)! No quote marks or degree signs, etc.'); loading.hide(); button_state.button('reset'); return false;}
                     thisDataObject['longitude'] = Number(form_add.find('input[name=longitude]').val());
+                    if (isNaN(thisDataObject['longitude'])) {grid_console.text('Longitude must be numeric (decimal degrees)! No quote marks or degree signs, etc.'); loading.hide(); button_state.button('reset'); return false;}
                     thisDataObject['datum'] = form_add.find('input[name=datum]').val().toUpperCase();
                     if (thisDataObject['datum'] == null) {thisDataObject['datum'] = "";}
                     thisDataObject['method'] = form_add.find('input[name=method]').val().toUpperCase();
@@ -425,6 +427,7 @@
                             if (thisDataRow[i] == null && i != 5 && i != 6) {
                                 thisDataRow[i] = "";
                             }
+                            else if ((i == 5 || i == 6) && isNaN(thisDataRow[i])) {grid_console.text('Lat and Lon must be numeric (decimal degrees)! No quote marks or degree signs, etc.'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                             thisDataObject[objectFields[i]] = thisDataRow[i];
                         }
                         changedDataArray.push(thisDataObject);
