@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.conf.urls import patterns, url, include
+from django.conf.urls import patterns, url
 from merlin import views
 
 urlpatterns = patterns('',
@@ -20,18 +20,10 @@ urlpatterns = patterns('',
     url(r'^results_nwis_report/$', views.results_nwis_report, name='results_nwis_report'),
     url(r'^results_cooperator_report/$', views.results_cooperator_report, name='results_cooperator_report'),
 
-#    url(r'^cooperators_list/$', views.cooperators_list, name='cooperators_list'),
-#    url(r'^cooperators_formset/$', views.cooperators_formset, name='cooperators_formset'),
-
     url(r'^cooperators/$', views.cooperators, name='cooperators'),
     url(r'^cooperators_update/$', views.cooperators_update, name='cooperators_update'),
     url(r'^cooperators_create/$', views.cooperators_create, name='cooperators_create'),
     url(r'^cooperators_delete/$', views.cooperators_delete, name='cooperators_delete'),
-#    url(r'^cooperators/(?P<pk>\d+)/$', views.cooperator, name='cooperator'),
-#    url(r'^cooperators/(?P<pk>\d+)/save$', views.cooperator_update, name='cooperator_update'),
-#    url(r'^cooperators_list/(?P<pk>\d+)/$', views.cooperator_detail, name='cooperator_detail'),
-#    url(r'^cooperators_list/(?P<pk>\d+)/edit/$', views.CooperatorEdit.as_view(), name='cooperator_edit'),
-#    url(r'^cooperators_list/(?P<pk>\d+)/delete/$', views.cooperator_delete, name='cooperator_delete'),
 
     url(r'^projects/$', views.projects, name='projects'),
     url(r'^projects_update/$', views.projects_update, name='projects_update'),
@@ -76,13 +68,11 @@ urlpatterns = patterns('',
     url(r'^bottle_prefixes_create/$', views.bottle_prefixes_create, name='bottle_prefixes_create'),
     url(r'^bottle_prefixes_range_create/$', views.bottle_prefixes_range_create, name='bottle_prefixes_range_create'),
     url(r'^bottle_prefixes_delete/$', views.bottle_prefixes_delete, name='bottle_prefixes_delete'),
-
-
 )
 
 if settings.DEBUG:
     urlpatterns += patterns(
         'django.views.static',
         (r'media/(?P<path>.*)',
-        'serve',
-        {'document_root': settings.MEDIA_ROOT}), )
+         'serve',
+         {'document_root': settings.MEDIA_ROOT}), )

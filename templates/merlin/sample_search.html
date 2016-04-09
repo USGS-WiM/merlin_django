@@ -581,7 +581,7 @@
                                 loading.hide();
                                 button_state.button('reset');
                             }
-                            $("#bottle_search_list").val("");
+                            //$("#bottle_search_list").val("");
                         },
                         error: function (jqXHRequest, textStatus, errorThrown) {
                             grid_console.text(errorThrown + " ... " + textStatus);
@@ -1058,9 +1058,24 @@
                     loading.show();
                     // if there is only one result page, then there is no need to request more data from the server, so just export the current page
                     if (resultPages == 1) {grid.parent().find('button[name=exportCSVCurrentPage]').click(); loading.hide(); button_state.button('reset'); return false;}
+                    // else if there is less than two result pages and not one result page (i.e., zero), stop the export
+                    else if (resultPages < 2) {return false;}
                     // otherwise request all the data matching the search query from the server
                     var thisDataObject = {};
-                    if ($(select_bottle).val() != "") {thisDataObject['bottle'] = $(select_bottle).val()}
+                    var textValue = $("#bottle_search_list").val();
+                    if (textValue != '') {
+                        // split the values with a newline, tab, or comma
+                        var bottle_list = textValue.split(/[\n\t,]+/);
+                        var bottleIds = [];
+                        //check for empty strings
+                        for(var i = 0; i < bottle_list.length; i++){
+                            if(bottle_list[i].trim()){
+                                bottleIds.push(bottle_list[i]);
+                            }
+                        }
+                        thisDataObject['bottle'] = bottleIds.join(",");
+                    }
+                    else {if ($(select_bottle).val() != "") {thisDataObject['bottle'] = $(select_bottle).val()}}
                     if ($(select_project).val() != "") {thisDataObject['project'] = $(select_project).val()}
                     if ($(select_site).val() != "") {thisDataObject['site'] = $(select_site).val()}
                     if ($("#select_depth").val() != "") {thisDataObject['depth'] = $("#select_depth").val()}
@@ -1103,6 +1118,7 @@
                     //get bottles
                     $('#multiBottleSearchModal').modal('hide');
                     if(bottleIds.length > 0){
+                        select_bottle.val("");
                         searchBottles('#multi_bottle_search',bottleIds.join(","));
                     }
                 });

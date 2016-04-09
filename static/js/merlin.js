@@ -2,8 +2,8 @@ var handsontable2csv = {
     string: function(instance) {
         var headers = instance.getColHeader();
 
-        var csv = "sep=;\n";
-        csv += headers.join(";") + "\n";
+        var csv = "sep=,\n";
+        csv += headers.join(",") + "\n";
 
         for (var i = 0; i < instance.countRows(); i++) {
             var row = [];
@@ -13,7 +13,7 @@ var handsontable2csv = {
                 row.push(value);
             }
 
-            csv += row.join(";");
+            csv += row.join(",");
             csv += "\n";
         }
 

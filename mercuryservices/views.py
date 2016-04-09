@@ -15,23 +15,22 @@ from rest_framework_bulk import BulkCreateModelMixin, BulkUpdateModelMixin
 from mercuryservices.serializers import *
 from mercuryservices.models import *
 from mercuryservices.renderers import *
-#import traceback
 
 
 ########################################################################################################################
-##
-## copyright: 2015 WiM - USGS
-## authors: Aaron Stephenson USGS WiM (Wisconsin Internet Mapping)
-##
-## In Django, a view is what takes a Web request and returns a Web response. The response can be many things, but most
-## of the time it will be a Web page, a redirect, or a document. In this case, the response will almost always be data
-## in JSON format.
-##
-## All these views are written as Class-Based Views (https://docs.djangoproject.com/en/1.7/topics/class-based-views/)
-## because that is the paradigm used by Django Rest Framework (http://www.django-rest-framework.org/api-guide/views/)
-## which is the toolkit we used to create web services in Django.
-##
-##
+#
+# copyright: 2015 WiM - USGS
+# authors: Aaron Stephenson USGS WiM (Wisconsin Internet Mapping)
+#
+# In Django, a view is what takes a Web request and returns a Web response. The response can be many things, but most
+# of the time it will be a Web page, a redirect, or a document. In this case, the response will almost always be data
+# in JSON format.
+#
+# All these views are written as Class-Based Views (https://docs.djangoproject.com/en/1.8/topics/class-based-views/)
+# because that is the paradigm used by Django Rest Framework (http://www.django-rest-framework.org/api-guide/views/)
+# which is the toolkit we used to create web services in Django.
+#
+#
 ########################################################################################################################
 
 
@@ -39,9 +38,9 @@ logger = logging.getLogger(__name__)
 
 
 ######
-##
-## Project and Site
-##
+#
+# Project and Site
+#
 ######
 
 
@@ -107,7 +106,7 @@ class SiteViewSet(viewsets.ModelViewSet):
     # override the default queryset to allow filtering by URL arguments
     def get_queryset(self):
         queryset = Site.objects.all()
-        #queryset = Site.objects.exclude(usgs_scode__exact="''")
+        # queryset = Site.objects.exclude(usgs_scode__exact="''")
         # filter by site name, exact
         name_exact = self.request.query_params.get('name_exact', None)
         if name_exact is not None:
@@ -182,9 +181,9 @@ class ProjectSiteViewSet(viewsets.ModelViewSet):
 
 
 ######
-##
-## Field Sample
-##
+#
+# Field Sample
+#
 ######
 
 
@@ -310,7 +309,7 @@ class SampleBottleViewSet(viewsets.ModelViewSet):
             date_before_minus = dt.combine(dt.strptime(date_before, '%Y-%m-%d').date(), dtmod.time.min)
         if date_after is not None and date_before is not None:
             # the filter below using __range is date-inclusive
-            #queryset = queryset.filter(sample__sample_date_time__range=(date_after_plus, date_before_minus))
+            # queryset = queryset.filter(sample__sample_date_time__range=(date_after_plus, date_before_minus))
             # the filter below is date-exclusive
             queryset = queryset.filter(sample__sample_date_time__gt=date_after_plus,
                                        sample__sample_date_time__lt=date_before_minus)
@@ -369,7 +368,7 @@ class FullSampleBottleViewSet(viewsets.ModelViewSet):
             date_before_minus = dt.combine(dt.strptime(date_before, '%Y-%m-%d').date(), dtmod.time.min)
         if date_after is not None and date_before is not None:
             # the filter below using __range is date-inclusive
-            #queryset = queryset.filter(sample__sample_date_time__range=(date_after_plus, date_before_minus))
+            # queryset = queryset.filter(sample__sample_date_time__range=(date_after_plus, date_before_minus))
             # the filter below is date-exclusive
             queryset = queryset.filter(sample__sample_date_time__gt=date_after_plus,
                                        sample__sample_date_time__lt=date_before_minus)
@@ -392,7 +391,7 @@ class SampleBottleBrominationViewSet(viewsets.ModelViewSet):
     paginate_by = 100
 
     def get_queryset(self):
-        #logger.info(self.request.query_params)
+        # logger.info(self.request.query_params)
         queryset = SampleBottleBromination.objects.all()
         # filter by bottle name or ID
         bottle = self.request.query_params.get('bottle', None)
@@ -400,13 +399,13 @@ class SampleBottleBrominationViewSet(viewsets.ModelViewSet):
             bottle_list = bottle.split(',')
             # if query values are IDs
             if bottle_list[0].isdigit():
-                #logger.info(bottle_list[0])
-                #queryset = queryset.filter(sample_bottle__bottle__id__in=bottle_list)
+                # logger.info(bottle_list[0])
+                # queryset = queryset.filter(sample_bottle__bottle__id__in=bottle_list)
                 clauses = ' '.join(['WHEN bottle_id=%s THEN %s' % (pk, i) for i, pk in enumerate(bottle_list)])
                 ordering = 'CASE %s END' % clauses
                 queryset = queryset.filter(sample_bottle__bottle__id__in=bottle_list).extra(
                     select={'ordering': ordering}, order_by=('ordering',))
-                #logger.info(queryset)
+                # logger.info(queryset)
             # else query values are names
             else:
                 queryset = queryset.filter(sample_bottle__bottle__bottle_unique_name__in=bottle_list)
@@ -416,7 +415,7 @@ class SampleBottleBrominationViewSet(viewsets.ModelViewSet):
         date_before = self.request.query_params.get('date_before', None)
         if date_after is not None and date_before is not None:
             # the filter below using __range is date-inclusive
-            #queryset = queryset.filter(created_date__range=(date_after, date_before))
+            # queryset = queryset.filter(created_date__range=(date_after, date_before))
             # the filter below is date-exclusive
             queryset = queryset.filter(created_date__gt=date_after,
                                        created_date__lt=date_before)
@@ -524,9 +523,9 @@ class MediumTypeViewSet(viewsets.ModelViewSet):
 
 
 ######
-##
-## Method Analysis
-##
+#
+# Method Analysis
+#
 ######
 
 
@@ -646,7 +645,7 @@ class FullResultViewSet(viewsets.ModelViewSet):
 
     # override the default queryset to allow filtering by URL arguments
     def get_queryset(self):
-        #queryset = Result.objects.all()
+        # queryset = Result.objects.all()
         # prefetch_related only the exact, necessary fields to greatly improve the response time of the query
         queryset = Result.objects.all().prefetch_related(
             'sample_bottle', 'sample_bottle__bottle',
@@ -661,19 +660,20 @@ class FullResultViewSet(viewsets.ModelViewSet):
             bottle_list = bottle.split(',')
             # if query values are IDs, match exact list of bottle IDs
             if bottle_list[0].isdigit():
-                #logger.info(bottle_list[0])
-                #queryset = queryset.filter(sample_bottle__bottle__id__in=bottle_list)
+                # logger.info(bottle_list[0])
+                # queryset = queryset.filter(sample_bottle__bottle__id__in=bottle_list)
                 # maintain the order of the bottles that were queried
                 clauses = ' '.join(['WHEN bottle_id=%s THEN %s' % (pk, i) for i, pk in enumerate(bottle_list)])
                 ordering = 'CASE %s END' % clauses
                 queryset = queryset.filter(sample_bottle__bottle__id__in=bottle_list).extra(
                     select={'ordering': ordering}, order_by=('ordering',))
-                #logger.info(queryset)
+                #  logger.info(queryset)
             # if query values are names, match exact list of bottle unique names
             else:
-                #queryset = queryset.filter(sample_bottle__bottle__bottle_unique_name__in=bottle_list)
+                # queryset = queryset.filter(sample_bottle__bottle__bottle_unique_name__in=bottle_list)
                 # maintain the order of the bottles that were queried
-                clauses = ' '.join(["WHEN bottle_unique_name='%s' THEN %s" % (pk, i) for i, pk in enumerate(bottle_list)])
+                clauses = ' '.join(
+                    ["WHEN bottle_unique_name='%s' THEN %s" % (pk, i) for i, pk in enumerate(bottle_list)])
                 ordering = 'CASE %s END' % clauses
                 queryset = queryset.filter(sample_bottle__bottle__bottle_unique_name__in=bottle_list).extra(
                     select={'ordering': ordering}, order_by=('ordering',))
@@ -682,20 +682,20 @@ class FullResultViewSet(viewsets.ModelViewSet):
             if exclude_null_results is not None:
                 if exclude_null_results == 'True' or exclude_null_results == 'true':
                     queryset = queryset.filter(final_value__isnull=False)
-                #elif exclude_null_results == 'False' or exclude_null_results == 'false':
+                # elif exclude_null_results == 'False' or exclude_null_results == 'false':
                 #    queryset = queryset.filter(final_value__isnull=True)
             return queryset
         # else, search by other params (that don't include bottle ID or name)
         else:
-            #barcode = self.request.query_params.get('barcode', None)
-            #if barcode is not None:
+            # barcode = self.request.query_params.get('barcode', None)
+            # if barcode is not None:
             #    queryset = queryset.filter(sample_bottle__exact=barcode)
             # if exclude_null_results is a param, then exclude null results, otherwise return all results
             exclude_null_results = self.request.query_params.get('exclude_null_results')
             if exclude_null_results is not None:
                 if exclude_null_results == 'True' or exclude_null_results == 'true':
                     queryset = queryset.filter(final_value__isnull=False)
-                #elif exclude_null_results == 'False' or exclude_null_results == 'false':
+                # elif exclude_null_results == 'False' or exclude_null_results == 'false':
                 #    queryset = queryset.filter(final_value__isnull=True)
             # filter by analysis ID, exact list
             analysis = self.request.query_params.get('analysis', None)
@@ -744,7 +744,7 @@ class FullResultViewSet(viewsets.ModelViewSet):
                         dt.strptime(date_before_sample, '%Y-%m-%d').date(), dtmod.time.min)
             if date_after_sample is not None and date_before_sample is not None:
                 # the filter below using __range is date-inclusive
-                #queryset = queryset.filter(sample_bottle__sample__sample_date_time__range=(
+                # queryset = queryset.filter(sample_bottle__sample__sample_date_time__range=(
                 #    date_after_sample_plus, date_before_sample_minus))
                 # the filter below is date-exclusive
                 queryset = queryset.filter(sample_bottle__sample__sample_date_time__gt=date_after_sample_plus,
@@ -758,7 +758,7 @@ class FullResultViewSet(viewsets.ModelViewSet):
             date_before_entry = self.request.query_params.get('date_before_entry', None)
             if date_after_entry is not None and date_before_entry is not None:
                 # the filter below using __range is date-inclusive
-                #queryset = queryset.filter(entry_date__range=(date_after_entry, date_before_entry))
+                # queryset = queryset.filter(entry_date__range=(date_after_entry, date_before_entry))
                 # the filter below is date-exclusive
                 queryset = queryset.filter(entry_date__gt=date_after_entry, entry_date__lt=date_before_entry)
             elif date_after_entry is not None:
@@ -769,9 +769,9 @@ class FullResultViewSet(viewsets.ModelViewSet):
 
 
 ######
-##
-## Constituent
-##
+#
+# Constituent
+#
 ######
 
 
@@ -903,9 +903,9 @@ class AnalysisMethodViewSet(viewsets.ModelViewSet):
 
 
 ######
-##
-## Quality Assurance
-##
+#
+# Quality Assurance
+#
 ######
 
 
@@ -948,9 +948,9 @@ class ResultDataFileViewSet(viewsets.ModelViewSet):
 
 
 ######
-##
-## Solution
-##
+#
+# Solution
+#
 ######
 
 
@@ -1026,9 +1026,9 @@ class BrominationViewSet(viewsets.ModelViewSet):
 
 
 #######
-##
-## Personnel
-##
+#
+# Personnel
+#
 ######
 
 
@@ -1079,9 +1079,9 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 ######
-##
-## Reports
-##
+#
+# Reports
+#
 ######
 
 
@@ -1097,7 +1097,7 @@ class ReportResultsCountNawqa(generics.ListAPIView):
         date_before_entry = self.request.query_params.get('date_before_entry', None)
         if date_after_entry is not None and date_before_entry is not None:
             # the filter below using __range is date-inclusive
-            #queryset = queryset.filter(entry_date__range=(date_after_entry, date_before_entry))
+            # queryset = queryset.filter(entry_date__range=(date_after_entry, date_before_entry))
             # the filter below is date-exclusive
             queryset = queryset.filter(entry_date__gt=date_after_entry, entry_date__lt=date_before_entry)
         elif date_after_entry is not None:
@@ -1123,7 +1123,7 @@ class ReportResultsCountProjects(generics.ListAPIView):
         date_before_entry = self.request.query_params.get('date_before_entry', None)
         if date_after_entry is not None and date_before_entry is not None:
             # the filter below using __range is date-inclusive
-            #queryset = queryset.filter(entry_date__range=(date_after_entry, date_before_entry))
+            # queryset = queryset.filter(entry_date__range=(date_after_entry, date_before_entry))
             # the filter below is date-exclusive
             queryset = queryset.filter(entry_date__gt=date_after_entry, entry_date__lt=date_before_entry)
         elif date_after_entry is not None:
@@ -1158,7 +1158,7 @@ class ReportSamplesNwis(generics.ListAPIView):
         date_before_entry = self.request.query_params.get('date_before_entry', None)
         if date_after_entry is not None and date_before_entry is not None:
             # the filter below using __range is date-inclusive
-            #queryset = queryset.filter(entry_date__range=(date_after_entry, date_before_entry))
+            # queryset = queryset.filter(entry_date__range=(date_after_entry, date_before_entry))
             # the filter below is date-exclusive
             queryset = queryset.filter(entry_date__gt=date_after_entry, entry_date__lt=date_before_entry)
         elif date_after_entry is not None:
@@ -1204,7 +1204,7 @@ class ReportResultsNwis(generics.ListAPIView):
         date_before_entry = self.request.query_params.get('date_before_entry', None)
         if date_after_entry is not None and date_before_entry is not None:
             # the filter below using __range is date-inclusive
-            #queryset = queryset.filter(entry_date__range=(date_after_entry, date_before_entry))
+            # queryset = queryset.filter(entry_date__range=(date_after_entry, date_before_entry))
             # the filter below is date-exclusive
             queryset = queryset.filter(entry_date__gt=date_after_entry, entry_date__lt=date_before_entry)
         elif date_after_entry is not None:
@@ -1238,7 +1238,7 @@ class ReportResultsCooperator(generics.ListAPIView):
         date_before_entry = self.request.query_params.get('date_before_entry', None)
         if date_after_entry is not None and date_before_entry is not None:
             # the filter below using __range is date-inclusive
-            #queryset = queryset.filter(entry_date__range=(date_after_entry, date_before_entry))
+            # queryset = queryset.filter(entry_date__range=(date_after_entry, date_before_entry))
             # the filter below is date-exclusive
             queryset = queryset.filter(entry_date__gt=date_after_entry, entry_date__lt=date_before_entry)
         elif date_after_entry is not None:
@@ -1249,15 +1249,15 @@ class ReportResultsCooperator(generics.ListAPIView):
 
 
 ######
-##
-## Batch Upload
-##
+#
+# Batch Upload
+#
 ######
 
 
-#batch_upload_save: validation
+# batch_upload_save: validation
 class BatchUpload(views.APIView):
-    #permission_classes = (permissions.IsAuthenticated,)
+    # permission_classes = (permissions.IsAuthenticated,)
 
     def post(self, request):
         status = []
@@ -1323,7 +1323,7 @@ class BatchUpload(views.APIView):
                 )
                 raw_value = row["raw_value"]
 
-                ### save the result ###
+                # SAVE THE RESULT #
                 result_details = Result.objects.get(id=result_id)
                 result_details.raw_value = float(raw_value)
                 result_details.method_id = method_id
@@ -1379,14 +1379,14 @@ class BatchUpload(views.APIView):
             if isinstance(data, list) is False:
                 e = "Expecting an array of results"
             status.append({"success": "false", "message": str(e), "bottle_unique_name": bottle_unique_name})
-            #traceback.print_exc()
+            # traceback.print_exc()
         return HttpResponse(json.dumps(status), content_type='application/json')
 
 
 ######
-##
-## Batch Upload Validations
-##
+#
+# Batch Upload Validations
+#
 ######
 
 
@@ -1496,7 +1496,7 @@ def validate_analysis_method(constituent_id, row):
     try:
         analysis_type_details = AnalysisMethod.objects.filter(analysis_type__in=analysis_types,
                                                               method_type__exact=method)
-        #analysis_type_details = AnalysisMethod.objects.get(analysis_type=str(analysis_type),method_type=str(method))
+        # analysis_type_details = AnalysisMethod.objects.get(analysis_type=str(analysis_type),method_type=str(method))
     except ObjectDoesNotExist:
         message = "The method code '"+str(method)+"' is not allowed for the constituent '"+constituent_type+"'"
         return is_valid, message, analysis_method_id
@@ -1525,7 +1525,7 @@ def validate_quality_assurance(row):
     except KeyError:
         is_valid = True
 
-    #check that the given quality assurance exists
+    # check that the given quality assurance exists
     for quality_assurance in quality_assurance_array:
         try:
             quality_assurance_type_details = QualityAssuranceType.objects.get(quality_assurance=quality_assurance)
@@ -1607,9 +1607,9 @@ def validate_result(sample_bottle_id, constituent_id, method_id, row):
 
 
 ######
-##
-## Batch Upload Calculations
-##
+#
+# Batch Upload Calculations
+#
 ######
 
 
@@ -1682,9 +1682,9 @@ def eval_result(row, result_id):
                     raw_value, daily_detection_limit, method_detection_limit, significant_figures, decimal_places
                 )
         else:
-            #if raw_value < 1:
-            #display_value = '0'+ str(raw_value)
-            #else:
+            # if raw_value < 1:
+            # display_value = '0'+ str(raw_value)
+            # else:
             display_value = str(raw_value)
             detection_flag = 'NONE'
             reported_value = raw_value
@@ -1726,17 +1726,17 @@ def get_lost_sample_result(raw_value, daily_detection_limit):
     detection_flag = 'L'
     display_value = str(raw_value)
     qa_flags = []
-    #qa = QualityAssuranceType.objects.get(quality_assurance='LS')
-    #qa_flag_id = qa.id
-    #qa_flags.append(qa_flag_id)
+    # qa = QualityAssuranceType.objects.get(quality_assurance='LS')
+    # qa_flag_id = qa.id
+    # qa_flags.append(qa_flag_id)
     return display_value, reported_value, detection_flag, daily_detection_limit, qa_flags
 
 
 def eval_mdl(daily_detection_limit, method_detection_limit):
-    #if method_detection_limit < 1:
-        #add leading zero
+    # if method_detection_limit < 1:
+        # add leading zero
     #    display_value = '0'+ str(method_detection_limit)
-    #else:
+    # else:
     display_value = str(method_detection_limit)
     reported_value = method_detection_limit
     detection_flag = '<'

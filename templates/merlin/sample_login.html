@@ -739,12 +739,14 @@
                                 // if the content-type is plain text, then it's a custom message from our Django view
                                 if (content_type.indexOf('text') > -1) {
                                     grid_console.text(data);
-
                                 }
                                 // otherwise, it's JSON from the REST Services
                                 else if (jqXHRequest.status === 200) {
                                     grid_console.text(textStatus+': Data saved.');
-                                    // the data was saved to the database, so empty the table
+                                    // the data was saved to the database, so empty the input fields and the table
+                                    $('#project_name').val("");
+                                    $('#date_received').val("");
+                                    $('#lab_processing').val(data_processings.indexOf('NONE'));
                                     var rows = grid.handsontable('getInstance').countRows();
                                     grid.data('handsontable').alter('remove_row', 0, rows);
                                     grid.data('handsontable').alter('insert_row', null, 8);
@@ -752,6 +754,10 @@
                                     for (var i = 0; i < rows; i++) {
                                         setDefaultValues(i);
                                     }
+                                    var settings = grid.handsontable('getInstance').getSettings();
+                                    settings.columns[0] = {title: 'Site Name', width: 210, type: 'autocomplete', strict: true, validator: validateRequired};
+                                    settings.columns[1] = {title: 'Site ID', width: 100, type: 'autocomplete', strict: true};
+                                    grid.handsontable('getInstance').updateSettings(settings);
                                 }
                                 else {
                                     grid_console.text(textStatus+': Save error: '+jqXHRequest.statusText+', code: '+jqXHRequest.status+'.');
