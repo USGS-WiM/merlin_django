@@ -2,7 +2,6 @@ import logging
 import json
 import requests
 from datetime import datetime
-from itertools import chain
 from collections import Counter
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import RequestContext
@@ -11,36 +10,34 @@ from django.core.urlresolvers import reverse
 
 
 ########################################################################################################################
-##
-## copyright: 2015 WiM - USGS
-## authors: Aaron Stephenson USGS WiM (Wisconsin Internet Mapping)
-##
-## In Django, a view is what takes a Web request and returns a Web response. The response can be many things, but most
-## of the time it will be a Web page, a redirect, or a document.
-##
-## All these views are written as Function-Based Views (https://docs.djangoproject.com/en/1.7/topics/http/views/)
-## because that is the paradigm used by most Django projects, especially tutorials for learning Django.
-##
-##
+#
+# copyright: 2015 WiM - USGS
+# authors: Aaron Stephenson USGS WiM (Wisconsin Internet Mapping)
+#
+# In Django, a view is what takes a Web request and returns a Web response. The response can be many things, but most
+# of the time it will be a Web page, a redirect, or a document.
+#
+# All these views are written as Function-Based Views (https://docs.djangoproject.com/en/1.8/topics/http/views/)
+# because that is the paradigm used by most Django projects, especially tutorials for learning Django.
+#
+#
 ########################################################################################################################
 
 
 logger = logging.getLogger(__name__)
 
-## localhost dev
+# localhost dev
 REST_SERVICES_URL = 'http://localhost:8000/mercuryservices/'
 REST_AUTH_URL = 'http://localhost:8000/mercuryauth/'
-## WIM5
-#REST_SERVICES_URL = 'http://130.11.161.159/mercuryservices/'
-#REST_AUTH_URL = 'http://130.11.161.159/mercuryauth/'
-## WIM2
-#REST_SERVICES_URL = 'http://130.11.161.247/mercuryservices/'
-#REST_AUTH_URL = 'http://130.11.161.247/mercuryauth/'
+# WIM5
+# REST_SERVICES_URL = 'http://130.11.161.159/mercuryservices/'
+# REST_AUTH_URL = 'http://130.11.161.159/mercuryauth/'
+# WIM2
+# REST_SERVICES_URL = 'http://130.11.161.247/mercuryservices/'
+# REST_AUTH_URL = 'http://130.11.161.247/mercuryauth/'
 
-#USER_AUTH = ('user', 'password')
-#USER_TOKEN = ''
-HEADERS_CONTENT_JSON = {'content-type': 'application/json'}
-HEADERS_CONTENT_FORM = {'content-type': 'application/x-www-form-urlencoded'}
+HEAD_CONTENT_JSON = {'content-type': 'application/json'}
+HEAD_CONTENT_FORM = {'content-type': 'application/x-www-form-urlencoded'}
 
 
 SAMPLE_KEYS_UNIQUE = ["project", "site", "sample_date_time", "depth", "replicate", "medium_type"]
@@ -52,25 +49,55 @@ SAMPLE_ANALYSIS_KEYS = ["sample_bottle", "analysis", "constituent", "isotope_fla
 BOTTLE_KEYS = ["bottle_prefix", "bottle_unique_name", "created_date", "description"]
 
 
+##########
+#
+# Helper Functions
+#
+##########
+
+
+def http_get(request, endpoint, params=None):
+    if params:
+        return requests.request(method='GET', url=REST_SERVICES_URL + endpoint + '/', params=params,
+                                auth=(request.session['username'], request.session['password']))
+    else:
+        return requests.request(method='GET', url=REST_SERVICES_URL + endpoint + '/',
+                                auth=(request.session['username'], request.session['password']))
+
+
+def http_post(request, endpoint, data):
+    return requests.request(method='POST', url=REST_SERVICES_URL + endpoint + '/', data=data, headers=HEAD_CONTENT_JSON,
+                            auth=(request.session['username'], request.session['password']))
+
+
+def http_put(request, endpoint, data):
+    return requests.request(method='PUT', url=REST_SERVICES_URL + endpoint + '/', data=data, headers=HEAD_CONTENT_JSON,
+                            auth=(request.session['username'], request.session['password']))
+
+
+def http_delete(request, endpoint):
+    return requests.request(method='DELETE', url=REST_SERVICES_URL + endpoint + '/',
+                            auth=(request.session['username'], request.session['password']))
+
+
+##########
+#
+# View Functions
+#
+##########
+
+
 def sample_login(request):
-    if not request.session.get('token'):
-        return HttpResponseRedirect(reverse('index'))
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
+    if not request.session.get('username'):
+        return HttpResponseRedirect('/merlin/')
     context = RequestContext(request)
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'projects/', headers=headers_auth_token)
-    projects = json.dumps(r.json(), sort_keys=True)
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'processings/', headers=headers_auth_token)
-    processings = json.dumps(r.json(), sort_keys=True)
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'mediums/', headers=headers_auth_token)
-    mediums = json.dumps(r.json(), sort_keys=True)
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'analyses/', headers=headers_auth_token)
-    analyses = json.dumps(r.json(), sort_keys=True)
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'filters/', headers=headers_auth_token)
-    filters = json.dumps(r.json(), sort_keys=True)
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'preservations/', headers=headers_auth_token)
-    preservations = json.dumps(r.json(), sort_keys=True)
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'isotopeflags/', headers=headers_auth_token)
-    isotope_flags = json.dumps(r.json(), sort_keys=True)
+    projects = json.dumps(http_get(request, 'projects').json(), sort_keys=True)
+    processings = json.dumps(http_get(request, 'processings').json(), sort_keys=True)
+    mediums = json.dumps(http_get(request, 'mediums').json(), sort_keys=True)
+    analyses = json.dumps(http_get(request, 'analyses').json(), sort_keys=True)
+    filters = json.dumps(http_get(request, 'filters').json(), sort_keys=True)
+    preservations = json.dumps(http_get(request, 'preservations').json(), sort_keys=True)
+    isotope_flags = json.dumps(http_get(request, 'isotopeflags').json(), sort_keys=True)
     context_dict = {'projects': projects, 'processings': processings, 'mediums': mediums,
                     'analyses': analyses, 'filters': filters, 'preservations': preservations,
                     'isotope_flags': isotope_flags}
@@ -79,8 +106,6 @@ def sample_login(request):
 
 def samples_create(request):
     logger.info("SAMPLE LOGIN CREATE")
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     table = json.loads(request.body.decode('utf-8'))
     table_rows = len(table)
     logger.info("submitted table contains " + str(table_rows) + " rows")
@@ -95,7 +120,7 @@ def samples_create(request):
     sample_bottle_data = []
     sample_analysis_data = []
 
-    ## PARSE ROWS AND VALIDATE ##
+    # PARSE ROWS AND VALIDATE #
     # analyze each submitted row, parsing sample data and sample bottle data
     for row in table:
         row_number += 1
@@ -116,23 +141,23 @@ def samples_create(request):
             # validate this sample doesn't exist in the database, otherwise notify the user
             logger.info("VALIDATE Sample")
             sample_values_unique = [
-                row.get('project'), row.get('site'), row.get('sample_date_time'), row.get('depth'), row.get('replicate')
-                , row.get('medium_type')
+                row.get('project'), row.get('site'), row.get('sample_date_time'),
+                row.get('depth'), row.get('replicate'), row.get('medium_type')
             ]
             this_sample_unique = dict(zip(SAMPLE_KEYS_UNIQUE, sample_values_unique))
             logger.info(str(this_sample_unique))
-            # couldn't get requests.request() to work properly here, so using requests.get() instead
-            r = requests.get(REST_SERVICES_URL+'samples/', params=this_sample_unique)
+            # could not get requests.request() to work properly here, so using requests.get() instead
+            # r = http_get(request, 'samples', this_sample_unique)
+            r = requests.get(REST_SERVICES_URL+'samples/', params=this_sample_unique,
+                            auth=(request.session['username'], request.session['password']))
             logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
             response_data = r.json()
             logger.info("count: " + str(response_data['count']))
             # if response count does not equal zero, then this sample already exists in the database
             if response_data['count'] != 0:
                 logger.warning("Validation Warning: " + str(sample_values_unique) + " count != 0")
-                r = requests.get(REST_SERVICES_URL+'projects/', params={'id': row.get('project')})
-                project_name = r.json()[0]['name']
-                r = requests.get(REST_SERVICES_URL+'sites/', params={'id': row.get('site')})
-                site_name = r.json()['results'][0]['name']
+                project_name = http_get(request, 'projects/'+str(row.get('project'))).json()[0]['name']
+                site_name = http_get(request, 'sites/' + row.get('site')).json()['results'][0]['name']
                 message = "\"Error in row " + str(row_number) + ": This Sample already exists in the database: "
                 message += project_name + "|" + site_name + "|" + str(row.get('sample_date_time')) + "|"
                 message += str(row.get('depth')) + "|" + str(row.get('replicate')) + "|"
@@ -152,7 +177,7 @@ def samples_create(request):
         logger.info("VALIDATE Bottle ID part 1 of 3")
         this_bottle = row.get('bottle')
         logger.info(this_bottle)
-        r = requests.get(REST_SERVICES_URL+'samplebottles/', params={"bottle": this_bottle})
+        r = http_get(request, 'samplebottles', {"bottle": this_bottle})
         logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
         response_data = r.json()
         logger.info("count: " + str(response_data['count']))
@@ -160,10 +185,6 @@ def samples_create(request):
         if response_data['count'] != 0:
             logger.warning("Validation Warning: " + str(this_bottle) + " count != 0")
             bottle_name = response_data['results'][0]['bottle_string']
-            #r = requests.get(REST_SERVICES_URL+'projects/', params={'id': row.get('project')})
-            #project_name = r.json()[0]['name']
-            #r = requests.get(REST_SERVICES_URL+'sites/', params={'id': row.get('site')})
-            #site_name = r.json()['results'][0]['name']
             message = "\"Error in row " + str(row_number) + ": This Bottle already used by a Sample in the database: "
             message += bottle_name + "\""
             logger.error(message)
@@ -189,14 +210,10 @@ def samples_create(request):
             unique_sample_analyses.append(this_analysis)
         else:
             logger.warning("Validation Warning: " + this_analysis + " is not unique")
-            r = requests.get(REST_SERVICES_URL+'projects/', params={'id': row.get('project')})
-            project_name = r.json()[0]['name']
-            r = requests.get(REST_SERVICES_URL+'sites/', params={'id': row.get('site')})
-            site_name = r.json()['results'][0]['name']
-            r = requests.get(REST_SERVICES_URL+'analyses/', params={'id': row.get('analysis_type')})
-            analysis_name = r.json()[0]['analysis']
-            r = requests.get(REST_SERVICES_URL+'isotopeflags/', params={'id': row.get('isotope_flag')})
-            isotope_flag = r.json()[0]['isotope_flag']
+            project_name = http_get(request, 'projects', {'id': row.get('project')}).json()[0]['name']
+            site_name = http_get(request, 'sites', {'id': row.get('site')}).json()['results'][0]['name']
+            analysis_name = http_get(request, 'analyses', {'id': row.get('analysis_type')}).json()[0]['analysis']
+            isotope_flag = http_get(request, 'sites', {'id': row.get('isotope_flag')}).json()[0]['isotope_flag']
             message = "\"Error in row " + str(row_number) + ": This Analysis (" + analysis_name + ")"
             message += " and Isotope (" + isotope_flag + ") combination appears more than once in this sample: "
             message += project_name + "|" + site_name + "|" + str(row.get('sample_date_time')) + "|"
@@ -219,8 +236,7 @@ def samples_create(request):
                     logger_message = "Validation Warning: " + str(this_bottle_filter_volume)
                     logger_message += " has a mismatch with a previous bottle filter volume " + bottle_filter_volume
                     logger.warning(logger_message)
-                    params = {"id": this_bottle_filter_volume[0]}
-                    r = requests.get(REST_SERVICES_URL+'bottles/', params=params)
+                    r = http_get(request, 'bottles', {"id": this_bottle_filter_volume[0]})
                     logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
                     response_data = r.json()
                     bottle_unique_name = response_data['results'][0]['bottle_unique_name']
@@ -252,8 +268,7 @@ def samples_create(request):
             sample_bottle_data.append(this_sample_bottle)
 
         # look up constituents that are related to this analysis
-        params = {"analysis": row.get('analysis_type')}
-        r = requests.get(REST_SERVICES_URL+'constituents/', params=params)
+        r = http_get(request, 'constituents', {"analysis": row.get('analysis_type')})
         logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
         constituents = r.json()
         # create result objects (one for each constituent) for the analysis type within this row
@@ -282,8 +297,7 @@ def samples_create(request):
         # meaning this bottle is used in more than one sample
         if sample_bottle_counter[unique_bottle] > 1:
             logger.warning("Validation Warning: " + str(unique_bottle) + " count > 1")
-            params = {"id": unique_bottle}
-            r = requests.get(REST_SERVICES_URL+'bottles/', params=params)
+            r = http_get(request, 'bottles', {"id": unique_bottle})
             logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
             response_data = r.json()
             bottle_unique_name = response_data['results'][0]['bottle_unique_name']
@@ -294,15 +308,15 @@ def samples_create(request):
         else:
             logger.info(str(unique_bottle) + " is only used in one sample")
 
-    ## SAVING ##
+    # SAVING #
     # save samples first and then get their database IDs, which are required for saving the sample bottles afterward
 
-    ## SAVE SAMPLES ##
+    # SAVE SAMPLES #
     # send the samples to the database
     logger.info("SAVE Samples")
     sample_data = json.dumps(sample_data)
     logger.info(sample_data)
-    r = requests.request(method='POST', url=REST_SERVICES_URL+'bulksamples/', data=sample_data, headers=headers)
+    r = http_post(request, 'bulksamples', sample_data)
     logger.info(r.request.method + " " + r.request.url + " " + r.reason + " " + str(r.status_code))
     if r.status_code != 201:
         message = "\"Error " + str(r.status_code) + ": " + r.reason + "."
@@ -325,7 +339,7 @@ def samples_create(request):
         logger.info("item " + str(item_number) + ": " + str(sample_id))
         sample_ids.append(sample_id)
 
-    ## SAVE SAMPLE BOTTLES ##
+    # SAVE SAMPLE BOTTLES #
     # update the sample bottles with the database IDs, rather than the combo IDs
     logger.info("SAVE Sample Bottles")
     for sample_bottle in sample_bottle_data:
@@ -339,8 +353,7 @@ def samples_create(request):
             logger.warning("Could not match sample and combo IDs!")
             logger.warning("Deleting samples that were just saved.")
             for sample_id in sample_ids:
-                r = requests.request(
-                    method='DELETE', url=REST_SERVICES_URL+'samples/' + str(sample_id['db_id']), headers=headers)
+                r = http_delete(request, 'samples/'+str(sample_id['db_id']))
                 if r.status_code != 204:
                     message = "\"Error: Able to save samples, but unable to save sample bottles."
                     message += " Encountered problem reversing saved samples"
@@ -354,16 +367,14 @@ def samples_create(request):
     # send the sample bottles to the database
     sample_bottle_data = json.dumps(sample_bottle_data)
     logger.info(sample_bottle_data)
-    r = requests.request(
-        method='POST', url=REST_SERVICES_URL+'bulksamplebottles/', data=sample_bottle_data, headers=headers)
+    r = http_post(request, 'bulksamplebottles', sample_bottle_data)
     logger.info(r.request.method + " " + r.request.url + " " + r.reason + " " + str(r.status_code))
     if r.status_code != 201:
         failed_create_status_code = r.status_code
         logger.warning("Could not save sample bottles!")
         logger.warning("Deleting samples that were just saved.")
         for sample_id in sample_ids:
-            r = requests.request(
-                method='DELETE', url=REST_SERVICES_URL+'samples/' + str(sample_id['db_id']), headers=headers)
+            r = http_delete(request, 'samples/'+str(sample_id['db_id']))
             if r.status_code != 204:
                 message = "\"Error: Can save samples, but cannot save sample bottles."
                 message += " Encountered problem reversing saved samples"
@@ -383,7 +394,7 @@ def samples_create(request):
         sample_bottle_id = {'bottle_id': str(item['bottle']), 'db_id': item['id']}
         sample_bottle_ids.append(sample_bottle_id)
 
-    ## SAVE SAMPLE ANALYSES (placeholder records in Results table) ##
+    # SAVE SAMPLE ANALYSES (placeholder records in Results table) #
     # update the sample analyses with the sample bottle IDs, rather than the bottle IDs
     logger.info("SAVE Sample Analyses")
     for sample_analysis in sample_analysis_data:
@@ -398,7 +409,7 @@ def samples_create(request):
             logger.warning("Deleting sample bottles that were just saved.")
             for sample_bottle_id in sample_bottle_ids:
                 this_id = str(sample_bottle_id['db_id'])
-                r = requests.request(method='DELETE', url=REST_SERVICES_URL+'samplebottles/' + this_id + '/', headers=headers)
+                r = http_delete(request, 'samplebottles/'+this_id)
                 if r.status_code != 204:
                     message = "\"Error: Can save samples and sample bottles, but cannot save analyses."
                     message += " Encountered problem reversing saved sample bottles"
@@ -409,7 +420,7 @@ def samples_create(request):
             logger.warning("Deleting samples that were just saved.")
             for sample_id in sample_ids:
                 this_id = str(sample_id['db_id'])
-                r = requests.request(method='DELETE', url=REST_SERVICES_URL+'samples/' + this_id + '/', headers=headers)
+                r = http_delete(request, 'samples/'+this_id)
                 if r.status_code != 204:
                     message = "\"Error: Can save samples and sample bottles, but cannot save analyses."
                     message += " Encountered problem reversing saved samples"
@@ -424,8 +435,7 @@ def samples_create(request):
     # send the sample analyses to the database
     sample_analysis_data = json.dumps(sample_analysis_data)
     logger.info(sample_analysis_data)
-    r = requests.request(
-        method='POST', url=REST_SERVICES_URL+'bulkresults/', data=sample_analysis_data, headers=headers)
+    r = http_post(request, 'bulkresults', sample_analysis_data)
     logger.info(r.request.method + " " + r.request.url + " " + r.reason + " " + str(r.status_code))
     if r.status_code != 201:
         failed_create_status_code = r.status_code
@@ -433,7 +443,7 @@ def samples_create(request):
         logger.warning("Deleting sample bottles that were just saved.")
         for sample_bottle_id in sample_bottle_ids:
             this_id = str(sample_bottle_id['db_id'])
-            r = requests.request(method='DELETE', url=REST_SERVICES_URL+'samplebottles/' + this_id + '/', headers=headers)
+            r = http_delete(request, 'samplebottles/'+this_id)
             if r.status_code != 204:
                 message = "\"Error: Can save samples and sample bottles, but cannot save analyses."
                 message += " Encountered problem reversing saved sample bottles"
@@ -444,7 +454,7 @@ def samples_create(request):
         logger.warning("Deleting samples that were just saved.")
         for sample_id in sample_ids:
             this_id = str(sample_id['db_id'])
-            r = requests.request(method='DELETE', url=REST_SERVICES_URL+'samples/' + this_id + '/', headers=headers)
+            r = http_delete(request, 'samples/'+this_id)
             if r.status_code != 204:
                 message = "\"Error: Can save samples and sample bottles, but cannot save analyses."
                 message += " Encountered problem reversing saved samples"
@@ -457,17 +467,14 @@ def samples_create(request):
         message += " Please contact the administrator.\""
         logger.error(message)
         return HttpResponse(message, content_type='text/html')
-    response_data = r.json()
-    logger.info(str(len(response_data)) + " sample analyses saved")
+    logger.info(str(len(r.json())) + " sample analyses saved")
     # send the response (data & messages) back to the user interface
     return HttpResponse(r, content_type='application/json')
 
 
 def samples_search(request):
-    if not request.session.get('token'):
+    if not request.session.get('username'):
         return HttpResponseRedirect('/merlin/')
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     context = RequestContext(request)
 
     if request.method == 'POST':
@@ -498,47 +505,35 @@ def samples_search(request):
         if params['table']:
             params_dict["table"] = str(params['table']).strip('[]')
 
-        r = requests.request(method='GET', url=REST_SERVICES_URL+'fullresults/', params=params_dict, headers=headers)
+        r = http_get(request, 'fullresults', params_dict)
         logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
         if params['format'] == 'csv':
             response = HttpResponse(r, content_type='text/csv')
-            response['Content-Disposition'] = 'attachment; filename="results.csv"'
+            response['Content-Disposition'] = 'attachment; filename="samples.csv"'
             response.write(r.content)
             return response
         else:
             r_dict = r.json()
             logger.info("search results count: " + str(r_dict['count']))
-            r_json = json.dumps(r_dict)
-            return HttpResponse(r_json, content_type='application/json')
+            return HttpResponse(json.dumps(r_dict), content_type='application/json')
 
     else:  # request.method == 'GET'
-        r = requests.request(method='GET', url=REST_SERVICES_URL+'projects/', headers=headers_auth_token)
-        projects = json.dumps(r.json(), sort_keys=True)
-        r = requests.request(method='GET', url=REST_SERVICES_URL+'processings/', headers=headers_auth_token)
-        processings = json.dumps(r.json(), sort_keys=True)
-        r = requests.request(method='GET', url=REST_SERVICES_URL+'analyses/', headers=headers_auth_token)
-        analyses = json.dumps(r.json(), sort_keys=True)
-        r = requests.request(method='GET', url=REST_SERVICES_URL+'constituents/', headers=headers_auth_token)
-        constituents = json.dumps(r.json(), sort_keys=True)
-        r = requests.request(method='GET', url=REST_SERVICES_URL+'mediums/', headers=headers_auth_token)
-        mediums = json.dumps(r.json(), sort_keys=True)
-        r = requests.request(method='GET', url=REST_SERVICES_URL+'filters/', headers=headers_auth_token)
-        filters = json.dumps(r.json(), sort_keys=True)
-        r = requests.request(method='GET', url=REST_SERVICES_URL+'preservations/', headers=headers_auth_token)
-        preservations = json.dumps(r.json(), sort_keys=True)
-        r = requests.request(method='GET', url=REST_SERVICES_URL+'isotopeflags/', headers=headers_auth_token)
-        isotope_flags = json.dumps(r.json(), sort_keys=True)
+        projects = json.dumps(http_get(request, 'projects').json(), sort_keys=True)
+        processings = json.dumps(http_get(request, 'processings').json(), sort_keys=True)
+        analyses = json.dumps(http_get(request, 'analyses').json(), sort_keys=True)
+        constituents = json.dumps(http_get(request, 'constituents').json(), sort_keys=True)
+        mediums = json.dumps(http_get(request, 'mediums').json(), sort_keys=True)
+        filters = json.dumps(http_get(request, 'filters').json(), sort_keys=True)
+        preservations = json.dumps(http_get(request, 'preservations').json(), sort_keys=True)
+        isotope_flags = json.dumps(http_get(request, 'isotopeflags').json(), sort_keys=True)
         context_dict = {'projects': projects, 'processings': processings,
                         'analyses': analyses, 'constituents': constituents, 'mediums': mediums, 'filters': filters,
                         'preservations': preservations, 'isotope_flags': isotope_flags}
-
         return render_to_response('merlin/sample_search.html', context_dict, context)
 
 
 def samples_update(request):
     logger.info("SAMPLE LOGIN UPDATE")
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     table = json.loads(request.body.decode('utf-8'))
     table_rows = len(table)
     logger.info("submitted table contains " + str(table_rows) + " rows")
@@ -549,7 +544,7 @@ def samples_update(request):
     sample_bottle_data = []
     sample_analysis_data = []
 
-    ## PARSE ROWS AND VALIDATE ##
+    # PARSE ROWS AND VALIDATE #
     # analyze each submitted row, parsing sample data and sample bottle data
     for row in table:
         row_number += 1
@@ -564,25 +559,16 @@ def samples_update(request):
 
             # validate this sample already exists in the database, otherwise notify the user
             logger.info("VALIDATE Sample in Search Save")
-            #sample_values_unique = [
-            #    row.get('project'), row.get('site'), row.get('sample_date_time'), row.get('depth'), row.get('replicate')
-            #]
-            #this_sample_unique = dict(zip(SAMPLE_KEYS_UNIQUE, sample_values_unique))
-            #logger.info(str(this_sample_unique))
-            # couldn't get requests.request() to work properly here, so using requests.get() instead
-            #r = requests.get(REST_SERVICES_URL+'samples/', params=this_sample_unique)
-            r = requests.get(REST_SERVICES_URL+'samples/', params={"id": this_sample_id})
+            r = http_get(request, 'samples', {'id': this_sample_id})
             logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
             response_data = r.json()
             logger.info("count: " + str(response_data['count']))
             # if response count equals zero, then this sample does not exist in the database
             if response_data['count'] == 0:
-                #logger.warning("Validation Warning: " + str(sample_values_unique) + " count == 0")
+                # logger.warning("Validation Warning: " + str(sample_values_unique) + " count == 0")
                 logger.warning("Validation Warning: " + str(this_sample_id) + " count == 0")
-                r = requests.get(REST_SERVICES_URL+'projects/', params={'id': row.get('project')})
-                project_name = r.json()[0]['name']
-                r = requests.get(REST_SERVICES_URL+'sites/', params={'id': row.get('site')})
-                site_name = r.json()['results'][0]['name']
+                project_name = http_get(request, 'projects/'+str(row.get('project'))).json()[0]['name']
+                site_name = http_get(request, 'sites/'+str(row.get('site'))).json()['results'][0]['name']
                 message = "\"Error in row " + str(row_number) + ":"
                 message += " Cannot save because this Sample does not exist in the database: "
                 message += project_name + "|" + site_name + "|" + str(row.get('sample_date_time')) + "|"
@@ -643,13 +629,13 @@ def samples_update(request):
         # add this new sample bottle object to the list
         sample_analysis_data.append(this_sample_analysis)
 
-    ## SAVING ##
+    # SAVING
     # save samples first and then get their database IDs, which are required for saving the sample bottles afterward
 
-    ## SAVE SAMPLES ##
+    # SAVE SAMPLES #
     # send the samples to the database
     logger.info("SAVE Samples in Search Save")
-    #sample_data = json.dumps(sample_data)
+    # sample_data = json.dumps(sample_data)
     logger.info(str(sample_data))
     sample_response_data = []
     # using a loop to send data to the single PUT endpoint instead of just using the bulk PUT endpoint
@@ -660,28 +646,17 @@ def samples_update(request):
         this_id = item.pop("id")
         item = json.dumps(item)
         logger.info("Item #" + str(item_number) + ": " + item)
-        url = REST_SERVICES_URL+'samples/'+str(this_id)+'/'
-        r = requests.request(method='PUT', url=url, data=item, headers=headers)
+        r = http_put(request, 'samples/'+str(this_id), item)
         logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
-        # if r.status_code != 200 or r.status_code != 201:
-        #     message = "\"Error in row " + str(item_number) + ": Encountered an error while attempting to save sample "
-        #     message += str(this_id) + ": " + str(r.status_code) + "\""
-        #     logger.error(message)
-        #     return HttpResponse(message, content_type='text/html')
-        # else:
-        #     this_response_data = r.json()
-        #     logger.info(str(len(this_response_data)) + " samples saved")
-        #     sample_response_data.append(this_response_data)
-        this_response_data = r.json()
         logger.info("1 samples saved")
-        sample_response_data.append(this_response_data)
+        sample_response_data.append(r.json())
     logger.info(sample_response_data)
 
-    ## SAVE SAMPLE BOTTLES ##
+    # SAVE SAMPLE BOTTLES #
     # update the sample bottles with the database IDs, rather than the combo IDs
     logger.info("SAVE Sample Bottles in Search Save")
     # send the sample bottles to the database
-    #sample_bottle_data = json.dumps(sample_bottle_data)
+    # sample_bottle_data = json.dumps(sample_bottle_data)
     logger.info(str(sample_bottle_data))
     sample_bottle_response_data = []
     # using a loop to send data to the single PUT endpoint instead of just using the bulk PUT endpoint
@@ -701,8 +676,7 @@ def samples_update(request):
             # validate if this bottle + sample combo exists, if not, it might be a new record, or it is invalid,
             # otherwise this is an update to an existing record, but the sample bottle id is null
             # because there is a new related sample analysis being submitted
-            url = REST_SERVICES_URL+'samplebottles/'
-            r = requests.get(url, params={"bottle": this_bottle, "sample_id": this_sample})
+            r = http_get(request, 'samplebottles', {"bottle": this_bottle, "sample_id": this_sample})
             logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
             response_data = r.json()
             logger.info("count: " + str(response_data['count']))
@@ -710,33 +684,21 @@ def samples_update(request):
             # so check if the bottle has been used before; if not, create a new sample bottle, otherwise error
             if response_data['count'] == 0:
                 # validate that this bottle has not been used in any sample before
-                url = REST_SERVICES_URL+'samplebottles/'
-                r = requests.get(url, params={"bottle": this_bottle})
+                r = http_get(request, 'samplebottles', {"bottle": this_bottle})
                 logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
                 response_data = r.json()
                 logger.info("count: " + str(response_data['count']))
                 # if response count equals zero, then this bottle has not been used in any sample bottle before
                 if response_data['count'] == 0:
                     # this bottle has not been used in another sample, so we can use it for this sample
-                    url = REST_SERVICES_URL+'samplebottles/'
-                    r = requests.request(method='POST', url=url, data=item, headers=headers)
+                    r = http_post(request, 'samplebottles', item)
                     logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
-                    # if r.status_code != 200 or r.status_code != 201:
-                    #     message = "\"Error in row " + str(item_number) + ": Encountered an error while attempting to save"
-                    #     message += " sample bottle in sample " + str(this_id) + ": " + str(r.status_code) + "\""
-                    #     logger.error(message)
-                    #     return HttpResponse(message, content_type='text/html')
-                    # else:
-                    #     this_response_data = r.json()
-                    #     logger.info(str(len(this_response_data)) + " sample bottles created")
-                    #     sample_bottle_response_data.append(this_response_data)
-                    this_response_data = r.json()
                     logger.info("1 sample bottles created")
-                    sample_bottle_response_data.append(this_response_data)
+                    sample_bottle_response_data.append(r.json())
                 else:
                     # this bottle has been used in another sample, so it cannot be used for this sample
                     message = "\"Error."
-                    r = requests.get(url=REST_SERVICES_URL+'bottles/', params={"id": this_bottle})
+                    r = http_get(request, 'bottles/'+str(this_bottle))
                     logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
                     response_data = r.json()
                     message += " Unable to save sample bottle."
@@ -747,46 +709,24 @@ def samples_update(request):
             else:
                 # the sample bottle does exist, so grab the id and update the record with the submitted data
                 this_id = response_data["results"][0]["id"]
-                url = REST_SERVICES_URL+'samplebottles/'+str(this_id)+'/'
-                r = requests.request(method='PUT', url=url, data=item, headers=headers)
+                r = http_put(request, 'samplebottles/'+str(this_id), item)
                 logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
-                # if r.status_code != 200 or r.status_code != 201:
-                #     message = "\"Error in row " + str(item_number) + ": Encountered an error while attempting to save"
-                #     message += " sample bottle in sample " + str(this_id) + ": " + str(r.status_code) + "\""
-                #     logger.error(message)
-                #     return HttpResponse(message, content_type='text/html')
-                # else:
-                #     this_response_data = r.json()
-                #     logger.info(str(len(this_response_data)) + " sample bottles saved")
-                #     sample_bottle_response_data.append(this_response_data)
-                this_response_data = r.json()
                 logger.info("1 sample bottles saved")
-                sample_bottle_response_data.append(this_response_data)
+                sample_bottle_response_data.append(r.json())
 
         else:
             # this is an update to an existing record
-            url = REST_SERVICES_URL+'samplebottles/'+str(this_id)+'/'
-            r = requests.request(method='PUT', url=url, data=item, headers=headers)
+            r = http_put(request, 'samplebottles/' + str(this_id), item)
             logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
-            # if r.status_code != 200 or r.status_code != 201:
-            #     message = "\"Error in row " + str(item_number) + ": Encountered an error while attempting to save"
-            #     message += " sample bottle in sample " + str(this_id) + ": " + str(r.status_code) + "\""
-            #     logger.error(message)
-            #     return HttpResponse(message, content_type='text/html')
-            # else:
-            #     this_response_data = r.json()
-            #     logger.info(str(len(this_response_data)) + " sample bottles saved")
-            #     sample_bottle_response_data.append(this_response_data)
-            this_response_data = r.json()
             logger.info("1 sample bottles saved")
-            sample_bottle_response_data.append(this_response_data)
+            sample_bottle_response_data.append(r.json())
     logger.info(sample_bottle_response_data)
 
-    ## SAVE SAMPLE ANALYSES (placeholder records in Results table) ##
+    # SAVE SAMPLE ANALYSES (placeholder records in Results table) #
     # update the sample analyses with the sample bottle IDs, rather than the bottle IDs
     logger.info("SAVE Sample Analyses in Search Save")
     # send the sample analyses to the database
-    #sample_analysis_data = json.dumps(sample_analysis_data)
+    # sample_analysis_data = json.dumps(sample_analysis_data)
     logger.info(str(sample_analysis_data))
     sample_analysis_response_data = []
     # using a loop to send data to the single PUT endpoint instead of just using the bulk PUT endpoint
@@ -805,8 +745,7 @@ def samples_update(request):
             # but the sample bottle id is null because there is a new related sample analysis being submitted
             logger.info("VALIDATE Sample Analysis in Search Save")
             # first grab the sample bottle id
-            url = REST_SERVICES_URL+'samplebottles/'
-            r = requests.get(url, params={"bottle": this_bottle, "sample_id": this_sample})
+            r = http_get(request, 'samplebottles', {"bottle": this_bottle, "sample_id": this_sample})
             logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
             response_data = r.json()
             logger.info("count: " + str(response_data['count']))
@@ -817,52 +756,31 @@ def samples_update(request):
                 this_sample_bottle = response_data["results"][0]["id"]
                 logger.info("found this sample bottle: " + str(this_sample_bottle))
                 item['sample_bottle'] = this_sample_bottle
-                r = requests.get(
-                    url=REST_SERVICES_URL+'results/',
-                    params={"sample_bottle": item.get("sample_bottle"), "analysis": item.get("analysis"),
-                            "constituent": item.get("constituent"), "isotope_flag": item.get("isotope_flag")})
+                param_dict = {"sample_bottle": item.get("sample_bottle"), "analysis": item.get("analysis"),
+                              "constituent": item.get("constituent"), "isotope_flag": item.get("isotope_flag")}
+                r = http_get(request, 'results', param_dict)
                 logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
                 response_data = r.json()
                 logger.info("count: " + str(response_data['count']))
                 # if response count equals zero, then this sample analysis does not exist in the database, so create one
                 item = json.dumps(item)
                 if response_data['count'] == 0:
-                    url = REST_SERVICES_URL+'results/'
-                    r = requests.request(method='POST', url=url, data=item, headers=headers)
+                    r = http_post(request, 'results', item)
                     logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
-                    # if r.status_code != 200 or r.status_code != 201:
-                    #     message = "\"Error in row " + str(item_number) + ": Encountered an error while attempting to save"
-                    #     message += " sample bottle in sample " + str(this_id) + ": " + str(r.status_code) + "\""
-                    #     logger.error(message)
-                    #     return HttpResponse(message, content_type='text/html')
-                    # else:
-                    #     this_response_data = r.json()
-                    #     logger.info(str(len(this_response_data)) + " sample bottles created")
-                    #     sample_bottle_response_data.append(this_response_data)
                     this_response_data = r.json()
                     logger.info("1 sample analyses created")
                     sample_analysis_response_data.append(this_response_data)
                 # otherwise the sample analysis does exist, so grab the id and update the record with the submitted data
                 else:
                     this_id = response_data["results"][0]["id"]
-                    url = REST_SERVICES_URL+'results/'+str(this_id)+'/'
-                    r = requests.request(method='PUT', url=url, data=item, headers=headers)
+                    r = http_put(request, 'results/'+str(this_id), item)
                     logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
-                    # if r.status_code != 200 or r.status_code != 201:
-                    #     message = "\"Error in row " + str(item_number) + ": Encountered an error while attempting to save"
-                    #     message += " sample bottle in sample " + str(this_id) + ": " + str(r.status_code) + "\""
-                    #     logger.error(message)
-                    #     return HttpResponse(message, content_type='text/html')
-                    # else:
-                    #     this_response_data = r.json()
-                    #     logger.info(str(len(this_response_data)) + " sample bottles saved")
-                    #     sample_bottle_response_data.append(this_response_data)
                     this_response_data = r.json()
                     logger.info("1 sample analyses saved")
                     sample_analysis_response_data.append(this_response_data)
             else:
                 message = "\"Error."
-                r = requests.get(url=REST_SERVICES_URL+'bottles/', params={"id": this_bottle})
+                r = http_get(request, 'bottles/'+str(this_bottle))
                 logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
                 response_data = r.json()
                 message += " Unable to save sample analysis; could not find a sample bottle for this sample analysis."
@@ -873,18 +791,8 @@ def samples_update(request):
                 return HttpResponse(message, content_type='text/html')
         else:
             item = json.dumps(item)
-            url = REST_SERVICES_URL+'results/'+str(this_id)+'/'
-            r = requests.request(method='PUT', url=url, data=item, headers=headers)
+            r = http_put(request, 'results/'+str(this_id), item)
             logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
-            # if r.status_code != 200 or r.status_code != 201:
-            #     message = "\"Error in row " + str(item_number) + ": Encountered an error while attempting to save"
-            #     message += " sample analysis " + str(this_id) + ": " + str(r.status_code) + "\""
-            #     logger.error(message)
-            #     return HttpResponse(message, content_type='text/html')
-            # else:
-            #     this_response_data = r.json()
-            #     logger.info(str(len(this_response_data)) + " sample analyses saved")
-            #     sample_analysis_response_data.append(this_response_data)
             this_response_data = r.json()
             logger.info("1 sample analyses saved")
             sample_analysis_response_data.append(this_response_data)
@@ -894,10 +802,8 @@ def samples_update(request):
 
 
 def results_search(request):
-    if not request.session.get('token'):
+    if not request.session.get('username'):
         return HttpResponseRedirect('/merlin/')
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     context = RequestContext(request)
 
     if request.method == 'POST':
@@ -932,7 +838,7 @@ def results_search(request):
         if params['table']:
             params_dict["table"] = str(params['table']).strip('[]')
 
-        r = requests.request(method='GET', url=REST_SERVICES_URL+'fullresults/', params=params_dict, headers=headers)
+        r = http_get(request, 'fullresults', params_dict)
         logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
         if params['format'] == 'csv':
             response = HttpResponse(r, content_type='text/csv')
@@ -942,24 +848,18 @@ def results_search(request):
         else:
             r_dict = r.json()
             logger.info("search results count: " + str(r_dict['count']))
-            r_json = json.dumps(r_dict)
-            return HttpResponse(r_json, content_type='application/json')
+            return HttpResponse(json.dumps(r_dict), content_type='application/json')
 
     else:  # request.method == 'GET'
-        r = requests.request(method='GET', url=REST_SERVICES_URL+'projects/', headers=headers_auth_token)
-        projects = json.dumps(r.json(), sort_keys=True)
-        r = requests.request(method='GET', url=REST_SERVICES_URL+'constituents/', headers=headers_auth_token)
-        constituents = json.dumps(r.json(), sort_keys=True)
+        projects = json.dumps(http_get(request, 'projects').json(), sort_keys=True)
+        constituents = json.dumps(http_get(request, 'constituents').json(), sort_keys=True)
         context_dict = {'projects': projects, 'constituents': constituents}
-
         return render_to_response('merlin/result_search.html', context_dict, context)
 
 
 def results_count_nawqa(request):
-    if not request.session.get('token'):
+    if not request.session.get('username'):
         return HttpResponseRedirect('/merlin/')
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     context = RequestContext(request)
 
     if request.method == 'POST':
@@ -974,27 +874,21 @@ def results_count_nawqa(request):
         if params['page_size']:
             params_dict["page_size"] = str(params['page_size']).strip('[]')
 
-        r = requests.request(
-            method='GET', url=REST_SERVICES_URL+'resultcountnawqa/', params=params_dict, headers=headers)
+        r = http_get(request, 'resultcountnawqa', params_dict)
         logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
         r_dict = r.json()
         logger.info("search result count nawqa report count: " + str(r_dict['count']))
-        r_json = json.dumps(r_dict)
-        return HttpResponse(r_json, content_type='application/json')
+        return HttpResponse(json.dumps(r_dict), content_type='application/json')
 
     else:  # request.method == 'GET'
-        r = requests.request(method='GET', url=REST_SERVICES_URL+'resultcountnawqa/', headers=headers_auth_token)
-        data = json.dumps(r.json(), sort_keys=True)
+        data = json.dumps(http_get(request, 'resultcountnawqa').json(), sort_keys=True)
         context_dict = {'data': data}
-
         return render_to_response('merlin/results_count_nawqa.html', context_dict, context)
 
 
 def results_count_projects(request):
-    if not request.session.get('token'):
+    if not request.session.get('username'):
         return HttpResponseRedirect('/merlin/')
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     context = RequestContext(request)
 
     if request.method == 'POST':
@@ -1009,27 +903,21 @@ def results_count_projects(request):
         if params['page_size']:
             params_dict["page_size"] = str(params['page_size']).strip('[]')
 
-        r = requests.request(
-            method='GET', url=REST_SERVICES_URL+'resultcountprojects/', params=params_dict, headers=headers)
+        r = http_get(request, 'resultcountprojects', params_dict)
         logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
         r_dict = r.json()
         logger.info("search results count project report count: " + str(r_dict['count']))
-        r_json = json.dumps(r_dict)
-        return HttpResponse(r_json, content_type='application/json')
+        return HttpResponse(json.dumps(r_dict), content_type='application/json')
 
     else:  # request.method == 'GET'
-        r = requests.request(method='GET', url=REST_SERVICES_URL+'resultcountprojects/', headers=headers_auth_token)
-        data = json.dumps(r.json(), sort_keys=True)
+        data = json.dumps(http_get(request, 'resultcountprojects').json(), sort_keys=True)
         context_dict = {'data': data}
-
         return render_to_response('merlin/results_count_projects.html', context_dict, context)
 
 
 def samples_nwis_report(request):
-    if not request.session.get('token'):
+    if not request.session.get('username'):
         return HttpResponseRedirect('/merlin/')
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     context = RequestContext(request)
 
     if request.method == 'POST':
@@ -1048,27 +936,22 @@ def samples_nwis_report(request):
         if params['page_size']:
             params_dict["page_size"] = str(params['page_size']).strip('[]')
 
-        r = requests.request(
-            method='GET', url=REST_SERVICES_URL+'reportsamplesnwis/', params=params_dict, headers=headers)
+        r = http_get(request, 'reportsamplesnwis', params_dict)
         logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
         r_dict = r.json()
         logger.info("search samples nwis report count: " + str(r_dict['count']))
-        r_json = json.dumps(r_dict)
-        return HttpResponse(r_json, content_type='application/json')
+        return HttpResponse(json.dumps(r_dict), content_type='application/json')
 
     else:  # request.method == 'GET'
-        r = requests.request(method='GET', url=REST_SERVICES_URL+'projects/', headers=headers_auth_token)
-        projects = json.dumps(r.json(), sort_keys=True)
+        projects = json.dumps(http_get(request, 'projects').json(), sort_keys=True)
         context_dict = {'projects': projects}
 
         return render_to_response('merlin/samples_nwis.html', context_dict, context)
 
 
 def results_nwis_report(request):
-    if not request.session.get('token'):
+    if not request.session.get('username'):
         return HttpResponseRedirect('/merlin/')
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     context = RequestContext(request)
 
     if request.method == 'POST':
@@ -1089,27 +972,21 @@ def results_nwis_report(request):
         if params['exclude_ld']:
             params_dict["exclude_ld"] = str(params['exclude_ld']).strip('[]')
 
-        r = requests.request(
-            method='GET', url=REST_SERVICES_URL+'reportresultsnwis/', params=params_dict, headers=headers)
+        r = http_get(request, 'reportresultsnwis', params_dict)
         logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
         r_dict = r.json()
         logger.info("search results nwis report count: " + str(r_dict['count']))
-        r_json = json.dumps(r_dict)
-        return HttpResponse(r_json, content_type='application/json')
+        return HttpResponse(json.dumps(r_dict), content_type='application/json')
 
     else:  # request.method == 'GET'
-        r = requests.request(method='GET', url=REST_SERVICES_URL+'projects/', headers=headers_auth_token)
-        projects = json.dumps(r.json(), sort_keys=True)
+        projects = json.dumps(http_get(request, 'projects').json(), sort_keys=True)
         context_dict = {'projects': projects}
-
         return render_to_response('merlin/results_nwis.html', context_dict, context)
 
 
 def results_cooperator_report(request):
-    if not request.session.get('token'):
+    if not request.session.get('username'):
         return HttpResponseRedirect('/merlin/')
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     context = RequestContext(request)
 
     if request.method == 'POST':
@@ -1130,41 +1007,31 @@ def results_cooperator_report(request):
         if params['page_size']:
             params_dict["page_size"] = str(params['page_size']).strip('[]')
 
-        r = requests.request(
-            method='GET', url=REST_SERVICES_URL+'reportresultscooperator/', params=params_dict, headers=headers)
+        r = http_get(request, 'reportresultscooperator', params_dict)
         logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
         r_dict = r.json()
         logger.info("search results cooperator report count: " + str(r_dict['count']))
-        r_json = json.dumps(r_dict)
-        return HttpResponse(r_json, content_type='application/json')
+        return HttpResponse(json.dumps(r_dict), content_type='application/json')
 
     else:  # request.method == 'GET'
-        r = requests.request(method='GET', url=REST_SERVICES_URL+'projects/', headers=headers_auth_token)
-        projects = json.dumps(r.json(), sort_keys=True)
-        r = requests.request(method='GET', url=REST_SERVICES_URL+'cooperators/', headers=headers_auth_token)
-        cooperators = json.dumps(r.json(), sort_keys=True)
+        projects = json.dumps(http_get(request, 'projects').json(), sort_keys=True)
+        cooperators = json.dumps(http_get(request, 'cooperators').json(), sort_keys=True)
         context_dict = {'projects': projects, 'cooperators': cooperators}
         return render_to_response('merlin/results_cooperator.html', context_dict, context)
 
 
 def bottles(request):
-    if not request.session.get('token'):
+    if not request.session.get('username'):
         return HttpResponseRedirect('/merlin/')
-    #headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     context = RequestContext(request)
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'bottles/')  # , headers=headers_auth_token)
-    bottles = json.dumps(r.json(), sort_keys=True)
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'bottleprefixes/')  # , headers=headers_auth_token)
-    prefixes = json.dumps(r.json(), sort_keys=True)
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'bottletypes/')  # , headers=headers_auth_token)
-    bottletypes = json.dumps(r.json(), sort_keys=True)
+    bottles = json.dumps(http_get(request, 'bottles').json(), sort_keys=True)
+    prefixes = json.dumps(http_get(request, 'bottleprefixes').json(), sort_keys=True)
+    bottletypes = json.dumps(http_get(request, 'bottletypes').json(), sort_keys=True)
     context_dict = {'bottles': bottles, 'prefixes': prefixes, 'bottletypes': bottletypes}
     return render_to_response('merlin/bottles.html', context_dict, context)
 
 
 def bottles_update(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     data = json.loads(request.body.decode('utf-8'))
     response_data = []
     # using a loop to send data to the single PUT endpoint instead of just using the bulk PUT endpoint
@@ -1175,17 +1042,8 @@ def bottles_update(request):
         this_id = item.pop("id")
         item = json.dumps(item)
         logger.info("Item #" + str(item_number) + ": " + item)
-        url = REST_SERVICES_URL+'bottles/'+str(this_id)+'/'
-        r = requests.request(method='PUT', url=url, data=item, headers=headers)
+        r = http_put(request, 'bottles/'+str(this_id), item)
         logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
-        # if r.status_code != 200:# or r.status_code != 201:
-        #     message = "\"Encountered an error while attempting to save bottle.\""
-        #     logger.error(message)
-        #     return HttpResponse(message, content_type='text/html')
-        # else:
-        #     this_response_data = r.json()
-        #     logger.info(str(len(this_response_data)) + " bottles saved")
-        #     response_data.append(this_response_data)
         this_response_data = r.json()
         response_data.append(this_response_data)
     response_data = json.dumps(response_data)
@@ -1193,8 +1051,6 @@ def bottles_update(request):
 
 
 def bottle_prefixes_update(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     data = json.loads(request.body.decode('utf-8'))
     response_data = []
     # using a loop to send data to the single PUT endpoint instead of just using the bulk PUT endpoint
@@ -1205,17 +1061,8 @@ def bottle_prefixes_update(request):
         this_id = item.pop("id")
         item = json.dumps(item)
         logger.info("Item #" + str(item_number) + ": " + item)
-        url = REST_SERVICES_URL+'bottleprefixes/'+str(this_id)+'/'
-        r = requests.request(method='PUT', url=url, data=item, headers=headers)
+        r = http_put(request, 'bottleprefixes/' + str(this_id), item)
         logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
-        # if r.status_code != 200:# or r.status_code != 201:
-        #     message = "\"Encountered an error while attempting to save bottle prefix.\""
-        #     logger.error(message)
-        #     return HttpResponse(message, content_type='text/html')
-        # else:
-        #     this_response_data = r.json()
-        #     logger.info(str(len(this_response_data)) + " bottle prefixes saved")
-        #     response_data.append(this_response_data)
         this_response_data = r.json()
         response_data.append(this_response_data)
     response_data = json.dumps(response_data)
@@ -1223,17 +1070,13 @@ def bottle_prefixes_update(request):
 
 
 def bottle_prefixes_create(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     data = json.loads(request.body.decode('utf-8'))
 
     # validate that the submitted bottle prefix doesn't already exist
     logger.info("VALIDATE Bottle Prefix Add")
-    this_bottle_prefix = {'bottle_prefix': data.get('bottle_prefix')}
-    r = requests.get(REST_SERVICES_URL+'bottleprefixes/', params=this_bottle_prefix)
+    r = http_get(request, 'bottleprefixes', {'bottle_prefix': data.get('bottle_prefix')})
     logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
     response_data = r.json()
-    logger.info("bottle prefix count: " + str(response_data['count']))
     logger.info("bottle prefix count: " + str(response_data['count']))
     # if response count does not equal zero, then this sample already exists in the database
     if response_data['count'] != 0:
@@ -1241,10 +1084,9 @@ def bottle_prefixes_create(request):
         message = "This Bottle Prefix already exists in the database: "
         return HttpResponse(message, content_type='text/html')
 
-    ## SAVE Bottle Prefixes ##
+    # SAVE Bottle Prefixes #
     # send the bottle prefixes to the database
-    data = json.dumps(data)
-    r = requests.request(method='POST', url=REST_SERVICES_URL+'bulkbottleprefixes/', data=data, headers=headers)
+    r = http_post(request, 'bulkbottleprefixes', json.dumps(data))
     logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
     if r.status_code != 201:
         message = "\"Error " + str(r.status_code) + ": " + r.reason + ". Cannot save bottle prefix."
@@ -1257,19 +1099,14 @@ def bottle_prefixes_create(request):
 
 
 def bottle_prefixes_delete(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     data = json.loads(request.body.decode('utf-8'))
     this_id = data.pop("id")
-    url = REST_SERVICES_URL+'bottleprefixes/'+str(this_id)+'/'
-    r = requests.request(method='DELETE', url=url, headers=headers)
+    r = http_delete(request, 'bottleprefixes/'+str(this_id))
     logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
     return HttpResponse(r)
 
 
 def bottle_prefixes_range_create(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     params = json.loads(request.body.decode('utf-8'))
     all_unique_bottle_prefixes = True
     message_exist = "No new Bottle Prefixes were saved because these Bottle Prefixes already exist in the database: "
@@ -1290,7 +1127,7 @@ def bottle_prefixes_range_create(request):
     logger.info("VALIDATE Bottle Prefix Range")
     for item in new_bottle_prefixes:
         this_bottle_prefix = item.get('bottle_prefix')
-        r = requests.get(REST_SERVICES_URL+'bottleprefixes/', params={'bottle_prefix': this_bottle_prefix})
+        r = http_get(request, 'bottleprefixes', {'bottle_prefix': this_bottle_prefix})
         logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
         response_data = r.json()
         logger.info("bottles count: " + str(response_data['count']))
@@ -1305,11 +1142,9 @@ def bottle_prefixes_range_create(request):
         logger.warning("Validation Warning: " + message)
         return HttpResponse(message, content_type='text/html')
 
-    ## SAVE Bottle Prefixes ##
+    # SAVE Bottle Prefixes #
     # send the bottle prefixes to the database
-    new_bottle_prefixes = json.dumps(new_bottle_prefixes)
-    r = requests.request(
-        method='POST', url=REST_SERVICES_URL+'bulkbottleprefixes/', data=new_bottle_prefixes, headers=headers)
+    r = http_post(request, 'bulkbottleprefixes', json.dumps(new_bottle_prefixes))
     logger.info(r.request.method + " " + r.request.url + " " + r.reason + " " + str(r.status_code))
     if r.status_code != 201:
         message = "\"Error " + str(r.status_code) + ": " + r.reason + ". Cannot save bottle prefixes."
@@ -1322,8 +1157,6 @@ def bottle_prefixes_range_create(request):
 
 
 def bottles_create(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     data = json.loads(request.body.decode('utf-8'))
     all_unique_bottle_names = True
     all_existing_bottle_prefixes = True
@@ -1335,16 +1168,16 @@ def bottles_create(request):
     item_number = 0
     for item in data:
         item_number += 1
-        this_bottle_name = {'bottle_unique_name': item.get('bottle_unique_name')}
-        r = requests.get(REST_SERVICES_URL+'bottles/', params=this_bottle_name)
+        this_bottle_unique_name = item.get('bottle_unique_name')
+        r = http_get(request, 'bottles', {'bottle_unique_name': this_bottle_unique_name})
         logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
         response_data = r.json()
         logger.info("bottles count: " + str(response_data['count']))
         # if response count does not equal zero, then this sample already exists in the database
         if response_data['count'] != 0:
             all_unique_bottle_names = False
-            logger.warning("Validation Warning: " + item.get('bottle_unique_name') + " count != 0")
-            this_message = "Row " + str(item_number) + ": " + item.get('bottle_unique_name') + ","
+            logger.warning("Validation Warning: " + this_bottle_unique_name + " count != 0")
+            this_message = "Row " + str(item_number) + ": " + this_bottle_unique_name + ","
             message_exist = message_exist + " " + this_message
     if not all_unique_bottle_names:
         message = json.dumps(message_exist)
@@ -1357,7 +1190,7 @@ def bottles_create(request):
     for item in data:
         item_number += 1
         this_bottle_prefix = item.get('bottle_prefix')
-        r = requests.get(REST_SERVICES_URL+'bottleprefixes/', params={'bottle_prefix': this_bottle_prefix})
+        r = http_get(request, 'bottleprefixes', {'bottle_prefix': this_bottle_prefix})
         logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
         response_data = r.json()
         logger.info("bottles count: " + str(response_data['count']))
@@ -1372,7 +1205,7 @@ def bottles_create(request):
         logger.warning("Validation Warning: " + message)
         return HttpResponse(message, content_type='text/html')
 
-    ## SAVE Bottles ##
+    # SAVE Bottles #
     # send the bottles to the database
     logger.info("SAVE Bottles")
     table = json.loads(request.body.decode('utf-8'))
@@ -1385,7 +1218,7 @@ def bottles_create(request):
         bottle_data.append(this_bottle)
     bottle_data = json.dumps(bottle_data)
     logger.info(bottle_data)
-    r = requests.request(method='POST', url=REST_SERVICES_URL+'bulkbottles/', data=bottle_data, headers=headers)
+    r = http_post(request, 'bulkbottles', bottle_data)
     logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
     if r.status_code != 201:
         message = "\"Error " + str(r.status_code) + ": " + r.reason + ". Cannot save bottles."
@@ -1398,74 +1231,36 @@ def bottles_create(request):
 
 
 def bottles_delete(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     data = json.loads(request.body.decode('utf-8'))
     this_id = data.pop("id")
-    url = REST_SERVICES_URL+'bottles/'+str(this_id)+'/'
-    r = requests.request(method='DELETE', url=url, headers=headers)
+    r = http_delete(request, 'bottles/'+str(this_id))
     logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
     return HttpResponse(r)
 
 
 def brominations(request):
-    if not request.session.get('token'):
+    if not request.session.get('username'):
         return HttpResponseRedirect('/merlin/')
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     context = RequestContext(request)
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'brominations/', headers=headers_auth_token)
-    data = json.dumps(r.json(), sort_keys=True)
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'samplebottlebrominations/', headers=headers_auth_token)
-    samples = json.dumps(r.json(), sort_keys=True)
+    data = json.dumps(http_get(request, 'brominations').json(), sort_keys=True)
+    samples = json.dumps(http_get(request, 'samplebottlebrominations').json(), sort_keys=True)
     context_dict = {'data': data, 'samples': samples}
     return render_to_response('merlin/brominations.html', context_dict, context)
 
 
 def brominations_update(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
-    #data = request.body
-    #r = requests.request(
-    # method='PUT', url=REST_SERVICES_URL+'bulkbrominations/', data=data, headers=headers_auth_token)
-    #return HttpResponse(r, content_type='application/json')
     data = json.loads(request.body.decode('utf-8'))
     response_data = []
     # using a loop to send data to the single PUT endpoint instead of just using the bulk PUT endpoint
     # because the bulk PUT response time has been over 30 seconds, sometimes several minutes
-    # item_number = 0
-    # for item in data:
-    #     item_number += 1
-    #     item_id = item["id"]
-    #     item = json.dumps(item)
-    #     logger.info("Item #" + str(item_number) + ": " + item)
-    #     r = requests.request(method='PUT', url=REST_SERVICES_URL+'brominations/', data=item, headers=headers)
-    #     logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
-    #     if r.status_code != 200 or r.status_code != 201:
-    #         message = "\"Encountered an error while attempting to save bromination "
-    #         message += str(item_id) + ": " + str(r.status_code) + "\""
-    #         logger.error(message)
-    #         return HttpResponse(message, content_type='text/html')
-    #     else:
-    #         this_response_data = r.json()
-    #         logger.info(str(len(this_response_data)) + " brominations saved")
-    #         response_data.append(this_response_data)
     item_number = 0
     for item in data:
         item_number += 1
         this_id = item.pop("id")
         item = json.dumps(item)
         logger.info("Item #" + str(item_number) + ": " + item)
-        url = REST_SERVICES_URL+'brominations/'+str(this_id)+'/'
-        r = requests.request(method='PUT', url=url, data=item, headers=headers)
+        r = http_put(request, 'brominations/'+str(this_id), item)
         logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
-        # if r.status_code != 200:# or r.status_code != 201:
-        #     message = "\"Encountered an error while attempting to save bromination.\""
-        #     logger.error(message)
-        #     return HttpResponse(message, content_type='text/html')
-        # else:
-        #     this_response_data = r.json()
-        #     logger.info(str(len(this_response_data)) + " brominations saved")
-        #     response_data.append(this_response_data)
         this_response_data = r.json()
         response_data.append(this_response_data)
     response_data = json.dumps(response_data)
@@ -1473,28 +1268,21 @@ def brominations_update(request):
 
 
 def brominations_create(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     data = request.body
-    r = requests.request(method='POST', url=REST_SERVICES_URL+'bulkbrominations/', data=data, headers=headers)
+    r = http_post(request, 'bulkbrominations', data)
     logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
     return HttpResponse(r, content_type='application/json')
 
 
 def brominations_delete(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     data = json.loads(request.body.decode('utf-8'))
     this_id = data.pop("id")
-    url = REST_SERVICES_URL+'brominations/'+str(this_id)+'/'
-    r = requests.request(method='DELETE', url=url, headers=headers)
+    r = http_delete(request, 'brominations/'+str(this_id))
     logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
     return HttpResponse(r)
 
 
 def samplebottlebrominations_create(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     data = json.loads(request.body.decode('utf-8'))
     all_valid_sample_bottles = True
     message_not_valid = "These Sample Bottles are not for UTHG or FTHG: "
@@ -1504,8 +1292,7 @@ def samplebottlebrominations_create(request):
     item_number = 0
     for item in data:
         item_number += 1
-        params = {'id': item.get('sample_bottle'), 'constituent': '39,27'}
-        r = requests.get(REST_SERVICES_URL+'samplebottles/', params=params)
+        r = http_get(request, 'samplebottles', {'id': item.get('sample_bottle'), 'constituent': '39,27'})
         logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
         response_data = r.json()
         logger.info("bottles count: " + str(response_data['count']))
@@ -1520,7 +1307,7 @@ def samplebottlebrominations_create(request):
         logger.warning("Validation Warning: " + message)
         return HttpResponse(message, content_type='text/html')
 
-    ## SAVE Sample Bottle Brominations ##
+    # SAVE Sample Bottle Brominations #
     # send the sample bottle brominations to the database
     logger.info("SAVE Sample Bottle Brominations")
     table = json.loads(request.body.decode('utf-8'))
@@ -1530,10 +1317,8 @@ def samplebottlebrominations_create(request):
                      'bromination_event': row.get('bromination_event'),
                      'bromination_volume': row.get('bromination_volume'), 'created_date': row.get('created_date')}
         brom_data.append(this_brom)
-    brom_data = json.dumps(brom_data)
     logger.info(brom_data)
-    r = requests.request(
-        method='POST', url=REST_SERVICES_URL+'bulksamplebottlebrominations/', data=brom_data, headers=headers)
+    r = http_post(request, 'bulksamplebottlebrominations', json.dumps(brom_data))
     logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
     if r.status_code != 201:
         message = "\"Error " + str(r.status_code) + ": " + r.reason + ". Cannot save sample bottle brominations."
@@ -1546,8 +1331,6 @@ def samplebottlebrominations_create(request):
 
 
 def samplebottlebrominations_search(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
 
     if request.method == 'POST':
         params_dict = {}
@@ -1561,67 +1344,45 @@ def samplebottlebrominations_search(request):
         if params['date_before']:
             params_dict["date_before"] = datetime.strptime(
                 str(params['date_before']).strip('[]'), '%m/%d/%y').strftime('%Y-%m-%d')
-        #logger.info(params_dict)
 
-        r = requests.request(
-            method='GET', url=REST_SERVICES_URL+'samplebottlebrominations/', params=params_dict, headers=headers)
+        r = http_get(request, 'samplebottlebrominations', params_dict)
         logger.info(r.request.method + " " + r.request.url + " " + r.reason + " " + str(r.status_code))
         r_dict = r.json()
         logger.info("search sample bottles brominations count: " + str(r_dict['count']))
-        r_json = json.dumps(r_dict)
-        return HttpResponse(r_json, content_type='application/json')
+        return HttpResponse(json.dumps(r_dict), content_type='application/json')
 
 
 def samplebottlebrominations_delete(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     data = json.loads(request.body.decode('utf-8'))
     this_id = data.pop("id")
-    url = REST_SERVICES_URL+'samplebottlebrominations/'+str(this_id)+'/'
-    r = requests.request(method='DELETE', url=url, headers=headers)
+    r = http_delete(request, 'samplebottlebrominations/'+str(this_id))
     logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
     return HttpResponse(r)
 
 
 def blankwaters(request):
-    if not request.session.get('token'):
+    if not request.session.get('username'):
         return HttpResponseRedirect('/merlin/')
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     context = RequestContext(request)
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'blankwaters/', headers=headers_auth_token)
+    r = http_get(request, 'blankwaters')
     data = json.dumps(r.json(), sort_keys=True)
     context_dict = {'data': data}
     return render_to_response('merlin/blankwaters.html', context_dict, context)
 
 
 def blankwaters_update(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
-    #data = request.body
-    #r = requests.request(method='PUT', url=REST_SERVICES_URL+'bulkblankwaters/', data=data, headers=headers_auth_token)
-    #return HttpResponse(r, content_type='application/json')
     data = json.loads(request.body.decode('utf-8'))
     response_data = []
     # using a loop to send data to the single PUT endpoint instead of just using the bulk PUT endpoint
     # because the bulk PUT response time has been over 30 seconds, sometimes several minutes
-    #
     item_number = 0
     for item in data:
         item_number += 1
         this_id = item.pop("id")
         item = json.dumps(item)
         logger.info("Item #" + str(item_number) + ": " + item)
-        url = REST_SERVICES_URL+'blankwaters/'+str(this_id)+'/'
-        r = requests.request(method='PUT', url=url, data=item, headers=headers)
+        r = http_put(request, 'blankwaters/'+str(this_id), item)
         logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
-        # if r.status_code != 200:# or r.status_code != 201:
-        #     message = "\"Encountered an error while attempting to save blankwater.\""
-        #     logger.error(message)
-        #     return HttpResponse(message, content_type='text/html')
-        # else:
-        #     this_response_data = r.json()
-        #     logger.info(str(len(this_response_data)) + " blankwater saved")
-        #     response_data.append(this_response_data)
         this_response_data = r.json()
         response_data.append(this_response_data)
     response_data = json.dumps(response_data)
@@ -1629,80 +1390,42 @@ def blankwaters_update(request):
 
 
 def blankwaters_create(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     data = request.body
-    r = requests.request(method='POST', url=REST_SERVICES_URL+'bulkblankwaters/', data=data, headers=headers)
+    r = http_post(request, 'bulkblankwaters', data)
     logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
     return HttpResponse(r, content_type='application/json')
 
 
 def blankwaters_delete(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     data = json.loads(request.body.decode('utf-8'))
     this_id = data.pop("id")
-    url = REST_SERVICES_URL+'blankwaters/'+str(this_id)+'/'
-    r = requests.request(method='DELETE', url=url, headers=headers)
+    r = http_delete(request, 'blankwaters/' + str(this_id))
     logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
     return HttpResponse(r)
 
 
 def acids(request):
-    if not request.session.get('token'):
+    if not request.session.get('username'):
         return HttpResponseRedirect('/merlin/')
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     context = RequestContext(request)
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'acids/', headers=headers_auth_token)
-    data = json.dumps(r.json(), sort_keys=True)
+    data = json.dumps(http_get(request, 'acids').json(), sort_keys=True)
     context_dict = {'data': data}
     return render_to_response('merlin/acids.html', context_dict, context)
 
 
 def acids_update(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
-    #data = request.body
-    #r = requests.request(method='PUT', url=REST_SERVICES_URL+'bulkacids/', data=data, headers=headers_auth_token)
-    #eturn HttpResponse(r, content_type='application/json')
     data = json.loads(request.body.decode('utf-8'))
     response_data = []
     # using a loop to send data to the single PUT endpoint instead of just using the bulk PUT endpoint
     # because the bulk PUT response time has been over 30 seconds, sometimes several minutes
-    # item_number = 0
-    # for item in data:
-    #     item_number += 1
-    #     item_id = item["id"]
-    #     item = json.dumps(item)
-    #     logger.info("Item #" + str(item_number) + ": " + item)
-    #     r = requests.request(method='PUT', url=REST_SERVICES_URL+'acids/', data=item, headers=headers)
-    #     logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
-    #     if r.status_code != 200 or r.status_code != 201:
-    #         message = "\"Encountered an error while attempting to save acid "
-    #         message += str(item_id) + ": " + str(r.status_code) + "\""
-    #         logger.error(message)
-    #         return HttpResponse(message, content_type='text/html')
-    #     else:
-    #         this_response_data = r.json()
-    #         logger.info(str(len(this_response_data)) + " acids saved")
-    #         response_data.append(this_response_data)
     item_number = 0
     for item in data:
         item_number += 1
         this_id = item.pop("id")
         item = json.dumps(item)
         logger.info("Item #" + str(item_number) + ": " + item)
-        url = REST_SERVICES_URL+'acids/'+str(this_id)+'/'
-        r = requests.request(method='PUT', url=url, data=item, headers=headers)
+        r = http_put(request, 'acids/'+str(this_id), item)
         logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
-        # if r.status_code != 200:# or r.status_code != 201:
-        #     message = "\"Encountered an error while attempting to save acid.\""
-        #     logger.error(message)
-        #     return HttpResponse(message, content_type='text/html')
-        # else:
-        #     this_response_data = r.json()
-        #     logger.info(str(len(this_response_data)) + " acids saved")
-        #     response_data.append(this_response_data)
         this_response_data = r.json()
         response_data.append(this_response_data)
     response_data = json.dumps(response_data)
@@ -1710,82 +1433,43 @@ def acids_update(request):
 
 
 def acids_create(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     data = request.body
-    r = requests.request(method='POST', url=REST_SERVICES_URL+'bulkacids/', data=data, headers=headers)
+    r = http_post(request, 'bulkacids', data)
     logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
     return HttpResponse(r, content_type='application/json')
 
 
 def acids_delete(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     data = json.loads(request.body.decode('utf-8'))
     this_id = data.pop("id")
-    url = REST_SERVICES_URL+'acids/'+str(this_id)+'/'
-    r = requests.request(method='DELETE', url=url, headers=headers)
+    r = http_delete(request, 'acids/'+str(this_id))
     logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
     return HttpResponse(r)
 
 
 def sites(request):
-    if not request.session.get('token'):
+    if not request.session.get('username'):
         return HttpResponseRedirect('/merlin/')
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     context = RequestContext(request)
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'sites/', headers=headers_auth_token)
-    data = json.dumps(r.json(), sort_keys=True)
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'projects/', headers=headers_auth_token)
-    projects = json.dumps(r.json(), sort_keys=True)
+    data = json.dumps(http_get(request, 'sites').json(), sort_keys=True)
+    projects = json.dumps(http_get(request, 'projects').json(), sort_keys=True)
     context_dict = {'data': data, 'projects': projects}
     return render_to_response('merlin/sites.html', context_dict, context)
 
 
 def sites_update(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
-    #data = request.body
-    #r = requests.request(method='PUT', url=REST_SERVICES_URL+'bulksites/', data=data, headers=headers_auth_token)
-    #return HttpResponse(r, content_type='application/json')
     data = json.loads(request.body.decode('utf-8'))
     response_data = []
     # using a loop to send data to the single PUT endpoint instead of just using the bulk PUT endpoint
     # because the bulk PUT response time has been over 30 seconds, sometimes several minutes
-    # item_number = 0
-    # for item in data:
-    #     item_number += 1
-    #     item_id = item["id"]
-    #     item = json.dumps(item)
-    #     logger.info("Item #" + str(item_number) + ": " + item)
-    #     r = requests.request(method='PUT', url=REST_SERVICES_URL+'sites/', data=item, headers=headers)
-    #     logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
-    #     if r.status_code != 200 or r.status_code != 201:
-    #         message = "\"Encountered an error while attempting to save site "
-    #         message += str(item_id) + ": " + str(r.status_code) + "\""
-    #         logger.error(message)
-    #         return HttpResponse(message, content_type='text/html')
-    #     else:
-    #         this_response_data = r.json()
-    #         logger.info(str(len(this_response_data)) + " sites saved")
-    #         response_data.append(this_response_data)
     item_number = 0
     for item in data:
         item_number += 1
         this_id = item.pop("id")
         item = json.dumps(item)
         logger.info("Item #" + str(item_number) + ": " + item)
-        url = REST_SERVICES_URL+'sites/'+str(this_id)+'/'
-        r = requests.request(method='PUT', url=url, data=item, headers=headers)
+        r = http_put(request, 'sites/'+str(this_id), item)
         logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
-        # if r.status_code != 200:# or r.status_code != 201:
-        #     message = "\"Encountered an error while attempting to save site.\""
-        #     logger.error(message)
-        #     return HttpResponse(message, content_type='text/html')
-        # else:
-        #     this_response_data = r.json()
-        #     logger.info(str(len(this_response_data)) + " sites saved")
-        #     response_data.append(this_response_data)
         this_response_data = r.json()
         response_data.append(this_response_data)
     response_data = json.dumps(response_data)
@@ -1793,82 +1477,43 @@ def sites_update(request):
 
 
 def sites_create(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     data = request.body
-    r = requests.request(method='POST', url=REST_SERVICES_URL+'bulksites/', data=data, headers=headers)
+    r = http_post(request, 'bulksites', data)
     logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
     return HttpResponse(r, content_type='application/json')
 
 
 def sites_delete(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     data = json.loads(request.body.decode('utf-8'))
     this_id = data.pop("id")
-    url = REST_SERVICES_URL+'sites/'+str(this_id)+'/'
-    r = requests.request(method='DELETE', url=url, headers=headers)
+    r = http_delete(request, 'sites/'+str(this_id))
     logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
     return HttpResponse(r)
 
 
 def projects(request):
-    if not request.session.get('token'):
+    if not request.session.get('username'):
         return HttpResponseRedirect('/merlin/')
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     context = RequestContext(request)
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'projects/', headers=headers_auth_token)
-    data = json.dumps(r.json(), sort_keys=True)
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'cooperators/', headers=headers_auth_token)
-    cooperators = json.dumps(r.json(), sort_keys=True)
+    data = json.dumps(http_get(request, 'projects').json(), sort_keys=True)
+    cooperators = json.dumps(http_get(request, 'cooperators').json(), sort_keys=True)
     context_dict = {'data': data, 'cooperators': cooperators}
     return render_to_response('merlin/projects.html', context_dict, context)
 
 
 def projects_update(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
-    #data = request.body
-    #r = requests.request(method='PUT', url=REST_SERVICES_URL+'bulkprojects/', data=data, headers=headers_auth_token)
-    #return HttpResponse(r, content_type='application/json')
     data = json.loads(request.body.decode('utf-8'))
     response_data = []
     # using a loop to send data to the single PUT endpoint instead of just using the bulk PUT endpoint
     # because the bulk PUT response time has been over 30 seconds, sometimes several minutes
-    # item_number = 0
-    # for item in data:
-    #     item_number += 1
-    #     item_id = item["id"]
-    #     item = json.dumps(item)
-    #     logger.info("Item #" + str(item_number) + ": " + item)
-    #     r = requests.request(method='PUT', url=REST_SERVICES_URL+'projects/', data=item, headers=headers)
-    #     logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
-    #     if r.status_code != 200 or r.status_code != 201:
-    #         message = "\"Encountered an error while attempting to save project "
-    #         message += str(item_id) + ": " + str(r.status_code) + "\""
-    #         logger.error(message)
-    #         return HttpResponse(message, content_type='text/html')
-    #     else:
-    #         this_response_data = r.json()
-    #         logger.info(str(len(this_response_data)) + " projects saved")
-    #         response_data.append(this_response_data)
     item_number = 0
     for item in data:
         item_number += 1
         this_id = item.pop("id")
         item = json.dumps(item)
         logger.info("Item #" + str(item_number) + ": " + item)
-        url = REST_SERVICES_URL+'projects/'+str(this_id)+'/'
-        r = requests.request(method='PUT', url=url, data=item, headers=headers)
+        r = http_put(request, 'projects/'+str(this_id), item)
         logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
-        # if r.status_code != 200:# or r.status_code != 201:
-        #     message = "\"Encountered an error while attempting to save project.\""
-        #     logger.error(message)
-        #     return HttpResponse(message, content_type='text/html')
-        # else:
-        #     this_response_data = r.json()
-        #     logger.info(str(len(this_response_data)) + " projects saved")
-        #     response_data.append(this_response_data)
         this_response_data = r.json()
         response_data.append(this_response_data)
     response_data = json.dumps(response_data)
@@ -1876,49 +1521,36 @@ def projects_update(request):
 
 
 def projects_create(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     data = request.body
-    r = requests.request(method='POST', url=REST_SERVICES_URL+'bulkprojects/', data=data, headers=headers)
+    r = http_post(request, 'bulkprojects', data)
     logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
     return HttpResponse(r, content_type='application/json')
 
 
 def projects_delete(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     data = json.loads(request.body.decode('utf-8'))
     this_id = data.pop("id")
-    url = REST_SERVICES_URL+'projects/'+str(this_id)+'/'
-    r = requests.request(method='DELETE', url=url, headers=headers)
+    r = http_delete(request, 'projects/'+str(this_id))
     logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
     return HttpResponse(r)
 
 
 def projectssites(request):
-    if not request.session.get('token'):
+    if not request.session.get('username'):
         return HttpResponseRedirect('/merlin/')
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     context = RequestContext(request)
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'projectssites/', headers=headers_auth_token)
-    data = json.dumps(r.json(), sort_keys=True)
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'projects/', headers=headers_auth_token)
-    projects = json.dumps(r.json(), sort_keys=True)
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'sites/', headers=headers_auth_token)
-    sites = json.dumps(r.json(), sort_keys=True)
+    data = json.dumps(http_get(request, 'projectssites').json(), sort_keys=True)
+    projects = json.dumps(http_get(request, 'projects').json(), sort_keys=True)
+    sites = json.dumps(http_get(request, 'sites').json(), sort_keys=True)
     context_dict = {'data': data, 'projects': projects, 'sites': sites}
     return render_to_response('merlin/projects_sites.html', context_dict, context)
 
 
 def projectssites_create(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     data = json.loads(request.body.decode('utf-8'))
-
     # validate that the submitted project-site doesn't already exist
     logger.info("VALIDATE Project-Site Add")
-    this_projectsite = {'project': data.get('project'), 'site': data.get('site')}
-    r = requests.get(REST_SERVICES_URL+'projectssites/', params=this_projectsite)
+    r = http_get(request, 'projectssites', {'project': data.get('project'), 'site': data.get('site')})
     logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
     response_data = r.json()
     logger.info("projects-sites count: " + str(response_data['count']))
@@ -1931,79 +1563,41 @@ def projectssites_create(request):
         message += str(response_data['results'][0]['site_name']) + " already exists."
         message = json.dumps(message)
         return HttpResponse(message, content_type='text/html')
-
-    data = json.dumps(data)
-    r = requests.request(method='POST', url=REST_SERVICES_URL+'projectssites/', data=data, headers=headers)
+    r = http_post(request, 'projectssites', json.dumps(data))
     logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
     return HttpResponse(r, content_type='application/json')
 
 
 def projectssites_delete(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     data = json.loads(request.body.decode('utf-8'))
     this_id = data.pop("id")
-    url = REST_SERVICES_URL+'projectssites/'+str(this_id)+'/'
-    r = requests.request(method='DELETE', url=url, headers=headers)
+    r = http_delete(request, 'projectssites/'+str(this_id))
     logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
     return HttpResponse(r)
 
 
 def cooperators(request):
-    if not request.session.get('token'):
+    if not request.session.get('username'):
         return HttpResponseRedirect('/merlin/')
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
     context = RequestContext(request)
-    r = requests.request(method='GET', url=REST_SERVICES_URL+'cooperators/', headers=headers_auth_token)
-    data = json.dumps(r.json(), sort_keys=True)
+    data = json.dumps(http_get(request, 'cooperators').json(), sort_keys=True)
     context_dict = {'data': data}
     return render_to_response('merlin/cooperators.html', context_dict, context)
 
 
 def cooperators_update(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
-    #data = request.body
-    #r = requests.request(method='PUT', url=REST_SERVICES_URL+'bulkcooperators/', data=data, headers=headers_auth_token)
-    #return HttpResponse(r, content_type='application/json')
     data = json.loads(request.body.decode('utf-8'))
     response_data = []
     # using a loop to send data to the single PUT endpoint instead of just using the bulk PUT endpoint
     # because the bulk PUT response time has been over 30 seconds, sometimes several minutes
-    # item_number = 0
-    # for item in data:
-    #     item_number += 1
-    #     item_id = item["id"]
-    #     item = json.dumps(item)
-    #     logger.info("Item #" + str(item_number) + ": " + item)
-    #     r = requests.request(method='PUT', url=REST_SERVICES_URL+'cooperators/', data=item, headers=headers)
-    #     logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
-    #     if r.status_code != 200 or r.status_code != 201:
-    #         message = "\"Encountered an error while attempting to save cooperator "
-    #         message += item_id + ": " + str(r.status_code) + "\""
-    #         logger.error(message)
-    #         return HttpResponse(message, content_type='text/html')
-    #     else:
-    #         this_response_data = r.json()
-    #         response_data.append(this_response_data)
-    #         logger.info(str(len(this_response_data)) + " cooperators saved")
     item_number = 0
     for item in data:
         item_number += 1
         this_id = item.pop("id")
         item = json.dumps(item)
         logger.info("Item #" + str(item_number) + ": " + item)
-        url = REST_SERVICES_URL+'cooperators/'+str(this_id)+'/'
-        r = requests.request(method='PUT', url=url, data=item, headers=headers)
+        r = http_put(request, 'cooperators/'+str(this_id), item)
         logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
-        # if r.status_code != 200:# or r.status_code != 201:
-        #     message = "\"Encountered an error while attempting to save cooperator.\""
-        #     logger.error(message)
-        #     return HttpResponse(message, content_type='text/html')
-        # else:
-        #     this_response_data = r.json()
-        #     logger.info(str(len(this_response_data)) + " cooperators saved")
-        #     response_data.append(this_response_data)
         this_response_data = r.json()
         response_data.append(this_response_data)
     response_data = json.dumps(response_data)
@@ -2011,88 +1605,21 @@ def cooperators_update(request):
 
 
 def cooperators_create(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     data = request.body
-    r = requests.request(method='POST', url=REST_SERVICES_URL+'bulkcooperators/', data=data, headers=headers)
+    r = http_post(request, 'bulkcooperators', data)
     logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
     return HttpResponse(r, content_type='application/json')
 
 
 def cooperators_delete(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    headers = dict(chain(headers_auth_token.items(), HEADERS_CONTENT_JSON.items()))
     data = json.loads(request.body.decode('utf-8'))
     this_id = data.pop("id")
-    url = REST_SERVICES_URL+'cooperators/'+str(this_id)+'/'
-    r = requests.request(method='DELETE', url=url, headers=headers)
+    r = http_delete(request, 'cooperators/'+str(this_id))
     logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
     return HttpResponse(r)
 
 
-#login using Session Authentication
-#@ensure_csrf_cookie
-# This may not be the right way to do this.
-# We need to decouple the client from the database and log in through services instead.
-# def user_login(request):
-#     context = RequestContext(request)
-#
-#     if request.method == 'POST':
-#         username = request.POST['username']
-#         password = request.POST['password']
-#
-#         user = authenticate(username=username, password=password)
-#
-#         if user:
-#             if user.is_active:
-#                 login(request, user)
-#                 global USER_AUTH
-#                 USER_AUTH = (username, password)
-#                 return HttpResponseRedirect('/merlin/')
-#             else:
-#                 return HttpResponse("Your account is disabled.")
-#
-#         else:
-#             logger.info("Invalid login details: {0}, {1}".format(username, password))
-#             return HttpResponse("Invalid login details supplied.")
-#
-#     else:
-#         return render_to_response('merlin/login.html', {}, context)
-
-
-# #login using Basic Authentication
-# #@ensure_csrf_cookie
-# def user_login(request):
-#     context = RequestContext(request)
-#
-#     if request.method == 'POST':
-#         username = request.POST['username']
-#         password = request.POST['password']
-#
-#         r = requests.request(method='POST', url=REST_SERVICES_URL+'login/', data=request.POST)
-#
-#         if r.status_code == 200:
-#             r_dict = ast.literal_eval(r.text)
-#             # user = User.objects.create_user(username, None, None)
-#             # logger.info("User:")
-#             # logger.info(user)
-#             # login(request, user)
-#             request.session['username'] = r_dict['username']
-#             global USER_AUTH
-#             USER_AUTH = (username, password)
-#             return HttpResponseRedirect('/merlin/')
-#
-#         else:
-#             r_dict = json.loads(r.json())
-#             resp = "<h1>" + str(r.status_code) + "</h1>"
-#             resp += "<h3>" + r_dict['status'] + "</h3><p>" + r_dict['message'] + "</p>"
-#             return HttpResponse(resp)
-#
-#     else:
-#         return render_to_response('merlin/login.html', {}, context)
-
-
-#login using Token Authentication
+# login using Basic Authentication
 def user_login(request):
     context = RequestContext(request)
 
@@ -2110,33 +1637,19 @@ def user_login(request):
             logger.error("Error: Password not submitted.")
             return render_to_response('merlin/login.html', r, context)
 
-        data = {"username": username, "password": password}
-
-        r = requests.request(method='POST', url=REST_AUTH_URL+'login/', data=data, headers=HEADERS_CONTENT_FORM)
+        r = requests.request(method='POST', url=REST_SERVICES_URL + 'auth/', auth=(username, password))
         logger.info(r.request.method + " " + r.request.url + " " + r.reason + " " + str(r.status_code))
         response_data = r.json()
 
         if r.status_code == 200:
-            # global USER_TOKEN
-            # USER_TOKEN = eval(r.content)['auth_token']
-            # global USER_AUTH
-            # USER_AUTH = (username, password)
-            token = eval(r.content)['auth_token']
-            #logger.info(token)
-            request.session['token'] = token
-            #request.session['username'] = username
-            #request.session['password'] = password
-
-            params_dict = {"username": username}
-            headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-            r = requests.request(
-                method='GET', url=REST_SERVICES_URL+'users/', params=params_dict, headers=headers_auth_token)
+            r = requests.request(method='GET', url=REST_SERVICES_URL + 'users/', params={'username': username},
+                                 auth=(username, password))
             logger.info(r.request.method + " " + r.request.url + " " + r.reason + " " + str(r.status_code))
-
             if r.status_code == 200:
                 user = r.json()[0]
                 if user['is_active']:
-                    request.session['username'] = user['username']
+                    request.session['username'] = username
+                    request.session['password'] = password
                     request.session['first_name'] = user['first_name']
                     request.session['last_name'] = user['last_name']
                     request.session['email'] = user['email']
@@ -2144,11 +1657,9 @@ def user_login(request):
                     request.session['is_active'] = user['is_active']
                     request.session['bad_details'] = False
                     return HttpResponseRedirect('/merlin/')
-
                 else:
                     r = {"disabled_account": True}
                     return render_to_response('merlin/login.html', r, context)
-
             else:
                 logger.error("Error: Could not retrieve details of " + username + " from Mercury Services")
                 resp = "<h1>" + str(r.status_code) + ": " + r.reason + "</h1>"
@@ -2156,11 +1667,20 @@ def user_login(request):
                 resp += "<p>Please contact the administrator.</p>"
                 return HttpResponse(resp)
 
-        elif (response_data["non_field_errors"]
-                and response_data["non_field_errors"][0] == "Unable to login with provided credentials."):
+        elif (response_data["detail"] == "Invalid username/password."):
             r = {"bad_details": True}
-            logger.error("Error: " + response_data["non_field_errors"][0] + " Username: " + username + ".")
+            logger.error("Error: " + response_data["detail"] + " Username: " + username + ".")
             return render_to_response('merlin/login.html', r, context)
+
+        elif (response_data["non_field_errors"]):
+            if (response_data["non_field_errors"][0] == "Unable to login with provided credentials."):
+                r = {"bad_details": True}
+                logger.error("Error: " + response_data["non_field_errors"][0] + " Username: " + username + ".")
+                return render_to_response('merlin/login.html', r, context)
+            else:
+                r = {"bad_details": True}
+                logger.error("Error: " + response_data["non_field_errors"][0] + " Username: " + username + ".")
+                return render_to_response('merlin/login.html', r, context)
 
         else:
             logger.error("Error: Could not log in " + username + " with Mercury Services.")
@@ -2172,82 +1692,45 @@ def user_login(request):
         return render_to_response('merlin/login.html', {}, context)
 
 
-#logout using Session Authentication
-# def user_logout(request):
-#     logout(request)
-#     return HttpResponseRedirect('/merlin/')
-
-
-# #logout using Basic Authentication
-# def user_logout(request):
-#     r = requests.request(method='POST', url=REST_SERVICES_URL+'/logout/')
-#     if r.status_code == 204:
-#         del request.session['username']
-#         request.session.modified = True
-#         global USER_AUTH
-#         USER_AUTH = ('guest', 'guest')
-#         return HttpResponseRedirect('/merlin/')
-#
-#     else:
-#         return HttpResponse("<h1>Logout wasn't performed. Please contact the administrator.</h1>")
-
-
-#logout using Token Authentication
+# logout using Basic Authentication
 def user_logout(request):
-    headers_auth_token = {'Authorization': 'Token ' + request.session['token']}
-    r = requests.request(method='POST', url=REST_AUTH_URL+'logout/', headers=headers_auth_token)
-    logger.info(r.request.method + " " + r.request.url + " " + r.reason + " " + str(r.status_code))
+    logger.info("Success: Logged out " + request.session['username'])
+    del request.session['username']
+    del request.session['password']
+    del request.session['first_name']
+    del request.session['last_name']
+    del request.session['email']
+    del request.session['is_staff']
+    del request.session['is_active']
+    request.session.modified = True
+    return HttpResponseRedirect('/merlin/')
 
-    if r.status_code == 200:
-        logger.info("Success: Logged out " + request.session['username'])
-        del request.session['token']
-        del request.session['username']
-        del request.session['first_name']
-        del request.session['last_name']
-        del request.session['email']
-        del request.session['is_staff']
-        del request.session['is_active']
-        request.session.modified = True
-        # global USER_AUTH
-        # USER_AUTH = ('guest', 'guest')
-        # global USER_TOKEN
-        # USER_TOKEN = ''
-        return HttpResponseRedirect('/merlin/')
-
-    else:
-        response_data = r.json()
-        if response_data["detail"]:
-            logger_message = "Error: " + response_data["detail"] + " Could not log out "
-            logger_message += request.session['username'] + " from Mercury Services"
-            logger.error(logger_message)
-        else:
-            logger.error("Error: Could not log out " + request.session['username'] + " from Mercury Services")
-        resp = "<h1>" + str(r.status_code) + ": " + r.reason + "</h1>"
-        resp += "<p>Logout could not be performed. Please contact the administrator.</p>"
-        return HttpResponse(resp)
-
-# #force logout by clearing session variables
-# def user_logout(request):
-#     del request.session['token']
-#     del request.session['username']
-#     del request.session['password']
-#     request.session.modified = True
-#     # global USER_AUTH
-#     # USER_AUTH = ('guest', 'guest')
-#     # global USER_TOKEN
-#     # USER_TOKEN = ''
-#     return HttpResponseRedirect('/merlin/')
-
-
-# @login_required
-# def profile(request):
-#     context = RequestContext(request)
-#
-#     context_dict = {'username': request.user.username,
-#                     'fname': request.user.first_name, 'lname': request.user.last_name,
-#                     'initials': request.user.userprofile.initials, 'phone': request.user.userprofile.phone, }
-#
-#     return render_to_response('merlin/profile.html', context_dict, context)
+    # r = requests.request(method='POST', url=REST_AUTH_URL+'logout/',
+    #                      auth=(request.session['username'], request.session['password']))
+    # logger.info(r.request.method + " " + r.request.url + " " + r.reason + " " + str(r.status_code))
+    #
+    # if r.status_code == 200:
+    #     logger.info("Success: Logged out " + request.session['username'])
+    #     del request.session['username']
+    #     del request.session['password']
+    #     del request.session['first_name']
+    #     del request.session['last_name']
+    #     del request.session['email']
+    #     del request.session['is_staff']
+    #     del request.session['is_active']
+    #     request.session.modified = True
+    #     return HttpResponseRedirect('/merlin/')
+    # else:
+    #     response_data = r.json()
+    #     if response_data["detail"]:
+    #         logger_message = "Error: " + response_data["detail"] + " Could not log out "
+    #         logger_message += request.session['username'] + " from Mercury Services"
+    #         logger.error(logger_message)
+    #     else:
+    #         logger.error("Error: Could not log out " + request.session['username'] + " from Mercury Services")
+    #     resp = "<h1>" + str(r.status_code) + ": " + r.reason + "</h1>"
+    #     resp += "<p>Logout could not be performed. Please contact the administrator.</p>"
+    #     return HttpResponse(resp)
 
 
 def about(request):
@@ -2257,10 +1740,4 @@ def about(request):
 
 def index(request):
     context = RequestContext(request)
-    context_dict = nav()
-    return render_to_response('merlin/index.html', context_dict, context)
-
-
-def nav():
-    return {'navlist': ('cooperators', 'projects', 'sites', 'samples', 'bottles', 'acids',
-                        'brominations', 'blankwaters', 'batchuploads', 'results', )}
+    return render_to_response('merlin/index.html', {}, context)

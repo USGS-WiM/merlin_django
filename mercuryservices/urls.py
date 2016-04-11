@@ -57,6 +57,7 @@ router.register(r'bulksites', views.SiteBulkUpdateViewSet, 'bulksites')
 urlpatterns = patterns('',
                        url(r'^', include(router.urls)),
                        url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+                       url(r'^auth/$', views.AuthView.as_view(), name='authenticate'),
                        url(r'^batchupload', views.BatchUpload.as_view(), name='batchupload'),
                        url(r'^reportresultscooperator/',
                            views.ReportResultsCooperator.as_view(), name='reportresultscooperator'),

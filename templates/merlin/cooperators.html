@@ -188,8 +188,10 @@
                     if (thisDataObject['email'] == null) {thisDataObject['email'] = "";}
                     thisDataObject['phone'] = form_add.find('input[name=phone]').val();
                     if (thisDataObject['phone'] == "") {delete thisDataObject['phone']}
+                    else if (isNaN(thisDataObject['phone'])) {grid_console.text('Phone number must be numeric! No dashes or parentheses, etc.'); loading.hide(); button_state.button('reset'); return false;}
                     thisDataObject['sec_phone'] = form_add.find('input[name=sec_phone]').val();
                     if (thisDataObject['sec_phone'] == "") {delete thisDataObject['sec_phone']}
+                    else if (isNaN(thisDataObject['sec_phone'])) {grid_console.text('Secondary Phone number must be numeric! No dashes or parentheses, etc.'); loading.hide(); button_state.button('reset'); return false;}
                     thisDataObject['address'] = form_add.find('input[name=address]').val();
                     if (thisDataObject['address'] == null) {thisDataObject['address'] = "";}
                     thisDataObject['city'] = form_add.find('input[name=city]').val();
@@ -198,6 +200,7 @@
                     if (thisDataObject['state'] == null) {thisDataObject['state'] = "";}
                     thisDataObject['zipcode'] = form_add.find('input[name=zipcode]').val();
                     if (thisDataObject['zipcode'] == "") {delete thisDataObject['zipcode']}
+                    else if (isNaN(thisDataObject['zipcode'])) {grid_console.text('Zipcode must be numeric!'); loading.hide(); button_state.button('reset'); return false;}
                     thisDataObject['country'] = form_add.find('input[name=country]').val();
                     if (thisDataObject['county'] == null) {thisDataObject['country'] = "";}
                     var dataJSON = JSON.stringify(thisDataObject);
@@ -364,6 +367,7 @@
                             if (thisDataRow[i] == null && i != 4 && i != 5 && i != 9) {
                                 thisDataRow[i] = "";
                             }
+                            else if ((i == 4 || i == 5 || i == 9) && isNaN(thisDataRow[i])) {grid_console.text('Phone numbers and Zipcodes must be numeric! No dashes or parentheses, etc.'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
                             thisDataObject[objectFields[i]] = thisDataRow[i];
                         }
                         changedDataArray.push(thisDataObject);

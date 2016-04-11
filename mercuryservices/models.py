@@ -2,13 +2,12 @@ from datetime import datetime
 from django.db import models
 from django.contrib.auth.models import User
 from django.contrib import admin
-from django.conf import settings
 
 
 ######
-##
-## Project and Site
-##
+#
+# Project and Site
+#
 ######
 
 
@@ -78,7 +77,7 @@ class ProjectSite(models.Model):
     site = models.ForeignKey('Site')
 
     def __str__(self):
-        #return str(self.id)
+        # return str(self.id)
         return str(self.project) + " - " + str(self.site)
 
     class Meta:
@@ -88,9 +87,9 @@ class ProjectSite(models.Model):
 
 
 ######
-##
-## Bottle
-##
+#
+# Bottle
+#
 ######
 
 
@@ -134,10 +133,10 @@ class Bottle(models.Model):
     bottle_prefix = models.ForeignKey('BottlePrefix')
     description = models.TextField(blank=True)
     created_date = models.DateField(default=datetime.now, null=True, blank=True, db_index=True)
-    #created_by = CreatingUserField(related_name='created_bottles')
+    # created_by = CreatingUserField(related_name='created_bottles')
     modified_date = models.DateField(auto_now=True, null=True, blank=True)
-    #modified_by = LastUserField()
-    #modified_by = models.ForeignKey(settings.AUTH_USER_MODEL)
+    # modified_by = LastUserField()
+    # modified_by = models.ForeignKey(settings.AUTH_USER_MODEL)
 
     def __str__(self):
         return self.bottle_unique_name
@@ -148,9 +147,9 @@ class Bottle(models.Model):
 
 
 ######
-##
-## Field Sample
-##
+#
+# Field Sample
+#
 ######
 
 
@@ -182,7 +181,7 @@ class SampleBottle(models.Model):
     """A bottle (reusable or disposable) containing a (portion of a) sample. Used for analysis."""
 
     sample = models.ForeignKey('Sample', related_name='sample_bottles', null=True)
-    #bottle = models.ForeignKey('Bottle', related_name='sample_bottles', unique=True, null=True)
+    # bottle = models.ForeignKey('Bottle', related_name='sample_bottles', unique=True, null=True)
     bottle = models.OneToOneField('Bottle', related_name='sample_bottles', null=True)
     filter_type = models.ForeignKey('FilterType', null=True, blank=True)
     volume_filtered = models.FloatField(null=True, blank=True)
@@ -280,9 +279,9 @@ class MediumType(models.Model):
 
 
 ######
-##
-## Results
-##
+#
+# Results
+#
 ######
 
 
@@ -390,9 +389,9 @@ class QualityAssuranceType(models.Model):
 
 
 ######
-##
-## Analysis, Constituent, & Method
-##
+#
+# Analysis, Constituent, & Method
+#
 ######
 
 
@@ -432,7 +431,7 @@ class AnalysisConstituent(models.Model):
     constituent = models.ForeignKey('ConstituentType')
 
     def __str__(self):
-        #return str(self.id)
+        # return str(self.id)
         return str(self.analysis) + " - " + str(self.constituent)
 
     class Meta:
@@ -486,7 +485,7 @@ class AnalysisMedium(models.Model):
     medium_type = models.ForeignKey('MediumType')
 
     def __str__(self):
-        #return str(self.id)
+        # return str(self.id)
         return str(self.analysis_type) + " - " + str(self.medium_type)
 
     class Meta:
@@ -501,7 +500,7 @@ class AnalysisMethod(models.Model):
     method_type = models.ForeignKey('MethodType')
 
     def __str__(self):
-        #return str(self.id)
+        # return str(self.id)
         return str(self.analysis_type) + " - " + str(self.method_type)
 
     class Meta:
@@ -510,9 +509,9 @@ class AnalysisMethod(models.Model):
 
 
 ######
-##
-## Solution
-##
+#
+# Solution
+#
 ######
 
 
@@ -567,9 +566,9 @@ class Bromination(models.Model):
 
 
 ######
-##
-## Personnel
-##
+#
+# Personnel
+#
 ######
 
 
@@ -590,9 +589,9 @@ class UserProfile(models.Model):
 
 
 ######
-##
-## Temporary Tables for Excel Macros
-##
+#
+# Temporary Tables for Excel Macros
+#
 ######
 
 
@@ -619,9 +618,9 @@ class TempBottle2(models.Model):
 
 
 ######
-##
-## Database Views for Reporting
-##
+#
+# Database Views for Reporting
+#
 ######
 
 
@@ -756,9 +755,9 @@ class ResultCooperator(models.Model):
 
 
 ######
-##
-## Admin
-##
+#
+# Admin
+#
 ######
 
 
@@ -791,7 +790,3 @@ admin.site.register(IsotopeFlag)
 admin.site.register(Acid)
 admin.site.register(BlankWater)
 admin.site.register(Bromination)
-# admin.site.register(Status)
-# admin.site.register(StatusType)
-# admin.site.register(ProcedureType)
-# admin.site.register(ProcedureStatusType)

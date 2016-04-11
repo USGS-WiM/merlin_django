@@ -4,9 +4,9 @@ from mercuryservices.models import *
 
 
 ######
-##
-## Project and Site
-##
+#
+# Project and Site
+#
 ######
 
 
@@ -67,9 +67,9 @@ class ProjectSiteSerializer(serializers.ModelSerializer, BulkSerializerMixin):
 
 
 ######
-##
-## Field Sample
-##
+#
+# Field Sample
+#
 ######
 
 
@@ -188,9 +188,9 @@ class MediumTypeSerializer(serializers.ModelSerializer, BulkSerializerMixin):
 
 
 ######
-##
-## Analysis and Constituent
-##
+#
+# Analysis and Constituent
+#
 ######
 
 
@@ -238,9 +238,9 @@ class AnalysisMethodSerializer(serializers.ModelSerializer, BulkSerializerMixin)
 
 
 ######
-##
-## Quality Assurance
-##
+#
+# Quality Assurance
+#
 ######
 
 
@@ -286,9 +286,9 @@ class ResultDataFileSerializer(serializers.ModelSerializer, BulkSerializerMixin)
 
 
 ######
-##
-## Solution
-##
+#
+# Solution
+#
 ######
 
 
@@ -320,9 +320,9 @@ class BrominationSerializer(serializers.ModelSerializer, BulkSerializerMixin):
 
 
 #######
-##
-## Personnel
-##
+#
+# Personnel
+#
 ######
 
 
@@ -336,9 +336,9 @@ class UserSerializer(serializers.ModelSerializer, BulkSerializerMixin):
 
 
 ######
-##
-## Special
-##
+#
+# Special
+#
 ######
 
 
@@ -361,9 +361,9 @@ class FullSampleBottleSerializer(serializers.ModelSerializer, BulkSerializerMixi
 
 
 ######
-##
-## Method and Result
-##
+#
+# Method and Result
+#
 ######
 
 
@@ -531,9 +531,9 @@ class ResultSerializer(serializers.ModelSerializer, BulkSerializerMixin):
 
 
 ######
-##
-## Reports
-##
+#
+# Reports
+#
 ######
 
 
@@ -547,7 +547,7 @@ class ReportResultsCountProjectsSerializer(serializers.Serializer):
     project_name = serializers.CharField()
     count = serializers.IntegerField()
     nwis_customer_code = serializers.CharField()
-    #null = serializers.CharField()
+    # null = serializers.CharField()
     cooperator_email = serializers.EmailField()
 
 
