@@ -131,7 +131,7 @@ define(["require", "exports", "Scripts/events/EventHandler", "Models/Utilities/S
                 }
             }
             finally {
-                delete agent;
+                agent = null;
             }
         };
         MainViewModel.prototype.canUpdateProceedure = function (pType) {
@@ -185,7 +185,7 @@ define(["require", "exports", "Scripts/events/EventHandler", "Models/Utilities/S
         MainViewModel.prototype.onAuthenticated = function (agent) {
             var token = '';
             try {
-                token = agent.AuthenticationToken();
+                token = agent.AuthenticationString();
                 if (token == '' || token == undefined || token == null)
                     throw new Error("Invalid token");
                 this.mAgent.SetTokenAuthentication(token);
@@ -194,7 +194,7 @@ define(["require", "exports", "Scripts/events/EventHandler", "Models/Utilities/S
             catch (e) {
             }
             finally {
-                delete agent;
+                agent = null;
             }
         };
         MainViewModel.prototype.submitSampleResults = function () {
