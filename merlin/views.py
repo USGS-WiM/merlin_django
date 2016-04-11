@@ -1637,7 +1637,7 @@ def user_login(request):
             logger.error("Error: Password not submitted.")
             return render_to_response('merlin/login.html', r, context)
 
-        r = requests.request(method='POST', url=REST_AUTH_URL + 'login/', data=request.POST)
+        r = requests.request(method='POST', url=REST_SERVICES_URL + 'auth/', auth=(username, password))
         logger.info(r.request.method + " " + r.request.url + " " + r.reason + " " + str(r.status_code))
         response_data = r.json()
 
@@ -1667,11 +1667,20 @@ def user_login(request):
                 resp += "<p>Please contact the administrator.</p>"
                 return HttpResponse(resp)
 
-        elif (response_data["non_field_errors"] and
-              response_data["non_field_errors"][0] == "Unable to login with provided credentials."):
+        elif (response_data["detail"] == "Invalid username/password."):
             r = {"bad_details": True}
-            logger.error("Error: " + response_data["non_field_errors"][0] + " Username: " + username + ".")
+            logger.error("Error: " + response_data["detail"] + " Username: " + username + ".")
             return render_to_response('merlin/login.html', r, context)
+
+        elif (response_data["non_field_errors"]):
+            if (response_data["non_field_errors"][0] == "Unable to login with provided credentials."):
+                r = {"bad_details": True}
+                logger.error("Error: " + response_data["non_field_errors"][0] + " Username: " + username + ".")
+                return render_to_response('merlin/login.html', r, context)
+            else:
+                r = {"bad_details": True}
+                logger.error("Error: " + response_data["non_field_errors"][0] + " Username: " + username + ".")
+                return render_to_response('merlin/login.html', r, context)
 
         else:
             logger.error("Error: Could not log in " + username + " with Mercury Services.")
@@ -1685,32 +1694,43 @@ def user_login(request):
 
 # logout using Basic Authentication
 def user_logout(request):
-    r = requests.request(method='POST', url=REST_AUTH_URL+'logout/',
-                         auth=(request.session['username'], request.session['password']))
-    logger.info(r.request.method + " " + r.request.url + " " + r.reason + " " + str(r.status_code))
+    logger.info("Success: Logged out " + request.session['username'])
+    del request.session['username']
+    del request.session['password']
+    del request.session['first_name']
+    del request.session['last_name']
+    del request.session['email']
+    del request.session['is_staff']
+    del request.session['is_active']
+    request.session.modified = True
+    return HttpResponseRedirect('/merlin/')
 
-    if r.status_code == 200:
-        logger.info("Success: Logged out " + request.session['username'])
-        del request.session['username']
-        del request.session['password']
-        del request.session['first_name']
-        del request.session['last_name']
-        del request.session['email']
-        del request.session['is_staff']
-        del request.session['is_active']
-        request.session.modified = True
-        return HttpResponseRedirect('/merlin/')
-    else:
-        response_data = r.json()
-        if response_data["detail"]:
-            logger_message = "Error: " + response_data["detail"] + " Could not log out "
-            logger_message += request.session['username'] + " from Mercury Services"
-            logger.error(logger_message)
-        else:
-            logger.error("Error: Could not log out " + request.session['username'] + " from Mercury Services")
-        resp = "<h1>" + str(r.status_code) + ": " + r.reason + "</h1>"
-        resp += "<p>Logout could not be performed. Please contact the administrator.</p>"
-        return HttpResponse(resp)
+    # r = requests.request(method='POST', url=REST_AUTH_URL+'logout/',
+    #                      auth=(request.session['username'], request.session['password']))
+    # logger.info(r.request.method + " " + r.request.url + " " + r.reason + " " + str(r.status_code))
+    #
+    # if r.status_code == 200:
+    #     logger.info("Success: Logged out " + request.session['username'])
+    #     del request.session['username']
+    #     del request.session['password']
+    #     del request.session['first_name']
+    #     del request.session['last_name']
+    #     del request.session['email']
+    #     del request.session['is_staff']
+    #     del request.session['is_active']
+    #     request.session.modified = True
+    #     return HttpResponseRedirect('/merlin/')
+    # else:
+    #     response_data = r.json()
+    #     if response_data["detail"]:
+    #         logger_message = "Error: " + response_data["detail"] + " Could not log out "
+    #         logger_message += request.session['username'] + " from Mercury Services"
+    #         logger.error(logger_message)
+    #     else:
+    #         logger.error("Error: Could not log out " + request.session['username'] + " from Mercury Services")
+    #     resp = "<h1>" + str(r.status_code) + ": " + r.reason + "</h1>"
+    #     resp += "<p>Logout could not be performed. Please contact the administrator.</p>"
+    #     return HttpResponse(resp)
 
 
 def about(request):

@@ -9,7 +9,8 @@ from django.core.exceptions import MultipleObjectsReturned
 from django.db.models import Count
 from django.db.models.base import ObjectDoesNotExist
 from django.http import HttpResponse
-from rest_framework import views, viewsets, generics, permissions
+from rest_framework import views, viewsets, generics, permissions, authentication
+from rest_framework.response import Response
 from rest_framework.settings import api_settings
 from rest_framework_bulk import BulkCreateModelMixin, BulkUpdateModelMixin
 from mercuryservices.serializers import *
@@ -1043,6 +1044,14 @@ class UserViewSet(viewsets.ModelViewSet):
         if username is not None:
             queryset = queryset.filter(username__exact=username)
         return queryset
+
+
+class AuthView(views.APIView):
+    authentication_classes = (authentication.BasicAuthentication,)
+    serializer_class = UserSerializer
+
+    def post(self, request, *args, **kwargs):
+        return Response(self.serializer_class(request.user).data)
 
 
 # class UserLoginView(views.APIView):
