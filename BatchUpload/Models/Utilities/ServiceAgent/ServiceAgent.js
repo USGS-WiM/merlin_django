@@ -27,7 +27,7 @@ define(["require", "exports"], function (require, exports) {
             });
         };
         ServiceAgent.prototype.SetTokenAuthentication = function (token) {
-            this.authentication = "token " + token;
+            this.authentication = token;
         };
         ServiceAgent.prototype.TransformDictionary = function (item) {
             var dictionary = {};

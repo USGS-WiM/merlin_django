@@ -2,8 +2,7 @@
 
 configuration.appSettings =
     {
-        'MercuryService': 'http://130.11.161.159/mercuryservices',
-        'MercuryAuth': 'http://130.11.161.159/mercuryauth'
+        'MercuryService': 'http://igsarmewvswim2.er.usgs.gov/mercuryservices',
     }
 configuration.massProcessMethodIDs = [
     157,228

@@ -108,7 +108,7 @@ define(["require", "exports", "../XLSXOps/XLSXReader", "./ServiceAgent", "./Requ
                 this.sm(e.message, 3 /* ERROR */, false);
             }
             finally {
-                delete reader;
+                reader = null;
                 this._onLoadComplete.raise(this, EventArgs.Empty);
             }
         };
