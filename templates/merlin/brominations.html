@@ -227,7 +227,7 @@
                     columns: [
                         {title: "Unique Bottle Name", width: 150, type: 'autocomplete', strict: true, source: function (query, process) {
                             getValuesAjax('/mercuryservices/samplebottles', 'bottle_string', query, process, ('constituent=39,27'))}},
-                        {title: "Event Number", type: 'numeric', width: 100},
+                        {title: "Event Number", type: 'numeric', width: 100, readOnly: true},
                         {title: "Volume Added (mL)", type:'numeric', width: 150}
                     ],
                     // define event handlers
