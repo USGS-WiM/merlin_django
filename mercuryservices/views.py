@@ -296,7 +296,7 @@ class SampleBottleViewSet(viewsets.ModelViewSet):
         constituent = self.request.query_params.get('constituent', None)
         if constituent is not None:
             constituent_list = constituent.split(',')
-            queryset = queryset.filter(results__constituent_id__in=constituent_list)
+            queryset = queryset.filter(results__constituent_id__in=constituent_list).distinct('id')
         # filter by sample datetime (after only, before only, or between both, depending on which URL params appear)
         date_after = self.request.query_params.get('date_after', None)
         date_before = self.request.query_params.get('date_before', None)
