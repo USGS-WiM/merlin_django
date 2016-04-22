@@ -746,7 +746,8 @@
                                     // the data was saved to the database, so empty the input fields and the table
                                     $('#project_name').val("");
                                     $('#date_received').val("");
-                                    $('#lab_processing').val(data_processings.indexOf('NONE'));
+                                    var procs = data_processings.filter(function (proc) {return proc.processing == 'NONE';});
+                                    $('#lab_processing').selectedIndex = data_processings.indexOf(procs[0].id);
                                     var rows = grid.handsontable('getInstance').countRows();
                                     grid.data('handsontable').alter('remove_row', 0, rows);
                                     grid.data('handsontable').alter('insert_row', null, 8);

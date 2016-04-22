@@ -50,6 +50,7 @@
                     <button type="button" class="btn btn-default" data-loading-text="Reloading..." name="load">Reload Table</button>
                     <button type="button" class="btn btn-default" data-loading-text="Getting Previous..." name="prev">Previous Page</button>
                     <button type="button" class="btn btn-default" data-loading-text="Getting Next..." name="next">Next Page</button>
+                    <br />
                     <span id="page"></span>
                 </p>
                 <p>
@@ -258,29 +259,36 @@
 
                         // update dependent columns when a value in a parent column is changed
                         if (source == 'edit' || source == 'paste') {
-                            // when bottle is changed to a non-null, non-blank value
-                            if (changedCol == 0 && changedVal !== null && changedVal !== "") {
-                                // update event number using bottle ID
-                                $.ajax({
-                                    url: '/mercuryservices/samplebottlebrominations/',
-                                    dataType: 'json',
-                                    data: {
-                                        bottle: changedVal
-                                    },
-                                    success: function (response) {
-                                        var newValue = 1;
-                                        if (response['count'] > 0) {
-                                            var eventNum = response['count'];
-                                            if (eventNum > 0) {
-                                                newValue = eventNum + 1;
+                            // for each row in the selection
+                            for (var j = 0, changesLength = changes.length -1; j <= changesLength; j++) {
+                                // when bottle is changed to a non-null, non-blank value
+                                var this_changedRow = changes[j][0];
+                                var this_changedCol = changes[j][1];
+                                var this_changedVal = changes[j][3];
+                                if (this_changedCol == 0 && this_changedVal !== null && this_changedVal !== "") {
+                                    // update event number using bottle ID
+                                    $.ajax({
+                                        url: '/mercuryservices/samplebottlebrominations/',
+                                        dataType: 'json',
+                                        data: {
+                                            bottle: this_changedVal
+                                        },
+                                        async: false,
+                                        success: function (response) {
+                                            var newValue = 1;
+                                            if (response['count'] > 0) {
+                                                var eventNum = response['count'];
+                                                if (eventNum > 0) {
+                                                    newValue = eventNum + 1;
+                                                }
                                             }
+                                            grid_add.handsontable('setDataAtCell', this_changedRow, 1, newValue);
+                                        },
+                                        error: function (jqXHRequest, textStatus, errorThrown) {
+                                            grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve page to reload.");
                                         }
-                                        grid_add.handsontable('setDataAtCell', changedRow, 1, newValue);
-                                    },
-                                    error: function (jqXHRequest, textStatus, errorThrown) {
-                                        grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve page to reload.");
-                                    }
-                                });
+                                    });
+                                }
                             }
                         }
                     }

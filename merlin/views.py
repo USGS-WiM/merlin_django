@@ -213,7 +213,7 @@ def samples_create(request):
             project_name = http_get(request, 'projects', {'id': row.get('project')}).json()[0]['name']
             site_name = http_get(request, 'sites', {'id': row.get('site')}).json()['results'][0]['name']
             analysis_name = http_get(request, 'analyses', {'id': row.get('analysis_type')}).json()[0]['analysis']
-            isotope_flag = http_get(request, 'sites', {'id': row.get('isotope_flag')}).json()[0]['isotope_flag']
+            isotope_flag = http_get(request, 'isotopeflags', {'id': row.get('isotope_flag')}).json()[0]['isotope_flag']
             message = "\"Error in row " + str(row_number) + ": This Analysis (" + analysis_name + ")"
             message += " and Isotope (" + isotope_flag + ") combination appears more than once in this sample: "
             message += project_name + "|" + site_name + "|" + str(row.get('sample_date_time')) + "|"
@@ -1284,11 +1284,14 @@ def brominations_delete(request):
 
 def samplebottlebrominations_create(request):
     data = json.loads(request.body.decode('utf-8'))
-    all_valid_sample_bottles = True
-    message_not_valid = "These Sample Bottles are not for UTHG or FTHG: "
+    unique_sample_bottles = []
+    all_valid_sample_bottles_thg = True
+    all_valid_sample_bottles_unique = True
+    message_not_thg = "These Sample Bottles are not for UTHG or FTHG: "
+    message_not_unique = "These Sample Bottles are not unique within this list: "
 
     # validate that the submitted sample bottles have samples with constituents of UTHG or FTHG
-    logger.info("VALIDATE Sample Bottles Brominations")
+    logger.info("VALIDATE Sample Bottles Brominations Constituents")
     item_number = 0
     for item in data:
         item_number += 1
@@ -1298,12 +1301,30 @@ def samplebottlebrominations_create(request):
         logger.info("bottles count: " + str(response_data['count']))
         # if response count does not equal one, then this sample bottle is not valid
         if response_data['count'] != 1:
-            all_valid_sample_bottles = False
+            all_valid_sample_bottles_thg = False
             logger.warning("Validation Warning: " + str(item.get('sample_bottle')) + " count != 1")
             this_message = "Row " + str(item_number) + ","
-            message_not_valid = message_not_valid + " " + this_message
-    if not all_valid_sample_bottles:
-        message = json.dumps(message_not_valid)
+            message_not_thg = message_not_thg + " " + this_message
+    if not all_valid_sample_bottles_thg:
+        message = json.dumps(message_not_thg)
+        logger.warning("Validation Warning: " + message)
+        return HttpResponse(message, content_type='text/html')
+
+    # validate that there are no duplicates in the submission
+    logger.info("VALIDATE Sample Bottles Brominations Uniqueness")
+    item_number = 0
+    for item in data:
+        item_number += 1
+        sample_bottle = item.get('sample_bottle')
+        if sample_bottle not in unique_sample_bottles:
+            unique_sample_bottles.append(sample_bottle)
+        else:
+            all_valid_sample_bottles_unique = False
+            logger.warning("Validation Warning: " + str(sample_bottle) + " not unique in list")
+            this_message = "Row " + str(item_number) + ","
+            message_not_unique = message_not_unique + " " + this_message
+    if not all_valid_sample_bottles_unique:
+        message = json.dumps(message_not_unique)
         logger.warning("Validation Warning: " + message)
         return HttpResponse(message, content_type='text/html')
 
@@ -1318,13 +1339,20 @@ def samplebottlebrominations_create(request):
                      'bromination_volume': row.get('bromination_volume'), 'created_date': row.get('created_date')}
         brom_data.append(this_brom)
     logger.info(brom_data)
+    logger.info(json.dumps(brom_data))
     r = http_post(request, 'bulksamplebottlebrominations', json.dumps(brom_data))
     logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
     if r.status_code != 201:
-        message = "\"Error " + str(r.status_code) + ": " + r.reason + ". Cannot save sample bottle brominations."
-        message += " Please contact the administrator.\""
-        logger.error(message)
-        return HttpResponse(message, content_type='text/html')
+        if r.status_code == 400:
+            message = "\"Error " + str(r.status_code) + ": " + r.reason + ". Cannot save sample bottle brominations."
+            message += " Please remove duplicate records before submitting.\""
+            logger.error(message)
+            return HttpResponse(message, content_type='text/html')
+        else:
+            message = "\"Error " + str(r.status_code) + ": " + r.reason + ". Cannot save sample bottle brominations."
+            message += " Please contact the administrator.\""
+            logger.error(message)
+            return HttpResponse(message, content_type='text/html')
     else:
         logger.info("sample bottle brominations saved")
         return HttpResponse(r, content_type='application/json')
@@ -1694,6 +1722,8 @@ def user_login(request):
 
 # logout using Basic Authentication
 def user_logout(request):
+    if not request.session.get('username'):
+        return HttpResponseRedirect('/merlin/')
     logger.info("Success: Logged out " + request.session['username'])
     del request.session['username']
     del request.session['password']
