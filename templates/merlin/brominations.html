@@ -172,7 +172,7 @@
                     columns: [
                         {title: "ID", data: "id", readOnly: true, width: 100},
                         {title: "Concentration", data: "concentration", width: 100},
-                        {title: "Date", data: "created_date", width: 100, dateFormat: 'mm/dd/y'},
+                        {title: "Date", data: "created_date", width: 100, type: 'date', dateFormat: 'MM/DD/YY', datePickerConfig: {maxDate: new Date()}},
                         {title: "Comment", data: "comment", width: 200}
                     ],
                     columnSorting: true,
@@ -311,7 +311,7 @@
                         {title: "Unique Bottle Name", data: "sample_bottle_unique_name", width: 150},
                         {title: "Event Number", data: "bromination_event", width: 100},
                         {title: "Volume Added (mL)", data: "bromination_volume", width: 150},
-                        {title: "Date", data: "created_date", width: 100, dateFormat: 'mm/dd/y'}
+                        {title: "Date", data: "created_date", width: 100, type: 'date', dateFormat: 'MM/DD/YY', datePickerConfig: {maxDate: new Date()}}
                     ],
                     columnSorting: true,
                     // get list of selected rows
@@ -342,8 +342,8 @@
                     //var theID = $(select_project).select2('data').id;
                     //var theSelection = $(select_project).select2('data').text;
                     thisDataObject['bottle'] = bottle;
-                    thisDataObject['date_after'] = $(date_after).val();
-                    thisDataObject['date_before'] = $(date_before).val();
+                    thisDataObject['date_after'] = date_after.toString('MM/DD/YY');
+                    thisDataObject['date_before'] = date_before.toString('MM/DD/YY');
                     var dataJSON = JSON.stringify(thisDataObject);
                     $.ajax({
                         url: "{% url 'merlin:samplebottlebrominations_search' %}",
@@ -417,20 +417,38 @@
                     });
                 });
 
-                $("#created_date").datepicker({
-                    dateFormat: "mm/dd/y",
-                    maxDate: 0
+                var created_date = new Pikaday({
+                    field: $('#created_date')[0],
+                    format: 'MM/DD/YY',
+                    maxDate: new Date()
                 });
 
-                var date_after = $("#date_after").datepicker({
-                    dateFormat: "mm/dd/y",
-                    maxDate: 0
+                var date_after = new Pikaday({
+                    field: $('#date_after')[0],
+                    format: 'MM/DD/YY',
+                    maxDate: new Date()
                 });
 
-                var date_before = $("#date_before").datepicker({
-                    dateFormat: "mm/dd/y",
-                    maxDate: 0
+                var date_before = new Pikaday({
+                    field: $('#date_before')[0],
+                    format: 'MM/DD/YY',
+                    maxDate: new Date()
                 });
+
+                //$("#created_date").date_before({
+                //    dateFormat: "mm/dd/y",
+                //    maxDate: 0
+                //});
+
+                //var date_after = $("#date_after").datepicker({
+                //    dateFormat: "mm/dd/y",
+                //    maxDate: 0
+                //});
+
+                //var date_before = $("#date_before").datepicker({
+                //    dateFormat: "mm/dd/y",
+                //    maxDate: 0
+                //});
 
                 var select_bottle = $("#select_bottle").select2({
                     allowClear: true,

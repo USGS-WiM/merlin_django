@@ -159,15 +159,27 @@
                     return data.name;
                 }
 
-                var date_after_entry = $("#date_after_entry").datepicker({
-                    dateFormat: "mm/dd/y",
-                    maxDate: 0
+                var date_after_entry = new Pikaday({
+                    field: $('#date_after_entry')[0],
+                    format: 'MM/DD/YY',
+                    maxDate: new Date()
                 });
 
-                var date_before_entry = $("#date_before_entry").datepicker({
-                    dateFormat: "mm/dd/y",
-                    maxDate: 0
+                var date_before_entry = new Pikaday({
+                    field: $('#date_before_entry')[0],
+                    format: 'MM/DD/YY',
+                    maxDate: new Date()
                 });
+
+                //var date_after_entry = $("#date_after_entry").datepicker({
+                //    dateFormat: "mm/dd/y",
+                //    maxDate: 0
+                //});
+
+                //var date_before_entry = $("#date_before_entry").datepicker({
+                //    dateFormat: "mm/dd/y",
+                //    maxDate: 0
+                //});
 
                 grid.parent().find('button[name=search]').click(function () {
                     var button_state = $(this).button('loading');
@@ -177,8 +189,8 @@
                     thisDataObject['cooperator'] = $(select_cooperator).val();
                     thisDataObject['project'] = $(select_project).val();
                     thisDataObject['project_not'] = $(select_project_not).val();
-                    thisDataObject['date_after_entry'] = $(date_after_entry).val();
-                    thisDataObject['date_before_entry'] = $(date_before_entry).val();
+                    thisDataObject['date_after_entry'] = date_after_entry.toString('MM/DD/YY');
+                    thisDataObject['date_before_entry'] = date_before_entry.toString('MM/DD/YY');
                     thisDataObject['page_size'] = "";
                     var dataJSON = JSON.stringify(thisDataObject);
                     $.ajax({

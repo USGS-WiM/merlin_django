@@ -201,7 +201,7 @@
                             getValuesAjax('/mercuryservices/sites/', 'usgs_scode', query, process, ('project=' + grid.handsontable('getInstance').getDataAtCell(selectionRowIndices[0], 2)))}
                         },
                         // Date, Hour, and Minute as separate columns is temporary until a single column datetime editor can be found for handsontable
-                        {title: 'Date', data: 'sample_bottle.sample.sample_date', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 85, type: 'date', dateFormat: 'mm/dd/y', maxDate: 0},
+                        {title: 'Date', data: 'sample_bottle.sample.sample_date', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 85, type: 'date', dateFormat: 'MM/DD/YY', datePickerConfig: {maxDate: new Date()}},
                         {title: 'Time', data: 'sample_bottle.sample.sample_time', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 55, type: 'numeric', validator: validateTime},
                         //{title: 'Hour', width: 50, type: 'autocomplete', source: getRange(24)},
                         //{title: 'Minute', width: 50, type: 'autocomplete', source: getRange(60)},
@@ -209,7 +209,7 @@
                         {title: 'Length', data: 'sample_bottle.sample.length', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 50, type: 'numeric'},
                         {title: 'Rep', data: 'sample_bottle.sample.replicate', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 35, type: 'numeric'},
                         {title: 'Sample Comments', data: 'sample_bottle.sample.comment', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 130, type: 'text'},
-                        {title: 'Received', data: 'sample_bottle.sample.received_date', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 90, type: 'date', dateFormat: 'mm/dd/y', maxDate: 0},
+                        {title: 'Received', data: 'sample_bottle.sample.received_date', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 90, type: 'date', dateFormat: 'MM/DD/YY', datePickerConfig: {maxDate: new Date()}},
                         {title: 'Lab Processing', data: 'sample_bottle.sample.lab_processing_string', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 105, type: 'autocomplete', strict: true, source: getValuesDom(data_processings,"processing")},
                         //{title: 'Container ID', width: 110, type: 'autocomplete', strict: true, validator: validateRequired,  source: function (query, process) {
                         //    getValuesAjax('/mercuryservices/bottles/', 'bottle_unique_name', query, process)}},
@@ -515,15 +515,27 @@
                     changedRowIndices.length = 0;
                 }
 
-                var date_after_sample = $("#date_after_sample").datepicker({
-                    dateFormat: "mm/dd/y",
-                    maxDate: 0
+                var date_after_sample = new Pikaday({
+                    field: $('#date_after_sample')[0],
+                    format: 'MM/DD/YY',
+                    maxDate: new Date()
                 });
 
-                var date_before_sample = $("#date_before_sample").datepicker({
-                    dateFormat: "mm/dd/y",
-                    maxDate: 0
+                var date_before_sample = new Pikaday({
+                    field: $('#date_before_sample')[0],
+                    format: 'MM/DD/YY',
+                    maxDate: new Date()
                 });
+
+                //var date_after_sample = $("#date_after_sample").datepicker({
+                //    dateFormat: "mm/dd/y",
+                //    maxDate: 0
+                //});
+
+                //var date_before_sample = $("#date_before_sample").datepicker({
+                //    dateFormat: "mm/dd/y",
+                //    maxDate: 0
+                //});
 
                 grid.parent().find('button[name=search]').click(function(){
                     $("#grid_console_error").hide();
@@ -543,8 +555,8 @@
                     thisDataObject['depth'] = $("#select_depth").val();
                     thisDataObject['replicate'] = $("#select_replicate").val();
                     thisDataObject['analysis'] = $(select_analysis).val();
-                    thisDataObject['date_after_sample'] = $(date_after_sample).val();
-                    thisDataObject['date_before_sample'] = $(date_before_sample).val();
+                    thisDataObject['date_after_sample'] = date_after_sample.toString('MM/DD/YY');
+                    thisDataObject['date_before_sample'] = date_before_sample.toString('MM/DD/YY');
                     thisDataObject['page_size'] = "";
                     thisDataObject['format'] = "";
                     thisDataObject['table'] = "";
@@ -677,7 +689,7 @@
                         return td;
                     }
                     var sourceRowIndex = selectionRowIndices[0];
-                    if (typeof sourceRowIndex == 'undefined') {grid_console.text('There is no selected row to clone!'); button_state.button('reset'); return false;}
+                    if (typeof sourceRowIndex == 'undefined') {grid_console.text('There is no selected row to clone!'); loading.hide(); button_state.button('reset'); return false;}
                     grid.data('handsontable').alter('insert_row', (sourceRowIndex + 1));
                     // get all the data for the source row
                     var sourceDataRow = grid.data('handsontable').getDataAtRow(sourceRowIndex);

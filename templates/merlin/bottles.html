@@ -192,7 +192,7 @@
                         {title: "Bottle Prefix", type: 'autocomplete', strict: true, source: function (query, process) {getValuesAjax('/mercuryservices/bottleprefixes/', 'bottle_prefix', query, process)}, width: 100},
                         {title: "Suffix", width: 60},
                         {title: "Bottle Unique Name", type: 'text', width: 160},
-                        {title: "Date", type: 'date', dateFormat: 'mm/dd/y', width: 100},
+                        {title: "Date", type: 'date', dateFormat: 'MM/DD/YY', datePickerConfig: {maxDate: new Date()}, width: 100},
                         //{title: "Tare Weight", type: 'numeric', format: '0.00', width: 100},
                         //{title: "Bottle Type", type: 'autocomplete', strict: true, source: getValuesDom(data_bottle_types,"bottle_type"), width: 240},
                         {title: "Description", type: 'text', width: 240}
@@ -609,15 +609,27 @@
                     });
                 });
 
-                $("#date_bottle_prefix").datepicker({
-                    dateFormat: "mm/dd/y",
-                    maxDate: 0
+                var date_bottle_prefix = new Pikaday({
+                    field: $('#date_bottle_prefix')[0],
+                    format: 'MM/DD/YY',
+                    maxDate: new Date()
                 });
 
-                $("#date_bottle_prefix_range").datepicker({
-                    dateFormat: "mm/dd/y",
-                    maxDate: 0
+                var date_bottle_prefix_range = new Pikaday({
+                    field: $('#date_bottle_prefix_range')[0],
+                    format: 'MM/DD/YY',
+                    maxDate: new Date()
                 });
+
+                //$("#date_bottle_prefix").datepicker({
+                //    dateFormat: "mm/dd/y",
+                //    maxDate: 0
+                //});
+
+                //$("#date_bottle_prefix_range").datepicker({
+                //    dateFormat: "mm/dd/y",
+                //    maxDate: 0
+                //});
 
                 var select_bottle_type_prefix = $("#bottle_type_prefix");
                 for (var i in data_bottle_types) {
@@ -647,7 +659,7 @@
                     columns: [
                         {title: "ID", data: "id", readOnly: true, width: 1},
                         {title: "Prefix", data: "bottle_prefix", width: 150},
-                        {title: "Date", data: "created_date", width: 100, dateFormat: 'mm/dd/y'},
+                        {title: "Date", data: "created_date", width: 100, type: 'date', dateFormat: 'MM/DD/YY', datePickerConfig: {maxDate: new Date()}},
                         {title: "Tare Weight", data: "tare_weight", width: 100},
                         {title: "Bottle Type", data: "bottle_type_string", type: 'autocomplete', strict: true, source: getValuesDom(data_bottle_types,"bottle_type"), width: 120},
                         {title: "Description", data: "description", width: 220}
@@ -714,7 +726,7 @@
                         {title: "Unique Bottle Name", data: "bottle_unique_name", width: 150},
                         {title: "Bottle Prefix", data: "bottle_prefix_string", width: 100, type: 'autocomplete', strict: true, source: function (query, process) {
                             getValuesAjax('/mercuryservices/bottleprefixes/', 'bottle_prefix', query, process)}},
-                        {title: "Date", data: "created_date", width: 100, dateFormat: 'mm/dd/y'},
+                        {title: "Date", data: "created_date", width: 100, type: 'date', dateFormat: 'MM/DD/YY', datePickerConfig: {maxDate: new Date()}},
                         {title: "Description", data: "description", width: 240}
                     ],
                     columnSorting: true,

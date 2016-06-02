@@ -85,23 +85,35 @@
                 $('#page').html("Page " + currentPage + " of " + resultPages);
                 grid_console.text('Data loaded.');
 
-                var date_after_entry = $("#date_after_entry").datepicker({
-                    dateFormat: "mm/dd/y",
-                    maxDate: 0
+                var date_after_entry = new Pikaday({
+                    field: $('#date_after_entry')[0],
+                    format: 'MM/DD/YY',
+                    maxDate: new Date()
                 });
 
-                var date_before_entry = $("#date_before_entry").datepicker({
-                    dateFormat: "mm/dd/y",
-                    maxDate: 0
+                var date_before_entry = new Pikaday({
+                    field: $('#date_before_entry')[0],
+                    format: 'MM/DD/YY',
+                    maxDate: new Date()
                 });
+
+                //var date_after_entry = $("#date_after_entry").datepicker({
+                //    dateFormat: "mm/dd/y",
+                //    maxDate: 0
+                //});
+
+                //var date_before_entry = $("#date_before_entry").datepicker({
+                //    dateFormat: "mm/dd/y",
+                //    maxDate: 0
+                //});
 
                 grid.parent().find('button[name=search]').click(function () {
                     var button_state = $(this).button('loading');
                     loading.show();
                     grid_console.text('Attempting to search...');
                     var thisDataObject = {};
-                    thisDataObject['date_after_entry'] = $(date_after_entry).val();
-                    thisDataObject['date_before_entry'] = $(date_before_entry).val();
+                    thisDataObject['date_after_entry'] = date_after_entry.toString('MM/DD/YY');
+                    thisDataObject['date_before_entry'] = date_before_entry.toString('MM/DD/YY');
                     thisDataObject['page_size'] = "";
                     var dataJSON = JSON.stringify(thisDataObject);
                     $.ajax({
