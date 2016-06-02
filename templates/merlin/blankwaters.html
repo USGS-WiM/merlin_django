@@ -97,7 +97,7 @@
                         {title: "ID", data: "id", readOnly: true, width: 1},
                         {title: "Lot Number", data: "lot_number", width: 120},
                         {title: "Concentration", data: "concentration", width: 120},
-                        {title: "Date", data: "created_date", width: 100, dateFormat: 'mm/dd/y'},
+                        {title: "Date", data: "created_date", width: 100, dateFormat: 'MM/DD/YY', datePickerConfig: {maxDate: new Date()}},
                         {title: "Comment", data: "comment", width: 300}
                     ],
                     columnSorting: true,
@@ -136,10 +136,16 @@
                 $('#page').html("Page " + currentPage + " of " + resultPages);
                 grid_console.text('Data loaded.');
 
-                $("#created_date").datepicker({
-                    dateFormat: "mm/dd/y",
-                    maxDate: 0
+                var created_date = new Pikaday({
+                    field: $('#created_date')[0],
+                    format: 'MM/DD/YY',
+                    maxDate: new Date()
                 });
+
+                //$("#created_date").datepicker({
+                //    dateFormat: "mm/dd/y",
+                //    maxDate: 0
+                //});
 
                 var form_add = $("#form_add");
                 form_add.find('button[name=addSave]').click(function() {

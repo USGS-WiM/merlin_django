@@ -285,25 +285,49 @@
                     return data.constituent;
                 }
 
-                var date_after_sample = $("#date_after_sample").datepicker({
-                    dateFormat: "mm/dd/y",
-                    maxDate: 0
+                var date_after_sample = new Pikaday({
+                    field: $('#date_after_sample')[0],
+                    format: 'MM/DD/YY',
+                    maxDate: new Date()
                 });
 
-                var date_before_sample = $("#date_before_sample").datepicker({
-                    dateFormat: "mm/dd/y",
-                    maxDate: 0
+                var date_before_sample = new Pikaday({
+                    field: $('#date_before_sample')[0],
+                    format: 'MM/DD/YY',
+                    maxDate: new Date()
                 });
 
-                var date_after_entry = $("#date_after_entry").datepicker({
-                    dateFormat: "mm/dd/y",
-                    maxDate: 0
+                var date_after_entry = new Pikaday({
+                    field: $('#date_after_entry')[0],
+                    format: 'MM/DD/YY',
+                    maxDate: new Date()
                 });
 
-                var date_before_entry = $("#date_before_entry").datepicker({
-                    dateFormat: "mm/dd/y",
-                    maxDate: 0
+                var date_before_entry = new Pikaday({
+                    field: $('#date_before_entry')[0],
+                    format: 'MM/DD/YY',
+                    maxDate: new Date()
                 });
+
+                //var date_after_sample = $("#date_after_sample").datepicker({
+                //    dateFormat: "mm/dd/y",
+                //    maxDate: 0
+                //});
+
+                //var date_before_sample = $("#date_before_sample").datepicker({
+                //    dateFormat: "mm/dd/y",
+                //    maxDate: 0
+                //});
+
+                //var date_after_entry = $("#date_after_entry").datepicker({
+                //    dateFormat: "mm/dd/y",
+                //    maxDate: 0
+                //});
+
+                //var date_before_entry = $("#date_before_entry").datepicker({
+                //    dateFormat: "mm/dd/y",
+                //    maxDate: 0
+                //});
 
                 grid.parent().find('button[name=search]').click(function(){
                     $("#grid_console_error").hide();
@@ -339,10 +363,10 @@
                     thisDataObject['bottle'] = bottle;
                     thisDataObject['project'] = $(select_project).val();
                     thisDataObject['site'] = $(select_site).val();//.slice(0, -1);
-                    thisDataObject['date_after_sample'] = $(date_after_sample).val();
-                    thisDataObject['date_before_sample'] = $(date_before_sample).val();
-                    thisDataObject['date_after_entry'] = $(date_after_entry).val();
-                    thisDataObject['date_before_entry'] = $(date_before_entry).val();
+                    thisDataObject['date_after_sample'] = date_after_sample.toString('MM/DD/YY');
+                    thisDataObject['date_before_sample'] = date_before_sample.toString('MM/DD/YY');
+                    thisDataObject['date_after_entry'] = date_after_entry.toString('MM/DD/YY');
+                    thisDataObject['date_before_entry'] = date_before_entry.toString('MM/DD/YY');
                     thisDataObject['constituent'] = $(select_constituent).val();
                     thisDataObject['exclude_null_results'] = checkbox_excludeNullResults.is(':checked');
                     thisDataObject['format'] = "";
