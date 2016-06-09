@@ -1,7 +1,7 @@
 {% extends 'merlin/base.html' %}
 {% block body_block %}
 
-    <div id="loading"></div>
+    <div id="loading_overlay"></div>
     <div style="padding:10px">
 {#        <p>#}
 {#            <!-- <button type="button" class="btn btn-default" name="save">Save</button> -->#}
@@ -120,8 +120,8 @@
 		<script>
             $(document).ready(function() {
 
-				var loading = $('#loading');
-				loading.hide();
+				var loading_overlay = $('#loading_overlay');
+				loading_overlay.hide();
 
                 var csrftoken = $.cookie('csrftoken');
                 function csrfSafeMethod(method) {
@@ -179,6 +179,9 @@
                     manualColumnResize: true,
                     manualRowResize: true,
                     search: {searchResultClass: 'customHtSearchResult'},
+                    fillHandle: {
+                        autoInsertRow: false
+                    },
                     columns: grid_columns,
                     columnSorting: true
                 };
@@ -357,7 +360,7 @@
 
                 var searchBottles = function(button,bottle){
                     var button_state = $(button).button('loading');
-                    loading.show();
+                    loading_overlay.show();
                     grid_console.text('Attempting to search...');
                     var thisDataObject = {};
                     thisDataObject['bottle'] = bottle;
@@ -384,7 +387,7 @@
                             // if the content-type is plain text, then it's a custom message from our Django view
                             if (content_type.indexOf('text') > -1) {
                                 grid_console.text(data);
-                                loading.hide();
+                                loading_overlay.hide();
                                 button_state.button('reset');
                             }
                             // otherwise, it's JSON from the REST Services
@@ -408,19 +411,19 @@
                                     settings.columns[15] = {title: 'Result Value', data: 'final_value', readOnly: true, width: 90, format: '0.00000000'};
                                     grid.handsontable('getInstance').updateSettings(settings);
                                 }
-                                loading.hide();
+                                loading_overlay.hide();
                                 button_state.button('reset');
                             }
                             else {
                                 grid_console.text(textStatus+': Search error: '+jqXHRequest.statusText+', code: '+jqXHRequest.status+'.');
-                                loading.hide();
+                                loading_overlay.hide();
                                 button_state.button('reset');
                             }
                             //$("#bottle_search_list").val("");
                         },
                         error: function (jqXHRequest, textStatus, errorThrown) {
                             grid_console.text(errorThrown + " ... " + textStatus);
-                            loading.hide();
+                            loading_overlay.hide();
                             button_state.button('reset');
                         }
                     });
@@ -429,7 +432,7 @@
 
                 grid.parent().find('button[name=next]').click(function () {
                     var button_state = $(this).button('loading');
-                    loading.show();
+                    loading_overlay.show();
                     if (currentPage != resultPages) {
                         $.ajax({
                             url: data_data.next,
@@ -440,26 +443,26 @@
                                 grid.data('handsontable').loadData(data_data.results);
                                 currentPage++;
                                 grid_console.text('Page '+ currentPage +' of '+ resultPages +' loaded.');
-                                loading.hide();
+                                loading_overlay.hide();
                                 button_state.button('reset');
                             },
                             error: function (response) {
                                 grid_console.text("error");
-                                loading.hide();
+                                loading_overlay.hide();
                                 button_state.button('reset');
                             }
                         });
                     }
                     else {
                         grid_console.text("End of results, there are no pages after Page " + resultPages + ".");
-                        loading.hide();
+                        loading_overlay.hide();
                         button_state.button('reset');
                     }
                 });
 
                 grid.parent().find('button[name=prev]').click(function () {
                     var button_state = $(this).button('loading');
-                    loading.show();
+                    loading_overlay.show();
                     if (currentPage != 1) {
                         $.ajax({
                             url: data_data.previous,
@@ -470,19 +473,19 @@
                                 grid.data('handsontable').loadData(data_data.results);
                                 currentPage--;
                                 grid_console.text('Page '+ currentPage +' of '+ resultPages +' loaded.');
-                                loading.hide();
+                                loading_overlay.hide();
                                 button_state.button('reset');
                             },
                             error: function (response) {
                                 grid_console.text("error");
-                                loading.hide();
+                                loading_overlay.hide();
                                 button_state.button('reset');
                             }
                         });
                     }
                     else {
                         grid_console.text("There are no pages before Page 1.");
-                        loading.hide();
+                        loading_overlay.hide();
                         button_state.button('reset');
                     }
                 });
@@ -514,18 +517,18 @@
 
                 grid.parent().find('button[name=exportCSVCurrentPage]').click(function() {
                     var button_state = $(this).button('loading');
-                    loading.show();
+                    loading_overlay.show();
                     var table = grid.handsontable('getInstance');
                     var csv_filename = "results_" + yearToday + "-" + (monthToday.length == 1 ? "0" + monthToday : monthToday) + "-" + (dayToday.length == 1 ? "0" + dayToday : dayToday) + ".csv";
                     handsontable2csv.download(table, csv_filename);
                     grid.parent().find('button[name=exportCSV]').click();
-                    loading.hide();
+                    loading_overlay.hide();
                     button_state.button('reset');
                 });
 
                 grid.parent().find('button[name=exportCSVAllPages]').click(function() {
                     var button_state = $(this).button('loading');
-                    loading.show();
+                    loading_overlay.show();
                     // if there is only one result page, then there is no need to request more data from the server, so just export the current page
                     if (resultPages == 1) {grid.parent().find('button[name=exportCSVCurrentPage]').click(); button_state.button('reset'); return false;}
                     // else if there is less than two result pages and not one result page (i.e., zero), stop the export
@@ -570,7 +573,7 @@
                     document.body.removeChild(link);
                     // some testing indicated that the server takes 0.066 seconds for each page requested
                     setTimeout(function(){grid.parent().find('button[name=exportCSV]').click();}, (resultPages * 330));
-                    setTimeout(function(){loading.hide();}, (resultPages * 66));
+                    setTimeout(function(){loading_overlay.hide();}, (resultPages * 66));
                     setTimeout(function(){button_state.button('reset');}, (resultPages * 66));
                 });
 

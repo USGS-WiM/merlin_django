@@ -1,7 +1,7 @@
 {% extends 'merlin/base.html' %}
 {% block body_block %}
 
-    <div id="loading"></div>
+    <div id="loading_overlay"></div>
     <div style="padding:10px">
         <pre id="grid_console" class="console" style="width:600px"></pre>
         <div class="row">
@@ -82,8 +82,8 @@
 		<script>
             $(document).ready(function() {
 
-				var loading = $('#loading');
-				loading.hide();
+				var loading_overlay = $('#loading_overlay');
+				loading_overlay.hide();
 
                 var csrftoken = $.cookie('csrftoken');
                 function csrfSafeMethod(method) {
@@ -113,6 +113,9 @@
                     manualRowResize: true,
                     invalidCellClassName: 'customHtInvalid',
                     search: {searchResultClass: 'customHtSearchResult'},
+                    fillHandle: {
+                        autoInsertRow: false
+                    },
                     columns: [
                         {title: "ID", data: "id", readOnly: true, width: 1},
                         {title: "Project Name", data: "name", readOnly:true, width: 400}
@@ -142,6 +145,9 @@
                     manualRowResize: true,
                     invalidCellClassName: 'customHtInvalid',
                     search: {searchResultClass: 'customHtSearchResult'},
+                    fillHandle: {
+                        autoInsertRow: false
+                    },
                     columns: [
                         {title: "ID", data: "id", readOnly: true, width: 1},
                         {title: "Project Name", data: "project_string", readOnly: true, width: 350},
@@ -201,6 +207,9 @@
                     manualRowResize: true,
                     invalidCellClassName: 'customHtInvalid',
                     search: {searchResultClass: 'customHtSearchResult'},
+                    fillHandle: {
+                        autoInsertRow: false
+                    },
                     columns: [
                         {title: "ID", data: "id", readOnly: true, width: 1},
                         {title: "Site Name", data: "name", readOnly: true, width: 400},
@@ -269,7 +278,7 @@
 
                 tools_projects.find('button[name=load]').click(function () {
                     var button_state = $(this).button('loading');
-                    loading.show();
+                    loading_overlay.show();
                     $.ajax({
                         url: '/mercuryservices/projects/',
                         dataType: 'json',
@@ -277,12 +286,12 @@
                             data_projects = response;
                             grid_projects.data('handsontable').loadData(data_projects);
                             grid_console.text('Project data reloaded.');
-                            loading.hide();
+                            loading_overlay.hide();
                             button_state.button('reset');
                         },
                         error: function (jqXHRequest, textStatus, errorThrown) {
                             grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve page to reload.");
-                            loading.hide();
+                            loading_overlay.hide();
                             button_state.button('reset');
                         }
                     });
@@ -328,7 +337,7 @@
 
                 tools_sites.find('button[name=load]').click(function () {
                     var button_state = $(this).button('loading');
-                    loading.show();
+                    loading_overlay.show();
                     $.ajax({
                         url: '/mercuryservices/sites/',
                         dataType: 'json',
@@ -336,12 +345,12 @@
                             data_sites = response;
                             grid_sites.data('handsontable').loadData(data_sites.results);
                             grid_console.text('Site data reloaded.');
-                            loading.hide();
+                            loading_overlay.hide();
                             button_state.button('reset');
                         },
                         error: function (jqXHRequest, textStatus, errorThrown) {
                             grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve page to reload.");
-                            loading.hide();
+                            loading_overlay.hide();
                             button_state.button('reset');
                         }
                     });
@@ -418,7 +427,7 @@
 
                 tools_projectssites.find('button[name=load]').click(function () {
                     var button_state = $(this).button('loading');
-                    loading.show();
+                    loading_overlay.show();
                     $.ajax({
                         url: '/mercuryservices/projectssites/',
                         dataType: 'json',
@@ -426,12 +435,12 @@
                             data_data = response;
                             grid_projectssites.data('handsontable').loadData(data_data.results);
                             grid_console.text('Projects-Sites data reloaded.');
-                            loading.hide();
+                            loading_overlay.hide();
                             button_state.button('reset');
                         },
                         error: function (jqXHRequest, textStatus, errorThrown) {
                             grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve page to reload.");
-                            loading.hide();
+                            loading_overlay.hide();
                             button_state.button('reset');
                         }
                     });
@@ -439,8 +448,8 @@
 
                 tools_projectssites.find('button[name=delete]').click(function () {
                     var button_state = $(this).button('loading');
-                    loading.show();
-                    if (typeof gridProjectssites_selectionRowIndices[0] == 'undefined') {grid_console.text('There are no selected rows to delete!'); loading.hide(); button_state.button('reset'); return false;}
+                    loading_overlay.show();
+                    if (typeof gridProjectssites_selectionRowIndices[0] == 'undefined') {grid_console.text('There are no selected rows to delete!'); loading_overlay.hide(); button_state.button('reset'); return false;}
                     var thisDataRow = grid_projectssites.data('handsontable').getDataAtRow(gridProjectssites_selectionRowIndices[0]);
                     var thisDataObject = {"id": thisDataRow[0]};
                     var changedDataJSON = JSON.stringify(thisDataObject);
@@ -453,19 +462,19 @@
                             if (jqXHRequest.status === 200) {
                                 tools_projectssites.find('button[name=load]').click();
                                 grid_console.text('Data deleted.');
-                                loading.hide();
+                                loading_overlay.hide();
                                 button_state.button('reset');
                             }
                             else {
                                 grid_projectssites.parent().find('button[name=load]').click();
                                 grid_console.text(textStatus + ': Delete error: ' + jqXHRequest.statusText + ', code: ' + jqXHRequest.status + '.');
-                                loading.hide();
+                                loading_overlay.hide();
                                 button_state.button('reset');
                             }
                         },
                         error: function (jqXHRequest, textStatus, errorThrown) {
                             grid_console.text(errorThrown + ": " + textStatus);
-                            loading.hide();
+                            loading_overlay.hide();
                             button_state.button('reset');
                         }
                     });
@@ -473,11 +482,11 @@
 
                 tools_projectssites.find('button[name=save]').click(function() {
                     var button_state = $(this).button('loading');
-                    loading.show();
-                    if ((typeof(selectedProjectRow) === 'undefined' || selectedProjectRow == null) && (typeof(selectedSiteRow) === 'undefined' || selectedSiteRow == null)) {$('#selected_project_name_warning').show(); $('#selected_site_name_warning').show(); loading.hide(); button_state.button('reset'); return;}
-                    if (typeof(selectedProjectRow) === 'undefined' || selectedProjectRow == null) {$('#selected_project_name_warning').show(); loading.hide(); button_state.button('reset'); return;}
+                    loading_overlay.show();
+                    if ((typeof(selectedProjectRow) === 'undefined' || selectedProjectRow == null) && (typeof(selectedSiteRow) === 'undefined' || selectedSiteRow == null)) {$('#selected_project_name_warning').show(); $('#selected_site_name_warning').show(); loading_overlay.hide(); button_state.button('reset'); return;}
+                    if (typeof(selectedProjectRow) === 'undefined' || selectedProjectRow == null) {$('#selected_project_name_warning').show(); loading_overlay.hide(); button_state.button('reset'); return;}
                     else {$('#selected_project_name_warning').hide();}
-                    if (typeof(selectedSiteRow) === 'undefined' || selectedSiteRow == null) {$('#selected_site_name_warning').show(); loading.hide(); button_state.button('reset'); return;}
+                    if (typeof(selectedSiteRow) === 'undefined' || selectedSiteRow == null) {$('#selected_site_name_warning').show(); loading_overlay.hide(); button_state.button('reset'); return;}
                     else {$('#selected_site_name_warning').hide();}
                     var selected_project_id = grid_projects.handsontable('getInstance').getDataAtCell(selectedProjectRow, 0);
                     var selected_site_id = grid_sites.handsontable('getInstance').getDataAtCell(selectedSiteRow, 0);
@@ -494,7 +503,7 @@
                             // if the content-type is plain text, then it's a custom message from our Django view
                             if (content_type.indexOf('text') > -1) {
                                 grid_console.text(data);
-                                loading.hide();
+                                loading_overlay.hide();
                                 button_state.button('reset');
                             }
                             // otherwise, it's JSON from the REST Services
@@ -507,18 +516,18 @@
                                 grid_sites.handsontable('getInstance').deselectCell();
                                 $('#selected_project_name').html("Selected Project Name: <strong>NULL</strong>");
                                 $('#selected_site_name').html("Selected Site Name: <strong>NULL</strong>");
-                                loading.hide();
+                                loading_overlay.hide();
                                 button_state.button('reset');
                             }
                             else {
                                 grid_console.text(textStatus + ': Save error: ' + jqXHRequest.statusText + ', code: ' + jqXHRequest.status + '.');
-                                loading.hide();
+                                loading_overlay.hide();
                                 button_state.button('reset');
                             }
                         },
                         error: function (jqXHRequest, textStatus, errorThrown) {
                             grid_console.text(errorThrown + ": " + textStatus);
-                            loading.hide();
+                            loading_overlay.hide();
                             button_state.button('reset');
                         }
                     });
