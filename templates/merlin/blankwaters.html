@@ -1,7 +1,7 @@
 {% extends 'merlin/base.html' %}
 {% block body_block %}
 
-    <div id="loading"></div>
+    <div id="loading_overlay"></div>
     <div style="padding:10px">
 
         <p>
@@ -59,8 +59,8 @@
 		<script>
             $(document).ready(function() {
 
-				var loading = $('#loading');
-				loading.hide();
+				var loading_overlay = $('#loading_overlay');
+				loading_overlay.hide();
 
                 var csrftoken = $.cookie('csrftoken');
                 function csrfSafeMethod(method) {
@@ -93,6 +93,9 @@
                     manualRowResize: true,
                     invalidCellClassName: 'customHtInvalid',
                     search: {searchResultClass: 'customHtSearchResult'},
+                    fillHandle: {
+                        autoInsertRow: false
+                    },
                     columns: [
                         {title: "ID", data: "id", readOnly: true, width: 1},
                         {title: "Lot Number", data: "lot_number", width: 120},
@@ -150,7 +153,7 @@
                 var form_add = $("#form_add");
                 form_add.find('button[name=addSave]').click(function() {
                     var button_state = $(this).button('loading');
-                    loading.show();
+                    loading_overlay.show();
                     var thisDataObject = {};
                     thisDataObject['lot_number'] = form_add.find('input[name=lot_number]').val().toUpperCase();
                     thisDataObject['concentration'] = Number(form_add.find('input[name=concentration]').val());
@@ -167,9 +170,9 @@
                             }
                             thisDataObject['created_date'] = gooddate_string;
                         }
-                        else {grid_console.text('There is a problem with the Date. Please contact the administrator.'); loading.hide(); button_state.button('reset'); return false;}
+                        else {grid_console.text('There is a problem with the Date. Please contact the administrator.'); loading_overlay.hide(); button_state.button('reset'); return false;}
                     }
-                    else {grid_console.text('Date is badly formed. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); loading.hide(); button_state.button('reset'); return false;}
+                    else {grid_console.text('Date is badly formed. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); loading_overlay.hide(); button_state.button('reset'); return false;}
                     var dataJSON = JSON.stringify(thisDataObject);
                     $.ajax({
                         url: "{% url 'merlin:blankwaters_create' %}",
@@ -182,7 +185,7 @@
                             // if the content-type is plain text, then it's a custom message from our Django view
                             if (content_type.indexOf('text') > -1) {
                                 grid_console.text(data);
-                                loading.hide();
+                                loading_overlay.hide();
                                 button_state.button('reset');
                             }
                             // otherwise, it's JSON from the REST Services
@@ -191,18 +194,18 @@
                                 grid.parent().find('button[name=add]').click();
                                 grid.parent().find('button[name=load]').click();
                                 grid_console.text(textStatus+': Data saved.');
-                                loading.hide();
+                                loading_overlay.hide();
                                 button_state.button('reset');
                             }
                             else {
                                 grid_console.text(textStatus+': Save error: '+jqXHRequest.statusText+', code: '+jqXHRequest.status+'.');
-                                loading.hide();
+                                loading_overlay.hide();
                                 button_state.button('reset');
                             }
                         },
                         error: function (jqXHRequest, textStatus, errorThrown) {
                             grid_console.text(errorThrown + ": " + textStatus);
-                            loading.hide();
+                            loading_overlay.hide();
                             button_state.button('reset');
                         }
                     });
@@ -254,7 +257,7 @@
 
                 grid.parent().find('button[name=load]').click(function () {
                     var button_state = $(this).button('loading');
-                    loading.show();
+                    loading_overlay.show();
                     $.ajax({
                         url: '/mercuryservices/blankwaters/?page='+currentPage,
                         dataType: 'json',
@@ -264,12 +267,12 @@
                             grid.data('handsontable').loadData(data_data.results);
                             $('#page').html("Page " + currentPage + " of " + resultPages);
                             grid_console.text('Page '+ currentPage +' data reloaded.');
-                            loading.hide();
+                            loading_overlay.hide();
                             button_state.button('reset');
                         },
                         error: function (jqXHRequest, textStatus, errorThrown) {
                             grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve page to reload.");
-                            loading.hide();
+                            loading_overlay.hide();
                             button_state.button('reset');
                         }
                     });
@@ -278,7 +281,7 @@
 
                 grid.parent().find('button[name=next]').click(function () {
                     var button_state = $(this).button('loading');
-                    loading.show();
+                    loading_overlay.show();
                     if (currentPage != resultPages) {
                         $.ajax({
                             url: data_data.next,
@@ -290,19 +293,19 @@
                                 currentPage++;
                                 $('#page').html("Page " + currentPage + " of " + resultPages);
                                 grid_console.text('Page ' + currentPage + ' of ' + resultPages + ' loaded.');
-                                loading.hide();
+                                loading_overlay.hide();
                                 button_state.button('reset');
                             },
                             error: function (jqXHRequest, textStatus, errorThrown) {
                                 grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve next page.");
-                                loading.hide();
+                                loading_overlay.hide();
                                 button_state.button('reset');
                             }
                         });
                     }
                     else {
                         grid_console.text("End of results, there are no pages after Page " + resultPages + ".");
-                        loading.hide();
+                        loading_overlay.hide();
                         button_state.button('reset');
                     }
                     clearChangedRowIndices();
@@ -310,7 +313,7 @@
 
                 grid.parent().find('button[name=prev]').click(function () {
                     var button_state = $(this).button('loading');
-                    loading.show();
+                    loading_overlay.show();
                     if (currentPage != 1) {
                         $.ajax({
                             url: data_data.previous,
@@ -322,19 +325,19 @@
                                 currentPage--;
                                 $('#page').html("Page " + currentPage + " of " + resultPages);
                                 grid_console.text('Page ' + currentPage + ' of ' + resultPages + ' loaded.');
-                                loading.hide();
+                                loading_overlay.hide();
                                 button_state.button('reset');
                             },
                             error: function (jqXHRequest, textStatus, errorThrown) {
                                 grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve previous page.");
-                                loading.hide();
+                                loading_overlay.hide();
                                 button_state.button('reset');
                             }
                         });
                     }
                     else {
                         grid_console.text("There are no pages before Page 1.");
-                        loading.hide();
+                        loading_overlay.hide();
                         button_state.button('reset');
                     }
                     clearChangedRowIndices();
@@ -353,8 +356,8 @@
 
                 grid.parent().find('button[name=delete]').click(function () {
                     var button_state = $(this).button('loading');
-                    loading.show();
-                    if (typeof selectionRowIndices[0] == 'undefined') {grid_console.text('There are no selected rows to delete!'); loading.hide(); button_state.button('reset'); return false;}
+                    loading_overlay.show();
+                    if (typeof selectionRowIndices[0] == 'undefined') {grid_console.text('There are no selected rows to delete!'); loading_overlay.hide(); button_state.button('reset'); return false;}
                     var thisDataRow = grid.data('handsontable').getDataAtRow(selectionRowIndices[0]);
                     var thisDataObject = {"id": thisDataRow[0]};
                     var changedDataJSON = JSON.stringify(thisDataObject);
@@ -367,19 +370,19 @@
                             if (jqXHRequest.status === 200) {
                                 grid.parent().find('button[name=load]').click();
                                 grid_console.text('Data deleted.');
-                                loading.hide();
+                                loading_overlay.hide();
                                 button_state.button('reset');
                             }
                             else {
                                 grid.parent().find('button[name=load]').click();
                                 grid_console.text(textStatus + ': Delete error: ' + jqXHRequest.statusText + ', code: ' + jqXHRequest.status + '.');
-                                loading.hide();
+                                loading_overlay.hide();
                                 button_state.button('reset');
                             }
                         },
                         error: function (jqXHRequest, textStatus, errorThrown) {
                             grid_console.text(errorThrown + ": " + textStatus);
-                            loading.hide();
+                            loading_overlay.hide();
                             button_state.button('reset');
                         }
                     });
@@ -387,10 +390,10 @@
 
                 grid.parent().find('button[name=save]').click(function () {
                     var button_state = $(this).button('loading');
-                    loading.show();
+                    loading_overlay.show();
                     var changedDataArray = [];
                     // if there are no changed rows, notify the user and stop the submission
-                    if (typeof changedRowIndices == 'undefined' || changedRowIndices.length < 1) {grid_console.text('There are no changed rows to save!!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
+                    if (typeof changedRowIndices == 'undefined' || changedRowIndices.length < 1) {grid_console.text('There are no changed rows to save!!'); validTable = false; loading_overlay.hide(); button_state.button('reset'); return false;}
                     // otherwise loop through all changed rows
                     $.each(changedRowIndices, function(index, value) {
                         var thisDataRow = grid.data('handsontable').getDataAtRow(value);
@@ -404,13 +407,13 @@
                                         var gooddate_string = makeYear(baddate) + "-" + makeMonth(baddate) + "-" + makeDay(baddate);
                                         var gooddate = new Date(makeYear(baddate), makeMonth(baddate)-1, makeDay(baddate));
                                         if (gooddate > dateToday) {
-                                            {grid_console.text('Date cannot be a future date!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
+                                            {grid_console.text('Date cannot be a future date!'); validTable = false; loading_overlay.hide(); button_state.button('reset'); return false;}
                                         }
                                         thisDataObject[objectFields[i]] = gooddate_string;
                                     }
-                                    else {grid_console.text('There is a problem with the Date in row ' + (index + 1) + '. Please contact the administrator.'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
+                                    else {grid_console.text('There is a problem with the Date in row ' + (index + 1) + '. Please contact the administrator.'); validTable = false; loading_overlay.hide(); button_state.button('reset'); return false;}
                                 }
-                                else {grid_console.text('Date is badly formed in row ' + (index + 1) + '. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
+                                else {grid_console.text('Date is badly formed in row ' + (index + 1) + '. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); validTable = false; loading_overlay.hide(); button_state.button('reset'); return false;}
                             }
                             else if (objectFields[i] == "comment") {if (thisDataObject[objectFields[i]] == null) {thisDataObject[objectFields[i]] = "";}}
                             else {thisDataObject[objectFields[i]] = thisDataRow[i];}
@@ -433,24 +436,24 @@
                                 // if the content-type is plain text, then it's a custom message from our Django view
                                 if (content_type.indexOf('text') > -1) {
                                     grid_console.text(data);
-                                    loading.hide();
+                                    loading_overlay.hide();
                                     button_state.button('reset');
                                 }
                                 // otherwise, it's JSON from the REST Services
                                 else if (jqXHRequest.status === 200) {
                                     grid_console.text(textStatus + ': Data saved.');
-                                    loading.hide();
+                                    loading_overlay.hide();
                                     button_state.button('reset');
                                 }
                                 else {
                                     grid_console.text(textStatus + ': Save error: ' + jqXHRequest.statusText + ', code: ' + jqXHRequest.status + '.');
-                                    loading.hide();
+                                    loading_overlay.hide();
                                     button_state.button('reset');
                                 }
                             },
                             error: function (jqXHRequest, textStatus, errorThrown) {
                                 grid_console.text(errorThrown + ": " + textStatus);
-                                loading.hide();
+                                loading_overlay.hide();
                                 button_state.button('reset');
                             }
                         });

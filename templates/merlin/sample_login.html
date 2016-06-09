@@ -1,7 +1,7 @@
 {% extends 'merlin/base.html' %}
 {% block body_block %}
 
-    <div id="loading"></div>
+    <div id="loading_overlay"></div>
     <div style="padding:10px">
 {#        <pre id="debug_console" class="console" style="width:600px"></pre>#}
         <pre id="grid_console" class="console" style="width:600px"></pre>
@@ -50,8 +50,8 @@
 		<script>
             $(document).ready(function() {
 
-				var loading = $('#loading');
-				loading.hide();
+				var loading_overlay = $('#loading_overlay');
+				loading_overlay.hide();
 
                 var csrftoken = $.cookie('csrftoken');
                 function csrfSafeMethod(method) {
@@ -150,6 +150,9 @@
                     manualRowResize: true,
                     invalidCellClassName: 'customHtInvalid',
                     search: {searchResultClass: 'customHtSearchResult'},
+                    fillHandle: {
+                        autoInsertRow: false
+                    },
                     columns: [
                         {title: 'Site Name', width: 210, type: 'autocomplete', strict: true, validator: validateRequired},
                         {title: 'Site ID', width: 100, type: 'autocomplete', strict: true},
@@ -638,7 +641,7 @@
                                         break;
                                     case 6: // rep
                                         if (thisDataRow[i] !== 1) {
-                                            if (!thisDataRow[i]) {grid_console.text('Rep is required in row ' + (index + 1) + '!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
+                                            if (!thisDataRow[i]) {grid_console.text('Rep is required in row ' + (index + 1) + '!'); validTable = false; loading_overlay.hide(); button_state.button('reset'); return false;}
                                         }
                                         thisDataObject[objectFields[i]] = thisDataRow[i];
                                         break;

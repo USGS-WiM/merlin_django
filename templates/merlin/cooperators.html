@@ -1,7 +1,7 @@
 {% extends 'merlin/base.html' %}
 {% block body_block %}
 
-    <div id="loading"></div>
+    <div id="loading_overlay"></div>
     <div style="padding:10px">
 
         <p>
@@ -80,8 +80,8 @@
 		<script>
             $(document).ready(function() {
 
-				var loading = $('#loading');
-				loading.hide();
+				var loading_overlay = $('#loading_overlay');
+				loading_overlay.hide();
 
                 var csrftoken = $.cookie('csrftoken');
                 function csrfSafeMethod(method) {
@@ -126,6 +126,9 @@
                     manualRowResize: true,
                     invalidCellClassName: 'customHtInvalid',
                     search: {searchResultClass: 'customHtSearchResult'},
+                    fillHandle: {
+                        autoInsertRow: false
+                    },
                     columns: [
                         {title: "ID", data: "id", readOnly: true, width: 1},
                         {title: "Name", data: "name", width: 200},
@@ -178,20 +181,20 @@
                 var form_add = $("#form_add");
                 form_add.find('button[name=addSave]').click(function() {
                     var button_state = $(this).button('loading');
-                    loading.show();
+                    loading_overlay.show();
                     var thisDataObject = {};
                     thisDataObject['name'] = form_add.find('input[name=name]').val();
-                    if (thisDataObject['name'] == null) {grid_console.text('Name is required!'); loading.hide(); button_state.button('reset'); return false;}
+                    if (thisDataObject['name'] == null) {grid_console.text('Name is required!'); loading_overlay.hide(); button_state.button('reset'); return false;}
                     thisDataObject['agency'] = form_add.find('input[name=agency]').val();
-                    if (thisDataObject['agency'] == null) {grid_console.text('Agency is required!'); loading.hide(); button_state.button('reset'); return false;}
+                    if (thisDataObject['agency'] == null) {grid_console.text('Agency is required!'); loading_overlay.hide(); button_state.button('reset'); return false;}
                     thisDataObject['email'] = form_add.find('input[name=email]').val();
                     if (thisDataObject['email'] == null) {thisDataObject['email'] = "";}
                     thisDataObject['phone'] = form_add.find('input[name=phone]').val();
                     if (thisDataObject['phone'] == "") {delete thisDataObject['phone']}
-                    else if (isNaN(thisDataObject['phone'])) {grid_console.text('Phone number must be numeric! No dashes or parentheses, etc.'); loading.hide(); button_state.button('reset'); return false;}
+                    else if (isNaN(thisDataObject['phone'])) {grid_console.text('Phone number must be numeric! No dashes or parentheses, etc.'); loading_overlay.hide(); button_state.button('reset'); return false;}
                     thisDataObject['sec_phone'] = form_add.find('input[name=sec_phone]').val();
                     if (thisDataObject['sec_phone'] == "") {delete thisDataObject['sec_phone']}
-                    else if (isNaN(thisDataObject['sec_phone'])) {grid_console.text('Secondary Phone number must be numeric! No dashes or parentheses, etc.'); loading.hide(); button_state.button('reset'); return false;}
+                    else if (isNaN(thisDataObject['sec_phone'])) {grid_console.text('Secondary Phone number must be numeric! No dashes or parentheses, etc.'); loading_overlay.hide(); button_state.button('reset'); return false;}
                     thisDataObject['address'] = form_add.find('input[name=address]').val();
                     if (thisDataObject['address'] == null) {thisDataObject['address'] = "";}
                     thisDataObject['city'] = form_add.find('input[name=city]').val();
@@ -200,7 +203,7 @@
                     if (thisDataObject['state'] == null) {thisDataObject['state'] = "";}
                     thisDataObject['zipcode'] = form_add.find('input[name=zipcode]').val();
                     if (thisDataObject['zipcode'] == "") {delete thisDataObject['zipcode']}
-                    else if (isNaN(thisDataObject['zipcode'])) {grid_console.text('Zipcode must be numeric!'); loading.hide(); button_state.button('reset'); return false;}
+                    else if (isNaN(thisDataObject['zipcode'])) {grid_console.text('Zipcode must be numeric!'); loading_overlay.hide(); button_state.button('reset'); return false;}
                     thisDataObject['country'] = form_add.find('input[name=country]').val();
                     if (thisDataObject['county'] == null) {thisDataObject['country'] = "";}
                     var dataJSON = JSON.stringify(thisDataObject);
@@ -215,7 +218,7 @@
                             // if the content-type is plain text, then it's a custom message from our Django view
                             if (content_type.indexOf('text') > -1) {
                                 grid_console.text(data);
-                                loading.hide();
+                                loading_overlay.hide();
                                 button_state.button('reset');
                             }
                             // otherwise, it's JSON from the REST Services
@@ -223,18 +226,18 @@
                                 $(":input", "#form_add").not(":button").val("");
                                 grid.parent().find('button[name=add]').click();
                                 grid_console.text(textStatus+': Data saved.');
-                                loading.hide();
+                                loading_overlay.hide();
                                 button_state.button('reset');
                             }
                             else {
                                 grid_console.text(textStatus+': Save error: '+jqXHRequest.statusText+', code: '+jqXHRequest.status+'.');
-                                loading.hide();
+                                loading_overlay.hide();
                                 button_state.button('reset');
                             }
                         },
                         error: function (jqXHRequest, textStatus, errorThrown) {
                             grid_console.text(errorThrown + ": " + textStatus);
-                            loading.hide();
+                            loading_overlay.hide();
                             button_state.button('reset');
                         }
                     });
@@ -286,7 +289,7 @@
 
                 grid.parent().find('button[name=load]').click(function () {
                     var button_state = $(this).button('loading');
-                    loading.show();
+                    loading_overlay.show();
                     $.ajax({
                         url: '/mercuryservices/cooperators/',
                         dataType: 'json',
@@ -296,12 +299,12 @@
                             grid.data('handsontable').loadData(data_data);
                             //grid.data('handsontable').sort(0);
                             grid_console.text('Data reloaded.');
-                            loading.hide();
+                            loading_overlay.hide();
                             button_state.button('reset');
                         },
                         error: function (jqXHRequest, textStatus, errorThrown) {
                             grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve data to reload.");
-                            loading.hide();
+                            loading_overlay.hide();
                             button_state.button('reset');
                         }
                     });
@@ -321,8 +324,8 @@
 
                 grid.parent().find('button[name=delete]').click(function () {
                     var button_state = $(this).button('loading');
-                    loading.show();
-                    if (typeof selectionRowIndices[0] == 'undefined') {grid_console.text('There are no selected rows to delete!'); loading.hide(); button_state.button('reset'); return false;}
+                    loading_overlay.show();
+                    if (typeof selectionRowIndices[0] == 'undefined') {grid_console.text('There are no selected rows to delete!'); loading_overlay.hide(); button_state.button('reset'); return false;}
                     var thisDataRow = grid.data('handsontable').getDataAtRow(selectionRowIndices[0]);
                     var thisDataObject = {"id": thisDataRow[0]};
                     var changedDataJSON = JSON.stringify(thisDataObject);
@@ -335,19 +338,19 @@
                             if (jqXHRequest.status === 204) {
                                 grid.parent().find('button[name=load]').click();
                                 grid_console.text('Data deleted.');
-                                loading.hide();
+                                loading_overlay.hide();
                                 button_state.button('reset');
                             }
                             else {
                                 grid.parent().find('button[name=load]').click();
                                 grid_console.text(textStatus + ': Delete error: ' + jqXHRequest.statusText + ', code: ' + jqXHRequest.status + '.');
-                                loading.hide();
+                                loading_overlay.hide();
                                 button_state.button('reset');
                             }
                         },
                         error: function (jqXHRequest, textStatus, errorThrown) {
                             grid_console.text(errorThrown + ": " + textStatus);
-                            loading.hide();
+                            loading_overlay.hide();
                             button_state.button('reset');
                         }
                     });
@@ -355,10 +358,10 @@
 
                 grid.parent().find('button[name=save]').click(function () {
                     var button_state = $(this).button('loading');
-                    loading.show();
+                    loading_overlay.show();
                     var changedDataArray = [];
                     // if there are no changed rows, notify the user and stop the submission
-                    if (typeof changedRowIndices == 'undefined' || changedRowIndices.length < 1) {grid_console.text('There are no changed rows to save!'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
+                    if (typeof changedRowIndices == 'undefined' || changedRowIndices.length < 1) {grid_console.text('There are no changed rows to save!'); validTable = false; loading_overlay.hide(); button_state.button('reset'); return false;}
                     // otherwise loop through all changed rows
                     $.each(changedRowIndices, function(index, value) {
                         var thisDataRow = grid.data('handsontable').getDataAtRow(value);
@@ -367,7 +370,7 @@
                             if (thisDataRow[i] == null && i != 4 && i != 5 && i != 9) {
                                 thisDataRow[i] = "";
                             }
-                            else if ((i == 4 || i == 5 || i == 9) && isNaN(thisDataRow[i])) {grid_console.text('Phone numbers and Zipcodes must be numeric! No dashes or parentheses, etc.'); validTable = false; loading.hide(); button_state.button('reset'); return false;}
+                            else if ((i == 4 || i == 5 || i == 9) && isNaN(thisDataRow[i])) {grid_console.text('Phone numbers and Zipcodes must be numeric! No dashes or parentheses, etc.'); validTable = false; loading_overlay.hide(); button_state.button('reset'); return false;}
                             thisDataObject[objectFields[i]] = thisDataRow[i];
                         }
                         changedDataArray.push(thisDataObject);
@@ -388,25 +391,25 @@
                                 // if the content-type is plain text, then it's a custom message from our Django view
                                 if (content_type.indexOf('text') > -1) {
                                     grid_console.text(data);
-                                    loading.hide();
+                                    loading_overlay.hide();
                                     button_state.button('reset');
                                 }
                                 // otherwise, it's JSON from the REST Services
                                 else if (jqXHRequest.status === 200) {
                                     grid.parent().find('button[name=load]').click();
                                     grid_console.text(textStatus + ': Data saved.');
-                                    loading.hide();
+                                    loading_overlay.hide();
                                     button_state.button('reset');
                                 }
                                 else {
                                     grid_console.text(textStatus + ': Save error: ' + jqXHRequest.statusText + ', code: ' + jqXHRequest.status + '.');
-                                    loading.hide();
+                                    loading_overlay.hide();
                                     button_state.button('reset');
                                 }
                             },
                             error: function (jqXHRequest, textStatus, errorThrown) {
                                 grid_console.text(errorThrown + ": " + textStatus);
-                                loading.hide();
+                                loading_overlay.hide();
                                 button_state.button('reset');
                             }
                         });
