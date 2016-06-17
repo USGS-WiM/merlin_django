@@ -1108,8 +1108,8 @@
                     if ($("#select_replicate").val() != "") {thisDataObject['replicate'] = $("#select_replicate").val()}
                     if ($(select_analysis).val() != "") {thisDataObject['analysis'] = $(select_analysis).val()}
                     var formattedDate = "";
-                    if ($(date_after_sample).val()!= "") {formattedDate = formatDate($(date_after_sample).val()); if (isNaN(formattedDate.slice(0,4)) && formattedDate != "") {grid_console.text(formattedDate); loading_overlay.hide(); button_state.button('reset'); return false;} else {thisDataObject['date_after_sample'] = formattedDate;}} else {formattedDate = ""}
-                    if ($(date_before_sample).val() != "") {formattedDate = formatDate($(date_before_sample).val()); if (isNaN(formattedDate.slice(0,4)) && formattedDate != "") {grid_console.text(formattedDate); loading_overlay.hide(); button_state.button('reset'); return false;} else {thisDataObject['date_before_sample'] = formattedDate;}} else {formattedDate = ""}
+                    if (date_after_sample.toString('MM/DD/YY') != "") {formattedDate = formatDate(date_after_sample.toString('MM/DD/YY')); if (isNaN(formattedDate.slice(0,4)) && formattedDate != "") {grid_console.text(formattedDate); loading_overlay.hide(); button_state.button('reset'); return false;} else {thisDataObject['date_after_sample'] = formattedDate;}} else {formattedDate = ""}
+                    if (date_before_sample.toString('MM/DD/YY') != "") {formattedDate = formatDate(date_before_sample.toString('MM/DD/YY')); if (isNaN(formattedDate.slice(0,4)) && formattedDate != "") {grid_console.text(formattedDate); loading_overlay.hide(); button_state.button('reset'); return false;} else {thisDataObject['date_before_sample'] = formattedDate;}} else {formattedDate = ""}
                     thisDataObject['format'] = "csv";
                     thisDataObject['table'] = "sample";
                     // page_size is the parameter that will override our self-defined default 100-record pagination

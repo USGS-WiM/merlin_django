@@ -328,8 +328,8 @@
                     thisDataObject['cooperator'] = $(select_cooperator).val();
                     thisDataObject['project'] = $(select_project).val();
                     thisDataObject['project_not'] = $(select_project_not).val();
-                    thisDataObject['date_after_entry'] = $(date_after_entry).val();
-                    thisDataObject['date_before_entry'] = $(date_before_entry).val();
+                    thisDataObject['date_after_entry'] = date_after_entry.toString('MM/DD/YY');
+                    thisDataObject['date_before_entry'] = date_before_entry.toString('MM/DD/YY');
                     // page_size is the parameter that will override our self-defined default 100-record pagination
                     // setting it to the nearest hundred above the record count will ensure we get all matching records
                     thisDataObject['page_size'] = (resultPages * 100);
