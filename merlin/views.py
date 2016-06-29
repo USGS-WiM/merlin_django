@@ -156,7 +156,7 @@ def samples_create(request):
             # if response count does not equal zero, then this sample already exists in the database
             if response_data['count'] != 0:
                 logger.warning("Validation Warning: " + str(sample_values_unique) + " count != 0")
-                project_name = http_get(request, 'projects/'+str(row.get('project'))).json()[0]['name']
+                project_name = http_get(request, 'projects/'+str(row.get('project'))).json()['results'][0]['name']
                 site_name = http_get(request, 'sites/' + row.get('site')).json()['results'][0]['name']
                 message = "\"Error in row " + str(row_number) + ": This Sample already exists in the database: "
                 message += project_name + "|" + site_name + "|" + str(row.get('sample_date_time')) + "|"
@@ -210,7 +210,7 @@ def samples_create(request):
             unique_sample_analyses.append(this_analysis)
         else:
             logger.warning("Validation Warning: " + this_analysis + " is not unique")
-            project_name = http_get(request, 'projects', {'id': row.get('project')}).json()[0]['name']
+            project_name = http_get(request, 'projects', {'id': row.get('project')}).json()['results'][0]['name']
             site_name = http_get(request, 'sites', {'id': row.get('site')}).json()['results'][0]['name']
             analysis_name = http_get(request, 'analyses', {'id': row.get('analysis_type')}).json()[0]['analysis']
             isotope_flag = http_get(request, 'isotopeflags', {'id': row.get('isotope_flag')}).json()[0]['isotope_flag']
@@ -567,7 +567,7 @@ def samples_update(request):
             if response_data['count'] == 0:
                 # logger.warning("Validation Warning: " + str(sample_values_unique) + " count == 0")
                 logger.warning("Validation Warning: " + str(this_sample_id) + " count == 0")
-                project_name = http_get(request, 'projects/'+str(row.get('project'))).json()[0]['name']
+                project_name = http_get(request, 'projects/'+str(row.get('project'))).json()['results'][0]['name']
                 site_name = http_get(request, 'sites/'+str(row.get('site'))).json()['results'][0]['name']
                 message = "\"Error in row " + str(row_number) + ":"
                 message += " Cannot save because this Sample does not exist in the database: "
