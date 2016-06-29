@@ -156,8 +156,8 @@ def samples_create(request):
             # if response count does not equal zero, then this sample already exists in the database
             if response_data['count'] != 0:
                 logger.warning("Validation Warning: " + str(sample_values_unique) + " count != 0")
-                project_name = http_get(request, 'projects/'+str(row.get('project'))).json()['results'][0]['name']
-                site_name = http_get(request, 'sites/' + row.get('site')).json()['results'][0]['name']
+                project_name = http_get(request, 'projects/'+str(row.get('project'))).json()['name']
+                site_name = http_get(request, 'sites/' + str(row.get('site'))).json()['name']
                 message = "\"Error in row " + str(row_number) + ": This Sample already exists in the database: "
                 message += project_name + "|" + site_name + "|" + str(row.get('sample_date_time')) + "|"
                 message += str(row.get('depth')) + "|" + str(row.get('replicate')) + "|"
@@ -210,10 +210,10 @@ def samples_create(request):
             unique_sample_analyses.append(this_analysis)
         else:
             logger.warning("Validation Warning: " + this_analysis + " is not unique")
-            project_name = http_get(request, 'projects', {'id': row.get('project')}).json()['results'][0]['name']
+            project_name = http_get(request, 'projects', {'id': row.get('project')}).json()['name']
             site_name = http_get(request, 'sites', {'id': row.get('site')}).json()['results'][0]['name']
-            analysis_name = http_get(request, 'analyses', {'id': row.get('analysis_type')}).json()[0]['analysis']
-            isotope_flag = http_get(request, 'isotopeflags', {'id': row.get('isotope_flag')}).json()[0]['isotope_flag']
+            analysis_name = http_get(request, 'analyses', {'id': row.get('analysis_type')}).json()['analysis']
+            isotope_flag = http_get(request, 'isotopeflags', {'id': row.get('isotope_flag')}).json()['isotope_flag']
             message = "\"Error in row " + str(row_number) + ": This Analysis (" + analysis_name + ")"
             message += " and Isotope (" + isotope_flag + ") combination appears more than once in this sample: "
             message += project_name + "|" + site_name + "|" + str(row.get('sample_date_time')) + "|"
@@ -567,8 +567,8 @@ def samples_update(request):
             if response_data['count'] == 0:
                 # logger.warning("Validation Warning: " + str(sample_values_unique) + " count == 0")
                 logger.warning("Validation Warning: " + str(this_sample_id) + " count == 0")
-                project_name = http_get(request, 'projects/'+str(row.get('project'))).json()['results'][0]['name']
-                site_name = http_get(request, 'sites/'+str(row.get('site'))).json()['results'][0]['name']
+                project_name = http_get(request, 'projects/'+str(row.get('project'))).json()['name']
+                site_name = http_get(request, 'sites/'+str(row.get('site'))).json()['name']
                 message = "\"Error in row " + str(row_number) + ":"
                 message += " Cannot save because this Sample does not exist in the database: "
                 message += project_name + "|" + site_name + "|" + str(row.get('sample_date_time')) + "|"
@@ -702,7 +702,7 @@ def samples_update(request):
                     logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
                     response_data = r.json()
                     message += " Unable to save sample bottle."
-                    message += " Bottle Code " + response_data["results"][0]["bottle_unique_name"]
+                    message += " Bottle Code " + response_data["bottle_unique_name"]
                     message += " is used in an existing sample bottle.\""
                     logger.error(message)
                     return HttpResponse(message, content_type='text/html')
@@ -785,7 +785,7 @@ def samples_update(request):
                 response_data = r.json()
                 message += " Unable to save sample analysis; could not find a sample bottle for this sample analysis."
                 message += " Tried finding a sample bottle with Sample ID " + str(this_sample)
-                message += " and Bottle Code " + response_data["results"][0]["bottle_unique_name"] + "."
+                message += " and Bottle Code " + response_data["bottle_unique_name"] + "."
                 message += " Please contact the administrator.\""
                 logger.error(message)
                 return HttpResponse(message, content_type='text/html')
