@@ -426,7 +426,7 @@ class FlatResultSerializer(serializers.ModelSerializer):
                                             source='sample_bottle.sample.sample_date_time', read_only=True)
     depth = serializers.FloatField(source='sample_bottle.sample.depth', read_only=True)
     medium = serializers.StringRelatedField(source='sample_bottle.sample.medium_type')
-    analysis = serializers.StringRelatedField()
+    #analysis = serializers.StringRelatedField()
     constituent = serializers.StringRelatedField()
     isotope = serializers.StringRelatedField(source='isotope_flag')
     received_date = serializers.StringRelatedField(source='sample_bottle.sample.received_date')
@@ -434,14 +434,15 @@ class FlatResultSerializer(serializers.ModelSerializer):
     result_value = serializers.SerializerMethodField()
     unit = serializers.StringRelatedField(source='method.final_value_unit')
     detection_flag = serializers.StringRelatedField()
+    ddl = serializers.FloatField(source='final_daily_detection_limit', read_only=True)
     qa_flags = serializers.SerializerMethodField()
     analyzed_date = serializers.DateTimeField(format='%m/%d/%y', read_only=True)
 
     class Meta:
         model = Result
         fields = ('result_id', 'bottle', 'tare_weight', 'project_name', 'site_name', 'site_id', 'sample_date',
-                  'sample_time', 'depth', 'medium', 'analysis', 'constituent', 'isotope', 'received_date', 'comments',
-                  'result_value', 'unit', 'detection_flag', 'qa_flags', 'analysis_comment', 'analyzed_date',)
+                  'sample_time', 'depth', 'medium', 'constituent', 'isotope', 'received_date', 'comments',
+                  'result_value', 'unit', 'detection_flag', 'ddl', 'qa_flags', 'analysis_comment', 'analyzed_date',)
 
 
 class FlatResultSampleSerializer(serializers.ModelSerializer):

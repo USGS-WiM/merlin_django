@@ -10,6 +10,7 @@ var handsontable2csv = {
             for (var h in headers) {
                 var prop = instance.colToProp(h);
                 var value = instance.getDataAtRowProp(i, prop);
+                value = (typeof value == 'string' && value.includes(",")) ? '"' + value + '"' : value;
                 row.push(value);
             }
 
@@ -44,6 +45,7 @@ var handsontable2tab = {
             for (var h in headers) {
                 var prop = instance.colToProp(h);
                 var value = instance.getDataAtRowProp(i, prop);
+                value = (typeof value == 'string' && value.includes(",")) ? '"' + value + '"' : value;
                 row.push(value)
             }
 
