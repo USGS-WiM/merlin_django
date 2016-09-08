@@ -153,22 +153,23 @@
                 var grid_columns = [
                         {title: 'Result ID', data: 'id', readOnly: true, width: 80},
                         {title: 'Bottle', data: 'sample_bottle.bottle.bottle_unique_name', readOnly: true, width: 100},
-                        {title: 'Tare Weight', data: 'sample_bottle.bottle.bottle_prefix.tare_weight', readOnly: true, width: 90, format: '0.0000'},
+                        {title: 'Tare Weight', data: 'sample_bottle.bottle.bottle_prefix.tare_weight', readOnly: true, width: 85, format: '0.0000'},
                         {title: 'Project', data: 'sample_bottle.sample.project_string', readOnly: true, width: 100},
                         {title: 'Site Name', data: 'sample_bottle.sample.site_string', readOnly: true, width: 180},
-                        {title: 'Site ID', data: 'sample_bottle.sample.site_usgs_scode', readOnly: true, width: 140},
+                        {title: 'Site ID', data: 'sample_bottle.sample.site_usgs_scode', readOnly: true, width: 100},
                         {title: 'Sample Date', data: 'sample_bottle.sample.sample_date', readOnly: true, width: 90},
                         {title: 'Sample Time', data: 'sample_bottle.sample.sample_time', readOnly: true, width: 90},
                         {title: 'Depth', data: 'sample_bottle.sample.depth', readOnly: true, width: 50, format: '0.00'},
                         {title: 'Medium', data: 'sample_bottle.sample.medium_type_string', readOnly: true, width: 60},
-                        {title: 'Analysis', data: 'analysis_string', readOnly: true, width: 80},
-                        {title: 'Constituent', data: 'constituent_string', readOnly: true, width: 140},
+                        //{title: 'Analysis', data: 'analysis_string', readOnly: true, width: 80},
+                        {title: 'Constituent', data: 'constituent_string', readOnly: true, width: 80},
                         {title: 'Isotope', data: 'isotope_flag_string', readOnly: true, width: 55},
                         {title: 'Received', data: 'sample_bottle.sample.received_date', readOnly: true, width: 65},
                         {title: 'Comments', data: 'sample_bottle.sample.comment', readOnly: true, width: 140},
                         {title: 'Result Value', data: 'report_value', readOnly: true, width: 90, format: '0.00000000'},
                         {title: 'Unit', data: 'method.final_value_unit_string', readOnly: true, width: 60},
                         {title: 'Detection Flag', data: 'detection_flag_string', readOnly: true, width: 100},
+                        {title: 'DDL', data: 'final_daily_detection_limit', readOnly: true, width: 50, format: '0.00000000'},
                         {title: 'QA Flags', data: 'quality_assurances_strings', readOnly: true, width: 65},
                         {title: 'Analysis Comments', data: 'analysis_comment', readOnly: true, width: 140},
                         {title: 'Analyzed', data: 'analyzed_date', readOnly: true, width: 65}
@@ -404,11 +405,11 @@
                                 grid.data('handsontable').loadData(data_data.results);
                                 var settings = grid.handsontable('getInstance').getSettings();
                                 if ($("input[type=radio][name=valueType]:checked").val() == "report") {
-                                    settings.columns[15] = {title: 'Result Value', data: 'report_value', readOnly: true, width: 90, format: '0.00000000'};
+                                    settings.columns[14] = {title: 'Result Value', data: 'report_value', readOnly: true, width: 90, format: '0.00000000'};
                                     grid.handsontable('getInstance').updateSettings(settings);
                                 }
                                 else {
-                                    settings.columns[15] = {title: 'Result Value', data: 'final_value', readOnly: true, width: 90, format: '0.00000000'};
+                                    settings.columns[14] = {title: 'Result Value', data: 'final_value', readOnly: true, width: 90, format: '0.00000000'};
                                     grid.handsontable('getInstance').updateSettings(settings);
                                 }
                                 loading_overlay.hide();
@@ -419,7 +420,7 @@
                                 loading_overlay.hide();
                                 button_state.button('reset');
                             }
-                            //$("#bottle_search_list").val("");
+                            $("#bottle_search_list").val("");
                         },
                         error: function (jqXHRequest, textStatus, errorThrown) {
                             grid_console.text(errorThrown + " ... " + textStatus);
@@ -495,11 +496,11 @@
                 resultValueType.change(function () {
                     var settings = grid.handsontable('getInstance').getSettings();
                     if (this.value == "report") {
-                        settings.columns[15] = {title: 'Result Value', data: 'report_value', readOnly: true, width: 90, format: '0.00000000'};
+                        settings.columns[14] = {title: 'Result Value', data: 'report_value', readOnly: true, width: 90, format: '0.00000000'};
                         grid.handsontable('getInstance').updateSettings(settings);
                     }
                     else {
-                        settings.columns[15] = {title: 'Result Value', data: 'final_value', readOnly: true, width: 90, format: '0.00000000'};
+                        settings.columns[14] = {title: 'Result Value', data: 'final_value', readOnly: true, width: 90, format: '0.00000000'};
                         grid.handsontable('getInstance').updateSettings(settings);
                     }
                 });
@@ -552,10 +553,10 @@
                     if ($(select_project).val() != "") {thisDataObject['project'] = $(select_project).val()}
                     if ($(select_site).val() != "") {thisDataObject['site'] = $(select_site).val()}
                     var formattedDate = "";
-                    if ($(date_after_sample).val()!= "") {formattedDate = formatDate($(date_after_sample).val()); if (isNaN(formattedDate.slice(0,4)) && formattedDate != "") {grid_console.text(formattedDate); button_state.button('reset'); return false;} else {thisDataObject['date_after_sample'] = formattedDate;}} else {formattedDate = ""}
-                    if ($(date_before_sample).val() != "") {formattedDate = formatDate($(date_before_sample).val()); if (isNaN(formattedDate.slice(0,4)) && formattedDate != "") {grid_console.text(formattedDate); button_state.button('reset'); return false;} else {thisDataObject['date_before_sample'] = formattedDate;}} else {formattedDate = ""}
-                    if ($(date_after_entry).val() != "") {formattedDate = formatDate($(date_after_entry).val()); if (isNaN(formattedDate.slice(0,4)) && formattedDate != "") {grid_console.text(formattedDate); button_state.button('reset'); return false;} else {thisDataObject['date_after_entry'] = formattedDate;}} else {formattedDate = ""}
-                    if ($(date_before_entry).val() != "") {formattedDate = formatDate($(date_before_entry).val()); if (isNaN(formattedDate.slice(0,4)) && formattedDate != "") {grid_console.text(formattedDate); button_state.button('reset'); return false;} else {thisDataObject['date_before_entry'] = formattedDate;}} else {formattedDate = ""}
+                    if (date_after_sample.toString('MM/DD/YY') != "") {formattedDate = formatDate(date_after_sample.toString('MM/DD/YY')); if (isNaN(formattedDate.slice(0,4)) && formattedDate != "") {grid_console.text(formattedDate); button_state.button('reset'); return false;} else {thisDataObject['date_after_sample'] = formattedDate;}} else {formattedDate = ""}
+                    if (date_before_sample.toString('MM/DD/YY') != "") {formattedDate = formatDate(date_before_sample.toString('MM/DD/YY')); if (isNaN(formattedDate.slice(0,4)) && formattedDate != "") {grid_console.text(formattedDate); button_state.button('reset'); return false;} else {thisDataObject['date_before_sample'] = formattedDate;}} else {formattedDate = ""}
+                    if (date_after_entry.toString('MM/DD/YY') != "") {formattedDate = formatDate(date_after_entry.toString('MM/DD/YY')); if (isNaN(formattedDate.slice(0,4)) && formattedDate != "") {grid_console.text(formattedDate); button_state.button('reset'); return false;} else {thisDataObject['date_after_entry'] = formattedDate;}} else {formattedDate = ""}
+                    if (date_before_entry.toString('MM/DD/YY') != "") {formattedDate = formatDate(date_before_entry.toString('MM/DD/YY')); if (isNaN(formattedDate.slice(0,4)) && formattedDate != "") {grid_console.text(formattedDate); button_state.button('reset'); return false;} else {thisDataObject['date_before_entry'] = formattedDate;}} else {formattedDate = ""}
                     if ($(select_constituent).val() != "") {thisDataObject['constituent'] = $(select_constituent).val()}
                     thisDataObject['exclude_null_results'] = $('#excludeNullResults').is(':checked');
                     thisDataObject['format'] = "csv";
