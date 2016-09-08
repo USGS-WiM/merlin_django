@@ -153,7 +153,6 @@
                 var grid_columns = [
                         {title: 'Result ID', data: 'id', readOnly: true, width: 80},
                         {title: 'Bottle', data: 'sample_bottle.bottle.bottle_unique_name', readOnly: true, width: 100},
-                        {title: 'Tare Weight', data: 'sample_bottle.bottle.bottle_prefix.tare_weight', readOnly: true, width: 85, format: '0.0000'},
                         {title: 'Project', data: 'sample_bottle.sample.project_string', readOnly: true, width: 100},
                         {title: 'Site Name', data: 'sample_bottle.sample.site_string', readOnly: true, width: 180},
                         {title: 'Site ID', data: 'sample_bottle.sample.site_usgs_scode', readOnly: true, width: 100},
@@ -405,11 +404,11 @@
                                 grid.data('handsontable').loadData(data_data.results);
                                 var settings = grid.handsontable('getInstance').getSettings();
                                 if ($("input[type=radio][name=valueType]:checked").val() == "report") {
-                                    settings.columns[14] = {title: 'Result Value', data: 'report_value', readOnly: true, width: 90, format: '0.00000000'};
+                                    settings.columns[13] = {title: 'Result Value', data: 'report_value', readOnly: true, width: 90, format: '0.00000000'};
                                     grid.handsontable('getInstance').updateSettings(settings);
                                 }
                                 else {
-                                    settings.columns[14] = {title: 'Result Value', data: 'final_value', readOnly: true, width: 90, format: '0.00000000'};
+                                    settings.columns[13] = {title: 'Result Value', data: 'final_value', readOnly: true, width: 90, format: '0.00000000'};
                                     grid.handsontable('getInstance').updateSettings(settings);
                                 }
                                 loading_overlay.hide();
@@ -496,11 +495,11 @@
                 resultValueType.change(function () {
                     var settings = grid.handsontable('getInstance').getSettings();
                     if (this.value == "report") {
-                        settings.columns[14] = {title: 'Result Value', data: 'report_value', readOnly: true, width: 90, format: '0.00000000'};
+                        settings.columns[13] = {title: 'Result Value', data: 'report_value', readOnly: true, width: 90, format: '0.00000000'};
                         grid.handsontable('getInstance').updateSettings(settings);
                     }
                     else {
-                        settings.columns[14] = {title: 'Result Value', data: 'final_value', readOnly: true, width: 90, format: '0.00000000'};
+                        settings.columns[13] = {title: 'Result Value', data: 'final_value', readOnly: true, width: 90, format: '0.00000000'};
                         grid.handsontable('getInstance').updateSettings(settings);
                     }
                 });

@@ -416,7 +416,6 @@ class FlatResultSerializer(serializers.ModelSerializer):
 
     result_id = serializers.IntegerField(source='id', read_only=True)
     bottle = serializers.StringRelatedField(source='sample_bottle.bottle.bottle_unique_name')
-    tare_weight = serializers.FloatField(source='sample_bottle.bottle.bottle_prefix.tare_weight', read_only=True)
     project_name = serializers.StringRelatedField(source='sample_bottle.sample.project.name')
     site_name = serializers.StringRelatedField(source='sample_bottle.sample.site.name')
     site_id = serializers.StringRelatedField(source='sample_bottle.sample.site.usgs_scode')
@@ -440,9 +439,9 @@ class FlatResultSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Result
-        fields = ('result_id', 'bottle', 'tare_weight', 'project_name', 'site_name', 'site_id', 'sample_date',
-                  'sample_time', 'depth', 'medium', 'constituent', 'isotope', 'received_date', 'comments',
-                  'result_value', 'unit', 'detection_flag', 'ddl', 'qa_flags', 'analysis_comment', 'analyzed_date',)
+        fields = ('result_id', 'bottle', 'project_name', 'site_name', 'site_id', 'sample_date', 'sample_time',
+                  'depth', 'medium', 'constituent', 'isotope', 'received_date', 'comments', 'result_value',
+                  'unit', 'detection_flag', 'ddl', 'qa_flags', 'analysis_comment', 'analyzed_date',)
 
 
 class FlatResultSampleSerializer(serializers.ModelSerializer):
