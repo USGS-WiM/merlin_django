@@ -146,6 +146,8 @@
                 var data_projects = JSON.parse(grid.attr('data-projects'));
                 var data_sites;
                 var data_constituents = JSON.parse(grid.attr('data-constituents'));
+                var bottleIds = [];
+                var penultimateSearchWasMultiBottle = false;
                 var dateToday = new Date(); //toISOString().split("T")[0];
                 var yearToday = dateToday.getFullYear().toString();
                 var monthToday = (dateToday.getMonth() + 1).toString();
@@ -359,6 +361,7 @@
                 });
 
                 var searchBottles = function(button,bottle){
+                    penultimateSearchWasMultiBottle = (button == '#multi_bottle_search');
                     var button_state = $(button).button('loading');
                     loading_overlay.show();
                     grid_console.text('Attempting to search...');
@@ -535,20 +538,8 @@
                     else if (resultPages < 2) {return false;}
                     // otherwise request all the data matching the search query from the server
                     var thisDataObject = {};
-                    var textValue = $("#bottle_search_list").val();
-                    if (textValue != '') {
-                        // split the values with a newline, tab, or comma
-                        var bottle_list = textValue.split(/[\n\t,]+/);
-                        var bottleIds = [];
-                        //check for empty strings
-                        for(var i = 0; i < bottle_list.length; i++){
-                            if(bottle_list[i].trim()){
-                                bottleIds.push(bottle_list[i]);
-                            }
-                        }
-                        thisDataObject['bottle'] = bottleIds.join(",");
-                    }
-                    else {if ($(select_bottle).val() != "") {thisDataObject['bottle'] = $(select_bottle).val()}}
+                    if (penultimateSearchWasMultiBottle) {thisDataObject['bottle'] = bottleIds.join(",");}
+                    else if ($(select_bottle).val() != "") {thisDataObject['bottle'] = $(select_bottle).val()}
                     if ($(select_project).val() != "") {thisDataObject['project'] = $(select_project).val()}
                     if ($(select_site).val() != "") {thisDataObject['site'] = $(select_site).val()}
                     var formattedDate = "";
@@ -583,7 +574,7 @@
                     var textValue = $("#bottle_search_list").val();
                     // split the values with a newline, tab, or comma
                     var bottle_list = textValue.split(/[\n\t,]+/);
-                    var bottleIds = [];
+                    bottleIds.length = 0;
                     //check for empty strings
                     for(var i = 0; i < bottle_list.length; i++){
                         if(bottle_list[i].trim()){
