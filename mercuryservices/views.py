@@ -436,7 +436,19 @@ class BottleBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkUpdateModelMixin, 
 class BottleViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = BottleSerializer
-    paginate_by = 100
+    #paginate_by = 100
+    paginate_by_param = 'page_size'
+
+    # override the default paginate_by to use unlimited pagination if requested, and 100 for all others.
+    def get_paginate_by(self):
+        pagesize = self.request.query_params.get('page_size', None)
+        if pagesize is not None:
+            if pagesize == 'all':
+                return None
+            else:
+                return 100
+        else:
+            return 100
 
     def get_queryset(self):
         queryset = Bottle.objects.all()
@@ -448,6 +460,11 @@ class BottleViewSet(viewsets.ModelViewSet):
         bottle_unique_name = self.request.query_params.get('bottle_unique_name', None)
         if bottle_unique_name is not None:
             queryset = queryset.filter(bottle_unique_name__icontains=bottle_unique_name)
+        # filter by unused bottles (i.e., bottles not yet used as sample bottles)
+        unused = self.request.query_params.get('unused', None)
+        if unused is not None:
+            if unused == 'True' or unused == 'true':
+                queryset = queryset.filter(sample_bottles=None)
         return queryset
 
 
@@ -964,7 +981,19 @@ class AcidBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
 class AcidViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = AcidSerializer
-    paginate_by = 100
+    #paginate_by = 100
+    paginate_by_param = 'page_size'
+
+    # override the default paginate_by to use unlimited pagination if requested, and 100 for all others.
+    def get_paginate_by(self):
+        pagesize = self.request.query_params.get('page_size', None)
+        if pagesize is not None:
+            if pagesize == 'all':
+                return None
+            else:
+                return 100
+        else:
+            return 100
 
     # override the default queryset to allow filtering by URL arguments
     def get_queryset(self):
