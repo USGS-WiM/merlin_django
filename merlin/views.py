@@ -12,7 +12,7 @@ from django.core.urlresolvers import reverse
 ########################################################################################################################
 #
 # copyright: 2015 WiM - USGS
-# authors: Aaron Stephenson USGS WiM (Wisconsin Internet Mapping)
+# authors: Aaron Stephenson USGS WiM (Web Informatics and Mapping)
 #
 # In Django, a view is what takes a Web request and returns a Web response. The response can be many things, but most
 # of the time it will be a Web page, a redirect, or a document.

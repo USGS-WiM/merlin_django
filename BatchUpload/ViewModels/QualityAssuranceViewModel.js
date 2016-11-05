@@ -6,7 +6,7 @@ define(["require", "exports"], function (require, exports) {
     //       01234567890123456789012345678901234567890123456789012345678901234567890
     //-------+---------+---------+---------+---------+---------+---------+---------+
     // copyright:   2015 WiM - USGS
-    //    authors:  Jeremy K. Newson USGS Wisconsin Internet Mapping
+    //    authors:  Jeremy K. Newson USGS Web Informatics and Mapping
     //   purpose:  
     //discussion:   This is where the majority of your code-behind goes: data access, click events, complex calculations, 
     //              business rules validation, etc. ViewModels are typically built to reflect a View. 

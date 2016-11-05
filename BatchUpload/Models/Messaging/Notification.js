@@ -6,7 +6,7 @@ define(["require", "exports"], function (require, exports) {
     //       01234567890123456789012345678901234567890123456789012345678901234567890
     //-------+---------+---------+---------+---------+---------+---------+---------+
     // copyright:   2015 WiM - USGS
-    //    authors:  Jeremy K. Newson USGS Wisconsin Internet Mapping
+    //    authors:  Jeremy K. Newson USGS Web Informatics and Mapping
     //             
     // 
     //   purpose:  Represents the Message
