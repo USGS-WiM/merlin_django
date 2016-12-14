@@ -234,7 +234,7 @@ def samples_create(request):
                 # if they don't match, stop the save and return a validation error message, otherwise move on
                 if this_bottle_filter_volume[1] != bottle_filter_volume[1]:
                     logger_message = "Validation Warning: " + str(this_bottle_filter_volume)
-                    logger_message += " has a mismatch with a previous bottle filter volume " + bottle_filter_volume
+                    logger_message += " has a mismatch with a previous bottle filter volume " + str(bottle_filter_volume)
                     logger.warning(logger_message)
                     r = http_get(request, 'bottles', {"id": this_bottle_filter_volume[0]})
                     logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
