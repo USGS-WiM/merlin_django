@@ -436,19 +436,19 @@ class BottleBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkUpdateModelMixin, 
 class BottleViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = BottleSerializer
-    #paginate_by = 100
-    paginate_by_param = 'page_size'
+    paginate_by = 100
+    #paginate_by_param = 'page_size'
 
     # override the default paginate_by to use unlimited pagination if requested, and 100 for all others.
-    def get_paginate_by(self):
-        pagesize = self.request.query_params.get('page_size', None)
-        if pagesize is not None:
-            if pagesize == 'all':
-                return None
-            else:
-                return 100
-        else:
-            return 100
+    # def get_paginate_by(self):
+    #     pagesize = self.request.query_params.get('page_size', None)
+    #     if pagesize is not None:
+    #         if pagesize == 'all':
+    #             return None
+    #         else:
+    #             return 100
+    #     else:
+    #         return 100
 
     def get_queryset(self):
         queryset = Bottle.objects.all()
