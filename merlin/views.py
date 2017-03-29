@@ -210,10 +210,10 @@ def samples_create(request):
             unique_sample_analyses.append(this_analysis)
         else:
             logger.warning("Validation Warning: " + this_analysis + " is not unique")
-            project_name = http_get(request, 'projects', {'id': row.get('project')}).json()['name']
+            project_name = http_get(request, 'projects', {'id': row.get('project')}).json()[0]['name']
             site_name = http_get(request, 'sites', {'id': row.get('site')}).json()['results'][0]['name']
-            analysis_name = http_get(request, 'analyses', {'id': row.get('analysis_type')}).json()['analysis']
-            isotope_flag = http_get(request, 'isotopeflags', {'id': row.get('isotope_flag')}).json()['isotope_flag']
+            analysis_name = http_get(request, 'analyses', {'id': row.get('analysis_type')}).json()[0]['analysis']
+            isotope_flag = http_get(request, 'isotopeflags', {'id': row.get('isotope_flag')}).json()[0]['isotope_flag']
             message = "\"Error in row " + str(row_number) + ": This Analysis (" + analysis_name + ")"
             message += " and Isotope (" + isotope_flag + ") combination appears more than once in this sample: "
             message += project_name + "|" + site_name + "|" + str(row.get('sample_date_time')) + "|"
