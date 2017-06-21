@@ -110,7 +110,6 @@ class BottlePrefix(models.Model):
     """Reusable bottles with permanently etched IDs (MLO755, DSV330, etc.)."""
 
     bottle_prefix = models.CharField(max_length=128, unique=True)
-    tare_weight = models.DecimalField(max_digits=8, decimal_places=4, null=True)
     bottle_type = models.ForeignKey('BottleType')
     description = models.TextField(blank=True)
     created_date = models.DateField(default=datetime.now, null=True, blank=True, db_index=True)
@@ -131,6 +130,7 @@ class Bottle(models.Model):
 
     bottle_unique_name = models.CharField(max_length=128, unique=True)
     bottle_prefix = models.ForeignKey('BottlePrefix')
+    tare_weight = models.DecimalField(max_digits=8, decimal_places=4, null=True)
     description = models.TextField(blank=True)
     created_date = models.DateField(default=datetime.now, null=True, blank=True, db_index=True)
     # created_by = CreatingUserField(related_name='created_bottles')

@@ -29,12 +29,9 @@ logger = logging.getLogger(__name__)
 # localhost dev
 REST_SERVICES_URL = 'http://localhost:8000/mercuryservices/'
 REST_AUTH_URL = 'http://localhost:8000/mercuryauth/'
-# WIM5
-# REST_SERVICES_URL = 'http://130.11.161.159/mercuryservices/'
-# REST_AUTH_URL = 'http://130.11.161.159/mercuryauth/'
-# WIM2
-# REST_SERVICES_URL = 'http://130.11.161.247/mercuryservices/'
-# REST_AUTH_URL = 'http://130.11.161.247/mercuryauth/'
+# IGSARMEWVSMERC prod
+# REST_SERVICES_URL = 'http://130.11.179.23/mercuryservices/'
+# REST_AUTH_URL = 'http://130.11.179.23/mercuryauth/'
 
 HEAD_CONTENT_JSON = {'content-type': 'application/json'}
 HEAD_CONTENT_FORM = {'content-type': 'application/x-www-form-urlencoded'}

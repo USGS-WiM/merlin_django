@@ -56,6 +56,14 @@ class SimpleSiteSerializer(serializers.ModelSerializer, BulkSerializerMixin):
                   'method', 'site_status', 'nwis_customer_code',)
 
 
+class BasicSiteSerializer(serializers.ModelSerializer, BulkSerializerMixin):
+
+    class Meta:
+        list_serializer_class = BulkListSerializer
+        model = Site
+        fields = ('id', 'name', 'usgs_scode', 'projects',)
+
+
 class ProjectSiteSerializer(serializers.ModelSerializer, BulkSerializerMixin):
     project_string = serializers.StringRelatedField(source='project')
     site_string = serializers.StringRelatedField(source='site')
@@ -64,6 +72,15 @@ class ProjectSiteSerializer(serializers.ModelSerializer, BulkSerializerMixin):
         list_serializer_class = BulkListSerializer
         model = ProjectSite
         fields = ('id', 'project', 'project_string', 'site', 'site_string')
+
+
+class BasicProjectSerializer(serializers.ModelSerializer, BulkSerializerMixin):
+    sites = BasicSiteSerializer(many=True)
+
+    class Meta:
+        list_serializer_class = BulkListSerializer
+        model = Project
+        fields = ('id', 'name', 'sites',)
 
 
 ######
@@ -88,8 +105,7 @@ class BottlePrefixSerializer(serializers.ModelSerializer, BulkSerializerMixin):
     class Meta:
         list_serializer_class = BulkListSerializer
         model = BottlePrefix
-        fields = ('id', 'bottle_prefix', 'tare_weight', 'bottle_type', 'bottle_type_string',
-                  'created_date', 'description',)
+        fields = ('id', 'bottle_prefix', 'bottle_type', 'bottle_type_string', 'created_date', 'description',)
 
 
 class BottleSerializer(serializers.ModelSerializer, BulkSerializerMixin):
@@ -99,7 +115,16 @@ class BottleSerializer(serializers.ModelSerializer, BulkSerializerMixin):
     class Meta:
         list_serializer_class = BulkListSerializer
         model = Bottle
-        fields = ('id', 'bottle_unique_name', 'bottle_prefix', 'bottle_prefix_string', 'created_date', 'description',)
+        fields = ('id', 'bottle_unique_name', 'bottle_prefix', 'bottle_prefix_string', 'created_date', 'description',
+                  'tare_weight',)
+
+
+class BasicBottleSerializer(serializers.ModelSerializer, BulkSerializerMixin):
+
+    class Meta:
+        list_serializer_class = BulkListSerializer
+        model = Bottle
+        fields = ('id', 'bottle_unique_name',)
 
 
 class FullBottleSerializer(serializers.ModelSerializer, BulkSerializerMixin):
@@ -299,6 +324,14 @@ class AcidSerializer(serializers.ModelSerializer, BulkSerializerMixin):
         list_serializer_class = BulkListSerializer
         model = Acid
         fields = ('id', 'code', 'concentration', 'created_date', 'comment',)
+
+
+class BasicAcidSerializer(serializers.ModelSerializer, BulkSerializerMixin):
+
+    class Meta:
+        list_serializer_class = BulkListSerializer
+        model = Acid
+        fields = ('id', 'code',)
 
 
 class BlankWaterSerializer(serializers.ModelSerializer, BulkSerializerMixin):
