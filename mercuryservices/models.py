@@ -30,6 +30,7 @@ class Cooperator(models.Model):
 
     class Meta:
         db_table = "mercury_cooperator"
+        ordering = ['-id']
         unique_together = ("name", "agency")
 
 
@@ -46,6 +47,7 @@ class Project(models.Model):
 
     class Meta:
         db_table = "mercury_project"
+        ordering = ['-id']
 
 
 class Site(models.Model):
@@ -68,6 +70,7 @@ class Site(models.Model):
 
     class Meta:
         db_table = "mercury_site"
+        ordering = ['-id']
 
 
 class ProjectSite(models.Model):
@@ -104,6 +107,7 @@ class BottleType(models.Model):
 
     class Meta:
         db_table = "mercury_bottletype"
+        ordering = ['-id']
 
 
 class BottlePrefix(models.Model):
@@ -111,6 +115,7 @@ class BottlePrefix(models.Model):
 
     bottle_prefix = models.CharField(max_length=128, unique=True)
     bottle_type = models.ForeignKey('BottleType')
+    tare_weight = models.DecimalField(max_digits=8, decimal_places=4, null=True)
     description = models.TextField(blank=True)
     created_date = models.DateField(default=datetime.now, null=True, blank=True, db_index=True)
     modified_date = models.DateField(auto_now=True, null=True, blank=True)
@@ -120,7 +125,7 @@ class BottlePrefix(models.Model):
 
     class Meta:
         db_table = "mercury_bottleprefix"
-        ordering = ['-created_date']
+        ordering = ['-created_date', '-id']
 
 
 class Bottle(models.Model):
@@ -130,7 +135,7 @@ class Bottle(models.Model):
 
     bottle_unique_name = models.CharField(max_length=128, unique=True)
     bottle_prefix = models.ForeignKey('BottlePrefix')
-    tare_weight = models.DecimalField(max_digits=8, decimal_places=4, null=True)
+    # tare_weight = models.DecimalField(max_digits=8, decimal_places=4, null=True)
     description = models.TextField(blank=True)
     created_date = models.DateField(default=datetime.now, null=True, blank=True, db_index=True)
     # created_by = CreatingUserField(related_name='created_bottles')
@@ -143,7 +148,7 @@ class Bottle(models.Model):
 
     class Meta:
         db_table = "mercury_bottle"
-        ordering = ['-created_date']
+        ordering = ['-created_date', '-id']
 
 
 ######
@@ -174,6 +179,7 @@ class Sample(models.Model):
 
     class Meta:
         db_table = "mercury_sample"
+        ordering = ['-id']
         unique_together = ("project", "site", "sample_date_time", "depth", "length", "replicate", "medium_type")
 
 
@@ -216,7 +222,7 @@ class SampleBottleBromination(models.Model):
 
     class Meta:
         db_table = "mercury_samplebottlebromination"
-        ordering = ['-created_date']
+        ordering = ['-created_date', '-id']
         unique_together = ("sample_bottle", "bromination", "bromination_event")
 
 
@@ -231,6 +237,7 @@ class FilterType(models.Model):
 
     class Meta:
         db_table = "mercury_filtertype"
+        ordering = ['-id']
 
 
 class PreservationType(models.Model):
@@ -244,6 +251,7 @@ class PreservationType(models.Model):
 
     class Meta:
         db_table = "mercury_preservationtype"
+        ordering = ['-id']
 
 
 class ProcessingType(models.Model):
@@ -260,6 +268,7 @@ class ProcessingType(models.Model):
 
     class Meta:
         db_table = "mercury_processingtype"
+        ordering = ['-id']
 
 
 class MediumType(models.Model):
@@ -276,6 +285,7 @@ class MediumType(models.Model):
 
     class Meta:
         db_table = "mercury_mediumtype"
+        ordering = ['-id']
 
 
 ######
@@ -313,6 +323,7 @@ class Result(models.Model):
 
     class Meta:
         db_table = "mercury_result"
+        ordering = ['-id']
         unique_together = ("sample_bottle", "analysis", "constituent", "isotope_flag")
 
 
@@ -329,6 +340,7 @@ class DetectionFlag(models.Model):
 
     class Meta:
         db_table = "mercury_detectionflag"
+        ordering = ['-id']
 
 
 class IsotopeFlag(models.Model):
@@ -342,6 +354,7 @@ class IsotopeFlag(models.Model):
 
     class Meta:
         db_table = "mercury_isotopeflag"
+        ordering = ['-id']
 
 
 class ResultDataFile(models.Model):
@@ -357,6 +370,7 @@ class ResultDataFile(models.Model):
 
     class Meta:
         db_table = "mercury_resultdatafile"
+        ordering = ['-id']
 
 
 class QualityAssurance(models.Model):
@@ -370,6 +384,7 @@ class QualityAssurance(models.Model):
 
     class Meta:
         db_table = "mercury_qualityassurance"
+        ordering = ['-id']
         unique_together = ("quality_assurance", "result")
 
 
@@ -386,6 +401,7 @@ class QualityAssuranceType(models.Model):
 
     class Meta:
         db_table = "mercury_qualityassurancetype"
+        ordering = ['-id']
 
 
 ######
@@ -408,6 +424,7 @@ class AnalysisType(models.Model):
 
     class Meta:
         db_table = "mercury_analysistype"
+        ordering = ['-id']
 
 
 class ConstituentType(models.Model):
@@ -422,6 +439,7 @@ class ConstituentType(models.Model):
 
     class Meta:
         db_table = "mercury_constituenttype"
+        ordering = ['-id']
 
 
 class AnalysisConstituent(models.Model):
@@ -463,6 +481,7 @@ class MethodType(models.Model):
 
     class Meta:
         db_table = "mercury_methodtype"
+        ordering = ['-id']
 
 
 class UnitType(models.Model):
@@ -476,6 +495,7 @@ class UnitType(models.Model):
 
     class Meta:
         db_table = "mercury_unittype"
+        ordering = ['-id']
 
 
 class AnalysisMedium(models.Model):
@@ -490,6 +510,7 @@ class AnalysisMedium(models.Model):
 
     class Meta:
         db_table = "mercury_analysismedium"
+        ordering = ['-id']
         unique_together = ("analysis_type", "medium_type")
 
 
@@ -529,7 +550,7 @@ class Acid(models.Model):
 
     class Meta:
         db_table = "mercury_acid"
-        ordering = ['-created_date']
+        ordering = ['-created_date', '-id']
 
 
 class BlankWater(models.Model):
@@ -546,7 +567,7 @@ class BlankWater(models.Model):
 
     class Meta:
         db_table = "mercury_blankwater"
-        ordering = ['-created_date']
+        ordering = ['-created_date', '-id']
 
 
 class Bromination(models.Model):
@@ -562,7 +583,7 @@ class Bromination(models.Model):
 
     class Meta:
         db_table = "mercury_bromination"
-        ordering = ['-created_date']
+        ordering = ['-created_date', '-id']
 
 
 ######
@@ -586,6 +607,7 @@ class UserProfile(models.Model):
 
     class Meta:
         db_table = "mercury_userprofile"
+        ordering = ['-id']
 
 
 ######
