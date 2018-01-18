@@ -73,7 +73,7 @@ class ProjectBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
 
 class ProjectViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    serializer_class = BasicProjectSerializer
+    serializer_class = ProjectSerializer
 
     # override the default queryset to allow filtering by URL arguments
     def get_queryset(self):
@@ -97,7 +97,7 @@ class SiteBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
 
 class SiteViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    serializer_class = BasicSiteSerializer
+    serializer_class = SiteSerializer
     #paginate_by = 100
     # if the URL param 'project' is included, all records belonging to the indicated project will be returned,
     # even if the count is greater than the paginate_by setting, up to the max number set by the max_paginate_by setting
@@ -435,7 +435,7 @@ class BottleBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkUpdateModelMixin, 
 
 class BottleViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    serializer_class = BasicBottleSerializer
+    serializer_class = BottleSerializer
     paginate_by = 100
     paginate_by_param = 'page_size'
 
@@ -980,7 +980,7 @@ class AcidBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
 
 class AcidViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    serializer_class = BasicAcidSerializer
+    serializer_class = AcidSerializer
     #paginate_by = 100
     paginate_by_param = 'page_size'
 
