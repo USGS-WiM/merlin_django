@@ -105,7 +105,8 @@ class BottlePrefixSerializer(serializers.ModelSerializer, BulkSerializerMixin):
     class Meta:
         list_serializer_class = BulkListSerializer
         model = BottlePrefix
-        fields = ('id', 'bottle_prefix', 'bottle_type', 'bottle_type_string', 'created_date', 'description',)
+        fields = ('id', 'bottle_prefix', 'bottle_type', 'bottle_type_string', 'created_date', 'description',
+                  'tare_weight',)
 
 
 class BottleSerializer(serializers.ModelSerializer, BulkSerializerMixin):
@@ -115,8 +116,7 @@ class BottleSerializer(serializers.ModelSerializer, BulkSerializerMixin):
     class Meta:
         list_serializer_class = BulkListSerializer
         model = Bottle
-        fields = ('id', 'bottle_unique_name', 'bottle_prefix', 'bottle_prefix_string', 'created_date', 'description',
-                  'tare_weight',)
+        fields = ('id', 'bottle_unique_name', 'bottle_prefix', 'bottle_prefix_string', 'created_date', 'description',)
 
 
 class BasicBottleSerializer(serializers.ModelSerializer, BulkSerializerMixin):
