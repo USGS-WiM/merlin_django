@@ -98,7 +98,7 @@ class SiteBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
 class SiteViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = SiteSerializer
-    #paginate_by = 100
+    paginate_by = 100
     # if the URL param 'project' is included, all records belonging to the indicated project will be returned,
     # even if the count is greater than the paginate_by setting, up to the max number set by the max_paginate_by setting
     paginate_by_param = 'project'

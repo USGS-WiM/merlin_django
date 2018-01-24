@@ -1433,7 +1433,7 @@ def acids(request):
     if not request.session.get('username'):
         return HttpResponseRedirect('/merlin/')
     context = RequestContext(request)
-    data = json.dumps(http_get(request, 'acids').json(), sort_keys=True)
+    data = json.dumps(http_get(request, 'acids', 'page_size=100').json(), sort_keys=True)
     context_dict = {'data': data}
     return render_to_response('merlin/acids.html', context_dict, context)
 
