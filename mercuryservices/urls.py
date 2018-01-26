@@ -1,4 +1,4 @@
-from django.conf.urls import patterns, url, include
+from django.conf.urls import url, include
 from mercuryservices import views
 from rest_framework.routers import DefaultRouter
 from rest_framework_bulk.routes import BulkRouter
@@ -54,16 +54,16 @@ router.register(r'bulksamplebottlebrominations',
                 views.SampleBottleBrominationBulkCreateUpdateViewSet, 'bulksamplebottlebrominations')
 router.register(r'bulksites', views.SiteBulkUpdateViewSet, 'bulksites')
 
-urlpatterns = patterns('',
-                       url(r'^', include(router.urls)),
-                       url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-                       url(r'^auth/$', views.AuthView.as_view(), name='authenticate'),
-                       url(r'^batchupload', views.BatchUpload.as_view(), name='batchupload'),
-                       url(r'^reportresultscooperator/',
-                           views.ReportResultsCooperator.as_view(), name='reportresultscooperator'),
-                       url(r'^reportresultsnwis/', views.ReportResultsNwis.as_view(), name='reportresultsnwis'),
-                       url(r'^reportsamplesnwis/', views.ReportSamplesNwis.as_view(), name='reportsamplesnwis'),
-                       url(r'^resultcountprojects/',
-                           views.ReportResultsCountProjects.as_view(), name='resultcountprojects'),
-                       url(r'^resultcountnawqa/', views.ReportResultsCountNawqa.as_view(), name='resultcountnawqa'),
-                       )
+urlpatterns = [
+               url(r'^', include(router.urls)),
+               url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+               url(r'^auth/$', views.AuthView.as_view(), name='authenticate'),
+               url(r'^batchupload', views.BatchUpload.as_view(), name='batchupload'),
+               url(r'^reportresultscooperator/',
+                   views.ReportResultsCooperator.as_view(), name='reportresultscooperator'),
+               url(r'^reportresultsnwis/', views.ReportResultsNwis.as_view(), name='reportresultsnwis'),
+               url(r'^reportsamplesnwis/', views.ReportSamplesNwis.as_view(), name='reportsamplesnwis'),
+               url(r'^resultcountprojects/',
+                   views.ReportResultsCountProjects.as_view(), name='resultcountprojects'),
+               url(r'^resultcountnawqa/', views.ReportResultsCountNawqa.as_view(), name='resultcountnawqa'),
+               ]

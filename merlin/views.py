@@ -5,7 +5,7 @@ from datetime import datetime
 from collections import Counter
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import RequestContext
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.core.urlresolvers import reverse
 
 
@@ -87,7 +87,6 @@ def http_delete(request, endpoint):
 def sample_login(request):
     if not request.session.get('username'):
         return HttpResponseRedirect('/merlin/')
-    context = RequestContext(request)
     projects = json.dumps(http_get(request, 'projects').json(), sort_keys=True)
     processings = json.dumps(http_get(request, 'processings').json(), sort_keys=True)
     mediums = json.dumps(http_get(request, 'mediums').json(), sort_keys=True)
@@ -98,7 +97,7 @@ def sample_login(request):
     context_dict = {'projects': projects, 'processings': processings, 'mediums': mediums,
                     'analyses': analyses, 'filters': filters, 'preservations': preservations,
                     'isotope_flags': isotope_flags}
-    return render_to_response('merlin/sample_login.html', context_dict, context)
+    return render(request,'merlin/sample_login.html', context_dict)
 
 
 def samples_create(request):
@@ -472,7 +471,6 @@ def samples_create(request):
 def samples_search(request):
     if not request.session.get('username'):
         return HttpResponseRedirect('/merlin/')
-    context = RequestContext(request)
 
     if request.method == 'POST':
         params_dict = {}
@@ -526,7 +524,7 @@ def samples_search(request):
         context_dict = {'projects': projects, 'processings': processings,
                         'analyses': analyses, 'constituents': constituents, 'mediums': mediums, 'filters': filters,
                         'preservations': preservations, 'isotope_flags': isotope_flags}
-        return render_to_response('merlin/sample_search.html', context_dict, context)
+        return render(request,'merlin/sample_search.html', context_dict)
 
 
 def samples_update(request):
@@ -801,7 +799,6 @@ def samples_update(request):
 def results_search(request):
     if not request.session.get('username'):
         return HttpResponseRedirect('/merlin/')
-    context = RequestContext(request)
 
     if request.method == 'POST':
         params_dict = {}
@@ -851,13 +848,12 @@ def results_search(request):
         projects = json.dumps(http_get(request, 'projects').json(), sort_keys=True)
         constituents = json.dumps(http_get(request, 'constituents').json(), sort_keys=True)
         context_dict = {'projects': projects, 'constituents': constituents}
-        return render_to_response('merlin/result_search.html', context_dict, context)
+        return render(request,'merlin/result_search.html', context_dict)
 
 
 def results_count_nawqa(request):
     if not request.session.get('username'):
         return HttpResponseRedirect('/merlin/')
-    context = RequestContext(request)
 
     if request.method == 'POST':
         params_dict = {}
@@ -880,13 +876,12 @@ def results_count_nawqa(request):
     else:  # request.method == 'GET'
         data = json.dumps(http_get(request, 'resultcountnawqa').json(), sort_keys=True)
         context_dict = {'data': data}
-        return render_to_response('merlin/results_count_nawqa.html', context_dict, context)
+        return render(request,'merlin/results_count_nawqa.html', context_dict)
 
 
 def results_count_projects(request):
     if not request.session.get('username'):
         return HttpResponseRedirect('/merlin/')
-    context = RequestContext(request)
 
     if request.method == 'POST':
         params_dict = {}
@@ -909,13 +904,12 @@ def results_count_projects(request):
     else:  # request.method == 'GET'
         data = json.dumps(http_get(request, 'resultcountprojects').json(), sort_keys=True)
         context_dict = {'data': data}
-        return render_to_response('merlin/results_count_projects.html', context_dict, context)
+        return render(request,'merlin/results_count_projects.html', context_dict)
 
 
 def samples_nwis_report(request):
     if not request.session.get('username'):
         return HttpResponseRedirect('/merlin/')
-    context = RequestContext(request)
 
     if request.method == 'POST':
         params_dict = {}
@@ -943,13 +937,12 @@ def samples_nwis_report(request):
         projects = json.dumps(http_get(request, 'projects').json(), sort_keys=True)
         context_dict = {'projects': projects}
 
-        return render_to_response('merlin/samples_nwis.html', context_dict, context)
+        return render(request,'merlin/samples_nwis.html', context_dict)
 
 
 def results_nwis_report(request):
     if not request.session.get('username'):
         return HttpResponseRedirect('/merlin/')
-    context = RequestContext(request)
 
     if request.method == 'POST':
         params_dict = {}
@@ -978,13 +971,12 @@ def results_nwis_report(request):
     else:  # request.method == 'GET'
         projects = json.dumps(http_get(request, 'projects').json(), sort_keys=True)
         context_dict = {'projects': projects}
-        return render_to_response('merlin/results_nwis.html', context_dict, context)
+        return render(request,'merlin/results_nwis.html', context_dict)
 
 
 def results_cooperator_report(request):
     if not request.session.get('username'):
         return HttpResponseRedirect('/merlin/')
-    context = RequestContext(request)
 
     if request.method == 'POST':
         params_dict = {}
@@ -1014,18 +1006,17 @@ def results_cooperator_report(request):
         projects = json.dumps(http_get(request, 'projects').json(), sort_keys=True)
         cooperators = json.dumps(http_get(request, 'cooperators').json(), sort_keys=True)
         context_dict = {'projects': projects, 'cooperators': cooperators}
-        return render_to_response('merlin/results_cooperator.html', context_dict, context)
+        return render(request,'merlin/results_cooperator.html', context_dict)
 
 
 def bottles(request):
     if not request.session.get('username'):
         return HttpResponseRedirect('/merlin/')
-    context = RequestContext(request)
     bottles = json.dumps(http_get(request, 'bottles').json(), sort_keys=True)
     prefixes = json.dumps(http_get(request, 'bottleprefixes').json(), sort_keys=True)
     bottletypes = json.dumps(http_get(request, 'bottletypes').json(), sort_keys=True)
     context_dict = {'bottles': bottles, 'prefixes': prefixes, 'bottletypes': bottletypes}
-    return render_to_response('merlin/bottles.html', context_dict, context)
+    return render(request,'merlin/bottles.html', context_dict)
 
 
 def bottles_update(request):
@@ -1238,11 +1229,10 @@ def bottles_delete(request):
 def brominations(request):
     if not request.session.get('username'):
         return HttpResponseRedirect('/merlin/')
-    context = RequestContext(request)
     data = json.dumps(http_get(request, 'brominations').json(), sort_keys=True)
     samples = json.dumps(http_get(request, 'samplebottlebrominations').json(), sort_keys=True)
     context_dict = {'data': data, 'samples': samples}
-    return render_to_response('merlin/brominations.html', context_dict, context)
+    return render(request,'merlin/brominations.html', context_dict)
 
 
 def brominations_update(request):
@@ -1388,11 +1378,10 @@ def samplebottlebrominations_delete(request):
 def blankwaters(request):
     if not request.session.get('username'):
         return HttpResponseRedirect('/merlin/')
-    context = RequestContext(request)
     r = http_get(request, 'blankwaters')
     data = json.dumps(r.json(), sort_keys=True)
     context_dict = {'data': data}
-    return render_to_response('merlin/blankwaters.html', context_dict, context)
+    return render(request,'merlin/blankwaters.html', context_dict)
 
 
 def blankwaters_update(request):
@@ -1432,10 +1421,9 @@ def blankwaters_delete(request):
 def acids(request):
     if not request.session.get('username'):
         return HttpResponseRedirect('/merlin/')
-    context = RequestContext(request)
-    data = json.dumps(http_get(request, 'acids', 'page_size=100').json(), sort_keys=True)
+    data = json.dumps(http_get(request, 'acids').json(), sort_keys=True)
     context_dict = {'data': data}
-    return render_to_response('merlin/acids.html', context_dict, context)
+    return render(request,'merlin/acids.html', context_dict)
 
 
 def acids_update(request):
@@ -1475,11 +1463,10 @@ def acids_delete(request):
 def sites(request):
     if not request.session.get('username'):
         return HttpResponseRedirect('/merlin/')
-    context = RequestContext(request)
     data = json.dumps(http_get(request, 'sites').json(), sort_keys=True)
     projects = json.dumps(http_get(request, 'projects').json(), sort_keys=True)
     context_dict = {'data': data, 'projects': projects}
-    return render_to_response('merlin/sites.html', context_dict, context)
+    return render(request,'merlin/sites.html', context_dict)
 
 
 def sites_update(request):
@@ -1519,11 +1506,10 @@ def sites_delete(request):
 def projects(request):
     if not request.session.get('username'):
         return HttpResponseRedirect('/merlin/')
-    context = RequestContext(request)
     data = json.dumps(http_get(request, 'projects').json(), sort_keys=True)
     cooperators = json.dumps(http_get(request, 'cooperators').json(), sort_keys=True)
     context_dict = {'data': data, 'cooperators': cooperators}
-    return render_to_response('merlin/projects.html', context_dict, context)
+    return render(request,'merlin/projects.html', context_dict)
 
 
 def projects_update(request):
@@ -1563,12 +1549,11 @@ def projects_delete(request):
 def projectssites(request):
     if not request.session.get('username'):
         return HttpResponseRedirect('/merlin/')
-    context = RequestContext(request)
     data = json.dumps(http_get(request, 'projectssites').json(), sort_keys=True)
     projects = json.dumps(http_get(request, 'projects').json(), sort_keys=True)
     sites = json.dumps(http_get(request, 'sites').json(), sort_keys=True)
     context_dict = {'data': data, 'projects': projects, 'sites': sites}
-    return render_to_response('merlin/projects_sites.html', context_dict, context)
+    return render(request,'merlin/projects_sites.html', context_dict)
 
 
 def projectssites_create(request):
@@ -1604,10 +1589,9 @@ def projectssites_delete(request):
 def cooperators(request):
     if not request.session.get('username'):
         return HttpResponseRedirect('/merlin/')
-    context = RequestContext(request)
     data = json.dumps(http_get(request, 'cooperators').json(), sort_keys=True)
     context_dict = {'data': data}
-    return render_to_response('merlin/cooperators.html', context_dict, context)
+    return render(request,'merlin/cooperators.html', context_dict)
 
 
 def cooperators_update(request):
@@ -1646,7 +1630,6 @@ def cooperators_delete(request):
 
 # login using Basic Authentication
 def user_login(request):
-    context = RequestContext(request)
 
     if request.method == 'POST':
         username = request.POST['username']
@@ -1655,12 +1638,12 @@ def user_login(request):
         if not username:
             r = {"bad_details": True}
             logger.error("Error: Username not submitted.")
-            return render_to_response('merlin/login.html', r, context)
+            return render(request,'merlin/login.html', r)
 
         if not password:
             r = {"bad_details": True}
             logger.error("Error: Password not submitted.")
-            return render_to_response('merlin/login.html', r, context)
+            return render(request,'merlin/login.html', r)
 
         r = requests.request(method='POST', url=REST_SERVICES_URL + 'auth/', auth=(username, password))
         logger.info(r.request.method + " " + r.request.url + " " + r.reason + " " + str(r.status_code))
@@ -1684,7 +1667,7 @@ def user_login(request):
                     return HttpResponseRedirect('/merlin/')
                 else:
                     r = {"disabled_account": True}
-                    return render_to_response('merlin/login.html', r, context)
+                    return render(request,'merlin/login.html', r)
             else:
                 logger.error("Error: Could not retrieve details of " + username + " from Mercury Services")
                 resp = "<h1>" + str(r.status_code) + ": " + r.reason + "</h1>"
@@ -1695,17 +1678,17 @@ def user_login(request):
         elif (response_data["detail"] == "Invalid username/password."):
             r = {"bad_details": True}
             logger.error("Error: " + response_data["detail"] + " Username: " + username + ".")
-            return render_to_response('merlin/login.html', r, context)
+            return render(request,'merlin/login.html', r)
 
         elif (response_data["non_field_errors"]):
             if (response_data["non_field_errors"][0] == "Unable to login with provided credentials."):
                 r = {"bad_details": True}
                 logger.error("Error: " + response_data["non_field_errors"][0] + " Username: " + username + ".")
-                return render_to_response('merlin/login.html', r, context)
+                return render(request,'merlin/login.html', r)
             else:
                 r = {"bad_details": True}
                 logger.error("Error: " + response_data["non_field_errors"][0] + " Username: " + username + ".")
-                return render_to_response('merlin/login.html', r, context)
+                return render(request,'merlin/login.html', r)
 
         else:
             logger.error("Error: Could not log in " + username + " with Mercury Services.")
@@ -1714,7 +1697,7 @@ def user_login(request):
             return HttpResponse(resp)
 
     else:
-        return render_to_response('merlin/login.html', {}, context)
+        return render(request,'merlin/login.html', {})
 
 
 # logout using Basic Authentication
@@ -1761,10 +1744,8 @@ def user_logout(request):
 
 
 def about(request):
-    context = RequestContext(request)
-    return render_to_response('merlin/about.html', {}, context)
+    return render(request,'merlin/about.html', {})
 
 
 def index(request):
-    context = RequestContext(request)
-    return render_to_response('merlin/index.html', {}, context)
+    return render(request, 'merlin/index.html', {})
