@@ -588,12 +588,6 @@ class FullResultViewSet(viewsets.ModelViewSet):
     # from when this code was originally written, so if the serializer fields change, these renderer field name headers
     # won't match the serializer data, until the renderer code is manually updated to match the serializer fields
     def get_renderers(self):
-        # override the default page_size to use unlimited pagination for filtered CSV requests, and 100 for all others
-        other_params = self.request.query_params.copy()
-        if 'format' in other_params.keys():
-            del other_params['format']
-        if self.request.accepted_renderer.format == 'csv' and len(other_params) > 0:
-            self.pagination_class = UnlimitedResultsSetPagination
         frmt = self.request.query_params.get('format', None)
         if frmt is not None and frmt == 'csv':
             table = self.request.query_params.get('table', None)
@@ -621,6 +615,12 @@ class FullResultViewSet(viewsets.ModelViewSet):
     # override the default finalize_response to assign a filename to CSV files
     # see https://github.com/mjumbewu/django-rest-framework-csv/issues/15
     def finalize_response(self, request, *args, **kwargs):
+        # override the default page_size to use unlimited pagination for filtered CSV requests, and 100 for all others
+        other_params = self.request.query_params.copy()
+        if 'format' in other_params.keys():
+            del other_params['format']
+        if self.request.accepted_renderer.format == 'csv' and len(other_params) > 0:
+            self.pagination_class = UnlimitedResultsSetPagination
         response = super(viewsets.ModelViewSet, self).finalize_response(request, *args, **kwargs)
         if self.request.accepted_renderer.format == 'csv':
             table = self.request.query_params.get('table', None)

@@ -937,7 +937,7 @@ def samples_nwis_report(request):
         projects = json.dumps(http_get(request, 'projects').json(), sort_keys=True)
         context_dict = {'projects': projects}
 
-        return render(request,'merlin/samples_nwis.html', context_dic)
+        return render(request,'merlin/samples_nwis.html', context_dict)
 
 
 def results_nwis_report(request):
