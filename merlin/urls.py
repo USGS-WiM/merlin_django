@@ -1,8 +1,9 @@
 from django.conf import settings
-from django.conf.urls import patterns, url
+from django.conf.urls import url
+from django.views.static import serve
 from merlin import views
 
-urlpatterns = patterns('',
+urlpatterns = [
     url(r'^$', views.index, name='index'),
     url(r'^about/$', views.about, name='about'),
     url(r'^login/$', views.user_login, name='login'),
@@ -68,11 +69,11 @@ urlpatterns = patterns('',
     url(r'^bottle_prefixes_create/$', views.bottle_prefixes_create, name='bottle_prefixes_create'),
     url(r'^bottle_prefixes_range_create/$', views.bottle_prefixes_range_create, name='bottle_prefixes_range_create'),
     url(r'^bottle_prefixes_delete/$', views.bottle_prefixes_delete, name='bottle_prefixes_delete'),
-)
+]
 
 if settings.DEBUG:
-    urlpatterns += patterns(
-        'django.views.static',
-        (r'media/(?P<path>.*)',
-         'serve',
-         {'document_root': settings.MEDIA_ROOT}), )
+    urlpatterns += [
+        url(r'^media/(?P<path>.*)$', serve, {
+            'document_root': settings.MEDIA_ROOT,
+        }),
+    ]

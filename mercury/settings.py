@@ -7,7 +7,6 @@ https://docs.djangoproject.com/en/dev/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/dev/ref/settings/
 """
-from django.conf.global_settings import TEMPLATE_CONTEXT_PROCESSORS as TCP
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
@@ -85,15 +84,12 @@ SECRET_KEY = CONFIG.get('security', 'SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = CONFIG.get('general', 'DEBUG')
 
-TEMPLATE_DEBUG = CONFIG.get('general', 'TEMPLATE_DEBUG')
-
-ALLOWED_HOSTS = CONFIG.get('general', 'ALLOWED_HOSTS')
+ALLOWED_HOSTS = ['130.11.179.23', 'igsarmewvsmerc.er.usgs.gov', '127.0.0.1', 'localhost']
 
 
 # Application definition
 
 INSTALLED_APPS = (
-    'suit',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -104,7 +100,6 @@ INSTALLED_APPS = (
     'rest_framework',
     'rest_framework.authtoken',
     'djoser',
-    'rest_framework_swagger',
     'corsheaders',
     'mercuryservices',
     'merlin',
@@ -174,16 +169,11 @@ TEMPLATES = [
         'DIRS': [TEMPLATE_PATH],
         'APP_DIRS': True,
         'OPTIONS': {
+            'debug': DEBUG,
             'context_processors': [
-                # Insert your TEMPLATE_CONTEXT_PROCESSORS here or use this
-                # list if you haven't customized them:
-                'django.contrib.auth.context_processors.auth',
-                'django.template.context_processors.request',
                 'django.template.context_processors.debug',
-                'django.template.context_processors.i18n',
-                'django.template.context_processors.media',
-                'django.template.context_processors.static',
-                'django.template.context_processors.tz',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
         },
@@ -192,23 +182,10 @@ TEMPLATES = [
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.TokenAuthentication',
+        #'rest_framework.authentication.TokenAuthentication',
         'rest_framework.authentication.BasicAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
+        #'rest_framework.authentication.SessionAuthentication',
     ),
-}
-
-SWAGGER_SETTINGS = {
-    "info": {
-        'description': 'This is the documentation site for the MeRLIn '
-                       '(Mercury Research Lab Information Management System) REST Services.',
-        'title': 'MeRLIn REST Services Documentation',
-    },
-    "exclude_namespaces": ["mercuryauth"],
-}
-
-SUIT_CONFIG = {
-    'ADMIN_NAME': 'Mercury Lab Admin',
 }
 
 CORS_ORIGIN_ALLOW_ALL = True

@@ -16,6 +16,7 @@ from rest_framework_bulk import BulkCreateModelMixin, BulkUpdateModelMixin
 from mercuryservices.serializers import *
 from mercuryservices.models import *
 from mercuryservices.renderers import *
+from mercuryservices.paginations import *
 
 
 ########################################################################################################################
@@ -98,11 +99,7 @@ class SiteBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
 class SiteViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = SiteSerializer
-    paginate_by = 100
-    # if the URL param 'project' is included, all records belonging to the indicated project will be returned,
-    # even if the count is greater than the paginate_by setting, up to the max number set by the max_paginate_by setting
-    paginate_by_param = 'project'
-    max_paginate_by = 2000
+    pagination_class = StandardResultsSetPagination
 
     # override the default queryset to allow filtering by URL arguments
     def get_queryset(self):
@@ -149,11 +146,7 @@ class ProjectSiteBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
 class ProjectSiteViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = ProjectSiteSerializer
-    paginate_by = 100
-    # if the URL param 'project' is included, all records belonging to the indicated project will be returned,
-    # even if the count is greater than the paginate_by setting, up to the max number set by the max_paginate_by setting
-    paginate_by_param = 'project'
-    max_paginate_by = 2000
+    pagination_class = StandardResultsSetPagination
 
     # override the default queryset to allow filtering by URL arguments
     def get_queryset(self):
@@ -197,7 +190,7 @@ class SampleBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkUpdateModelMixin, 
 class SampleViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = SampleSerializer
-    paginate_by = 100
+    pagination_class = StandardResultsSetPagination
 
     # Note that a unique field sample is determined by project+site+time_stamp+depth+replicate
 
@@ -243,11 +236,7 @@ class SampleBottleBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkUpdateModelM
 class SampleBottleViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = SampleBottleSerializer
-    paginate_by = 100
-    # if URL param 'bottle_string' is included, all records belonging to the indicated bottle_string will be returned,
-    # even if the count is greater than the paginate_by setting, up to the max number set by the max_paginate_by setting
-    paginate_by_param = 'bottle_string'
-    max_paginate_by = 2000
+    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
         queryset = SampleBottle.objects.all().select_related('sample')
@@ -324,7 +313,7 @@ class SampleBottleViewSet(viewsets.ModelViewSet):
 class FullSampleBottleViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated,)
     serializer_class = FullSampleBottleSerializer
-    paginate_by = 100
+    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
         queryset = SampleBottle.objects.all().select_related()
@@ -389,7 +378,7 @@ class SampleBottleBrominationBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkU
 class SampleBottleBrominationViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = SampleBottleBrominationSerializer
-    paginate_by = 100
+    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
         # logger.info(self.request.query_params)
@@ -436,19 +425,7 @@ class BottleBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkUpdateModelMixin, 
 class BottleViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = BottleSerializer
-    paginate_by = 100
-    paginate_by_param = 'page_size'
-
-    # override the default paginate_by to use unlimited pagination if requested, and 100 for all others.
-    # def get_paginate_by(self):
-    #     pagesize = self.request.query_params.get('page_size', None)
-    #     if pagesize is not None:
-    #         if pagesize == 'all':
-    #             return None
-    #         else:
-    #             return 100
-    #     else:
-    #         return 100
+    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
         queryset = Bottle.objects.all()
@@ -477,7 +454,7 @@ class BottlePrefixBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkUpdateModelM
 class BottlePrefixViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = BottlePrefixSerializer
-    paginate_by = 100
+    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
         queryset = BottlePrefix.objects.all()
@@ -583,7 +560,7 @@ class ResultBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkUpdateModelMixin, 
 class ResultViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = ResultSerializer
-    paginate_by = 100
+    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
         queryset = Result.objects.all()
@@ -604,17 +581,22 @@ class ResultViewSet(viewsets.ModelViewSet):
 
 class FullResultViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    paginate_by = 100
-    paginate_by_param = 'page_size'
+    pagination_class = StandardResultsSetPagination
 
     # override the default renderers to use a custom csv renderer when requested
     # note that these custom renderers have hard-coded field name headers that match the their respective serialzers
     # from when this code was originally written, so if the serializer fields change, these renderer field name headers
     # won't match the serializer data, until the renderer code is manually updated to match the serializer fields
     def get_renderers(self):
-        frmt = self.request.QUERY_PARAMS.get('format', None)
+        # override the default page_size to use unlimited pagination for filtered CSV requests, and 100 for all others
+        other_params = self.request.query_params.copy()
+        if 'format' in other_params.keys():
+            del other_params['format']
+        if self.request.accepted_renderer.format == 'csv' and len(other_params) > 0:
+            self.pagination_class = UnlimitedResultsSetPagination
+        frmt = self.request.query_params.get('format', None)
         if frmt is not None and frmt == 'csv':
-            table = self.request.QUERY_PARAMS.get('table', None)
+            table = self.request.query_params.get('table', None)
             # if table is not specified or not equal to samples, assume results
             if table is not None and table == 'sample':
                 renderer_classes = (PaginatedResultSampleCSVRenderer, ) + tuple(api_settings.DEFAULT_RENDERER_CLASSES)
@@ -624,19 +606,10 @@ class FullResultViewSet(viewsets.ModelViewSet):
             renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES)
         return [renderer_class() for renderer_class in renderer_classes]
 
-    # override the default paginate_by to use unlimited pagination for filtered CSV requests, and 100 for all others.
-    def get_paginate_by(self):
-        other_params = self.request.QUERY_PARAMS.copy()
-        if 'format' in other_params.keys():
-            del other_params['format']
-        if self.request.accepted_renderer.format == 'csv' and len(other_params) > 0:
-            return None
-        return 100
-
     # override the default serializer_class if CSV format is specified
     def get_serializer_class(self):
         if self.request.accepted_renderer.format == 'csv':
-            table = self.request.QUERY_PARAMS.get('table', None)
+            table = self.request.query_params.get('table', None)
             # if table is not specified or not equal to samples, assume results
             if table is not None and table == 'sample':
                 return FlatResultSampleSerializer
@@ -650,7 +623,7 @@ class FullResultViewSet(viewsets.ModelViewSet):
     def finalize_response(self, request, *args, **kwargs):
         response = super(viewsets.ModelViewSet, self).finalize_response(request, *args, **kwargs)
         if self.request.accepted_renderer.format == 'csv':
-            table = self.request.QUERY_PARAMS.get('table', None)
+            table = self.request.query_params.get('table', None)
             # if table is not specified or not equal to samples, assume results
             if table is not None and table == 'sample':
                 table_name = 'samples'
@@ -981,19 +954,7 @@ class AcidBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
 class AcidViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = AcidSerializer
-    #paginate_by = 100
-    paginate_by_param = 'page_size'
-
-    # override the default paginate_by to use unlimited pagination if requested, and 100 for all others.
-    def get_paginate_by(self):
-        pagesize = self.request.query_params.get('page_size', None)
-        if pagesize is not None:
-            if pagesize == 'all':
-                return None
-            else:
-                return 100
-        else:
-            return 100
+    pagination_class = StandardResultsSetPagination
 
     # override the default queryset to allow filtering by URL arguments
     def get_queryset(self):
@@ -1018,7 +979,7 @@ class BlankWaterBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
 class BlankWaterViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = BlankWaterSerializer
-    paginate_by = 100
+    pagination_class = StandardResultsSetPagination
 
     # override the default queryset to allow filtering by URL arguments
     def get_queryset(self):
@@ -1039,7 +1000,7 @@ class BrominationBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
 class BrominationViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = BrominationSerializer
-    paginate_by = 100
+    pagination_class = StandardResultsSetPagination
 
     # override the default queryset to allow filtering by URL arguments
     def get_queryset(self):
@@ -1126,7 +1087,7 @@ class AuthView(views.APIView):
 class ReportResultsCountNawqa(generics.ListAPIView):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = ReportResultsCountNawqaSerializer
-    paginate_by = 100
+    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
         queryset = ResultCountNawqa.objects.all()
@@ -1152,7 +1113,7 @@ class ReportResultsCountNawqa(generics.ListAPIView):
 class ReportResultsCountProjects(generics.ListAPIView):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = ReportResultsCountProjectsSerializer
-    paginate_by = 100
+    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
         queryset = ResultCountProjects.objects.all()
@@ -1179,8 +1140,7 @@ class ReportResultsCountProjects(generics.ListAPIView):
 class ReportSamplesNwis(generics.ListAPIView):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = ReportSamplesNwisSerializer
-    paginate_by = 100
-    paginate_by_param = 'page_size'
+    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
         queryset = SampleNwis.objects.all()
@@ -1220,8 +1180,7 @@ class ReportSamplesNwis(generics.ListAPIView):
 class ReportResultsNwis(generics.ListAPIView):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = ReportResultsNwisSerializer
-    paginate_by = 100
-    paginate_by_param = 'page_size'
+    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
         queryset = ResultNwis.objects.all()
@@ -1255,8 +1214,7 @@ class ReportResultsNwis(generics.ListAPIView):
 class ReportResultsCooperator(generics.ListAPIView):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = ReportResultsCooperatorSerializer
-    paginate_by = 100
-    paginate_by_param = 'page_size'
+    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
         queryset = ResultCooperator.objects.all()
