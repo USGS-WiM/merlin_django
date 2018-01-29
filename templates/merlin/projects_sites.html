@@ -478,6 +478,8 @@
                             button_state.button('reset');
                         }
                     });
+                    // clear list of selected rows
+                    gridProjectssites_selectionRowIndices.length = 0;
                 });
 
                 tools_projectssites.find('button[name=save]').click(function() {

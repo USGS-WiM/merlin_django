@@ -179,8 +179,10 @@
                     ],
                     // define event handlers
                     beforeChange: function(changes, source) {
+                        console.log(changes);
+                        console.log(source);
                         // "changes" is a 2D array containing information about each of the edited cells [ [row, col, oldVal, newVal], [row, col, oldVal, newVal], ... ].
-                        // "source" is one of the following strings: "alter", "empty", "edit", "populateFromArray", "loadData", "autofill", "paste".
+                        // "source" is one of the following strings: "alter", "empty", "edit", "populateFromArray", "loadData", "Autofill.fill", "CopyPaste.paste".
 
                         // get index of (first) changed row
                         var changedRow = changes[0][0];
@@ -205,11 +207,11 @@
                         }
 
                         // update dependent columns when a value in a parent column is changed
-                        if (source == 'edit' || source == 'paste' || source == 'autofill') {
+                        if (source == 'edit' || source == 'CopyPaste.paste' || source == 'Autofill.fill') {
                             // when site name or site code is changed to a non-null, non-blank value
                             if ((changedCol == 0 || changedCol == 1) && changedVal !== null && changedVal !== "" && ($('#project_name').val() != "")) {
                                 var siteValue;
-                                if (source == 'edit'  || source == 'paste') {
+                                if (source == 'edit'  || source == 'CopyPaste.paste') {
                                     // if site name is changed
                                     if (changedCol == 0) {
                                         // update site code to match site name
@@ -225,7 +227,7 @@
                                         grid.handsontable('setDataAtCell', changedRow, 0, siteValue);
                                     }
                                 }
-                                if (source == 'autofill') {
+                                if (source == 'Autofill.fill') {
                                     // get range of autofilled rows
                                     var selectedRows = grid.handsontable('getInstance').getSelectedRange();
                                     var firstSelectedRow = selectedRows['from']['row'];
@@ -273,7 +275,7 @@
                                             // update the dropdown list of this cell
                                             cellProperties.source = values;
                                         }
-                                        if (source == 'autofill' || source == 'paste') {
+                                        if (source == 'Autofill.fill' || source == 'CopyPaste.paste') {
                                             var selectedRows = grid.handsontable('getInstance').getSelectedRange();
                                             var firstSelectedRow = selectedRows['from']['row'];
                                             var lastSelectedRow = selectedRows['to']['row'];
@@ -495,9 +497,10 @@
 
                 grid.parent().find('button[name=delete]').click(function () {
                     var button_state = $(this).button('loading');
-                    var selectedRows = grid.handsontable('getInstance').getSelectedRange();
-                    if (typeof selectedRows == 'undefined') {grid_console.text('There are no selected rows to delete!'); button_state.button('reset'); return false;}
+                    if (typeof selectionRowIndices[0] == 'undefined') {grid_console.text('There are no selected rows to delete!'); button_state.button('reset'); return false;}
                     grid.data('handsontable').alter('remove_row', selectionRowIndices[0], (selectionRowIndices[1] != selectionRowIndices[0]  ? (selectionRowIndices[1] - selectionRowIndices[0]) + 1 : 1));
+                    // clear list of selected rows
+                    selectionRowIndices.length = 0;
                     grid_console.text('Deleted Rows.');
                     button_state.button('reset');
                 });

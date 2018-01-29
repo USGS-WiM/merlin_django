@@ -241,7 +241,7 @@
                         // if change is Bottle Prefix or Suffix, concatenate them into the Bottle Code
                         if (changedCol == 0 || changedCol == 1) {
                             var newVal;
-                            if (source == 'edit' || source == 'paste') {
+                            if (source == 'edit' || source == 'CopyPaste.paste') {
                                 if (changedCol == 0) {
                                     var suffix;
                                     if (grid_bottles_add.handsontable('getDataAtCell', changedRow, 1) !== null) {
@@ -267,7 +267,7 @@
                                 }
                                 else {grid_bottles_add.handsontable('setDataAtCell', changedRow, 3, dateTodayString);}
                             }
-                            /*if (source == 'autofill') {
+                            /*if (source == 'Autofill.fill') {
                                 var newVal = "1";
                                 // get range of autofilled rows
                                 var selectedRows = grid_bottles_add.handsontable('getInstance').getSelectedRange();
@@ -367,6 +367,8 @@
                     var firstSelectedRow = selectedRows['from']['row'];
                     var lastSelectedRow = selectedRows['to']['row'];
                     grid_bottles_add.data('handsontable').alter('remove_row', firstSelectedRow, (lastSelectedRow != firstSelectedRow ? (lastSelectedRow - firstSelectedRow) + 1 : 1));
+                    // clear list of selected rows
+                    selectedRows.length = 0;
                     loading_overlay.hide();
                     button_state.button('reset');
                 });
@@ -674,7 +676,7 @@
                     //columnSorting: { column: 0 },
                     beforeChange: function(changes, source) {
                         // "changes" is a 2D array containing information about each of the edited cells [ [row, col, oldVal, newVal], [row, col, oldVal, newVal], ... ].
-                        // "source" is one of the following strings: "alter", "empty", "edit", "populateFromArray", "loadData", "autofill", "paste".
+                        // "source" is one of the following strings: "alter", "empty", "edit", "populateFromArray", "loadData", "Autofill.fill", "CopyPaste.paste".
 
                         // get index of changed row
                         var changedRow = changes[0][0];
@@ -742,7 +744,7 @@
                     //columnSorting: { column: 0 },
                     beforeChange: function(changes, source) {
                         // "changes" is a 2D array containing information about each of the edited cells [ [row, col, oldVal, newVal], [row, col, oldVal, newVal], ... ].
-                        // "source" is one of the following strings: "alter", "empty", "edit", "populateFromArray", "loadData", "autofill", "paste".
+                        // "source" is one of the following strings: "alter", "empty", "edit", "populateFromArray", "loadData", "Autofill.fill", "CopyPaste.paste".
 
                         // get index of changed row
                         var changedRow = changes[0][0];
@@ -1049,6 +1051,8 @@
                             button_state.button('reset');
                         }
                     });
+                    // clear list of selected rows
+                    selectionRowIndicesPrefixes.length = 0;
                 });
 
                 tools_prefixes.find('button[name=save]').click(function () {
@@ -1260,6 +1264,8 @@
                             button_state.button('reset');
                         }
                     });
+                    // clear list of selected rows
+                    selectionRowIndicesBottles.length = 0;
                 });
 
                 tools_bottles.find('button[name=save]').click(function () {
