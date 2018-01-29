@@ -424,6 +424,8 @@
                             button_state.button('reset');
                         }
                     });
+                    // clear list of selected rows
+                    selectionRowIndicesSamples.length = 0;
                 });
 
                 var created_date = new Pikaday({
@@ -658,6 +660,8 @@
                             button_state.button('reset');
                         }
                     });
+                    // clear list of selected rows
+                    selectionRowIndicesBrominations.length = 0;
                 });
 
                 tools_brominations.find('button[name=save]').click(function () {
@@ -769,6 +773,8 @@
                     var firstSelectedRow = selectedRows['from']['row'];
                     var lastSelectedRow = selectedRows['to']['row'];
                     grid_add.data('handsontable').alter('remove_row', firstSelectedRow, (lastSelectedRow != firstSelectedRow ? (lastSelectedRow - firstSelectedRow) + 1 : 1));
+                    // clear list of selected rows
+                    selectedRows.length = 0;
                     loading_overlay.hide();
                     button_state.button('reset');
                 });

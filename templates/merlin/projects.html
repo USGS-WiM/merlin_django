@@ -299,6 +299,8 @@
                             button_state.button('reset');
                         }
                     });
+                    // clear list of selected rows
+                    selectionRowIndices.length = 0;
                 });
 
                 grid.parent().find('button[name=save]').click(function () {

@@ -753,6 +753,8 @@
                     // check if row is a clone
                     if (grid.data('handsontable').getDataAtCell(selectedRow, 25)) {grid_console.text('The selected row is not a clone and cannot be removed!');  loading_overlay.hide(); button_state.button('reset'); return false;}
                     else {grid.data('handsontable').alter('remove_row', selectedRow, 1);}
+                    // clear list of selected rows
+                    selectionRowIndices.length = 0;
                     grid_console.text('Removed Row.');
                     button_state.button('reset');
                     loading_overlay.hide();
