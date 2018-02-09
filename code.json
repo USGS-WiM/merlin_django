@@ -1,0 +1,45 @@
+[
+  {
+    "name": "mercuryproject",
+    "organization": "U.S. Geological Survey",
+    "description": "Mercury lab project for internal use",
+    "version": "v1.0.0",
+    "status": "Development"
+
+    "permissions": {
+      "usageType": "openSource",
+      "licenses": [
+        {
+          "name": "Public Domain",
+          "URL": "https://github.com/USGS-WiM/mercuryproject/blob/master/LICENSE.md"
+        }
+      ]
+    },
+
+    "homepageURL": "https://wim.usgs.gov",
+    "downloadURL": "https://github.com/USGS-WiM/mercuryproject/archive/master.zip",
+    "disclaimerURL": "https://github.com/USGS-WiM/mercuryproject/blob/master/DISCLAIMER.md",
+    "repositoryUrl": "https://github.com/USGS-WiM/mercuryproject",
+    "vcs": "git",
+
+    "laborHours": null,
+
+    "tags": [
+      "mercury lab"
+    ],
+
+    "languages": [
+      "javascript",
+      "python"
+    ],
+
+    "contact": {
+      "name": "Aaron Stephenson",
+      "email": "astephenson@usgs.gov"
+    },
+
+    "date": {
+      "metadataLastUpdated": "2018-02-09"
+    }
+  }
+]
