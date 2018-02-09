@@ -53,6 +53,9 @@ class CooperatorBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
 
 
 class CooperatorViewSet(viewsets.ModelViewSet):
+    """
+    Filter by cooperator name
+    """
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = CooperatorSerializer
 
@@ -73,6 +76,9 @@ class ProjectBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
 
 
 class ProjectViewSet(viewsets.ModelViewSet):
+    """
+    Filter by project name or project ID
+    """
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = ProjectSerializer
 
@@ -97,6 +103,9 @@ class SiteBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
 
 
 class SiteViewSet(viewsets.ModelViewSet):
+    """
+    Filter by site name, site ID, USGS scode, project name, or project ID
+    """
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = SiteSerializer
     pagination_class = StandardResultsSetPagination
@@ -141,12 +150,16 @@ class ProjectSiteBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
     queryset = Project.objects.all()
     serializer_class = ProjectSiteSerializer
     permission_classes = (permissions.IsAuthenticated,)
-
+ 
 
 class ProjectSiteViewSet(viewsets.ModelViewSet):
+    """
+    Filter by project ID, project name, site ID, or site name
+    """
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = ProjectSiteSerializer
     pagination_class = StandardResultsSetPagination
+    
 
     # override the default queryset to allow filtering by URL arguments
     def get_queryset(self):
@@ -165,7 +178,7 @@ class ProjectSiteViewSet(viewsets.ModelViewSet):
         if site is not None:
             # if query value is a site ID
             if site.isdigit():
-                # get the projects-sites with this site ID, eact
+                # get the projects-sites with this site ID, exact
                 queryset = queryset.filter(site__exact=site)
             # else query value is a project name
             else:
@@ -188,6 +201,9 @@ class SampleBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkUpdateModelMixin, 
 
 
 class SampleViewSet(viewsets.ModelViewSet):
+    """
+    Filter by sample ID, project ID, site ID, sample datetime, depth, replicate, or medium type
+    """
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = SampleSerializer
     pagination_class = StandardResultsSetPagination
@@ -234,6 +250,9 @@ class SampleBottleBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkUpdateModelM
 
 
 class SampleBottleViewSet(viewsets.ModelViewSet):
+    """
+    Filter by samplebottle ID, sample ID, project ID, site ID, bottle ID, constituent ID, or sample datetime 
+    """
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = SampleBottleSerializer
     pagination_class = StandardResultsSetPagination
@@ -311,6 +330,9 @@ class SampleBottleViewSet(viewsets.ModelViewSet):
 
 
 class FullSampleBottleViewSet(viewsets.ModelViewSet):
+    """
+    Filter by samplebottle ID, sample ID, project ID, site ID, bottle ID, constituent ID, or sample datetime
+    """
     permission_classes = (permissions.IsAuthenticated,)
     serializer_class = FullSampleBottleSerializer
     pagination_class = StandardResultsSetPagination
@@ -376,6 +398,9 @@ class SampleBottleBrominationBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkU
 
 
 class SampleBottleBrominationViewSet(viewsets.ModelViewSet):
+    """
+    Filter by bottle name, bottle ID, or created date
+    """
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = SampleBottleBrominationSerializer
     pagination_class = StandardResultsSetPagination
@@ -423,9 +448,12 @@ class BottleBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkUpdateModelMixin, 
 
 
 class BottleViewSet(viewsets.ModelViewSet):
+    """
+    Filter by bottle ID, bottle name, or unused bottles
+    """
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = BottleSerializer
-    pagination_class = StandardResultsSetPagination
+    pagination_class = StandardResultsSetPagination  
 
     def get_queryset(self):
         queryset = Bottle.objects.all()
@@ -452,6 +480,9 @@ class BottlePrefixBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkUpdateModelM
 
 
 class BottlePrefixViewSet(viewsets.ModelViewSet):
+    """
+    Filter by bottle prefix ID or bottle prefix name
+    """
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = BottlePrefixSerializer
     pagination_class = StandardResultsSetPagination
@@ -481,6 +512,9 @@ class BottlePrefixViewSet(viewsets.ModelViewSet):
 
 
 class BottleTypeViewSet(viewsets.ModelViewSet):
+    """
+    Filter by bottle type name
+    """
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = BottleTypeSerializer
 
@@ -531,6 +565,9 @@ class UnitTypeViewSet(viewsets.ModelViewSet):
 
 
 class MethodTypeViewSet(viewsets.ModelViewSet):
+    """
+    Filter by analysis ID, constituent ID, or method ID
+    """
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = MethodTypeSerializer
 
@@ -558,6 +595,9 @@ class ResultBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkUpdateModelMixin, 
 
 
 class ResultViewSet(viewsets.ModelViewSet):
+    """
+    Filter by sample bottle ID, constituent ID, or isotope ID
+    """
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = ResultSerializer
     pagination_class = StandardResultsSetPagination
@@ -580,6 +620,9 @@ class ResultViewSet(viewsets.ModelViewSet):
 
 
 class FullResultViewSet(viewsets.ModelViewSet):
+    """
+    Filter by analysis ID, constituent ID, isotope ID, project ID, site ID, depth, replicate, sample date, or sample datetime
+    """
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     pagination_class = StandardResultsSetPagination
 
@@ -767,6 +810,9 @@ class FullResultViewSet(viewsets.ModelViewSet):
 
 
 class AnalysisTypeViewSet(viewsets.ModelViewSet):
+    """
+    Filter by method ID, method name, medium ID, medium name, NWIS code, analysis name, or analysis ID
+    """
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = AnalysisTypeSerializer
 
@@ -815,6 +861,9 @@ class AnalysisTypeViewSet(viewsets.ModelViewSet):
 
 
 class ConstituentTypeViewSet(viewsets.ModelViewSet):
+    """
+    Filter by analysis ID, analysis name, method ID, method name, medium ID, medium name, NWIS code, consituent name, or constituent ID
+    """
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = ConstituentTypeSerializer
 
@@ -919,6 +968,9 @@ class DetectionFlagViewSet(viewsets.ModelViewSet):
 
 
 class IsotopeFlagViewSet(viewsets.ModelViewSet):
+    """
+    Filter by isotope ID
+    """
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = IsotopeFlagSerializer
 
@@ -952,6 +1004,10 @@ class AcidBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
 
 
 class AcidViewSet(viewsets.ModelViewSet):
+    """
+    Filter by acid code
+    """
+
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = AcidSerializer
     pagination_class = StandardResultsSetPagination
@@ -977,6 +1033,10 @@ class BlankWaterBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
 
 
 class BlankWaterViewSet(viewsets.ModelViewSet):
+    """
+    Filter by lot number
+    """
+
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = BlankWaterSerializer
     pagination_class = StandardResultsSetPagination
@@ -998,6 +1058,9 @@ class BrominationBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
 
 
 class BrominationViewSet(viewsets.ModelViewSet):
+    """
+    Filter by bromination ID or Created date
+    """
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = BrominationSerializer
     pagination_class = StandardResultsSetPagination
@@ -1024,6 +1087,9 @@ class BrominationViewSet(viewsets.ModelViewSet):
 
 
 class UserViewSet(viewsets.ModelViewSet):
+    """
+    Filter by username
+    """
     permission_classes = (permissions.IsAuthenticated,)
     serializer_class = UserSerializer
 
@@ -1085,6 +1151,9 @@ class AuthView(views.APIView):
 
 
 class ReportResultsCountNawqa(generics.ListAPIView):
+    """
+    Filter by entry date
+    """
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = ReportResultsCountNawqaSerializer
     pagination_class = StandardResultsSetPagination
@@ -1111,6 +1180,9 @@ class ReportResultsCountNawqa(generics.ListAPIView):
 
 
 class ReportResultsCountProjects(generics.ListAPIView):
+    """
+    Filter by entry date
+    """
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = ReportResultsCountProjectsSerializer
     pagination_class = StandardResultsSetPagination
