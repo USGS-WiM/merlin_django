@@ -4,7 +4,7 @@
     "organization": "U.S. Geological Survey",
     "description": "Mercury lab project for internal use",
     "version": "v1.0.0",
-    "status": "Development"
+    "status": "Development",
 
     "permissions": {
       "usageType": "openSource",
