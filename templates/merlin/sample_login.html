@@ -381,27 +381,41 @@
                                     project: changedVal
                                 },
                                 success: function (response) {
-                                    grid_console.text("success");
-                                    // update the local full object collection
-                                    data_sites = response['results'];
-                                    var names = getValuesDom(data_sites, "name");
-                                    var ids = getValuesDom(data_sites, "usgs_scode");
-                                    var settings = grid.handsontable('getInstance').getSettings();
-                                    settings.columns[0] = {title: 'Site Name', width: 210, type: 'autocomplete', strict: true, validator: validateRequired, source: names};
-                                    settings.columns[1] = {title: 'Site ID', width: 100, type: 'autocomplete', strict: true, source: ids};
-                                    grid.handsontable('getInstance').updateSettings(settings);
-                                    /*var rows = grid.handsontable('getInstance').countRows();
-                                    for (var row = 1; row < rows; row++) {
-                                        // update the site name dropdown list with just the names
-                                        var colToChange = 0;
-                                        var cellProperties = grid.handsontable('getInstance').getCellMeta(row, colToChange);
-                                        cellProperties.source = names;
-                                        // update the site IDs dropdown list with just the IDs
-                                        colToChange = 1;
-                                        cellProperties = grid.handsontable('getInstance').getCellMeta(row, colToChange);
-                                        cellProperties.source = ids;
-                                        grid.handsontable('getInstance').render();
-                                    }*/
+                                    page_size = (Math.ceil(response['count'] / 100)) * 100;
+                                    $.ajax({
+                                        url: '/mercuryservices/sites/',
+                                        dataType: 'json',
+                                        data: {
+                                            project: changedVal,
+                                            page_size: page_size
+                                        },
+                                        success: function (response) {
+                                            grid_console.text("success");
+                                            // update the local full object collection
+                                            data_sites = response['results'];
+                                            var names = getValuesDom(data_sites, "name");
+                                            var ids = getValuesDom(data_sites, "usgs_scode");
+                                            var settings = grid.handsontable('getInstance').getSettings();
+                                            settings.columns[0] = {title: 'Site Name', width: 210, type: 'autocomplete', strict: true, validator: validateRequired, source: names};
+                                            settings.columns[1] = {title: 'Site ID', width: 100, type: 'autocomplete', strict: true, source: ids};
+                                            grid.handsontable('getInstance').updateSettings(settings);
+                                            /*var rows = grid.handsontable('getInstance').countRows();
+                                            for (var row = 1; row < rows; row++) {
+                                                // update the site name dropdown list with just the names
+                                                var colToChange = 0;
+                                                var cellProperties = grid.handsontable('getInstance').getCellMeta(row, colToChange);
+                                                cellProperties.source = names;
+                                                // update the site IDs dropdown list with just the IDs
+                                                colToChange = 1;
+                                                cellProperties = grid.handsontable('getInstance').getCellMeta(row, colToChange);
+                                                cellProperties.source = ids;
+                                                grid.handsontable('getInstance').render();
+                                            }*/
+                                        },
+                                        error: function (jqXHRequest, textStatus, errorThrown) {
+                                            grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve sites.");
+                                        }
+                                    });
                                 },
                                 error: function (jqXHRequest, textStatus, errorThrown) {
                                     grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve sites.");
