@@ -1327,7 +1327,8 @@ class BatchUpload(views.APIView):
                 # get and process the final_value
                 result_details.final_value = float(raw_value)
                 result_details.final_value = process_final_value(
-                    result_details.final_value, method_id, volume_filtered, sediment_dry_weight, sample_mass_processed)
+                    result_details.final_value, method_id, volume_filtered, sediment_dry_weight, sample_mass_processed,
+                    result_id)
 
                 # calculate the final_method_detection_limit and report value
                 method_detection_limit, significant_figures, decimal_places = get_method_type(method_id)
@@ -1342,10 +1343,11 @@ class BatchUpload(views.APIView):
 #                    result_details.report_value = final_method_detection_limit
 #                else:
                 result_details.report_value = process_report_value(reported_value, method_id, volume_filtered,
-                                                                   sediment_dry_weight, sample_mass_processed)
+                                                                   sediment_dry_weight, sample_mass_processed, result_id)
                 # round by sigfigs
-                result_details.report_value = eval_sigfigs_decimals(result_details.report_value, significant_figures,
-                                                                    decimal_places)
+                if significant_figures is not None and decimal_places is not None:
+                    result_details.report_value = eval_sigfigs_decimals(result_details.report_value,
+                                                                        significant_figures, decimal_places)
                 
                 result_details.detection_flag = DetectionFlag.objects.get(detection_flag=detection_flag)
 
@@ -1960,7 +1962,7 @@ def get_method_type(method_code):
     return method_detection_limit, significant_figures, decimal_places
 
 
-def process_final_value(final_value, method_id, volume_filtered, sediment_dry_weight, sample_mass_processed):
+def process_final_value(final_value, method_id, volume_filtered, sediment_dry_weight, sample_mass_processed, result_id):
     value = final_value
     if method_id is None or final_value is None:
         value = final_value
@@ -1986,10 +1988,14 @@ def process_final_value(final_value, method_id, volume_filtered, sediment_dry_we
     elif method_id == 228:
         if sample_mass_processed is not None and sample_mass_processed != -999:
             value = final_value / sample_mass_processed
+    elif method_id == 77:
+        result = Result.objects.get(pk=result_id)
+        tare_weight = Bottle.objects.filter(id=result.sample_bottle.bottle_id)[0].tare_weight
+        value = ((final_value - tare_weight) * 1000) / (volume_filtered / 1000)
     return value
 
 
-def process_report_value(report_value, method_id, volume_filtered, sediment_dry_weight, sample_mass_processed):
+def process_report_value(report_value, method_id, volume_filtered, sediment_dry_weight, sample_mass_processed, result_id):
     value = report_value
     if method_id is None or report_value is None:
         value = report_value
@@ -2012,6 +2018,10 @@ def process_report_value(report_value, method_id, volume_filtered, sediment_dry_
     elif method_id in (50, 74, 82):
         if sediment_dry_weight is not None and sediment_dry_weight != -999:
             value = round(report_value / sediment_dry_weight, 2)
+    elif method_id == 77:
+        result = Result.objects.get(pk=result_id)
+        tare_weight = Bottle.objects.filter(id=result.sample_bottle.bottle_id)[0].tare_weight
+        value = round(((report_value - tare_weight) * 1000) / (volume_filtered / 1000), 4)
     return value
 
 
@@ -2079,5 +2089,5 @@ def process_method_daily_detection_limit(
         else:
             value = method_daily_detection_limit / sample_mass_processed
     if value is not None:
-        value = round(value,4)
+        value = round(value, 4)
     return value
