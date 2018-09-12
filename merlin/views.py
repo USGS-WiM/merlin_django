@@ -43,7 +43,7 @@ SAMPLE_KEYS = ["project", "site", "sample_date_time", "depth", "length", "receiv
 SAMPLE_BOTTLE_KEYS = ["sample", "bottle", "filter_type", "volume_filtered",
                       "preservation_type", "preservation_volume", "preservation_acid", "preservation_comment"]
 SAMPLE_ANALYSIS_KEYS = ["sample_bottle", "analysis", "constituent", "isotope_flag"]
-BOTTLE_KEYS = ["bottle_prefix", "bottle_unique_name", "created_date", "description"]
+BOTTLE_KEYS = ["bottle_prefix", "bottle_unique_name", "created_date",  "tare_weight", "description"]
 
 
 ##########
@@ -1106,7 +1106,7 @@ def bottle_prefixes_range_create(request):
     for i in range(start, end+1, 1):
         new_prefix = params['prefix'] + str(i).rjust(digits, '0')
         new_bottle_prefix = {'bottle_prefix': new_prefix, 'description': params['description'],
-                             'tare_weight': float(params['tare_weight']), 'bottle_type': int(params['bottle_type']),
+                             'bottle_type': int(params['bottle_type']),
                              'created_date': params['created_date']}
         logger.info(str(new_bottle_prefix))
         new_bottle_prefixes.append(new_bottle_prefix)
@@ -1200,7 +1200,8 @@ def bottles_create(request):
     bottle_data = []
     for row in table:
         bottle_values = [
-            row.get('bottle_prefix'), row.get('bottle_unique_name'), row.get('created_date'), row.get('description')
+            row.get('bottle_prefix'), row.get('bottle_unique_name'), row.get('created_date'), row.get('tare_weight'),
+            row.get('description')
         ]
         this_bottle = dict(zip(BOTTLE_KEYS, bottle_values))
         bottle_data.append(this_bottle)
