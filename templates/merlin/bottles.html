@@ -20,10 +20,6 @@
                     <select class="input-block-level" name="bottle_type_prefix" id="bottle_type_prefix" style="height:26px;"></select>
                 </div>
                 <div class="form-group" style="padding:2px;text-align:center">
-                    <label for="tare_weight">Tare Weight</label><br />
-                    <input class="input-block-level" name="tare_weight" type="number">
-                </div>
-                <div class="form-group" style="padding:2px;text-align:center">
                     <label for="date_bottle_prefix">Date</label><br />
                     <input class="input-block-level" name="date_bottle_prefix" id="date_bottle_prefix">
                 </div>
@@ -54,10 +50,6 @@
                 <div class="form-group" style="padding:2px;text-align:center">
                     <label for="bottle_type_prefix_range">Bottle Type</label><br />
                     <select class="input-block-level" name="bottle_type_prefix_range" id="bottle_type_prefix_range" style="height:26px;"></select>
-                </div>
-                <div class="form-group" style="padding:2px;text-align:center">
-                    <label for="tare_weight">Tare Weight</label><br />
-                    <input class="input-block-level" name="tare_weight" type="text">
                 </div>
                 <div class="form-group" style="padding:2px;text-align:center">
                     <label for="date_bottle_prefix_range">Date</label><br />
@@ -172,7 +164,7 @@
                 var bottleRangeAddClicked = false;
 
                 var validTableAdd = false;
-                var objectFieldsAdd = ["bottle_prefix", "suffix", "bottle_unique_name", "created_date", "description"];
+                var objectFieldsAdd = ["bottle_prefix", "suffix", "bottle_unique_name", "created_date", "tare_weight", "description"];
                 var grid_bottles_add = $('#grid_bottles_add');
                 var data_bottle_types = JSON.parse(grid_bottles_add.attr("data-bottle-types"));
                 var changedRowIndicesBottlesAdd = [];
@@ -196,7 +188,7 @@
                         {title: "Suffix", width: 60},
                         {title: "Bottle Unique Name", type: 'text', width: 160},
                         {title: "Date", type: 'date', dateFormat: 'MM/DD/YY', datePickerConfig: {maxDate: new Date()}, width: 100},
-                        //{title: "Tare Weight", type: 'numeric', format: '0.00', width: 100},
+                        {title: "Tare Weight", width: 100},
                         //{title: "Bottle Type", type: 'autocomplete', strict: true, source: getValuesDom(data_bottle_types,"bottle_type"), width: 240},
                         {title: "Description", type: 'text', width: 240}
                     ],
@@ -425,7 +417,10 @@
                                         }
                                         else {grid_console.text('Date is badly formed in row ' + (row + 1) + '. Expecting a date in mm/dd/yy format but found ' + baddate + '!');  loading_overlay.hide(); button_state.button('reset'); return false;}
                                         break;
-                                    case 4: // description
+                                    case 4: // tare weight
+                                        thisDataObject[objectFieldsAdd[i]] = Number(thisDataRow[i]);
+                                        break;
+                                    case 5: // description
                                         if (thisDataRow[i] == null) {
                                             thisDataRow[i] = "";
                                         }
@@ -507,7 +502,6 @@
                         else {grid_console.text('There is a problem with the Date. Please contact the administrator.'); loading_overlay.hide(); button_state.button('reset'); return false;}
                     }
                     else {grid_console.text('Date is badly formed. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); loading_overlay.hide(); button_state.button('reset'); return false;}
-                    thisDataObject['tare_weight'] = Number(form_bottle_prefix_add.find('input[name=tare_weight]').val());
                     thisDataObject['bottle_type'] = Number(select_bottle_type_prefix.val());
                     thisDataObject['description'] = form_bottle_prefix_add.find('input[name=description]').val();
                     if (thisDataObject['description'] == null) {thisDataObject['description'] = "";}
@@ -572,7 +566,6 @@
                         else {grid_console.text('There is a problem with the Date. Please contact the administrator.'); loading_overlay.hide(); button_state.button('reset'); return false;}
                     }
                     else {grid_console.text('Date is badly formed. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); loading_overlay.hide(); button_state.button('reset'); return false;}
-                    thisDataObject['tare_weight'] = Number(form_bottle_prefix_range_add.find('input[name=tare_weight]').val());
                     thisDataObject['bottle_type'] = Number(select_bottle_type_range.val());
                     thisDataObject['description'] = form_bottle_prefix_range_add.find('input[name=description]').val();
                     if (thisDataObject['description'] == null) {thisDataObject['description'] = "";}
@@ -647,7 +640,7 @@
                 }
 
                 var validTablePrefix = false;
-                var prefixObjectFields = ["id", "bottle_prefix", "created_date", "tare_weight", "bottle_type", "description"];
+                var prefixObjectFields = ["id", "bottle_prefix", "created_date", "bottle_type", "description"];
                 var currentPagePrefixes = 1;
                 var changedRowIndicesPrefixes = [];
                 var selectionRowIndicesPrefixes = [];
@@ -668,7 +661,6 @@
                         {title: "ID", data: "id", readOnly: true, width: 1},
                         {title: "Prefix", data: "bottle_prefix", width: 150},
                         {title: "Date", data: "created_date", width: 100, type: 'date', dateFormat: 'MM/DD/YY', datePickerConfig: {maxDate: new Date()}},
-                        {title: "Tare Weight", data: "tare_weight", width: 100},
                         {title: "Bottle Type", data: "bottle_type_string", type: 'autocomplete', strict: true, source: getValuesDom(data_bottle_types,"bottle_type"), width: 120},
                         {title: "Description", data: "description", width: 220}
                     ],
@@ -714,7 +706,7 @@
                 grid_console.text('Data loaded.');
 
                 var validTableBottle = false;
-                var bottleObjectFields = ["id", "bottle_unique_name", "bottle_prefix", "created_date", "description"];
+                var bottleObjectFields = ["id", "bottle_unique_name", "bottle_prefix", "created_date", "tare_weight", "description"];
                 var currentPageBottles = 1;
                 var grid_bottles = $('#grid_bottles');
                 var data_bottles = JSON.parse(grid_bottles.attr("data-bottles"));
@@ -738,6 +730,7 @@
                         {title: "Bottle Prefix", data: "bottle_prefix_string", width: 100, type: 'autocomplete', strict: true, source: function (query, process) {
                             getValuesAjax('/mercuryservices/bottleprefixes/', 'bottle_prefix', query, process)}},
                         {title: "Date", data: "created_date", width: 100, type: 'date', dateFormat: 'MM/DD/YY', datePickerConfig: {maxDate: new Date()}},
+                        {title: "Tare Weight", data: "tare_weight", width: 100},
                         {title: "Description", data: "description", width: 240}
                     ],
                     columnSorting: true,
@@ -1066,8 +1059,7 @@
                         var thisDataRow = grid_prefixes.data('handsontable').getDataAtRow(value);
                         var thisDataObject = {};
                         for (var i = 0; i < thisDataRow.length; i++) {
-                            if (prefixObjectFields[i] == "tare_weight") {thisDataObject[prefixObjectFields[i]] = Number(thisDataRow[i]);}
-                            else if (prefixObjectFields[i] == "bottle_type") {
+                            if (prefixObjectFields[i] == "bottle_type") {
                                 var thisID = updateValueAjax('/mercuryservices/bottletypes/', 'bottle_type_string', 'id', thisDataRow[i]);
                                 if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Bottle Type must be a valid choice in row ' + (index + 1) + '!'); validTablePrefix = false; loading_overlay.hide(); button_state.button('reset'); return false;}
                                 thisDataObject[prefixObjectFields[i]] = thisID;
@@ -1299,7 +1291,10 @@
                                 }
                                 else {grid_console.text('Date is badly formed in row ' + (index + 1) + '. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); validTableBottle = false; loading_overlay.hide(); button_state.button('reset'); return false;}
                             }
-                            else if (prefixObjectFields[i] == "description") {
+                            else if (bottleObjectFields[i] == "tare_weight") {
+                                thisDataObject[bottleObjectFields[i]] = Number(thisDataRow[i]);
+                            }
+                            else if (bottleObjectFields[i] == "description") {
                                 if (thisDataRow[i] == null) {
                                     thisDataRow[i] = "";
                                 }
