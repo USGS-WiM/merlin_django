@@ -436,7 +436,15 @@ class BottleViewSet(viewsets.ModelViewSet):
         # filter by bottle name, case-insensitive contain
         bottle_unique_name = self.request.query_params.get('bottle_unique_name', None)
         if bottle_unique_name is not None:
-            queryset = queryset.filter(bottle_unique_name__icontains=bottle_unique_name)
+            if ',' in bottle_unique_name:
+                bottle_list = bottle_unique_name.split(',')
+                # maintain the order of the bottles that were queried
+                clauses = ' '.join(['WHEN bottle_uniqu_name=%s THEN %s' % (pk, i) for i, pk in enumerate(bottle_list)])
+                ordering = 'CASE %s END' % clauses
+                queryset = queryset.filter(bottle_unique_name__in=bottle_list).extra(
+                    select={'ordering': ordering}, order_by=('ordering',))
+            else:
+                queryset = queryset.filter(bottle_unique_name__icontains=bottle_unique_name)
         # filter by unused bottles (i.e., bottles not yet used as sample bottles)
         unused = self.request.query_params.get('unused', None)
         if unused is not None:

@@ -135,7 +135,7 @@ class Bottle(models.Model):
 
     bottle_unique_name = models.CharField(max_length=128, unique=True)
     bottle_prefix = models.ForeignKey('BottlePrefix')
-    tare_weight = models.DecimalField(max_digits=8, decimal_places=4, null=True)
+    tare_weight = models.DecimalField(max_digits=9, decimal_places=5, null=True)
     description = models.TextField(blank=True)
     created_date = models.DateField(default=datetime.now, null=True, blank=True, db_index=True)
     # created_by = CreatingUserField(related_name='created_bottles')

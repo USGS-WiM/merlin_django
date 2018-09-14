@@ -108,7 +108,10 @@
                 <h1>Prefixes</h1>
             </div>
             <div id="tools_bottles" class="col-md-6">
-                <p><input id="select_field_bottles" type="hidden" placeholder="Filter by bottle name." style="width:600px"/></p>
+                <p>
+                    <input id="select_field_bottles" type="hidden" placeholder="Filter by bottle name." style="width:580px"/>
+                    <span class="glyphicon glyphicon-search" data-toggle="modal" data-target="#multiBottleSearchModal"></span><br />
+                </p>
                 <p>
                     <div class="select2-container select2-container-multi" style="width:600px">
                         <ul class="select2-choices">
@@ -136,6 +139,26 @@
         <div class="row">
             <div class="col-md-6" id="grid_prefixes" data-prefixes="{{ prefixes }}"></div>
             <div class="col-md-6" id="grid_bottles" data-bottles="{{ bottles }}"></div>
+        </div>
+
+                <!-- Multi Bottle Search Modal -->
+        <div class="modal fade" id="multiBottleSearchModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">Multi Bottle Search</h4>
+              </div>
+              <div class="modal-body">
+                <textarea id="bottle_search_list" style="width:100%;height: 200px;"></textarea>
+                <div class="alert alert-warning" role="alert" style="display:none">...</div>
+              </div>
+              <div class="modal-footer">
+                  <button id="multi_bottle_search" type="button" class="btn btn-info" data-loading-text="Searching...">Search</button>
+                  <!-- <button type="button" class="btn btn-default" data-dismiss="modal">Close</button> -->
+              </div>
+            </div>
+          </div>
         </div>
 
 		<script>
@@ -173,6 +196,7 @@
                 var monthToday = (dateToday.getMonth() + 1).toString();
                 var dayToday = dateToday.getDate().toString();
                 var dateTodayString = (monthToday.length < 2 ? ("0" + monthToday) : monthToday) + "/" + (dayToday.length < 2 ? ("0" + dayToday) : dayToday) + "/" + yearToday.substr(2,2);
+                var bottleIds = [];
                 var grid_bottles_add_options = {
                     contextMenu: false,
                     startRows: 8,
@@ -418,7 +442,12 @@
                                         else {grid_console.text('Date is badly formed in row ' + (row + 1) + '. Expecting a date in mm/dd/yy format but found ' + baddate + '!');  loading_overlay.hide(); button_state.button('reset'); return false;}
                                         break;
                                     case 4: // tare weight
-                                        thisDataObject[objectFieldsAdd[i]] = Number(thisDataRow[i]);
+                                        if (thisDataRow[i] == null || thisDataRow[i] == '') {
+                                            thisDataObject[objectFieldsAdd[i]] = null;
+                                        }
+                                        else {
+                                            thisDataObject[objectFieldsAdd[i]] = Number(thisDataRow[i]);
+                                        }
                                         break;
                                     case 5: // description
                                         if (thisDataRow[i] == null) {
@@ -815,7 +844,7 @@
                     formatSelection: formatprefixes
                 });
 
-                $("#select_field_bottles").select2({
+                var select_field_bottles = $("#select_field_bottles").select2({
                     multiple: true,
                     maximumSelectionSize: 1,
                     dropdownCss:{display:'none'},
@@ -1292,7 +1321,12 @@
                                 else {grid_console.text('Date is badly formed in row ' + (index + 1) + '. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); validTableBottle = false; loading_overlay.hide(); button_state.button('reset'); return false;}
                             }
                             else if (bottleObjectFields[i] == "tare_weight") {
-                                thisDataObject[bottleObjectFields[i]] = Number(thisDataRow[i]);
+                                if (thisDataRow[i] == null || thisDataRow[i] == '') {
+                                    thisDataObject[bottleObjectFields[i]] = null;
+                                }
+                                else {
+                                    thisDataObject[bottleObjectFields[i]] = Number(thisDataRow[i]);
+                                }
                             }
                             else if (bottleObjectFields[i] == "description") {
                                 if (thisDataRow[i] == null) {
@@ -1343,6 +1377,59 @@
                         });
                     }
                     clearChangedRowIndicesBottles();
+                });
+
+                var searchBottles = function(button,bottle){
+                    var button_state = $(button).button('loading');
+                    loading_overlay.show();
+                    grid_console.text('Attempting to search...');
+                    var thisDataObject = {};
+                    thisDataObject['bottle_unique_name'] = bottle;
+                    // var dataJSON = JSON.stringify(thisDataObject);
+                    $.ajax({
+                        url: '/mercuryservices/bottles/',
+                        data: thisDataObject,
+                        dataType: 'json',
+                        contentType: "application/json",
+                        type: 'GET',
+                        success: function (response) {
+                            grid_console.text("success");
+                            data_bottles = response;
+                            grid_bottles.data('handsontable').loadData(data_bottles.results);
+                            $('#page_bottles').html("Page " + currentPageBottles + " of " + resultPagesBottles);
+                            grid_console.text('Page '+ currentPageBottles +' data loaded.');
+                            loading_overlay.hide();
+                            button_state.button('reset');
+                            $("#bottle_search_list").val("");
+                        },
+                        error: function (jqXHRequest, textStatus, errorThrown) {
+                            grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve page to load.");
+                            loading_overlay.hide();
+                            button_state.button('reset');
+                        }
+                    });
+                    currentPage = 1;
+                };
+
+                $("#multi_bottle_search").click(function(){
+                    $("#multi_bottle_search").button('loading');
+                    $('#s2id_select_bottle .select2-search-choice').remove();
+                    var textValue = $("#bottle_search_list").val();
+                    // split the values with a newline, tab, or comma
+                    var bottle_list = textValue.split(/[\n\t,]+/);
+                    bottleIds.length = 0;
+                    //check for empty strings
+                    for(var i = 0; i < bottle_list.length; i++){
+                        if(bottle_list[i].trim()){
+                            bottleIds.push(bottle_list[i].trim());
+                        }
+                    }
+                    //get bottles
+                    $('#multiBottleSearchModal').modal('hide');
+                    if(bottleIds.length > 0){
+                        select_field_bottles.val("");
+                        searchBottles('#multi_bottle_search',bottleIds.join(","));
+                    }
                 });
 
             });
