@@ -1,8 +1,8 @@
 [
   {
-    "name": "mercuryproject",
+    "name": "merlin_django",
     "organization": "U.S. Geological Survey",
-    "description": "Mercury lab project for internal use",
+    "description": "Mercury Research Laboratory Information Management System",
     "version": "v1.0.0",
     "status": "Development",
 
@@ -11,21 +11,23 @@
       "licenses": [
         {
           "name": "Public Domain",
-          "URL": "https://github.com/USGS-WiM/mercuryproject/blob/master/LICENSE.md"
+          "URL": "https://github.com/USGS-WiM/merlin_django/blob/master/LICENSE.md"
         }
       ]
     },
 
     "homepageURL": "https://wim.usgs.gov",
-    "downloadURL": "https://github.com/USGS-WiM/mercuryproject/archive/master.zip",
-    "disclaimerURL": "https://github.com/USGS-WiM/mercuryproject/blob/master/DISCLAIMER.md",
-    "repositoryUrl": "https://github.com/USGS-WiM/mercuryproject",
+    "downloadURL": "https://github.com/USGS-WiM/merlin_django/archive/master.zip",
+    "disclaimerURL": "https://github.com/USGS-WiM/merlin_django/blob/master/DISCLAIMER.md",
+    "repositoryUrl": "https://github.com/USGS-WiM/merlin_django",
     "vcs": "git",
 
     "laborHours": null,
 
     "tags": [
-      "mercury lab"
+      "mercury",
+      "lab",
+      "merlin"
     ],
 
     "languages": [
@@ -39,7 +41,7 @@
     },
 
     "date": {
-      "metadataLastUpdated": "2018-02-09"
+      "metadataLastUpdated": "2018-11-08"
     }
   }
 ]

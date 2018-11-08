@@ -2,7 +2,7 @@
 
 {% block body_block %}
 <div style="padding:10px">
-	<h1>Login to Mercury Lab</h1>
+	<h1>Login to Merlin</h1>
 
 	<div class="container">
 	<form class="form-horizontal col-lg-4" id="login_form" method="post" action={% url 'merlin:login' %}>
@@ -12,7 +12,7 @@
 		{% if bad_details %}
 		<p><strong>Your username and/or password were incorrect.</strong></p>
 		{% elif disabled_account %}
-		<p><strong>Your Mercury Lab account is currently disabled; we can't log you in!</strong></p>
+		<p><strong>Your Merlin account is currently disabled; we can't log you in!</strong></p>
 		{% endif %}
 
 		Username: <input class="form-control" type="text" placeholder="Username" name="username" id="username" value="" size="50" /><br />

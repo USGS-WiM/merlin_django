@@ -232,7 +232,7 @@
                     },
                     columns: [
                         {title: "Unique Bottle Name", width: 150, type: 'autocomplete', strict: true, source: function (query, process) {
-                            getValuesAjax('/mercuryservices/samplebottles', 'bottle_string', query, process, ('constituent=39,27'))}},
+                            getValuesAjax('/merlinservices/samplebottles', 'bottle_string', query, process, ('constituent=39,27'))}},
                         {title: "Event Number", type: 'numeric', width: 100, readOnly: true},
                         {title: "Volume Added (mL)", type:'numeric', width: 150}
                     ],
@@ -274,7 +274,7 @@
                                 if (this_changedCol == 0 && this_changedVal !== null && this_changedVal !== "") {
                                     // update event number using bottle ID
                                     $.ajax({
-                                        url: '/mercuryservices/samplebottlebrominations/',
+                                        url: '/merlinservices/samplebottlebrominations/',
                                         dataType: 'json',
                                         data: {
                                             bottle: this_changedVal
@@ -468,7 +468,7 @@
                     //dropdownCss:{display:'none'},
                     minimumInputLength: 1,
                     ajax: {
-                        url: '/mercuryservices/bottles/',
+                        url: '/merlinservices/bottles/',
                         dataType: 'json',
                         data: function (term, page) {
                             return {
@@ -511,7 +511,7 @@
                     //allowClear: true,
                     minimumInputLength: 1,
                     ajax: {
-                        url: '/mercuryservices/brominations/',
+                        url: '/merlinservices/brominations/',
                         dataType: 'json',
                         data: function (term, page) {
                             return {
@@ -544,7 +544,7 @@
                     var button_state = $(this).button('loading');
                     loading_overlay.show();
                     $.ajax({
-                        url: '/mercuryservices/brominations/?page='+currentPage,
+                        url: '/merlinservices/brominations/?page='+currentPage,
                         dataType: 'json',
                         success: function (response) {
                             grid_console.text("success");
@@ -802,7 +802,7 @@
                         if (thisDataRow[0] !== null && thisDataRow[0] !== "" && thisDataRow[0] !== 0 && typeof thisDataRow[0] !== 'undefined') {
                             var thisDataObject = {};
                             thisDataObject['bromination'] = selected_bromination_id;
-                            var thisID = updateValueAjax('/mercuryservices/samplebottles/', 'bottle_string', 'id', thisDataRow[0], 'constituent=39,27');
+                            var thisID = updateValueAjax('/merlinservices/samplebottles/', 'bottle_string', 'id', thisDataRow[0], 'constituent=39,27');
                             if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Sample Bottle must be a valid choice in row ' + (row + 1) + '!'); validTableAdd = false; loading_overlay.hide(); button_state.button('reset'); return false;}
                             thisDataObject['sample_bottle'] = thisID;
                             thisDataObject['bromination_event'] = thisDataRow[1];

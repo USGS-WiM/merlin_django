@@ -253,7 +253,7 @@
                     //allowClear: true,
                     minimumInputLength: 1,
                     ajax: {
-                        url: '/mercuryservices/projects/',
+                        url: '/merlinservices/projects/',
                         dataType: 'json',
                         data: function (term, page) {
                             return {
@@ -280,7 +280,7 @@
                     var button_state = $(this).button('loading');
                     loading_overlay.show();
                     $.ajax({
-                        url: '/mercuryservices/projects/',
+                        url: '/merlinservices/projects/',
                         dataType: 'json',
                         success: function (response) {
                             data_projects = response;
@@ -312,7 +312,7 @@
                     //allowClear: true,
                     minimumInputLength: 1,
                     ajax: {
-                        url: '/mercuryservices/sites/',
+                        url: '/merlinservices/sites/',
                         dataType: 'json',
                         data: function (term, page) {
                             return {
@@ -339,7 +339,7 @@
                     var button_state = $(this).button('loading');
                     loading_overlay.show();
                     $.ajax({
-                        url: '/mercuryservices/sites/',
+                        url: '/merlinservices/sites/',
                         dataType: 'json',
                         success: function (response) {
                             data_sites = response;
@@ -371,7 +371,7 @@
                     //allowClear: true,
                     minimumInputLength: 1,
                     ajax: {
-                        url: '/mercuryservices/projectssites/',
+                        url: '/merlinservices/projectssites/',
                         dataType: 'json',
                         data: function (term, page) {
                             return {
@@ -402,7 +402,7 @@
                     //allowClear: true,
                     minimumInputLength: 1,
                     ajax: {
-                        url: '/mercuryservices/projectssites/',
+                        url: '/merlinservices/projectssites/',
                         dataType: 'json',
                         data: function (term, page) {
                             return {
@@ -429,7 +429,7 @@
                     var button_state = $(this).button('loading');
                     loading_overlay.show();
                     $.ajax({
-                        url: '/mercuryservices/projectssites/',
+                        url: '/merlinservices/projectssites/',
                         dataType: 'json',
                         success: function (response) {
                             data_data = response;

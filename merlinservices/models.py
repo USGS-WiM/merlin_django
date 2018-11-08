@@ -1,8 +1,6 @@
 from datetime import datetime
 from django.db import models
 from django.contrib.auth.models import User
-from django.contrib import admin
-
 
 ######
 #
@@ -40,7 +38,7 @@ class Project(models.Model):
     name = models.CharField(max_length=128, unique=True)
     description = models.CharField(max_length=128, blank=True)
     accounting_code = models.CharField(max_length=128, blank=True)
-    cooperator = models.ForeignKey('Cooperator', related_name='projects', null=True)
+    cooperator = models.ForeignKey('Cooperator', on_delete=models.CASCADE, related_name='projects', null=True)
 
     def __str__(self):
         return self.name
@@ -76,8 +74,8 @@ class Site(models.Model):
 class ProjectSite(models.Model):
     """Table to allow many-to-many relationship between Projects and Sites."""
 
-    project = models.ForeignKey('Project')
-    site = models.ForeignKey('Site')
+    project = models.ForeignKey('Project', on_delete=models.CASCADE)
+    site = models.ForeignKey('Site', on_delete=models.CASCADE)
 
     def __str__(self):
         # return str(self.id)
@@ -114,7 +112,7 @@ class BottlePrefix(models.Model):
     """Reusable bottles with permanently etched IDs (MLO755, DSV330, etc.)."""
 
     bottle_prefix = models.CharField(max_length=128, unique=True)
-    bottle_type = models.ForeignKey('BottleType')
+    bottle_type = models.ForeignKey('BottleType', on_delete=models.CASCADE)
     # tare_weight = models.DecimalField(max_digits=8, decimal_places=4, null=True)
     description = models.TextField(blank=True)
     created_date = models.DateField(default=datetime.now, null=True, blank=True, db_index=True)
@@ -134,14 +132,14 @@ class Bottle(models.Model):
      indicator of the current use of that bottle prefix (DIS26009, WIP507BWK, etc.)."""
 
     bottle_unique_name = models.CharField(max_length=128, unique=True)
-    bottle_prefix = models.ForeignKey('BottlePrefix')
+    bottle_prefix = models.ForeignKey('BottlePrefix', on_delete=models.CASCADE)
     tare_weight = models.DecimalField(max_digits=9, decimal_places=5, null=True)
     description = models.TextField(blank=True)
     created_date = models.DateField(default=datetime.now, null=True, blank=True, db_index=True)
     # created_by = CreatingUserField(related_name='created_bottles')
     modified_date = models.DateField(auto_now=True, null=True, blank=True)
     # modified_by = LastUserField()
-    # modified_by = models.ForeignKey(settings.AUTH_USER_MODEL)
+    # modified_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.bottle_unique_name
@@ -161,16 +159,16 @@ class Bottle(models.Model):
 class Sample(models.Model):
     """A sample of a medium at a site, taken at a unique depth and time. Can be stored in one or more bottles."""
 
-    project = models.ForeignKey('Project')
-    site = models.ForeignKey('Site')
+    project = models.ForeignKey('Project', on_delete=models.CASCADE)
+    site = models.ForeignKey('Site', on_delete=models.CASCADE)
     sample_date_time = models.DateTimeField()
     depth = models.FloatField()
     length = models.FloatField(null=True, blank=True)
     comment = models.TextField(blank=True)
     received_date = models.DateField(null=True, blank=True)
     replicate = models.IntegerField(null=True, blank=True)
-    lab_processing = models.ForeignKey('ProcessingType', null=True, blank=True)
-    medium_type = models.ForeignKey('MediumType')
+    lab_processing = models.ForeignKey('ProcessingType', on_delete=models.CASCADE, null=True, blank=True)
+    medium_type = models.ForeignKey('MediumType', on_delete=models.CASCADE)
     created_date = models.DateField(default=datetime.now, null=True, blank=True)
     modified_date = models.DateField(auto_now=True, null=True, blank=True)
 
@@ -186,14 +184,14 @@ class Sample(models.Model):
 class SampleBottle(models.Model):
     """A bottle (reusable or disposable) containing a (portion of a) sample. Used for analysis."""
 
-    sample = models.ForeignKey('Sample', related_name='sample_bottles', null=True)
-    # bottle = models.ForeignKey('Bottle', related_name='sample_bottles', unique=True, null=True)
-    bottle = models.OneToOneField('Bottle', related_name='sample_bottles', null=True)
-    filter_type = models.ForeignKey('FilterType', null=True, blank=True)
+    sample = models.ForeignKey('Sample', on_delete=models.CASCADE, related_name='sample_bottles', null=True)
+    # bottle = models.ForeignKey('Bottle', on_delete=models.CASCADE, related_name='sample_bottles', unique=True, null=True)
+    bottle = models.OneToOneField('Bottle', on_delete=models.CASCADE, related_name='sample_bottles', null=True)
+    filter_type = models.ForeignKey('FilterType', on_delete=models.CASCADE, null=True, blank=True)
     volume_filtered = models.FloatField(null=True, blank=True)
-    preservation_type = models.ForeignKey('PreservationType', null=True, blank=True)
+    preservation_type = models.ForeignKey('PreservationType', on_delete=models.CASCADE, null=True, blank=True)
     preservation_volume = models.FloatField(null=True, blank=True)
-    preservation_acid = models.ForeignKey('Acid', null=True, blank=True)
+    preservation_acid = models.ForeignKey('Acid', on_delete=models.CASCADE, null=True, blank=True)
     preservation_comment = models.TextField(blank=True)
     created_date = models.DateField(default=datetime.now, null=True, blank=True)
     modified_date = models.DateField(auto_now=True, null=True, blank=True)
@@ -210,8 +208,8 @@ class SampleBottleBromination(models.Model):
     """An event where Bromine Monochloride (BrCl) is added to a bottle containing a water sample.
     Used by the Total Mercury (THg) analysis method."""
 
-    sample_bottle = models.ForeignKey('SampleBottle')
-    bromination = models.ForeignKey('Bromination')
+    sample_bottle = models.ForeignKey('SampleBottle', on_delete=models.CASCADE)
+    bromination = models.ForeignKey('Bromination', on_delete=models.CASCADE)
     bromination_event = models.IntegerField(null=True, blank=True)
     bromination_volume = models.FloatField(null=True, blank=True)
     created_date = models.DateField(default=datetime.now, null=True, blank=True, db_index=True)
@@ -298,12 +296,12 @@ class MediumType(models.Model):
 class Result(models.Model):
     """Results of an analysis method on a sample bottle."""
 
-    sample_bottle = models.ForeignKey('SampleBottle', related_name='results')
-    method = models.ForeignKey('MethodType', null=True, blank=True)
-    analysis = models.ForeignKey('AnalysisType')
-    constituent = models.ForeignKey('ConstituentType')
-    isotope_flag = models.ForeignKey('IsotopeFlag')
-    detection_flag = models.ForeignKey('DetectionFlag', null=True, blank=True)
+    sample_bottle = models.ForeignKey('SampleBottle', on_delete=models.CASCADE, related_name='results')
+    method = models.ForeignKey('MethodType', on_delete=models.CASCADE, null=True, blank=True)
+    analysis = models.ForeignKey('AnalysisType', on_delete=models.CASCADE)
+    constituent = models.ForeignKey('ConstituentType', on_delete=models.CASCADE)
+    isotope_flag = models.ForeignKey('IsotopeFlag', on_delete=models.CASCADE)
+    detection_flag = models.ForeignKey('DetectionFlag', on_delete=models.CASCADE, null=True, blank=True)
     raw_value = models.FloatField(null=True, blank=True)
     final_value = models.FloatField(null=True, blank=True)
     report_value = models.CharField(max_length=128, null=True, blank=True)
@@ -362,7 +360,7 @@ class ResultDataFile(models.Model):
 
     name = models.CharField(max_length=128, unique=True)
     file = models.FileField()
-    result = models.ForeignKey('Result', related_name='result_data_files')
+    result = models.ForeignKey('Result', on_delete=models.CASCADE, related_name='result_data_files')
     uploaded_date = models.DateField(auto_now_add=True, null=True, blank=True)
 
     def __str__(self):
@@ -376,8 +374,8 @@ class ResultDataFile(models.Model):
 class QualityAssurance(models.Model):
     """Table to allow one-to-many relationship between Results and QualityAssuranceType."""
 
-    quality_assurance = models.ForeignKey('QualityAssuranceType')
-    result = models.ForeignKey('Result', related_name='quality_assurances')  # usually three QAs per one result
+    quality_assurance = models.ForeignKey('QualityAssuranceType', on_delete=models.CASCADE)
+    result = models.ForeignKey('Result', on_delete=models.CASCADE, related_name='quality_assurances')  # usually three QAs per one result
 
     def __str__(self):
         return str(self.quality_assurance)
@@ -445,8 +443,8 @@ class ConstituentType(models.Model):
 class AnalysisConstituent(models.Model):
     """Table to allow many-to-many relationship between Analyses and Constituents."""
 
-    analysis = models.ForeignKey('AnalysisType')
-    constituent = models.ForeignKey('ConstituentType')
+    analysis = models.ForeignKey('AnalysisType', on_delete=models.CASCADE)
+    constituent = models.ForeignKey('ConstituentType', on_delete=models.CASCADE)
 
     def __str__(self):
         # return str(self.id)
@@ -466,9 +464,9 @@ class MethodType(models.Model):
     preparation = models.CharField(max_length=128, blank=True)
     description = models.TextField(blank=True)
     method_detection_limit = models.FloatField(null=True, blank=True)
-    method_detection_limit_unit = models.ForeignKey('UnitType', null=True, related_name='mdl_unit')
-    raw_value_unit = models.ForeignKey('UnitType', null=True, related_name='raw_unit')
-    final_value_unit = models.ForeignKey('UnitType', null=True, related_name='final_unit')
+    method_detection_limit_unit = models.ForeignKey('UnitType', on_delete=models.CASCADE, null=True, related_name='mdl_unit')
+    raw_value_unit = models.ForeignKey('UnitType', on_delete=models.CASCADE, null=True, related_name='raw_unit')
+    final_value_unit = models.ForeignKey('UnitType', on_delete=models.CASCADE, null=True, related_name='final_unit')
     decimal_places = models.IntegerField(null=True, blank=True)
     significant_figures = models.IntegerField(null=True, blank=True)
     standard_operating_procedure = models.TextField(blank=True)
@@ -501,8 +499,8 @@ class UnitType(models.Model):
 class AnalysisMedium(models.Model):
     """Table to allow many-to-many relationship between Analyses and Mediums."""
 
-    analysis_type = models.ForeignKey('AnalysisType')
-    medium_type = models.ForeignKey('MediumType')
+    analysis_type = models.ForeignKey('AnalysisType', on_delete=models.CASCADE)
+    medium_type = models.ForeignKey('MediumType', on_delete=models.CASCADE)
 
     def __str__(self):
         # return str(self.id)
@@ -517,8 +515,8 @@ class AnalysisMedium(models.Model):
 class AnalysisMethod(models.Model):
     """Table to allow many-to-many relationship between Analyses and Methods."""
 
-    analysis_type = models.ForeignKey('AnalysisType')
-    method_type = models.ForeignKey('MethodType')
+    analysis_type = models.ForeignKey('AnalysisType', on_delete=models.CASCADE)
+    method_type = models.ForeignKey('MethodType', on_delete=models.CASCADE)
 
     def __str__(self):
         # return str(self.id)
@@ -597,7 +595,7 @@ class UserProfile(models.Model):
     """Extends the default User model.
        Default fields of the User model: username, first_name, last_name, email, password, groups, user_permissions,
        is_staff, is_active, is_superuser, last_login, date_joined"""
-    user = models.OneToOneField(User)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
 
     initials = models.CharField(max_length=6, blank=True)
     phone = models.BigIntegerField(null=True, blank=True)
@@ -774,41 +772,3 @@ class ResultCooperator(models.Model):
     class Meta:
         db_table = "report_cooperator_results"
         managed = False
-
-
-######
-#
-# Admin
-#
-######
-
-
-admin.site.register(Cooperator)
-admin.site.register(Project)
-admin.site.register(ProjectSite)
-admin.site.register(Site)
-admin.site.register(Sample)
-admin.site.register(SampleBottle)
-admin.site.register(SampleBottleBromination)
-admin.site.register(Bottle)
-admin.site.register(BottlePrefix)
-admin.site.register(BottleType)
-admin.site.register(FilterType)
-admin.site.register(PreservationType)
-admin.site.register(ProcessingType)
-admin.site.register(MediumType)
-admin.site.register(UnitType)
-admin.site.register(MethodType)
-admin.site.register(Result)
-admin.site.register(ResultDataFile)
-admin.site.register(AnalysisType)
-admin.site.register(ConstituentType)
-admin.site.register(AnalysisMedium)
-admin.site.register(AnalysisMethod)
-admin.site.register(QualityAssurance)
-admin.site.register(QualityAssuranceType)
-admin.site.register(DetectionFlag)
-admin.site.register(IsotopeFlag)
-admin.site.register(Acid)
-admin.site.register(BlankWater)
-admin.site.register(Bromination)

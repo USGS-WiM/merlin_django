@@ -164,7 +164,7 @@
                         {title: 'Rep', width: 35, type: 'numeric', validator: validateRequired},
                         {title: 'Sample Comments', width: 130, type: 'text'},
                         //{title: 'Container ID', width: 110, type: 'autocomplete', strict: true, validator: validateRequired,  source: function (query, process) {
-                        //    getValuesAjax('/mercuryservices/bottles/', 'bottle_unique_name', query, process)}},
+                        //    getValuesAjax('/merlinservices/bottles/', 'bottle_unique_name', query, process)}},
                         {title: 'Container ID', width: 120, type: 'text', validator: validateRequired},
                         {title: 'Medium', width: 180, type: 'autocomplete', strict: true, validator: validateRequired, source: getValuesDom(data_mediums,"display_text")},
                         {title: 'Analysis', width: 80, type: 'autocomplete', strict: true, validator: validateRequired, source: getValuesDom(data_analyses,"analysis")},
@@ -173,7 +173,7 @@
                         {title: 'Filter Vol', width: 65, type: 'numeric', format: '0.00'},
                         {title: 'Preservation', width: 130, type: 'autocomplete', strict: true, source: getValuesDom(data_preservations, "preservation")},
                         {title: 'Acid', width: 110, type: 'autocomplete', strict: true,  source: function (query, process) {
-                            getValuesAjax('/mercuryservices/acids/', 'code', query, process)}},
+                            getValuesAjax('/merlinservices/acids/', 'code', query, process)}},
                         {title: 'Acid Vol', width: 65, type: 'numeric', format: '0.00'},
                         {title: 'Preservation Comments', width: 160, type: 'text'}
                     ],
@@ -213,14 +213,14 @@
                                     // if site name is changed
                                     if (changedCol == 0) {
                                         // update site code to match site name
-                                        if (typeof data_sites === 'undefined') {siteValue = updateValueAjax('/mercuryservices/sites/', 'name_exact', 'usgs_scode', changedVal);}
+                                        if (typeof data_sites === 'undefined') {siteValue = updateValueAjax('/merlinservices/sites/', 'name_exact', 'usgs_scode', changedVal);}
                                         else {siteValue = updateValueDom(data_sites, 'name', 'usgs_scode', changedVal);}
                                         grid.handsontable('setDataAtCell', changedRow, 1, siteValue);
                                     }
                                     // if site ID is changed
                                     if (changedCol == 1) {
                                         // update site name to match site code
-                                        if (typeof data_sites === 'undefined') {siteValue = updateValueAjax('/mercuryservices/sites/', 'usgs_scode', 'name', changedVal);}
+                                        if (typeof data_sites === 'undefined') {siteValue = updateValueAjax('/merlinservices/sites/', 'usgs_scode', 'name', changedVal);}
                                         else {siteValue = updateValueDom(data_sites, 'usgs_scode', 'name', changedVal);}
                                         grid.handsontable('setDataAtCell', changedRow, 0, siteValue);
                                     }
@@ -235,14 +235,14 @@
                                         // if site name is changed
                                         if (changedCol == 0) {
                                             // update site code to match site name
-                                            if (typeof data_sites === 'undefined') {siteValue = updateValueAjax('/mercuryservices/sites/', 'name_exact', 'usgs_scode', changedVal);}
+                                            if (typeof data_sites === 'undefined') {siteValue = updateValueAjax('/merlinservices/sites/', 'name_exact', 'usgs_scode', changedVal);}
                                         else {siteValue = updateValueDom(data_sites, 'name', 'usgs_scode', changedVal);}
                                             grid.handsontable('setDataAtCell', i, 1, siteValue);
                                         }
                                         // if site ID is changed
                                         if (changedCol == 1) {
                                             // update site name to match site code
-                                            if (typeof data_sites === 'undefined') {siteValue = updateValueAjax('/mercuryservices/sites/', 'usgs_scode', 'name', changedVal);}
+                                            if (typeof data_sites === 'undefined') {siteValue = updateValueAjax('/merlinservices/sites/', 'usgs_scode', 'name', changedVal);}
                                             else {siteValue = updateValueDom(data_sites, 'usgs_scode', 'name', changedVal);}
                                             grid.handsontable('setDataAtCell', i, 0, siteValue);
                                         }
@@ -254,7 +254,7 @@
                                 var thisVal = updateValueDom(data_mediums, 'display_text', 'nwis_code', changedVal);
                                 // update list of analyses filtered by the selected medium value
                                 $.ajax({
-                                    url: '/mercuryservices/analyses/',
+                                    url: '/merlinservices/analyses/',
                                     dataType: 'json',
                                     data: {
                                         nwis_code: thisVal
@@ -353,7 +353,7 @@
                         };
                     }),
                     /*source: function (request, response) {
-                        jQuery.get('/mercuryservices/projects/', {
+                        jQuery.get('/merlinservices/projects/', {
                             name: request.term
                         }, function (data) {
                             data_projects = data;
@@ -375,7 +375,7 @@
                             changedVal = updateValueDom(data_projects, 'name', 'id', ui.item.value);
                             $("#project_id").val(newValue);
                             $.ajax({
-                                url: '/mercuryservices/sites/',
+                                url: '/merlinservices/sites/',
                                 dataType: 'json',
                                 data: {
                                     project: changedVal
@@ -383,7 +383,7 @@
                                 success: function (response) {
                                     page_size = (Math.ceil(response['count'] / 100)) * 100;
                                     $.ajax({
-                                        url: '/mercuryservices/sites/',
+                                        url: '/merlinservices/sites/',
                                         dataType: 'json',
                                         data: {
                                             project: changedVal,
@@ -440,7 +440,7 @@
                             changedVal = updateValueDom(data_projects, 'id', 'accounting_code', ui.item.value);
                             $("#project_name").val(newValue);
                             $.ajax({
-                                url: '/mercuryservices/sites/',
+                                url: '/merlinservices/sites/',
                                 dataType: 'json',
                                 data: {
                                     project: changedVal
@@ -521,7 +521,7 @@
                     var settings = grid.handsontable('getInstance').getSettings();
                     if (this.checked) {
                         settings.columns[8] = {title: 'Container ID', width: 110, type: 'autocomplete', strict: true, validator: validateRequired,  source: function (query, process) {
-                            getValuesAjax('/mercuryservices/bottles/', 'bottle_unique_name', query, process)}};
+                            getValuesAjax('/merlinservices/bottles/', 'bottle_unique_name', query, process)}};
                         grid.handsontable('getInstance').updateSettings(settings);
                     }
                     else {
@@ -670,7 +670,7 @@
                                         // if it has a value, look up and return the ID, otherwise notify the user that this is a required field, and stop the submission
                                         if (!thisDataRow[i]) {grid_console.text('Container ID is required in row ' + (row + 1) + '!'); validTable = false; button_state.button('reset'); return false;}
                                         else {
-                                            thisID = updateValueAjax('/mercuryservices/bottles/', 'bottle_unique_name', 'id', thisDataRow[i]);
+                                            thisID = updateValueAjax('/merlinservices/bottles/', 'bottle_unique_name', 'id', thisDataRow[i]);
                                             if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Container ID must be a valid choice in row ' + (row + 1) + '!'); validTable = false; button_state.button('reset'); return false;}
                                             thisDataObject[objectFields[i]] = thisID;
                                         }
@@ -721,7 +721,7 @@
                                     case 15: // acid
                                         // if it has a value, look up and return the ID, otherwise skip this field (won't be included in submission to database)
                                         if (thisDataRow[i] !== null && thisDataRow[i] !== "" && thisDataRow[i] !== 0 && typeof thisDataRow[i] !== 'undefined') {
-                                            thisID = updateValueAjax('/mercuryservices/acids/', 'code_exact', 'id', thisDataRow[i]);
+                                            thisID = updateValueAjax('/merlinservices/acids/', 'code_exact', 'id', thisDataRow[i]);
                                             if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Acid must be a valid choice, or empty, in row ' + (row + 1) + '!'); validTable = false; button_state.button('reset'); return false;}
                                             thisDataObject[objectFields[i]] = thisID;
                                         }

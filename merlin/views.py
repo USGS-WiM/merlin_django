@@ -6,7 +6,7 @@ from collections import Counter
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import RequestContext
 from django.shortcuts import render
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 
 ########################################################################################################################
@@ -27,11 +27,11 @@ from django.core.urlresolvers import reverse
 logger = logging.getLogger(__name__)
 
 # localhost dev
-REST_SERVICES_URL = 'http://localhost:8000/mercuryservices/'
-REST_AUTH_URL = 'http://localhost:8000/mercuryauth/'
+REST_SERVICES_URL = 'http://localhost:8000/merlinservices/'
+REST_AUTH_URL = 'http://localhost:8000/merlinauth/'
 # IGSARMEWVSMERC prod
-# REST_SERVICES_URL = 'http://130.11.179.23/mercuryservices/'
-# REST_AUTH_URL = 'http://130.11.179.23/mercuryauth/'
+# REST_SERVICES_URL = 'http://130.11.179.23/merlinservices/'
+# REST_AUTH_URL = 'http://130.11.179.23/merlinauth/'
 
 HEAD_CONTENT_JSON = {'content-type': 'application/json'}
 HEAD_CONTENT_FORM = {'content-type': 'application/x-www-form-urlencoded'}
@@ -1670,7 +1670,7 @@ def user_login(request):
                     r = {"disabled_account": True}
                     return render(request,'merlin/login.html', r)
             else:
-                logger.error("Error: Could not retrieve details of " + username + " from Mercury Services")
+                logger.error("Error: Could not retrieve details of " + username + " from Merlin Services")
                 resp = "<h1>" + str(r.status_code) + ": " + r.reason + "</h1>"
                 resp += "<p>Login could not be performed. User account lacks required attributes.</p>"
                 resp += "<p>Please contact the administrator.</p>"
@@ -1692,7 +1692,7 @@ def user_login(request):
                 return render(request,'merlin/login.html', r)
 
         else:
-            logger.error("Error: Could not log in " + username + " with Mercury Services.")
+            logger.error("Error: Could not log in " + username + " with Merlin Services.")
             resp = "<h1>" + str(r.status_code) + ": " + r.reason + "</h1>"
             resp += "<p>Login could not be performed. " + r.text + ". Please contact the administrator.</p>"
             return HttpResponse(resp)
@@ -1735,10 +1735,10 @@ def user_logout(request):
     #     response_data = r.json()
     #     if response_data["detail"]:
     #         logger_message = "Error: " + response_data["detail"] + " Could not log out "
-    #         logger_message += request.session['username'] + " from Mercury Services"
+    #         logger_message += request.session['username'] + " from Merlin Services"
     #         logger.error(logger_message)
     #     else:
-    #         logger.error("Error: Could not log out " + request.session['username'] + " from Mercury Services")
+    #         logger.error("Error: Could not log out " + request.session['username'] + " from Merlin Services")
     #     resp = "<h1>" + str(r.status_code) + ": " + r.reason + "</h1>"
     #     resp += "<p>Logout could not be performed. Please contact the administrator.</p>"
     #     return HttpResponse(resp)

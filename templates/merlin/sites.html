@@ -252,7 +252,7 @@
                     //allowClear: true,
                     minimumInputLength: 1,
                     ajax: {
-                        url: '/mercuryservices/sites/',
+                        url: '/merlinservices/sites/',
                         dataType: 'json',
                         data: function (term, page) {
                             return {
@@ -287,7 +287,7 @@
                     var button_state = $(this).button('loading');
                     loading_overlay.show();
                     $.ajax({
-                        url: '/mercuryservices/sites/?page='+currentPage,
+                        url: '/merlinservices/sites/?page='+currentPage,
                         dataType: 'json',
                         success: function (response) {
                             grid_console.text("success");

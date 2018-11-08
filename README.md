@@ -1,8 +1,8 @@
-MercuryLab
+Merlin: Mercury Research Laboratory Information Management System
 ==========
 
 Setup:
-1. Install PostgreSQL 9.6
+1. Install PostgreSQL 9.6 or later
 2. Install Python3 (64bit)
 3. Clone this repo
 4. Get your settings.py file in order

@@ -198,16 +198,16 @@
                 var grid_columns = [
                         {title: 'Sample ID', data: 'sample_bottle.sample.id', readOnly: true, width: 75},
                         {title: 'Project Name', data: 'sample_bottle.sample.project_string', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 100, type: 'autocomplete', strict: true, source: function (query, process) {
-                            getValuesAjax('/mercuryservices/projects/', 'name', query, process)}
+                            getValuesAjax('/merlinservices/projects/', 'name', query, process)}
                         },
                         {title: 'Project ID', data: 'sample_bottle.sample.project', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 1, type: 'autocomplete', strict: true, source: function (query, process) {
-                            getValuesAjax('/mercuryservices/projects/', 'id', query, process)}
+                            getValuesAjax('/merlinservices/projects/', 'id', query, process)}
                         },
                         {title: 'Site Name', data: 'sample_bottle.sample.site_string', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 75, type: 'autocomplete', strict: true, source: function (query, process) {
-                            getValuesAjax('/mercuryservices/sites/', 'name', query, process, ('project=' + grid.handsontable('getInstance').getDataAtCell(selectionRowIndices[0], 2)))}
+                            getValuesAjax('/merlinservices/sites/', 'name', query, process, ('project=' + grid.handsontable('getInstance').getDataAtCell(selectionRowIndices[0], 2)))}
                         },
                         {title: 'Site ID', data: 'sample_bottle.sample.site_usgs_scode', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 70, type: 'autocomplete', strict: true, source: function (query, process) {
-                            getValuesAjax('/mercuryservices/sites/', 'usgs_scode', query, process, ('project=' + grid.handsontable('getInstance').getDataAtCell(selectionRowIndices[0], 2)))}
+                            getValuesAjax('/merlinservices/sites/', 'usgs_scode', query, process, ('project=' + grid.handsontable('getInstance').getDataAtCell(selectionRowIndices[0], 2)))}
                         },
                         // Date, Hour, and Minute as separate columns is temporary until a single column datetime editor can be found for handsontable
                         {title: 'Date', data: 'sample_bottle.sample.sample_date', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 85, type: 'date', dateFormat: 'MM/DD/YY', datePickerConfig: {maxDate: new Date()}},
@@ -221,14 +221,14 @@
                         {title: 'Received', data: 'sample_bottle.sample.received_date', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 90, type: 'date', dateFormat: 'MM/DD/YY', datePickerConfig: {maxDate: new Date()}},
                         {title: 'Lab Processing', data: 'sample_bottle.sample.lab_processing_string', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 105, type: 'autocomplete', strict: true, source: getValuesDom(data_processings,"processing")},
                         //{title: 'Container ID', width: 110, type: 'autocomplete', strict: true, validator: validateRequired,  source: function (query, process) {
-                        //    getValuesAjax('/mercuryservices/bottles/', 'bottle_unique_name', query, process)}},
+                        //    getValuesAjax('/merlinservices/bottles/', 'bottle_unique_name', query, process)}},
                         {title: 'Container ID', data: 'sample_bottle.bottle.bottle_unique_name', width: 110, type: 'text'},
                         {title: 'Medium', data: 'sample_bottle.sample.medium_type_string', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 100, type: 'autocomplete', strict: true, source: getValuesDom(data_mediums,"display_text")},
                         {title: 'Analysis', data: 'analysis_string', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 80, type: 'autocomplete', strict: true, source: function (query, process) {
-                            getValuesAjax('/mercuryservices/analyses/', 'analysis', query, process, ('medium=' + getIdDom(data_mediums,'display_text', grid.handsontable('getInstance').getDataAtCell(selectionRowIndices[0], 14))))}
+                            getValuesAjax('/merlinservices/analyses/', 'analysis', query, process, ('medium=' + getIdDom(data_mediums,'display_text', grid.handsontable('getInstance').getDataAtCell(selectionRowIndices[0], 14))))}
                         },
                         {title: 'Constituent', 'data': 'constituent_string', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 140, type: 'autocomplete', strict: true, source: function (query, process) {
-                            getValuesAjax('/mercuryservices/constituents/', 'constituent', query, process, ('analysis=' + getIdDom(data_analyses,'analysis', grid.handsontable('getInstance').getDataAtCell(selectionRowIndices[0], 15))))}
+                            getValuesAjax('/merlinservices/constituents/', 'constituent', query, process, ('analysis=' + getIdDom(data_analyses,'analysis', grid.handsontable('getInstance').getDataAtCell(selectionRowIndices[0], 15))))}
                         },
                         {title: 'Isotope', data: 'isotope_flag_string', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 55, type: 'dropdown', source: getValuesDom(data_isotopeflags,"isotope_flag")},
                         {title: 'Filter', data: 'sample_bottle.filter_type_string', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 60, type: 'autocomplete', strict: true, source: getValuesDom(data_filters,"filter")},
@@ -236,7 +236,7 @@
                         {title: 'Preservation', data: 'sample_bottle.preservation_type_string', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 100, type: 'autocomplete', strict: true, source: getValuesDom(data_preservations, "preservation")},
                         //{title: 'Acid', width: 100, type: 'autocomplete',  source: getValuesDom(data_acids, "code")},
                         {title: 'Acid', data: 'sample_bottle.preservation_acid_string', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 110, type: 'autocomplete', strict: true,  source: function (query, process) {
-                            getValuesAjax('/mercuryservices/acids/', 'code', query, process)}},
+                            getValuesAjax('/merlinservices/acids/', 'code', query, process)}},
                         {title: 'Acid Vol.', data: 'sample_bottle.preservation_volume', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 60, type: 'numeric', format: '0.00'},
                         {title: 'Pres. Comments', data: 'sample_bottle.preservation_comment', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 115, type: 'text'},
                         {title: 'Sample Bottle ID', data: 'sample_bottle.id', readOnly: true, width: 1},
@@ -292,7 +292,7 @@
                                 //grid.handsontable('setDataAtCell', changedRow, 2, newValue);
                                 // update lists of site names and IDs filtered by the selected project name
                                 $.ajax({
-                                    url: '/mercuryservices/sites/',
+                                    url: '/merlinservices/sites/',
                                     dataType: 'json',
                                     data: {
                                         project: changedVal
@@ -339,13 +339,13 @@
                             // when site name is changed to a non-null, non-blank value
                             if (changedCol == 'sample_bottle.sample.site_string' && changedVal !== null && changedVal !== "") {
                                 // update site ID to match site name
-                                var newValue = updateValueAjax('/mercuryservices/sites/', 'name', 'usgs_scode', changedVal, ('project=' + grid.handsontable('getInstance').getDataAtCell(changedRow, 2)));
+                                var newValue = updateValueAjax('/merlinservices/sites/', 'name', 'usgs_scode', changedVal, ('project=' + grid.handsontable('getInstance').getDataAtCell(changedRow, 2)));
                                 grid.handsontable('setDataAtCell', changedRow, 4, newValue);
                             }
                             // when site ID is changed to a non-null, non-blank value
                             if (changedCol == 'sample_bottle.sample.site_usgs_scode' && changedVal !== null && changedVal !== "") {
                                 // update site name to match site ID
-                                var newValue = updateValueAjax('/mercuryservices/sites/', 'usgs_scode', 'name', changedVal, ('project=' + grid.handsontable('getInstance').getDataAtCell(changedRow, 2)));
+                                var newValue = updateValueAjax('/merlinservices/sites/', 'usgs_scode', 'name', changedVal, ('project=' + grid.handsontable('getInstance').getDataAtCell(changedRow, 2)));
                                 grid.handsontable('setDataAtCell', changedRow, 3, newValue);
                             }
                             // when medium is changed to a non-null, non-blank value
@@ -353,7 +353,7 @@
                                 var thisVal = updateValueDom(data_mediums, 'display_text', 'nwis_code', changedVal);
                                 // update list of analyses filtered by the selected medium value
                                 $.ajax({
-                                    url: '/mercuryservices/analyses/',
+                                    url: '/merlinservices/analyses/',
                                     dataType: 'json',
                                     data: {
                                         nwis_code: thisVal
@@ -389,7 +389,7 @@
                                 var analysisID = getIdDom(data_analyses,'analysis', analysisVal);
                                 // update list of constituents filtered by the current analysis value
                                 $.ajax({
-                                    url: '/mercuryservices/constituents/',
+                                    url: '/merlinservices/constituents/',
                                     dataType: 'json',
                                     data: {
                                         analyses: analysisID
@@ -442,7 +442,7 @@
                     //dropdownCss:{display:'none'},
                     minimumInputLength: 1,
                     ajax: {
-                        url: '/mercuryservices/bottles/',
+                        url: '/merlinservices/bottles/',
                         dataType: 'json',
                         data: function (term, page) {
                             return {
@@ -478,7 +478,7 @@
                     //dropdownCss:{display:'none'},
                     minimumInputLength: 1,
                     ajax: {
-                        url: '/mercuryservices/sites/',
+                        url: '/merlinservices/sites/',
                         dataType: 'json',
                         data: function (term, page) {
                             return {
@@ -689,7 +689,7 @@
                     var settings = grid.handsontable('getInstance').getSettings();
                     if (this.checked) {
                         settings.columns[13] = {title: 'Container ID', data: 'sample_bottle.bottle.bottle_unique_name', width: 110, type: 'autocomplete', strict: true, source: function (query, process) {
-                            getValuesAjax('/mercuryservices/bottles/', 'bottle_unique_name', query, process)}};
+                            getValuesAjax('/merlinservices/bottles/', 'bottle_unique_name', query, process)}};
                         grid.handsontable('getInstance').updateSettings(settings);
                     }
                     else {
@@ -719,12 +719,12 @@
                         }
                         else if (i == 15) {
                             settings.columns[i] = {title: 'Analysis', data: 'analysis_string', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 80, type: 'autocomplete', strict: true, source: function (query, process) {
-                                getValuesAjax('/mercuryservices/analyses/', 'analysis', query, process)}};
+                                getValuesAjax('/merlinservices/analyses/', 'analysis', query, process)}};
                             grid.handsontable('getInstance').updateSettings(settings);
                         }
                         else if (i == 16) {
                             settings.columns[i] = {title: 'Constituents', data: 'constituent_string', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 80, type: 'autocomplete', strict: true, source: function (query, process) {
-                                getValuesAjax('/mercuryservices/constituents/', 'constituent', query, process)}};
+                                getValuesAjax('/merlinservices/constituents/', 'constituent', query, process)}};
                             grid.handsontable('getInstance').updateSettings(settings);
                         }
                         else if (i == 17) {
@@ -789,7 +789,7 @@
                                         //// if it has a value, look up and return the ID, otherwise notify the user that this is a required field, and stop the submission
                                         //if (!thisDataRow[i]) {grid_console.text('Project Name is required in row ' + (index + 1) + '!'); validTable = false; loading_overlay.hide(); button_state.button('reset'); return false;}
                                         //else {
-                                        //    thisID = updateValueAjax('/mercuryservices/projects/', 'name', 'id', thisDataRow[i]);
+                                        //    thisID = updateValueAjax('/merlinservices/projects/', 'name', 'id', thisDataRow[i]);
                                         //    if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Project Name must be a valid choice in row ' + (index + 1) + '!'); validTable = false; loading_overlay.hide(); button_state.button('reset'); return false;}
                                         //    thisDataObject[objectFields[i]] = thisID;
                                         //}
@@ -807,7 +807,7 @@
                                         // if it has a value, look up and return the ID, otherwise notify the user that this is a required field, and stop the submission
                                         if (!thisDataRow[i]) {grid_console.text('Site Name is required in row ' + (thisChangedRowIndex + 1) + '!'); validTable = false; loading_overlay.hide(); button_state.button('reset'); return false;}
                                         else {
-                                            thisID = updateValueAjax('/mercuryservices/sites/', 'name_exact', 'id', thisDataRow[i], ('project=' + grid.handsontable('getInstance').getDataAtCell(thisChangedRowIndex, 2)));
+                                            thisID = updateValueAjax('/merlinservices/sites/', 'name_exact', 'id', thisDataRow[i], ('project=' + grid.handsontable('getInstance').getDataAtCell(thisChangedRowIndex, 2)));
                                             if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Site Name must be a valid choice in row ' + (thisChangedRowIndex + 1) + '!'); validTable = false; loading_overlay.hide(); button_state.button('reset'); return false;}
                                             thisDataObject[objectFields[i]] = thisID;
                                         }
@@ -921,7 +921,7 @@
                                         // if it has a value, look up and return the ID, otherwise notify the user that this is a required field, and stop the submission
                                         if (!thisDataRow[i]) {grid_console.text('Container ID is required in row ' + (thisChangedRowIndex + 1) + '!'); validTable = false; loading_overlay.hide(); button_state.button('reset'); return false;}
                                         else {
-                                            thisID = updateValueAjax('/mercuryservices/bottles/', 'bottle_unique_name', 'id', thisDataRow[i]);
+                                            thisID = updateValueAjax('/merlinservices/bottles/', 'bottle_unique_name', 'id', thisDataRow[i]);
                                             if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Container ID must be a valid choice in row ' + (thisChangedRowIndex + 1) + '!'); validTable = false; loading_overlay.hide(); button_state.button('reset'); return false;}
                                             thisDataObject[objectFields[i]] = thisID;
                                         }
@@ -981,7 +981,7 @@
                                     case 21: // acid
                                         // if it has a value, look up and return the ID, otherwise skip this field (won't be included in submission to database)
                                         if (thisDataRow[i] !== null && thisDataRow[i] !== "" && thisDataRow[i] !== 0 && typeof thisDataRow[i] !== 'undefined') {
-                                            thisID = updateValueAjax('/mercuryservices/acids/', 'code_exact', 'id', thisDataRow[i]);
+                                            thisID = updateValueAjax('/merlinservices/acids/', 'code_exact', 'id', thisDataRow[i]);
                                             if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Acid must be a valid choice, or empty, in row ' + (thisChangedRowIndex + 1) + '!'); validTable = false; loading_overlay.hide(); button_state.button('reset'); return false;}
                                             thisDataObject[objectFields[i]] = thisID;
                                         }
@@ -1110,7 +1110,7 @@
                     thisDataObject['page_size'] = (resultPages * 100);
                     var dataJSON = JSON.stringify(thisDataObject);
                     var link = document.createElement("a");
-                    link.setAttribute("href", "/mercuryservices/fullresults/?"+ $.param(thisDataObject));
+                    link.setAttribute("href", "/merlinservices/fullresults/?"+ $.param(thisDataObject));
                     link.setAttribute("download", "");
                     document.body.appendChild(link);
                     link.click();

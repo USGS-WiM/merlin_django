@@ -1,6 +1,6 @@
 from django import forms
 from datetime import datetime
-from mercuryservices.models import UserProfile, Cooperator
+from merlinservices.models import UserProfile, Cooperator
 from django.contrib.auth.models import User
 from datetimewidget.widgets import DateTimeWidget
 from django.forms.widgets import DateTimeInput

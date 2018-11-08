@@ -203,7 +203,7 @@
                     //dropdownCss:{display:'none'},
                     minimumInputLength: 1,
                     ajax: {
-                        url: '/mercuryservices/bottles/',
+                        url: '/merlinservices/bottles/',
                         dataType: 'json',
                         data: function (term, page) {
                             return {
@@ -239,7 +239,7 @@
                     //dropdownCss:{display:'none'},
                     minimumInputLength: 1,
                     ajax: {
-                        url: '/mercuryservices/sites/',
+                        url: '/merlinservices/sites/',
                         dataType: 'json',
                         data: function (term, page) {
                             return {
@@ -557,7 +557,7 @@
                     thisDataObject['page_size'] = (resultPages * 100);
                     //var dataJSON = JSON.stringify(thisDataObject);
                     var link = document.createElement("a");
-                    link.setAttribute("href", "/mercuryservices/fullresults/?"+ $.param(thisDataObject));
+                    link.setAttribute("href", "/merlinservices/fullresults/?"+ $.param(thisDataObject));
                     link.setAttribute("download", "");
                     document.body.appendChild(link);
                     link.click();

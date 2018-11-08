@@ -1,5 +1,5 @@
 """
-Django settings for mercury project.
+Django settings for merlin_django project.
 
 For more information on this file, see
 https://docs.djangoproject.com/en/dev/topics/settings/
@@ -20,11 +20,11 @@ PROJECT_PATH = os.path.join(SETTINGS_DIR, os.pardir)
 PROJECT_PATH = os.path.abspath(PROJECT_PATH)
 TEMPLATE_PATH = os.path.join(PROJECT_PATH, 'templates')
 
-CONFIG = moves.configparser.SafeConfigParser(allow_no_value=True)
-CONFIG.read('%s\settings.cfg' % SETTINGS_DIR)
+# CONFIG = moves.configparser.SafeConfigParser(allow_no_value=True)
+# CONFIG.read('%s\settings.cfg' % SETTINGS_DIR)
 
 
-LOG_FILENAME = os.path.join(PROJECT_PATH, 'logs/mercury.log')
+LOG_FILENAME = os.path.join(PROJECT_PATH, 'logs/merlin.log')
 
 LOGGING = {
     'version': 1,
@@ -59,11 +59,11 @@ LOGGING = {
             'propagate': True,
             'level': 'INFO',
         },
-        'mercury': {
+        'merlin_django': {
             'handlers': ['timedrotatingfile'],
             'level': 'INFO',
         },
-        'mercuryservices': {
+        'merlinservices': {
             'handlers': ['timedrotatingfile'],
             'level': 'INFO',
         },
@@ -79,10 +79,12 @@ LOGGING = {
 # See https://docs.djangoproject.com/en/dev/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = CONFIG.get('security', 'SECRET_KEY')
+# SECRET_KEY = CONFIG.get('security', 'SECRET_KEY')
+SECRET_KEY = 'j!7+25t4ks7saoh^s1p)1#vu*p^csz*qex&s*b@rjgf0si^6g+'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = CONFIG.get('general', 'DEBUG')
+# DEBUG = CONFIG.get('general', 'DEBUG')
+DEBUG = True
 
 ALLOWED_HOSTS = ['130.11.179.23', 'igsarmewvsmerc.er.usgs.gov', '127.0.0.1', 'localhost']
 
@@ -90,35 +92,32 @@ ALLOWED_HOSTS = ['130.11.179.23', 'igsarmewvsmerc.er.usgs.gov', '127.0.0.1', 'lo
 # Application definition
 
 INSTALLED_APPS = (
-    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    #'django_extensions',
     'rest_framework',
     'rest_framework.authtoken',
     'djoser',
     'corsheaders',
-    'mercuryservices',
+    'merlinservices',
     'merlin',
 )
 
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware'
 )
 
-ROOT_URLCONF = 'mercury.urls'
+ROOT_URLCONF = 'merlin_django.urls'
 
-WSGI_APPLICATION = 'mercury.wsgi.application'
+WSGI_APPLICATION = 'merlin_django.wsgi.application'
 
 
 # Database
@@ -126,12 +125,18 @@ WSGI_APPLICATION = 'mercury.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': CONFIG.get('databases', 'ENGINE'),
-        'NAME': CONFIG.get('databases', 'NAME'),
-        'USER': CONFIG.get('databases', 'USER'),
-        'PASSWORD': CONFIG.get('databases', 'PASSWORD'),
-        'HOST': CONFIG.get('databases', 'HOST'),
-        'PORT': CONFIG.get('databases', 'PORT'),
+        'NAME': 'mercurytest',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'USER': 'mercuryadmin',
+        'PASSWORD': 'm3rcury@dm1n',
+        'HOST': 'localhost',
+        'PORT': 5432,
+        # 'ENGINE': CONFIG.get('databases', 'ENGINE'),
+        # 'NAME': CONFIG.get('databases', 'NAME'),
+        # 'USER': CONFIG.get('databases', 'USER'),
+        # 'PASSWORD': CONFIG.get('databases', 'PASSWORD'),
+        # 'HOST': CONFIG.get('databases', 'HOST'),
+        # 'PORT': CONFIG.get('databases', 'PORT'),
         #'CONN_MAX_AGE': CONFIG.get('databases', 'CONN_MAX_AGE'),
         'CONN_MAX_AGE': 60,
     }

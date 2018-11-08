@@ -1,8 +1,9 @@
 from django.conf.urls import url, include
-from mercuryservices import views
+from merlinservices import views
 from rest_framework.routers import DefaultRouter
 from rest_framework_bulk.routes import BulkRouter
 
+app_name = 'merlinservices'
 
 #router = DefaultRouter()
 router = BulkRouter()

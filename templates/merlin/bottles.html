@@ -208,7 +208,7 @@
                         autoInsertRow: false
                     },
                     columns: [
-                        {title: "Bottle Prefix", type: 'autocomplete', strict: true, source: function (query, process) {getValuesAjax('/mercuryservices/bottleprefixes/', 'bottle_prefix', query, process)}, width: 100},
+                        {title: "Bottle Prefix", type: 'autocomplete', strict: true, source: function (query, process) {getValuesAjax('/merlinservices/bottleprefixes/', 'bottle_prefix', query, process)}, width: 100},
                         {title: "Suffix", width: 60},
                         {title: "Bottle Unique Name", type: 'text', width: 160},
                         {title: "Date", type: 'date', dateFormat: 'MM/DD/YY', datePickerConfig: {maxDate: new Date()}, width: 100},
@@ -412,7 +412,7 @@
                             for (var i = 0; i < thisDataRow.length; i++) {
                                 switch (i) {
                                     case 0: // prefix
-                                        var thisID = updateValueAjax('/mercuryservices/bottleprefixes/', 'bottle_prefix_exact', 'id', thisDataRow[i]);
+                                        var thisID = updateValueAjax('/merlinservices/bottleprefixes/', 'bottle_prefix_exact', 'id', thisDataRow[i]);
                                         if (thisID == "" || thisID === null || typeof thisID === 'undefined') {
                                             grid_console.text('Bottle Prefix must be a valid choice in row ' + (row + 1) + '!');
                                             validTableAdd = false;
@@ -757,7 +757,7 @@
                         {title: "ID", data: "id", readOnly: true, width: 1},
                         {title: "Unique Bottle Name", data: "bottle_unique_name", width: 150},
                         {title: "Bottle Prefix", data: "bottle_prefix_string", width: 100, type: 'autocomplete', strict: true, source: function (query, process) {
-                            getValuesAjax('/mercuryservices/bottleprefixes/', 'bottle_prefix', query, process)}},
+                            getValuesAjax('/merlinservices/bottleprefixes/', 'bottle_prefix', query, process)}},
                         {title: "Date", data: "created_date", width: 100, type: 'date', dateFormat: 'MM/DD/YY', datePickerConfig: {maxDate: new Date()}},
                         {title: "Tare Weight", data: "tare_weight", width: 100},
                         {title: "Description", data: "description", width: 240}
@@ -821,7 +821,7 @@
                     //allowClear: true,
                     minimumInputLength: 1,
                     ajax: {
-                        url: '/mercuryservices/bottleprefixes/',
+                        url: '/merlinservices/bottleprefixes/',
                         dataType: 'json',
                         data: function (term, page) {
                             return {
@@ -852,7 +852,7 @@
                     //allowClear: true,
                     minimumInputLength: 1,
                     ajax: {
-                        url: '/mercuryservices/bottles/',
+                        url: '/merlinservices/bottles/',
                         dataType: 'json',
                         data: function (term, page) {
                             return {
@@ -957,7 +957,7 @@
                     var button_state = $(this).button('loading');
                     loading_overlay.show();
                     $.ajax({
-                        url: '/mercuryservices/bottleprefixes/?page='+currentPagePrefixes,
+                        url: '/merlinservices/bottleprefixes/?page='+currentPagePrefixes,
                         dataType: 'json',
                         success: function (response) {
                             grid_console.text("success");
@@ -1089,7 +1089,7 @@
                         var thisDataObject = {};
                         for (var i = 0; i < thisDataRow.length; i++) {
                             if (prefixObjectFields[i] == "bottle_type") {
-                                var thisID = updateValueAjax('/mercuryservices/bottletypes/', 'bottle_type_string', 'id', thisDataRow[i]);
+                                var thisID = updateValueAjax('/merlinservices/bottletypes/', 'bottle_type_string', 'id', thisDataRow[i]);
                                 if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Bottle Type must be a valid choice in row ' + (index + 1) + '!'); validTablePrefix = false; loading_overlay.hide(); button_state.button('reset'); return false;}
                                 thisDataObject[prefixObjectFields[i]] = thisID;
                             }
@@ -1169,7 +1169,7 @@
                     var button_state = $(this).button('loading');
                     loading_overlay.show();
                     $.ajax({
-                        url: '/mercuryservices/bottles/?page='+currentPageBottles,
+                        url: '/merlinservices/bottles/?page='+currentPageBottles,
                         dataType: 'json',
                         success: function (response) {
                             grid_console.text("success");
@@ -1301,7 +1301,7 @@
                         var thisDataObject = {};
                         for (var i = 0; i < thisDataRow.length; i++) {
                             if (bottleObjectFields[i] == "bottle_prefix") {
-                                var thisID = updateValueAjax('/mercuryservices/bottleprefixes/', 'bottle_prefix', 'id', thisDataRow[i]);
+                                var thisID = updateValueAjax('/merlinservices/bottleprefixes/', 'bottle_prefix', 'id', thisDataRow[i]);
                                 if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Bottle Prefix must be a valid choice in row ' + (index + 1) + '!'); validTableBottle = false; loading_overlay.hide(); button_state.button('reset'); return false;}
                                 thisDataObject[bottleObjectFields[i]] = thisID;
                             }
@@ -1387,7 +1387,7 @@
                     thisDataObject['bottle_unique_name'] = bottle;
                     // var dataJSON = JSON.stringify(thisDataObject);
                     $.ajax({
-                        url: '/mercuryservices/bottles/',
+                        url: '/merlinservices/bottles/',
                         data: thisDataObject,
                         dataType: 'json',
                         contentType: "application/json",

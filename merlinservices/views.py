@@ -13,10 +13,10 @@ from rest_framework import views, viewsets, generics, permissions, authenticatio
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
 from rest_framework_bulk import BulkCreateModelMixin, BulkUpdateModelMixin
-from mercuryservices.serializers import *
-from mercuryservices.models import *
-from mercuryservices.renderers import *
-from mercuryservices.paginations import *
+from merlinservices.serializers import *
+from merlinservices.models import *
+from merlinservices.renderers import *
+from merlinservices.paginations import *
 
 
 ########################################################################################################################
@@ -439,7 +439,7 @@ class BottleViewSet(viewsets.ModelViewSet):
             if ',' in bottle_unique_name:
                 bottle_list = bottle_unique_name.split(',')
                 # maintain the order of the bottles that were queried
-                clauses = ' '.join(['WHEN bottle_uniqu_name=%s THEN %s' % (pk, i) for i, pk in enumerate(bottle_list)])
+                clauses = ' '.join(['WHEN bottle_unique_name=\'%s\' THEN %s' % (pk, i) for i, pk in enumerate(bottle_list)])
                 ordering = 'CASE %s END' % clauses
                 queryset = queryset.filter(bottle_unique_name__in=bottle_list).extra(
                     select={'ordering': ordering}, order_by=('ordering',))

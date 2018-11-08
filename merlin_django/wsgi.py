@@ -1,5 +1,5 @@
 """
-WSGI config for mercury_project project.
+WSGI config for merlin_django project.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 
@@ -8,7 +8,7 @@ https://docs.djangoproject.com/en/dev/howto/deployment/wsgi/
 """
 
 import os
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "mercury.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "merlin_django.settings")
 
 from django.core.wsgi import get_wsgi_application
 application = get_wsgi_application()

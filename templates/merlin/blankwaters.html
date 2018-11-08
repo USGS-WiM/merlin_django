@@ -224,7 +224,7 @@
                     //allowClear: true,
                     minimumInputLength: 1,
                     ajax: {
-                        url: '/mercuryservices/blankwaters/',
+                        url: '/merlinservices/blankwaters/',
                         dataType: 'json',
                         data: function (term, page) {
                             return {
@@ -259,7 +259,7 @@
                     var button_state = $(this).button('loading');
                     loading_overlay.show();
                     $.ajax({
-                        url: '/mercuryservices/blankwaters/?page='+currentPage,
+                        url: '/merlinservices/blankwaters/?page='+currentPage,
                         dataType: 'json',
                         success: function (response) {
                             grid_console.text("success");

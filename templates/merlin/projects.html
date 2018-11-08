@@ -201,7 +201,7 @@
                     //allowClear: true,
                     minimumInputLength: 1,
                     ajax: {
-                        url: '/mercuryservices/projects/',
+                        url: '/merlinservices/projects/',
                         dataType: 'json',
                         data: function (term, page) {
                             return {
@@ -236,7 +236,7 @@
                     var button_state = $(this).button('loading');
                     loading_overlay.show();
                     $.ajax({
-                        url: '/mercuryservices/projects/',
+                        url: '/merlinservices/projects/',
                         dataType: 'json',
                         success: function (response) {
                             grid_console.text("success");
@@ -315,7 +315,7 @@
                         var thisDataObject = {};
                         for (var i = 0; i < thisDataRow.length; i++) {
                             if (objectFields[i] == "cooperator") {
-                                var thisID = updateValueAjax('/mercuryservices/cooperators/', 'name', 'id', thisDataRow[i]);
+                                var thisID = updateValueAjax('/merlinservices/cooperators/', 'name', 'id', thisDataRow[i]);
                                 if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Cooperator must be a valid choice in row ' + (index + 1) + '!'); validTable = false; loading_overlay.hide(); button_state.button('reset'); return false;}
                                 thisDataObject[objectFields[i]] = thisID;
                             }
