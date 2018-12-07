@@ -2,6 +2,7 @@ import logging
 import json
 import time
 import math
+import decimal
 import datetime as dtmod
 from numbers import Number
 from datetime import datetime as dt
@@ -1999,7 +2000,7 @@ def process_final_value(final_value, method_id, volume_filtered, sediment_dry_we
     elif method_id == 77:
         result = Result.objects.get(pk=result_id)
         tare_weight = Bottle.objects.filter(id=result.sample_bottle.bottle_id)[0].tare_weight
-        value = ((final_value - tare_weight) * 1000) / (volume_filtered / 1000)
+        value = (float(decimal.Decimal(str(final_value)) - tare_weight) * 1000) / (volume_filtered / 1000)
     return value
 
 
@@ -2029,7 +2030,7 @@ def process_report_value(report_value, method_id, volume_filtered, sediment_dry_
     elif method_id == 77:
         result = Result.objects.get(pk=result_id)
         tare_weight = Bottle.objects.filter(id=result.sample_bottle.bottle_id)[0].tare_weight
-        value = round(((report_value - tare_weight) * 1000) / (volume_filtered / 1000), 4)
+        value = round((float(decimal.Decimal(str(report_value)) - tare_weight) * 1000) / (volume_filtered / 1000), 4)
     return value
 
 
