@@ -1,0 +1,200 @@
+[2019-04-12 14:51:28] | INFO [django.server:136] | "GET /merlinservices/bottles/ HTTP/1.1" 200 16913
+[2019-04-12 14:51:33] | INFO [django.server:136] | "GET /merlinservices/bottleprefixes/ HTTP/1.1" 200 13786
+[2019-04-12 14:51:33] | INFO [django.server:136] | "GET /merlinservices/bottletypes/ HTTP/1.1" 200 2164
+[2019-04-12 14:51:34] | INFO [django.server:136] | "GET /merlin/bottles/ HTTP/1.1" 200 154981
+[2019-04-12 14:51:34] | INFO [django.server:136] | "GET /static/css/bootstrap.min.css HTTP/1.1" 200 121265
+[2019-04-12 14:51:34] | INFO [django.server:136] | "GET /static/css/simple-sidebar.css HTTP/1.1" 200 2275
+[2019-04-12 14:51:34] | INFO [django.server:136] | "GET /static/css/bootstrap-theme.min.css HTTP/1.1" 200 23414
+[2019-04-12 14:51:34] | INFO [django.server:136] | "GET /static/css/dashboard.css HTTP/1.1" 200 1629
+[2019-04-12 14:51:34] | INFO [django.server:136] | "GET /static/css/jquery-ui.min.css HTTP/1.1" 200 20217
+[2019-04-12 14:51:34] | INFO [django.server:136] | "GET /static/css/handsontable.full.css HTTP/1.1" 200 33634
+[2019-04-12 14:51:34] | INFO [django.server:136] | "GET /static/css/pikaday.css HTTP/1.1" 200 4482
+[2019-04-12 14:51:34] | INFO [django.server:136] | "GET /static/css/merlin.css HTTP/1.1" 200 852
+[2019-04-12 14:51:34] | INFO [django.server:136] | "GET /static/css/select2.css HTTP/1.1" 200 19915
+[2019-04-12 14:51:34] | INFO [django.server:136] | "GET /static/js/jquery-2.2.4.min.js HTTP/1.1" 200 85582
+[2019-04-12 14:51:34] | INFO [django.server:136] | "GET /static/js/jquery.cookie.js HTTP/1.1" 200 3238
+[2019-04-12 14:51:34] | INFO [django.server:136] | "GET /static/js/jquery-ui.min.js HTTP/1.1" 200 78165
+[2019-04-12 14:51:34] | INFO [django.server:136] | "GET /static/js/bootstrap.min.js HTTP/1.1" 200 36874
+[2019-04-12 14:51:34] | INFO [django.server:136] | "GET /static/js/select2.min.js HTTP/1.1" 200 70164
+[2019-04-12 14:51:34] | INFO [django.server:136] | "GET /static/js/pikaday.js HTTP/1.1" 200 39874
+[2019-04-12 14:51:34] | INFO [django.server:136] | "GET /static/js/moment.js HTTP/1.1" 200 136078
+[2019-04-12 14:51:34] | INFO [django.server:136] | "GET /static/js/merlin.js HTTP/1.1" 200 8749
+[2019-04-12 14:51:34] | INFO [django.server:136] | "GET /static/js/handsontable.full.js HTTP/1.1" 200 1801312
+[2019-04-12 14:51:34] | WARNING [django.server:136] | "GET /static/css/bootstrap-theme.min.css.map HTTP/1.1" 404 1717
+[2019-04-12 14:51:34] | WARNING [django.server:136] | "GET /static/css/bootstrap.min.css.map HTTP/1.1" 404 1699
+[2019-04-12 14:51:34] | INFO [django.server:136] | "GET /static/img/loading.gif HTTP/1.1" 200 1915
+[2019-04-12 14:51:34] | INFO [django.server:136] | "GET /static/fonts/glyphicons-halflings-regular.woff2 HTTP/1.1" 200 18028
+[2019-04-12 14:51:34] | INFO [django.server:136] | "GET /static/img/favicon.ico HTTP/1.1" 200 18850
+[2019-04-12 14:52:04] | INFO [django.server:136] | "GET /merlinservices/bottles/?bottle_unique_name=MSC001AG%2CMSC002AG%2CMSC003AG%2CMSC004AG%2CMSC005AG%2CMSC006AG%2CMSC007AG%2CMSC008AG%2CMSC009AG%2CMSC010AG%2CMSC011AG%2CMSC012AG%2CMSC013AG%2CMSC014AG%2CMSC015AG%2CMSC016AG%2CMSC017AG%2CMSC018AG%2CMSC019AG%2CMSC020AG%2CMSC021AG%2CMSC022AG%2CMSC023AG%2CMSC024AG%2CMSC025AG%2CMSC026AG%2CMSC027AG%2CMSC028AG%2CMSC029AG%2CMSC030AG%2CMSC031AG%2CMSC032AG%2CMSC033AG%2CMSC034AG%2CMSC035AG%2CMSC036AG%2CMSC037AG%2CMSC038AG%2CMSC039AG%2CMSC040AG HTTP/1.1" 200 6652
+[2019-04-12 14:52:24] | INFO [django.server:136] | "GET /merlinservices/bottleprefixes/?bottle_prefix_exact=MSC001 HTTP/1.1" 200 181
+[2019-04-12 14:52:52] | INFO [django.server:136] | "GET /merlinservices/bottleprefixes/?bottle_prefix_exact=MSC002 HTTP/1.1" 200 188
+[2019-04-12 14:52:52] | INFO [django.server:136] | "GET /merlinservices/bottleprefixes/?bottle_prefix_exact=MSC003 HTTP/1.1" 200 188
+[2019-04-12 14:52:52] | INFO [django.server:136] | "GET /merlinservices/bottleprefixes/?bottle_prefix_exact=MSC004 HTTP/1.1" 200 188
+[2019-04-12 14:52:52] | INFO [django.server:136] | "GET /merlinservices/bottleprefixes/?bottle_prefix_exact=MSC005 HTTP/1.1" 200 188
+[2019-04-12 14:52:52] | INFO [django.server:136] | "GET /merlinservices/bottleprefixes/?bottle_prefix_exact=MSC006 HTTP/1.1" 200 188
+[2019-04-12 14:52:52] | INFO [django.server:136] | "GET /merlinservices/bottleprefixes/?bottle_prefix_exact=MSC007 HTTP/1.1" 200 188
+[2019-04-12 14:52:52] | INFO [django.server:136] | "GET /merlinservices/bottleprefixes/?bottle_prefix_exact=MSC008 HTTP/1.1" 200 188
+[2019-04-12 14:52:52] | INFO [django.server:136] | "GET /merlinservices/bottleprefixes/?bottle_prefix_exact=MSC009 HTTP/1.1" 200 188
+[2019-04-12 14:52:52] | INFO [django.server:136] | "GET /merlinservices/bottleprefixes/?bottle_prefix_exact=MSC010 HTTP/1.1" 200 188
+[2019-04-12 14:52:52] | INFO [django.server:136] | "GET /merlinservices/bottleprefixes/?bottle_prefix_exact=MSC011 HTTP/1.1" 200 188
+[2019-04-12 14:52:52] | INFO [django.server:136] | "GET /merlinservices/bottleprefixes/?bottle_prefix_exact=MSC012 HTTP/1.1" 200 188
+[2019-04-12 14:52:52] | INFO [django.server:136] | "GET /merlinservices/bottleprefixes/?bottle_prefix_exact=MSC013 HTTP/1.1" 200 188
+[2019-04-12 14:52:52] | INFO [django.server:136] | "GET /merlinservices/bottleprefixes/?bottle_prefix_exact=MSC014 HTTP/1.1" 200 188
+[2019-04-12 14:52:52] | INFO [django.server:136] | "GET /merlinservices/bottleprefixes/?bottle_prefix_exact=MSC015 HTTP/1.1" 200 188
+[2019-04-12 14:52:53] | INFO [django.server:136] | "GET /merlinservices/bottleprefixes/?bottle_prefix_exact=MSC016 HTTP/1.1" 200 188
+[2019-04-12 14:52:53] | INFO [django.server:136] | "GET /merlinservices/bottleprefixes/?bottle_prefix_exact=MSC017 HTTP/1.1" 200 188
+[2019-04-12 14:52:53] | INFO [django.server:136] | "GET /merlinservices/bottleprefixes/?bottle_prefix_exact=MSC018 HTTP/1.1" 200 188
+[2019-04-12 14:52:53] | INFO [django.server:136] | "GET /merlinservices/bottleprefixes/?bottle_prefix_exact=MSC019 HTTP/1.1" 200 188
+[2019-04-12 14:52:53] | INFO [django.server:136] | "GET /merlinservices/bottleprefixes/?bottle_prefix_exact=MSC020 HTTP/1.1" 200 188
+[2019-04-12 14:52:53] | INFO [django.server:136] | "GET /merlinservices/bottleprefixes/?bottle_prefix_exact=MSC021 HTTP/1.1" 200 188
+[2019-04-12 14:52:53] | INFO [django.server:136] | "GET /merlinservices/bottleprefixes/?bottle_prefix_exact=MSC022 HTTP/1.1" 200 188
+[2019-04-12 14:52:53] | INFO [django.server:136] | "GET /merlinservices/bottleprefixes/?bottle_prefix_exact=MSC023 HTTP/1.1" 200 188
+[2019-04-12 14:52:53] | INFO [django.server:136] | "GET /merlinservices/bottleprefixes/?bottle_prefix_exact=MSC024 HTTP/1.1" 200 188
+[2019-04-12 14:52:53] | INFO [django.server:136] | "GET /merlinservices/bottleprefixes/?bottle_prefix_exact=MSC025 HTTP/1.1" 200 188
+[2019-04-12 14:52:53] | INFO [django.server:136] | "GET /merlinservices/bottleprefixes/?bottle_prefix_exact=MSC026 HTTP/1.1" 200 188
+[2019-04-12 14:52:53] | INFO [django.server:136] | "GET /merlinservices/bottleprefixes/?bottle_prefix_exact=MSC027 HTTP/1.1" 200 188
+[2019-04-12 14:52:53] | INFO [django.server:136] | "GET /merlinservices/bottleprefixes/?bottle_prefix_exact=MSC028 HTTP/1.1" 200 188
+[2019-04-12 14:52:53] | INFO [django.server:136] | "GET /merlinservices/bottleprefixes/?bottle_prefix_exact=MSC029 HTTP/1.1" 200 188
+[2019-04-12 14:52:53] | INFO [django.server:136] | "GET /merlinservices/bottleprefixes/?bottle_prefix_exact=MSC030 HTTP/1.1" 200 188
+[2019-04-12 14:52:53] | INFO [django.server:136] | "GET /merlinservices/bottleprefixes/?bottle_prefix_exact=MSC031 HTTP/1.1" 200 188
+[2019-04-12 14:52:53] | INFO [django.server:136] | "GET /merlinservices/bottleprefixes/?bottle_prefix_exact=MSC032 HTTP/1.1" 200 188
+[2019-04-12 14:52:53] | INFO [django.server:136] | "GET /merlinservices/bottleprefixes/?bottle_prefix_exact=MSC033 HTTP/1.1" 200 188
+[2019-04-12 14:52:53] | INFO [django.server:136] | "GET /merlinservices/bottleprefixes/?bottle_prefix_exact=MSC034 HTTP/1.1" 200 188
+[2019-04-12 14:52:53] | INFO [django.server:136] | "GET /merlinservices/bottleprefixes/?bottle_prefix_exact=MSC035 HTTP/1.1" 200 188
+[2019-04-12 14:52:53] | INFO [django.server:136] | "GET /merlinservices/bottleprefixes/?bottle_prefix_exact=MSC036 HTTP/1.1" 200 188
+[2019-04-12 14:52:53] | INFO [django.server:136] | "GET /merlinservices/bottleprefixes/?bottle_prefix_exact=MSC037 HTTP/1.1" 200 188
+[2019-04-12 14:52:53] | INFO [django.server:136] | "GET /merlinservices/bottleprefixes/?bottle_prefix_exact=MSC038 HTTP/1.1" 200 188
+[2019-04-12 14:52:53] | INFO [django.server:136] | "GET /merlinservices/bottleprefixes/?bottle_prefix_exact=MSC039 HTTP/1.1" 200 188
+[2019-04-12 14:52:53] | INFO [django.server:136] | "GET /merlinservices/bottleprefixes/?bottle_prefix_exact=MSC040 HTTP/1.1" 200 188
+[2019-04-12 14:52:53] | INFO [merlin.views:1032] | Item #1: {"bottle_unique_name": "MSC001AG", "bottle_prefix": 123761, "created_date": "2017-10-18", "tare_weight": 0.14775, "description": ""}
+[2019-04-12 14:52:53] | INFO [django.server:136] | "PUT /merlinservices/bottles/20025678/ HTTP/1.1" 200 169
+[2019-04-12 14:52:53] | INFO [merlin.views:1034] | PUT http://localhost:8000/merlinservices/bottles/20025678/  OK 200
+[2019-04-12 14:52:53] | INFO [merlin.views:1032] | Item #2: {"bottle_unique_name": "MSC002AG", "bottle_prefix": 122761, "created_date": "2017-10-18", "tare_weight": 0.14653, "description": ""}
+[2019-04-12 14:52:54] | INFO [django.server:136] | "PUT /merlinservices/bottles/20025679/ HTTP/1.1" 200 169
+[2019-04-12 14:52:54] | INFO [merlin.views:1034] | PUT http://localhost:8000/merlinservices/bottles/20025679/  OK 200
+[2019-04-12 14:52:54] | INFO [merlin.views:1032] | Item #3: {"bottle_unique_name": "MSC003AG", "bottle_prefix": 122762, "created_date": "2017-10-18", "tare_weight": 0.14778, "description": ""}
+[2019-04-12 14:52:54] | INFO [django.server:136] | "PUT /merlinservices/bottles/20025680/ HTTP/1.1" 200 169
+[2019-04-12 14:52:54] | INFO [merlin.views:1034] | PUT http://localhost:8000/merlinservices/bottles/20025680/  OK 200
+[2019-04-12 14:52:54] | INFO [merlin.views:1032] | Item #4: {"bottle_unique_name": "MSC004AG", "bottle_prefix": 122763, "created_date": "2017-10-18", "tare_weight": 0.14719, "description": ""}
+[2019-04-12 14:52:54] | INFO [django.server:136] | "PUT /merlinservices/bottles/20025681/ HTTP/1.1" 200 169
+[2019-04-12 14:52:54] | INFO [merlin.views:1034] | PUT http://localhost:8000/merlinservices/bottles/20025681/  OK 200
+[2019-04-12 14:52:54] | INFO [merlin.views:1032] | Item #5: {"bottle_unique_name": "MSC005AG", "bottle_prefix": 122764, "created_date": "2017-10-18", "tare_weight": 0.14778, "description": ""}
+[2019-04-12 14:52:55] | INFO [django.server:136] | "PUT /merlinservices/bottles/20025682/ HTTP/1.1" 200 169
+[2019-04-12 14:52:55] | INFO [merlin.views:1034] | PUT http://localhost:8000/merlinservices/bottles/20025682/  OK 200
+[2019-04-12 14:52:55] | INFO [merlin.views:1032] | Item #6: {"bottle_unique_name": "MSC006AG", "bottle_prefix": 122765, "created_date": "2017-10-18", "tare_weight": 0.1483, "description": ""}
+[2019-04-12 14:52:55] | INFO [django.server:136] | "PUT /merlinservices/bottles/20025683/ HTTP/1.1" 200 169
+[2019-04-12 14:52:55] | INFO [merlin.views:1034] | PUT http://localhost:8000/merlinservices/bottles/20025683/  OK 200
+[2019-04-12 14:52:55] | INFO [merlin.views:1032] | Item #7: {"bottle_unique_name": "MSC007AG", "bottle_prefix": 122766, "created_date": "2017-10-18", "tare_weight": 0.14785, "description": ""}
+[2019-04-12 14:52:55] | INFO [django.server:136] | "PUT /merlinservices/bottles/20025684/ HTTP/1.1" 200 169
+[2019-04-12 14:52:55] | INFO [merlin.views:1034] | PUT http://localhost:8000/merlinservices/bottles/20025684/  OK 200
+[2019-04-12 14:52:55] | INFO [merlin.views:1032] | Item #8: {"bottle_unique_name": "MSC008AG", "bottle_prefix": 122767, "created_date": "2017-10-18", "tare_weight": 0.14779, "description": ""}
+[2019-04-12 14:52:56] | INFO [django.server:136] | "PUT /merlinservices/bottles/20025685/ HTTP/1.1" 200 169
+[2019-04-12 14:52:56] | INFO [merlin.views:1034] | PUT http://localhost:8000/merlinservices/bottles/20025685/  OK 200
+[2019-04-12 14:52:56] | INFO [merlin.views:1032] | Item #9: {"bottle_unique_name": "MSC009AG", "bottle_prefix": 122768, "created_date": "2017-10-18", "tare_weight": 0.14769, "description": ""}
+[2019-04-12 14:52:56] | INFO [django.server:136] | "PUT /merlinservices/bottles/20025686/ HTTP/1.1" 200 169
+[2019-04-12 14:52:56] | INFO [merlin.views:1034] | PUT http://localhost:8000/merlinservices/bottles/20025686/  OK 200
+[2019-04-12 14:52:56] | INFO [merlin.views:1032] | Item #10: {"bottle_unique_name": "MSC010AG", "bottle_prefix": 122769, "created_date": "2017-10-18", "tare_weight": 0.14795, "description": ""}
+[2019-04-12 14:52:56] | INFO [django.server:136] | "PUT /merlinservices/bottles/20025687/ HTTP/1.1" 200 169
+[2019-04-12 14:52:56] | INFO [merlin.views:1034] | PUT http://localhost:8000/merlinservices/bottles/20025687/  OK 200
+[2019-04-12 14:52:56] | INFO [merlin.views:1032] | Item #11: {"bottle_unique_name": "MSC011AG", "bottle_prefix": 122770, "created_date": "2017-10-18", "tare_weight": 0.14797, "description": ""}
+[2019-04-12 14:52:57] | INFO [django.server:136] | "PUT /merlinservices/bottles/20025688/ HTTP/1.1" 200 169
+[2019-04-12 14:52:57] | INFO [merlin.views:1034] | PUT http://localhost:8000/merlinservices/bottles/20025688/  OK 200
+[2019-04-12 14:52:57] | INFO [merlin.views:1032] | Item #12: {"bottle_unique_name": "MSC012AG", "bottle_prefix": 122771, "created_date": "2017-10-18", "tare_weight": 0.14813, "description": ""}
+[2019-04-12 14:52:57] | INFO [django.server:136] | "PUT /merlinservices/bottles/20025689/ HTTP/1.1" 200 169
+[2019-04-12 14:52:57] | INFO [merlin.views:1034] | PUT http://localhost:8000/merlinservices/bottles/20025689/  OK 200
+[2019-04-12 14:52:57] | INFO [merlin.views:1032] | Item #13: {"bottle_unique_name": "MSC013AG", "bottle_prefix": 122772, "created_date": "2017-10-18", "tare_weight": 0.14843, "description": ""}
+[2019-04-12 14:52:57] | INFO [django.server:136] | "PUT /merlinservices/bottles/20025690/ HTTP/1.1" 200 169
+[2019-04-12 14:52:57] | INFO [merlin.views:1034] | PUT http://localhost:8000/merlinservices/bottles/20025690/  OK 200
+[2019-04-12 14:52:57] | INFO [merlin.views:1032] | Item #14: {"bottle_unique_name": "MSC014AG", "bottle_prefix": 122773, "created_date": "2017-10-18", "tare_weight": 0.14768, "description": ""}
+[2019-04-12 14:52:58] | INFO [django.server:136] | "PUT /merlinservices/bottles/20025691/ HTTP/1.1" 200 169
+[2019-04-12 14:52:58] | INFO [merlin.views:1034] | PUT http://localhost:8000/merlinservices/bottles/20025691/  OK 200
+[2019-04-12 14:52:58] | INFO [merlin.views:1032] | Item #15: {"bottle_unique_name": "MSC015AG", "bottle_prefix": 122774, "created_date": "2017-10-18", "tare_weight": 0.1467, "description": ""}
+[2019-04-12 14:52:58] | INFO [django.server:136] | "PUT /merlinservices/bottles/20025692/ HTTP/1.1" 200 169
+[2019-04-12 14:52:58] | INFO [merlin.views:1034] | PUT http://localhost:8000/merlinservices/bottles/20025692/  OK 200
+[2019-04-12 14:52:58] | INFO [merlin.views:1032] | Item #16: {"bottle_unique_name": "MSC016AG", "bottle_prefix": 122775, "created_date": "2017-10-18", "tare_weight": 0.14701, "description": ""}
+[2019-04-12 14:52:58] | INFO [django.server:136] | "PUT /merlinservices/bottles/20025693/ HTTP/1.1" 200 169
+[2019-04-12 14:52:58] | INFO [merlin.views:1034] | PUT http://localhost:8000/merlinservices/bottles/20025693/  OK 200
+[2019-04-12 14:52:58] | INFO [merlin.views:1032] | Item #17: {"bottle_unique_name": "MSC017AG", "bottle_prefix": 122776, "created_date": "2017-10-18", "tare_weight": 0.14672, "description": ""}
+[2019-04-12 14:52:59] | INFO [django.server:136] | "PUT /merlinservices/bottles/20025694/ HTTP/1.1" 200 169
+[2019-04-12 14:52:59] | INFO [merlin.views:1034] | PUT http://localhost:8000/merlinservices/bottles/20025694/  OK 200
+[2019-04-12 14:52:59] | INFO [merlin.views:1032] | Item #18: {"bottle_unique_name": "MSC018AG", "bottle_prefix": 122777, "created_date": "2017-10-18", "tare_weight": 0.14681, "description": ""}
+[2019-04-12 14:52:59] | INFO [django.server:136] | "PUT /merlinservices/bottles/20025695/ HTTP/1.1" 200 169
+[2019-04-12 14:52:59] | INFO [merlin.views:1034] | PUT http://localhost:8000/merlinservices/bottles/20025695/  OK 200
+[2019-04-12 14:52:59] | INFO [merlin.views:1032] | Item #19: {"bottle_unique_name": "MSC019AG", "bottle_prefix": 122778, "created_date": "2017-10-18", "tare_weight": 0.14756, "description": ""}
+[2019-04-12 14:52:59] | INFO [django.server:136] | "PUT /merlinservices/bottles/20025696/ HTTP/1.1" 200 169
+[2019-04-12 14:52:59] | INFO [merlin.views:1034] | PUT http://localhost:8000/merlinservices/bottles/20025696/  OK 200
+[2019-04-12 14:52:59] | INFO [merlin.views:1032] | Item #20: {"bottle_unique_name": "MSC020AG", "bottle_prefix": 122779, "created_date": "2017-10-18", "tare_weight": 0.14903, "description": ""}
+[2019-04-12 14:53:00] | INFO [django.server:136] | "PUT /merlinservices/bottles/20025697/ HTTP/1.1" 200 169
+[2019-04-12 14:53:00] | INFO [merlin.views:1034] | PUT http://localhost:8000/merlinservices/bottles/20025697/  OK 200
+[2019-04-12 14:53:00] | INFO [merlin.views:1032] | Item #21: {"bottle_unique_name": "MSC021AG", "bottle_prefix": 122780, "created_date": "2017-10-18", "tare_weight": 0.14774, "description": ""}
+[2019-04-12 14:53:00] | INFO [merlin.views:1034] | PUT http://localhost:8000/merlinservices/bottles/20025698/  OK 200
+[2019-04-12 14:53:00] | INFO [django.server:136] | "PUT /merlinservices/bottles/20025698/ HTTP/1.1" 200 169
+[2019-04-12 14:53:00] | INFO [merlin.views:1032] | Item #22: {"bottle_unique_name": "MSC022AG", "bottle_prefix": 122781, "created_date": "2017-10-18", "tare_weight": 0.14825, "description": ""}
+[2019-04-12 14:53:00] | INFO [django.server:136] | "PUT /merlinservices/bottles/20025699/ HTTP/1.1" 200 169
+[2019-04-12 14:53:00] | INFO [merlin.views:1034] | PUT http://localhost:8000/merlinservices/bottles/20025699/  OK 200
+[2019-04-12 14:53:00] | INFO [merlin.views:1032] | Item #23: {"bottle_unique_name": "MSC023AG", "bottle_prefix": 122782, "created_date": "2017-10-18", "tare_weight": 0.14846, "description": ""}
+[2019-04-12 14:53:01] | INFO [django.server:136] | "PUT /merlinservices/bottles/20025700/ HTTP/1.1" 200 169
+[2019-04-12 14:53:01] | INFO [merlin.views:1034] | PUT http://localhost:8000/merlinservices/bottles/20025700/  OK 200
+[2019-04-12 14:53:01] | INFO [merlin.views:1032] | Item #24: {"bottle_unique_name": "MSC024AG", "bottle_prefix": 122783, "created_date": "2017-10-18", "tare_weight": 0.14766, "description": ""}
+[2019-04-12 14:53:01] | INFO [django.server:136] | "PUT /merlinservices/bottles/20025701/ HTTP/1.1" 200 169
+[2019-04-12 14:53:01] | INFO [merlin.views:1034] | PUT http://localhost:8000/merlinservices/bottles/20025701/  OK 200
+[2019-04-12 14:53:01] | INFO [merlin.views:1032] | Item #25: {"bottle_unique_name": "MSC025AG", "bottle_prefix": 122784, "created_date": "2017-10-18", "tare_weight": 0.14864, "description": ""}
+[2019-04-12 14:53:01] | INFO [django.server:136] | "PUT /merlinservices/bottles/20025702/ HTTP/1.1" 200 169
+[2019-04-12 14:53:01] | INFO [merlin.views:1034] | PUT http://localhost:8000/merlinservices/bottles/20025702/  OK 200
+[2019-04-12 14:53:01] | INFO [merlin.views:1032] | Item #26: {"bottle_unique_name": "MSC026AG", "bottle_prefix": 122785, "created_date": "2017-10-18", "tare_weight": 0.14808, "description": ""}
+[2019-04-12 14:53:02] | INFO [django.server:136] | "PUT /merlinservices/bottles/20025703/ HTTP/1.1" 200 169
+[2019-04-12 14:53:02] | INFO [merlin.views:1034] | PUT http://localhost:8000/merlinservices/bottles/20025703/  OK 200
+[2019-04-12 14:53:02] | INFO [merlin.views:1032] | Item #27: {"bottle_unique_name": "MSC027AG", "bottle_prefix": 122786, "created_date": "2017-10-18", "tare_weight": 0.14697, "description": ""}
+[2019-04-12 14:53:02] | INFO [django.server:136] | "PUT /merlinservices/bottles/20025704/ HTTP/1.1" 200 169
+[2019-04-12 14:53:02] | INFO [merlin.views:1034] | PUT http://localhost:8000/merlinservices/bottles/20025704/  OK 200
+[2019-04-12 14:53:02] | INFO [merlin.views:1032] | Item #28: {"bottle_unique_name": "MSC028AG", "bottle_prefix": 122787, "created_date": "2017-10-18", "tare_weight": 0.1476, "description": ""}
+[2019-04-12 14:53:02] | INFO [django.server:136] | "PUT /merlinservices/bottles/20025705/ HTTP/1.1" 200 169
+[2019-04-12 14:53:02] | INFO [merlin.views:1034] | PUT http://localhost:8000/merlinservices/bottles/20025705/  OK 200
+[2019-04-12 14:53:02] | INFO [merlin.views:1032] | Item #29: {"bottle_unique_name": "MSC029AG", "bottle_prefix": 122788, "created_date": "2017-10-18", "tare_weight": 0.14708, "description": ""}
+[2019-04-12 14:53:03] | INFO [django.server:136] | "PUT /merlinservices/bottles/20025706/ HTTP/1.1" 200 169
+[2019-04-12 14:53:03] | INFO [merlin.views:1034] | PUT http://localhost:8000/merlinservices/bottles/20025706/  OK 200
+[2019-04-12 14:53:03] | INFO [merlin.views:1032] | Item #30: {"bottle_unique_name": "MSC030AG", "bottle_prefix": 122789, "created_date": "2017-10-18", "tare_weight": 0.14769, "description": ""}
+[2019-04-12 14:53:03] | INFO [django.server:136] | "PUT /merlinservices/bottles/20025707/ HTTP/1.1" 200 169
+[2019-04-12 14:53:03] | INFO [merlin.views:1034] | PUT http://localhost:8000/merlinservices/bottles/20025707/  OK 200
+[2019-04-12 14:53:03] | INFO [merlin.views:1032] | Item #31: {"bottle_unique_name": "MSC031AG", "bottle_prefix": 122790, "created_date": "2017-10-18", "tare_weight": 0.14878, "description": ""}
+[2019-04-12 14:53:03] | INFO [django.server:136] | "PUT /merlinservices/bottles/20025708/ HTTP/1.1" 200 169
+[2019-04-12 14:53:03] | INFO [merlin.views:1034] | PUT http://localhost:8000/merlinservices/bottles/20025708/  OK 200
+[2019-04-12 14:53:03] | INFO [merlin.views:1032] | Item #32: {"bottle_unique_name": "MSC032AG", "bottle_prefix": 122791, "created_date": "2017-10-18", "tare_weight": 0.14608, "description": ""}
+[2019-04-12 14:53:04] | INFO [django.server:136] | "PUT /merlinservices/bottles/20025709/ HTTP/1.1" 200 169
+[2019-04-12 14:53:04] | INFO [merlin.views:1034] | PUT http://localhost:8000/merlinservices/bottles/20025709/  OK 200
+[2019-04-12 14:53:04] | INFO [merlin.views:1032] | Item #33: {"bottle_unique_name": "MSC033AG", "bottle_prefix": 122792, "created_date": "2017-10-18", "tare_weight": 0.14647, "description": ""}
+[2019-04-12 14:53:04] | INFO [django.server:136] | "PUT /merlinservices/bottles/20025710/ HTTP/1.1" 200 169
+[2019-04-12 14:53:04] | INFO [merlin.views:1034] | PUT http://localhost:8000/merlinservices/bottles/20025710/  OK 200
+[2019-04-12 14:53:04] | INFO [merlin.views:1032] | Item #34: {"bottle_unique_name": "MSC034AG", "bottle_prefix": 122793, "created_date": "2017-10-18", "tare_weight": 0.14777, "description": ""}
+[2019-04-12 14:53:04] | INFO [django.server:136] | "PUT /merlinservices/bottles/20025711/ HTTP/1.1" 200 169
+[2019-04-12 14:53:04] | INFO [merlin.views:1034] | PUT http://localhost:8000/merlinservices/bottles/20025711/  OK 200
+[2019-04-12 14:53:04] | INFO [merlin.views:1032] | Item #35: {"bottle_unique_name": "MSC035AG", "bottle_prefix": 122794, "created_date": "2017-10-18", "tare_weight": 0.14695, "description": ""}
+[2019-04-12 14:53:05] | INFO [django.server:136] | "PUT /merlinservices/bottles/20025712/ HTTP/1.1" 200 169
+[2019-04-12 14:53:05] | INFO [merlin.views:1034] | PUT http://localhost:8000/merlinservices/bottles/20025712/  OK 200
+[2019-04-12 14:53:05] | INFO [merlin.views:1032] | Item #36: {"bottle_unique_name": "MSC036AG", "bottle_prefix": 122795, "created_date": "2017-10-18", "tare_weight": 0.14783, "description": ""}
+[2019-04-12 14:53:05] | INFO [django.server:136] | "PUT /merlinservices/bottles/20025713/ HTTP/1.1" 200 169
+[2019-04-12 14:53:05] | INFO [merlin.views:1034] | PUT http://localhost:8000/merlinservices/bottles/20025713/  OK 200
+[2019-04-12 14:53:05] | INFO [merlin.views:1032] | Item #37: {"bottle_unique_name": "MSC037AG", "bottle_prefix": 122796, "created_date": "2017-10-18", "tare_weight": 0.14771, "description": ""}
+[2019-04-12 14:53:05] | INFO [django.server:136] | "PUT /merlinservices/bottles/20025714/ HTTP/1.1" 200 169
+[2019-04-12 14:53:05] | INFO [merlin.views:1034] | PUT http://localhost:8000/merlinservices/bottles/20025714/  OK 200
+[2019-04-12 14:53:05] | INFO [merlin.views:1032] | Item #38: {"bottle_unique_name": "MSC038AG", "bottle_prefix": 122797, "created_date": "2017-10-18", "tare_weight": 0.14922, "description": ""}
+[2019-04-12 14:53:06] | INFO [django.server:136] | "PUT /merlinservices/bottles/20025715/ HTTP/1.1" 200 169
+[2019-04-12 14:53:06] | INFO [merlin.views:1034] | PUT http://localhost:8000/merlinservices/bottles/20025715/  OK 200
+[2019-04-12 14:53:06] | INFO [merlin.views:1032] | Item #39: {"bottle_unique_name": "MSC039AG", "bottle_prefix": 122798, "created_date": "2017-10-18", "tare_weight": 0.14839, "description": ""}
+[2019-04-12 14:53:06] | INFO [django.server:136] | "PUT /merlinservices/bottles/20025716/ HTTP/1.1" 200 169
+[2019-04-12 14:53:06] | INFO [merlin.views:1034] | PUT http://localhost:8000/merlinservices/bottles/20025716/  OK 200
+[2019-04-12 14:53:06] | INFO [merlin.views:1032] | Item #40: {"bottle_unique_name": "MSC040AG", "bottle_prefix": 122799, "created_date": "2017-10-18", "tare_weight": 0.14884, "description": ""}
+[2019-04-12 14:53:06] | INFO [django.server:136] | "PUT /merlinservices/bottles/20025717/ HTTP/1.1" 200 169
+[2019-04-12 14:53:06] | INFO [merlin.views:1034] | PUT http://localhost:8000/merlinservices/bottles/20025717/  OK 200
+[2019-04-12 14:53:06] | INFO [django.server:136] | "POST /merlin/bottles_update/ HTTP/1.1" 200 7360
+[2019-04-12 14:53:35] | INFO [django.server:136] | "GET /merlinservices/bottles/?bottle_unique_name=MSC001AG%2CMSC002AG%2CMSC003AG%2CMSC004AG%2CMSC005AG%2CMSC006AG%2CMSC007AG%2CMSC008AG%2CMSC009AG%2CMSC010AG%2CMSC011AG%2CMSC012AG%2CMSC013AG%2CMSC014AG%2CMSC015AG%2CMSC016AG%2CMSC017AG%2CMSC018AG%2CMSC019AG%2CMSC020AG%2CMSC021AG%2CMSC022AG%2CMSC023AG%2CMSC024AG%2CMSC025AG%2CMSC026AG%2CMSC027AG%2CMSC028AG%2CMSC029AG%2CMSC030AG%2CMSC031AG%2CMSC032AG%2CMSC033AG%2CMSC034AG%2CMSC035AG%2CMSC036AG%2CMSC037AG%2CMSC038AG%2CMSC039AG%2CMSC040AG HTTP/1.1" 200 6852
+[2019-04-12 14:54:42] | WARNING [django.request:228] | Not Found: /merlin/batchupload/
+[2019-04-12 14:54:42] | WARNING [django.server:136] | "GET /merlin/batchupload/ HTTP/1.1" 404 12616
+[2019-04-12 14:54:42] | WARNING [django.request:228] | Not Found: /favicon.ico
+[2019-04-12 14:54:42] | WARNING [django.server:136] | "GET /favicon.ico HTTP/1.1" 404 2209
+[2019-04-12 14:54:49] | WARNING [django.request:228] | Not Found: /batchupload/
+[2019-04-12 14:54:49] | WARNING [django.server:136] | "GET /batchupload/ HTTP/1.1" 404 2212
+[2019-04-12 14:54:59] | WARNING [django.request:228] | Not Found: /mercurybatchupload/
+[2019-04-12 14:54:59] | WARNING [django.server:136] | "GET /mercurybatchupload/ HTTP/1.1" 404 2233
+[2019-04-12 14:55:05] | WARNING [django.request:228] | Not Found: /merlinbatchupload/
+[2019-04-12 14:55:05] | WARNING [django.server:136] | "GET /merlinbatchupload/ HTTP/1.1" 404 2230
