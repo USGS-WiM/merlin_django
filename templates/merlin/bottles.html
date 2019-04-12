@@ -1301,7 +1301,7 @@
                         var thisDataObject = {};
                         for (var i = 0; i < thisDataRow.length; i++) {
                             if (bottleObjectFields[i] == "bottle_prefix") {
-                                var thisID = updateValueAjax('/merlinservices/bottleprefixes/', 'bottle_prefix', 'id', thisDataRow[i]);
+                                var thisID = updateValueAjax('/merlinservices/bottleprefixes/', 'bottle_prefix_exact', 'id', thisDataRow[i]);
                                 if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Bottle Prefix must be a valid choice in row ' + (index + 1) + '!'); validTableBottle = false; loading_overlay.hide(); button_state.button('reset'); return false;}
                                 thisDataObject[bottleObjectFields[i]] = thisID;
                             }
