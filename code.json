@@ -2,9 +2,9 @@
   {
     "name": "merlin_django",
     "organization": "U.S. Geological Survey",
-    "description": "Mercury Research Laboratory Information Management System",
+    "description": "Merlin: Mercury Research Laboratory Information Management System",
     "version": "v1.0.0",
-    "status": "Development",
+    "status": "Production",
 
     "permissions": {
       "usageType": "openSource",
@@ -27,7 +27,12 @@
     "tags": [
       "mercury",
       "lab",
-      "merlin"
+      "laboratory",
+      "lims",
+      "merlin",
+      "web",
+      "services",
+      "api"
     ],
 
     "languages": [
@@ -41,7 +46,7 @@
     },
 
     "date": {
-      "metadataLastUpdated": "2018-11-08"
+      "metadataLastUpdated": "2019-04-25"
     }
   }
 ]
