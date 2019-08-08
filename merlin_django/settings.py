@@ -20,8 +20,8 @@ PROJECT_PATH = os.path.join(SETTINGS_DIR, os.pardir)
 PROJECT_PATH = os.path.abspath(PROJECT_PATH)
 TEMPLATE_PATH = os.path.join(PROJECT_PATH, 'templates')
 
-# CONFIG = moves.configparser.SafeConfigParser(allow_no_value=True)
-# CONFIG.read('%s\settings.cfg' % SETTINGS_DIR)
+CONFIG = moves.configparser.SafeConfigParser(allow_no_value=True)
+CONFIG.read('%s\settings.cfg' % SETTINGS_DIR)
 
 
 LOG_FILENAME = os.path.join(PROJECT_PATH, 'logs/merlin.log')
@@ -79,14 +79,12 @@ LOGGING = {
 # See https://docs.djangoproject.com/en/dev/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-# SECRET_KEY = CONFIG.get('security', 'SECRET_KEY')
-SECRET_KEY = 'j!7+25t4ks7saoh^s1p)1#vu*p^csz*qex&s*b@rjgf0si^6g+'
+SECRET_KEY = CONFIG.get('security', 'SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = CONFIG.get('general', 'DEBUG')
-DEBUG = True
+DEBUG = CONFIG.get('general', 'DEBUG')
 
-ALLOWED_HOSTS = ['130.11.179.23', 'igsarmewvsmerc.er.usgs.gov', '127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['54.84.124.192', 'mercury.wim.usgs.gov', '127.0.0.1', 'localhost']
 
 
 # Application definition
@@ -125,19 +123,12 @@ WSGI_APPLICATION = 'merlin_django.wsgi.application'
 
 DATABASES = {
     'default': {
-        'NAME': 'mercurytest',
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'USER': 'mercuryadmin',
-        'PASSWORD': 'm3rcury@dm1n',
-        'HOST': 'localhost',
-        'PORT': 5432,
-        # 'ENGINE': CONFIG.get('databases', 'ENGINE'),
-        # 'NAME': CONFIG.get('databases', 'NAME'),
-        # 'USER': CONFIG.get('databases', 'USER'),
-        # 'PASSWORD': CONFIG.get('databases', 'PASSWORD'),
-        # 'HOST': CONFIG.get('databases', 'HOST'),
-        # 'PORT': CONFIG.get('databases', 'PORT'),
-        #'CONN_MAX_AGE': CONFIG.get('databases', 'CONN_MAX_AGE'),
+        'ENGINE': CONFIG.get('databases', 'ENGINE'),
+        'NAME': CONFIG.get('databases', 'NAME'),
+        'USER': CONFIG.get('databases', 'USER'),
+        'PASSWORD': CONFIG.get('databases', 'PASSWORD'),
+        'HOST': CONFIG.get('databases', 'HOST'),
+        'PORT': CONFIG.get('databases', 'PORT'),
         'CONN_MAX_AGE': 60,
     }
 }

@@ -1,0 +1,30 @@
+# This is an Apache HTTPD configuration file with Merlin-specific directives
+# It should be placed in the same conf folder as the main httpd.conf file
+# And referenced by the main httpd.conf file with an Include statement
+
+Alias /batchupload/ D:/projects/batchupload/
+
+<Directory D:/projects/batchupload/>
+	Options Indexes FollowSymLinks
+	DirectoryIndex index.html
+	Require all granted
+</Directory>
+
+Alias /static/ D:/projects/merlin_django/static/
+
+<Directory D:/projects/merlin_django/static/>
+	Require all granted
+</Directory>
+
+WSGIPassAuthorization on
+WSGIScriptAlias / D:/projects/merlin_django/merlin_django/wsgi.py
+WSGIPythonPath D:/projects/merlin_django
+
+<Directory D:/projects/merlin_django/merlin_django>
+	<Files wsgi.py>
+		Require all granted
+	</Files>
+</Directory>
+
+Redirect 301 /mercurylab /merlin
+Redirect permanent /mercurylab /merlin
