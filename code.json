@@ -16,7 +16,7 @@
       ]
     },
 
-    "homepageURL": "https://wim.usgs.gov",
+    "homepageURL": "mercury.wim.usgs.gov/merlinservices/",
     "downloadURL": "https://github.com/USGS-WiM/merlin_django/archive/master.zip",
     "disclaimerURL": "https://github.com/USGS-WiM/merlin_django/blob/master/DISCLAIMER.md",
     "repositoryUrl": "https://github.com/USGS-WiM/merlin_django",
