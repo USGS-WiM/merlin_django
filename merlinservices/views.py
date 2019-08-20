@@ -47,6 +47,7 @@ logger = logging.getLogger(__name__)
 ######
 
 
+# TODO: create an abstract class for ModelViewSets
 class CooperatorBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
     queryset = Cooperator.objects.all()
     serializer_class = CooperatorSerializer
@@ -102,6 +103,15 @@ class SiteViewSet(viewsets.ModelViewSet):
     serializer_class = SiteSerializer
     pagination_class = StandardResultsSetPagination
 
+    # TODO: put this method in an abstract class
+    # override the default pagination to allow disabling of pagination
+    def paginate_queryset(self, *args, **kwargs):
+        if not self.request:
+            return super().paginate_queryset(*args, **kwargs)
+        elif 'no_page' in self.request.query_params:
+            return None
+        return super().paginate_queryset(*args, **kwargs)
+
     # override the default queryset to allow filtering by URL arguments
     def get_queryset(self):
         queryset = Site.objects.all()
@@ -149,6 +159,14 @@ class ProjectSiteViewSet(viewsets.ModelViewSet):
     serializer_class = ProjectSiteSerializer
     pagination_class = StandardResultsSetPagination
 
+    # override the default pagination to allow disabling of pagination
+    def paginate_queryset(self, *args, **kwargs):
+        if not self.request:
+            return super().paginate_queryset(*args, **kwargs)
+        elif 'no_page' in self.request.query_params:
+            return None
+        return super().paginate_queryset(*args, **kwargs)
+
     # override the default queryset to allow filtering by URL arguments
     def get_queryset(self):
         queryset = ProjectSite.objects.all()
@@ -192,6 +210,14 @@ class SampleViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = SampleSerializer
     pagination_class = StandardResultsSetPagination
+
+    # override the default pagination to allow disabling of pagination
+    def paginate_queryset(self, *args, **kwargs):
+        if not self.request:
+            return super().paginate_queryset(*args, **kwargs)
+        elif 'no_page' in self.request.query_params:
+            return None
+        return super().paginate_queryset(*args, **kwargs)
 
     # Note that a unique field sample is determined by project+site+time_stamp+depth+replicate
 
@@ -238,6 +264,14 @@ class SampleBottleViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = SampleBottleSerializer
     pagination_class = StandardResultsSetPagination
+
+    # override the default pagination to allow disabling of pagination
+    def paginate_queryset(self, *args, **kwargs):
+        if not self.request:
+            return super().paginate_queryset(*args, **kwargs)
+        elif 'no_page' in self.request.query_params:
+            return None
+        return super().paginate_queryset(*args, **kwargs)
 
     def get_queryset(self):
         queryset = SampleBottle.objects.all().select_related('sample')
@@ -316,6 +350,14 @@ class FullSampleBottleViewSet(viewsets.ModelViewSet):
     serializer_class = FullSampleBottleSerializer
     pagination_class = StandardResultsSetPagination
 
+    # override the default pagination to allow disabling of pagination
+    def paginate_queryset(self, *args, **kwargs):
+        if not self.request:
+            return super().paginate_queryset(*args, **kwargs)
+        elif 'no_page' in self.request.query_params:
+            return None
+        return super().paginate_queryset(*args, **kwargs)
+
     def get_queryset(self):
         queryset = SampleBottle.objects.all().select_related()
         # filter by samplebottle ID, exact
@@ -381,6 +423,14 @@ class SampleBottleBrominationViewSet(viewsets.ModelViewSet):
     serializer_class = SampleBottleBrominationSerializer
     pagination_class = StandardResultsSetPagination
 
+    # override the default pagination to allow disabling of pagination
+    def paginate_queryset(self, *args, **kwargs):
+        if not self.request:
+            return super().paginate_queryset(*args, **kwargs)
+        elif 'no_page' in self.request.query_params:
+            return None
+        return super().paginate_queryset(*args, **kwargs)
+
     def get_queryset(self):
         # logger.info(self.request.query_params)
         queryset = SampleBottleBromination.objects.all()
@@ -428,6 +478,14 @@ class BottleViewSet(viewsets.ModelViewSet):
     serializer_class = BottleSerializer
     pagination_class = StandardResultsSetPagination
 
+    # override the default pagination to allow disabling of pagination
+    def paginate_queryset(self, *args, **kwargs):
+        if not self.request:
+            return super().paginate_queryset(*args, **kwargs)
+        elif 'no_page' in self.request.query_params:
+            return None
+        return super().paginate_queryset(*args, **kwargs)
+
     def get_queryset(self):
         queryset = Bottle.objects.all()
         # filter by bottle ID, exact
@@ -464,6 +522,14 @@ class BottlePrefixViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = BottlePrefixSerializer
     pagination_class = StandardResultsSetPagination
+
+    # override the default pagination to allow disabling of pagination
+    def paginate_queryset(self, *args, **kwargs):
+        if not self.request:
+            return super().paginate_queryset(*args, **kwargs)
+        elif 'no_page' in self.request.query_params:
+            return None
+        return super().paginate_queryset(*args, **kwargs)
 
     def get_queryset(self):
         queryset = BottlePrefix.objects.all()
@@ -571,6 +637,14 @@ class ResultViewSet(viewsets.ModelViewSet):
     serializer_class = ResultSerializer
     pagination_class = StandardResultsSetPagination
 
+    # override the default pagination to allow disabling of pagination
+    def paginate_queryset(self, *args, **kwargs):
+        if not self.request:
+            return super().paginate_queryset(*args, **kwargs)
+        elif 'no_page' in self.request.query_params:
+            return None
+        return super().paginate_queryset(*args, **kwargs)
+
     def get_queryset(self):
         queryset = Result.objects.all()
         # filter by sample bottle ID, exact
@@ -591,6 +665,14 @@ class ResultViewSet(viewsets.ModelViewSet):
 class FullResultViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     pagination_class = StandardResultsSetPagination
+
+    # override the default pagination to allow disabling of pagination
+    def paginate_queryset(self, *args, **kwargs):
+        if not self.request:
+            return super().paginate_queryset(*args, **kwargs)
+        elif 'no_page' in self.request.query_params:
+            return None
+        return super().paginate_queryset(*args, **kwargs)
 
     # override the default renderers to use a custom csv renderer when requested
     # note that these custom renderers have hard-coded field name headers that match the their respective serialzers
@@ -965,6 +1047,14 @@ class AcidViewSet(viewsets.ModelViewSet):
     serializer_class = AcidSerializer
     pagination_class = StandardResultsSetPagination
 
+    # override the default pagination to allow disabling of pagination
+    def paginate_queryset(self, *args, **kwargs):
+        if not self.request:
+            return super().paginate_queryset(*args, **kwargs)
+        elif 'no_page' in self.request.query_params:
+            return None
+        return super().paginate_queryset(*args, **kwargs)
+
     # override the default queryset to allow filtering by URL arguments
     def get_queryset(self):
         queryset = Acid.objects.all()
@@ -990,6 +1080,14 @@ class BlankWaterViewSet(viewsets.ModelViewSet):
     serializer_class = BlankWaterSerializer
     pagination_class = StandardResultsSetPagination
 
+    # override the default pagination to allow disabling of pagination
+    def paginate_queryset(self, *args, **kwargs):
+        if not self.request:
+            return super().paginate_queryset(*args, **kwargs)
+        elif 'no_page' in self.request.query_params:
+            return None
+        return super().paginate_queryset(*args, **kwargs)
+
     # override the default queryset to allow filtering by URL arguments
     def get_queryset(self):
         queryset = BlankWater.objects.all()
@@ -1010,6 +1108,14 @@ class BrominationViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = BrominationSerializer
     pagination_class = StandardResultsSetPagination
+
+    # override the default pagination to allow disabling of pagination
+    def paginate_queryset(self, *args, **kwargs):
+        if not self.request:
+            return super().paginate_queryset(*args, **kwargs)
+        elif 'no_page' in self.request.query_params:
+            return None
+        return super().paginate_queryset(*args, **kwargs)
 
     # override the default queryset to allow filtering by URL arguments
     def get_queryset(self):
@@ -1098,6 +1204,14 @@ class ReportResultsCountNawqa(generics.ListAPIView):
     serializer_class = ReportResultsCountNawqaSerializer
     pagination_class = StandardResultsSetPagination
 
+    # override the default pagination to allow disabling of pagination
+    def paginate_queryset(self, *args, **kwargs):
+        if not self.request:
+            return super().paginate_queryset(*args, **kwargs)
+        elif 'no_page' in self.request.query_params:
+            return None
+        return super().paginate_queryset(*args, **kwargs)
+
     def get_queryset(self):
         queryset = ResultCountNawqa.objects.all()
         # filter by entry date (after only, before only, or between both, depending on which URL params appear)
@@ -1123,6 +1237,14 @@ class ReportResultsCountProjects(generics.ListAPIView):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = ReportResultsCountProjectsSerializer
     pagination_class = StandardResultsSetPagination
+
+    # override the default pagination to allow disabling of pagination
+    def paginate_queryset(self, *args, **kwargs):
+        if not self.request:
+            return super().paginate_queryset(*args, **kwargs)
+        elif 'no_page' in self.request.query_params:
+            return None
+        return super().paginate_queryset(*args, **kwargs)
 
     def get_queryset(self):
         queryset = ResultCountProjects.objects.all()
@@ -1150,6 +1272,14 @@ class ReportSamplesNwis(generics.ListAPIView):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = ReportSamplesNwisSerializer
     pagination_class = StandardResultsSetPagination
+
+    # override the default pagination to allow disabling of pagination
+    def paginate_queryset(self, *args, **kwargs):
+        if not self.request:
+            return super().paginate_queryset(*args, **kwargs)
+        elif 'no_page' in self.request.query_params:
+            return None
+        return super().paginate_queryset(*args, **kwargs)
 
     def get_queryset(self):
         queryset = SampleNwis.objects.all()
@@ -1191,6 +1321,14 @@ class ReportResultsNwis(generics.ListAPIView):
     serializer_class = ReportResultsNwisSerializer
     pagination_class = StandardResultsSetPagination
 
+    # override the default pagination to allow disabling of pagination
+    def paginate_queryset(self, *args, **kwargs):
+        if not self.request:
+            return super().paginate_queryset(*args, **kwargs)
+        elif 'no_page' in self.request.query_params:
+            return None
+        return super().paginate_queryset(*args, **kwargs)
+
     def get_queryset(self):
         queryset = ResultNwis.objects.all()
         exclude_ld = self.request.query_params.get('exclude_ld', None)
@@ -1224,6 +1362,14 @@ class ReportResultsCooperator(generics.ListAPIView):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = ReportResultsCooperatorSerializer
     pagination_class = StandardResultsSetPagination
+
+    # override the default pagination to allow disabling of pagination
+    def paginate_queryset(self, *args, **kwargs):
+        if not self.request:
+            return super().paginate_queryset(*args, **kwargs)
+        elif 'no_page' in self.request.query_params:
+            return None
+        return super().paginate_queryset(*args, **kwargs)
 
     def get_queryset(self):
         queryset = ResultCooperator.objects.all()

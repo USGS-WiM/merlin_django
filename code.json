@@ -3,7 +3,7 @@
     "name": "merlin_django",
     "organization": "U.S. Geological Survey",
     "description": "Merlin: Mercury Research Laboratory Information Management System",
-    "version": "v1.0.0",
+    "version": "v1.1.0",
     "status": "Production",
 
     "permissions": {
@@ -16,7 +16,7 @@
       ]
     },
 
-    "homepageURL": "mercury.wim.usgs.gov/merlinservices/",
+    "homepageURL": "https://mercury.wim.usgs.gov/merlinservices/",
     "downloadURL": "https://github.com/USGS-WiM/merlin_django/archive/master.zip",
     "disclaimerURL": "https://github.com/USGS-WiM/merlin_django/blob/master/DISCLAIMER.md",
     "repositoryUrl": "https://github.com/USGS-WiM/merlin_django",
@@ -46,7 +46,7 @@
     },
 
     "date": {
-      "metadataLastUpdated": "2019-04-25"
+      "metadataLastUpdated": "2019-08-20"
     }
   }
 ]
