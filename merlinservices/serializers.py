@@ -468,7 +468,7 @@ class FlatResultSerializer(serializers.ModelSerializer):
     detection_flag = serializers.StringRelatedField()
     ddl = serializers.FloatField(source='final_daily_detection_limit', read_only=True)
     qa_flags = serializers.SerializerMethodField()
-    analyzed_date = serializers.DateTimeField(format='%m/%d/%y', read_only=True)
+    analyzed_date = serializers.DateField(format='%m/%d/%y', read_only=True)
 
     class Meta:
         model = Result
