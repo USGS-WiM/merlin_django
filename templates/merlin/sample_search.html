@@ -214,7 +214,7 @@
                         {title: 'Time', data: 'sample_bottle.sample.sample_time', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 55, type: 'numeric', validator: validateTime},
                         //{title: 'Hour', width: 50, type: 'autocomplete', source: getRange(24)},
                         //{title: 'Minute', width: 50, type: 'autocomplete', source: getRange(60)},
-                        {title: 'Depth', data: 'sample_bottle.sample.depth', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 50, type: 'numeric', format: '0.00'},
+                        {title: 'Depth', data: 'sample_bottle.sample.depth', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 50, type: 'numeric', numericFormat: {pattern: '0.0000', culture: 'en-US'}},
                         {title: 'Length', data: 'sample_bottle.sample.length', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 50, type: 'numeric'},
                         {title: 'Rep', data: 'sample_bottle.sample.replicate', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 35, type: 'numeric'},
                         {title: 'Sample Comments', data: 'sample_bottle.sample.comment', {% if not request.session.is_staff %} readOnly: true, {% endif %} width: 130, type: 'text'},

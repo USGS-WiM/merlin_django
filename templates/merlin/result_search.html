@@ -160,7 +160,7 @@
                         {title: 'Site ID', data: 'sample_bottle.sample.site_usgs_scode', readOnly: true, width: 100},
                         {title: 'Sample Date', data: 'sample_bottle.sample.sample_date', readOnly: true, width: 90},
                         {title: 'Sample Time', data: 'sample_bottle.sample.sample_time', readOnly: true, width: 90},
-                        {title: 'Depth', data: 'sample_bottle.sample.depth', readOnly: true, width: 50, format: '0.00'},
+                        {title: 'Depth', data: 'sample_bottle.sample.depth', readOnly: true, width: 50, type: 'numeric', numericFormat: {pattern: '0.0000', culture: 'en-US'}},
                         {title: 'Medium', data: 'sample_bottle.sample.medium_type_string', readOnly: true, width: 60},
                         //{title: 'Analysis', data: 'analysis_string', readOnly: true, width: 80},
                         {title: 'Constituent', data: 'constituent_string', readOnly: true, width: 80},

@@ -159,7 +159,7 @@
                         // Date Time as separate columns is temporary until a single column datetime editor can be found for handsontable
                         {title: 'Date', width: 100, type: 'date', dateFormat: 'MM/DD/YY', validator: validateRequired, datePickerConfig: {maxDate: new Date()}},
                         {title: 'Time', width: 55, type: 'numeric', validator: validateTime, allowInvalid: false},
-                        {title: 'Depth', width: 45, type: 'numeric', validator: validateRequiredZeroOK, format: '0.00'},
+                        {title: 'Depth', width: 45, type: 'numeric', validator: validateRequiredZeroOK, numericFormat: {pattern: '0.0000', culture: 'en-US'}},
                         {title: 'Length', width: 70, type: 'numeric', format: '0.00'},
                         {title: 'Rep', width: 35, type: 'numeric', validator: validateRequired},
                         {title: 'Sample Comments', width: 130, type: 'text'},
