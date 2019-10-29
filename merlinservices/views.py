@@ -2144,6 +2144,8 @@ def process_final_value(final_value, method_id, volume_filtered, sediment_dry_we
         if sample_mass_processed is not None and sample_mass_processed != -999:
             value = final_value / sample_mass_processed
     elif method_id == 77:
+        if volume_filtered is None:
+            return -999
         result = Result.objects.get(pk=result_id)
         tare_weight = Bottle.objects.filter(id=result.sample_bottle.bottle_id)[0].tare_weight
         value = (float(decimal.Decimal(str(final_value)) - tare_weight) * 1000) / (volume_filtered / 1000)
@@ -2174,6 +2176,8 @@ def process_report_value(report_value, method_id, volume_filtered, sediment_dry_
         if sediment_dry_weight is not None and sediment_dry_weight != -999:
             value = round(report_value / sediment_dry_weight, 2)
     elif method_id == 77:
+        if volume_filtered is None:
+            return -999
         result = Result.objects.get(pk=result_id)
         tare_weight = Bottle.objects.filter(id=result.sample_bottle.bottle_id)[0].tare_weight
         value = round((float(decimal.Decimal(str(report_value)) - tare_weight) * 1000) / (volume_filtered / 1000), 4)
