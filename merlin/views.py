@@ -297,7 +297,7 @@ def samples_create(request):
             logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
             response_data = r.json()
             bottle_unique_name = response_data['results'][0]['bottle_unique_name']
-            message = "\"Error in row " + str(row_number) + ": This Container appears in more than one sample: "
+            message = "\"Error: This Container appears in more than one sample: "
             message += bottle_unique_name + "\""
             logger.error(message)
             return HttpResponse(message, content_type='text/html')
