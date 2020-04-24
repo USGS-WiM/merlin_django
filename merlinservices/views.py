@@ -2128,7 +2128,9 @@ def process_final_value(final_value, method_id, volume_filtered, sediment_dry_we
     elif method_id == 42:
         value = final_value / 1000
     elif method_id in (48, 49, 83, 84, 85, 233, 211):
-        if volume_filtered is not None:
+        if volume_filtered is None:
+            return -999
+        else:
             value = final_value * 1000 / volume_filtered
     elif method_id == 52 or method_id == 71:
         if sediment_dry_weight is not None and sediment_dry_weight != -999:
@@ -2163,7 +2165,9 @@ def process_report_value(report_value, method_id, volume_filtered, sediment_dry_
     elif method_id == 42:
         value = round(report_value / 1000, 4)
     elif method_id in (48, 49, 83, 84, 85, 233, 211):
-        if volume_filtered is not None:
+        if volume_filtered is None:
+            return -999
+        else:
             value = round(report_value * 1000 / volume_filtered, 3)
     elif method_id == 52 or method_id == 71:
         if sediment_dry_weight is not None and sediment_dry_weight != -999:
@@ -2194,7 +2198,9 @@ def process_daily_detection_limit(
     elif method_id == 42:
         value = daily_detection_limit / 1000
     elif method_id in (48, 49, 83, 84, 85, 233):
-        if volume_filtered is not None:
+        if volume_filtered is None:
+            return -999
+        else:
             value = daily_detection_limit * 1000 / volume_filtered
     elif method_id == 71 or method_id == 211:
         if sediment_dry_weight is None or sediment_dry_weight == -999:
@@ -2227,7 +2233,9 @@ def process_method_daily_detection_limit(
     elif method_id == 42:
         value = method_daily_detection_limit / 1000
     elif method_id in (48, 49, 83, 84, 85, 233, 211):
-        if volume_filtered is not None:
+        if volume_filtered is None:
+            return -999
+        else:
             value = method_daily_detection_limit * 1000 / volume_filtered
     elif method_id == 52 or method_id == 71:
         if sediment_dry_weight is None or sediment_dry_weight == -999:

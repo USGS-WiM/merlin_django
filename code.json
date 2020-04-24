@@ -3,7 +3,7 @@
     "name": "merlin_django",
     "organization": "U.S. Geological Survey",
     "description": "Merlin: Mercury Research Laboratory Information Management System",
-    "version": "v1.2.4",
+    "version": "v1.2.5",
     "status": "Production",
 
     "permissions": {
@@ -46,7 +46,7 @@
     },
 
     "date": {
-      "metadataLastUpdated": "2019-11-14"
+      "metadataLastUpdated": "2020-04-24"
     }
   }
 ]
