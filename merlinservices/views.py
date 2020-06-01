@@ -2129,7 +2129,7 @@ def process_final_value(final_value, method_id, volume_filtered, sediment_dry_we
         value = final_value / 1000
     elif method_id in (48, 49, 83, 84, 85, 233, 211):
         if volume_filtered is None:
-            return -999
+            return -900
         else:
             value = final_value * 1000 / volume_filtered
     elif method_id == 52 or method_id == 71:
@@ -2147,7 +2147,7 @@ def process_final_value(final_value, method_id, volume_filtered, sediment_dry_we
             value = final_value / sample_mass_processed
     elif method_id == 77:
         if volume_filtered is None:
-            return -999
+            return -900
         result = Result.objects.get(pk=result_id)
         tare_weight = Bottle.objects.filter(id=result.sample_bottle.bottle_id)[0].tare_weight
         value = (float(decimal.Decimal(str(final_value)) - tare_weight) * 1000) / (volume_filtered / 1000)
@@ -2166,7 +2166,7 @@ def process_report_value(report_value, method_id, volume_filtered, sediment_dry_
         value = round(report_value / 1000, 4)
     elif method_id in (48, 49, 83, 84, 85, 233, 211):
         if volume_filtered is None:
-            return -999
+            return -900
         else:
             value = round(report_value * 1000 / volume_filtered, 3)
     elif method_id == 52 or method_id == 71:
@@ -2181,7 +2181,7 @@ def process_report_value(report_value, method_id, volume_filtered, sediment_dry_
             value = round(report_value / sediment_dry_weight, 2)
     elif method_id == 77:
         if volume_filtered is None:
-            return -999
+            return -900
         result = Result.objects.get(pk=result_id)
         tare_weight = Bottle.objects.filter(id=result.sample_bottle.bottle_id)[0].tare_weight
         value = round((float(decimal.Decimal(str(report_value)) - tare_weight) * 1000) / (volume_filtered / 1000), 4)
@@ -2199,7 +2199,7 @@ def process_daily_detection_limit(
         value = daily_detection_limit / 1000
     elif method_id in (48, 49, 83, 84, 85, 233):
         if volume_filtered is None:
-            return -999
+            return -900
         else:
             value = daily_detection_limit * 1000 / volume_filtered
     elif method_id == 71 or method_id == 211:
@@ -2234,7 +2234,7 @@ def process_method_daily_detection_limit(
         value = method_daily_detection_limit / 1000
     elif method_id in (48, 49, 83, 84, 85, 233, 211):
         if volume_filtered is None:
-            return -999
+            return -900
         else:
             value = method_daily_detection_limit * 1000 / volume_filtered
     elif method_id == 52 or method_id == 71:
