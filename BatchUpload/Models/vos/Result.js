@@ -3,7 +3,7 @@ define(["require", "exports"], function (require, exports) {
     // Class
     var Result = (function () {
         // Constructor
-        function Result(c, m, u, vFinal, ddl, mp, dt, comment, i, qa, cmethods) {
+        function Result(c, m, u, vFinal, ddl, mp, dt, comment, i, qa, cmethods, pm) {
             var _this = this;
             this.id = -999;
             this.constituent = ko.observable(c).extend({ nullValidation: {} });
@@ -11,6 +11,7 @@ define(["require", "exports"], function (require, exports) {
             this.reported_value = ko.observable(vFinal).extend({ nullValidation: {} });
             this.isotope_flag = ko.observable(i).extend({ nullValidation: {} });
             this.daily_detection_limit = ko.observable(ddl).extend({ nullValidation: { msg: "Are you sure you do not want to specify a detection limit?" } });
+            this.percent_matching = ko.observableArray(pm);
             this.unit = ko.observable(u).extend({ unitValidation: { method: this.method } });
             this.massProcess = ko.observable(mp).extend({ massProcessValidation: { method: this.method } });
             this.analyzed_date = ko.observable(dt).extend({ nullValidation: {} });
@@ -54,6 +55,7 @@ define(["require", "exports"], function (require, exports) {
                 "isotope_flag_id": this.isotope_flag().id,
                 "analyzed_date": (this.analyzed_date().getMonth() + 1) + '/' + this.analyzed_date().getDate() + '/' + this.analyzed_date().getFullYear(),
                 "daily_detection_limit": this.daily_detection_limit,
+                "percent_matching": this.percent_matching,
                 "quality_assurance": $.map(this.qualityAssuranceList(), function (obj) {
                     return obj.quality_assurance;
                 }),

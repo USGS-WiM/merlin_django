@@ -237,6 +237,16 @@
                         <i class="text-danger glyphicon glyphicon-warning-sign"></i><span class="text-warning" data-bind='text: daily_detection_limit.validationMessage()'></span>
                     </td>
                 </tr>
+                <!-- Percent Matching Row -->
+                <tr data-bind="attr:{'class': percent_matching.hasWarning() ? 'warning' :'' }">
+                    <td>Percent Matching :</td>
+                    <td><input type="text" class="form-control" data-bind="numeric, value: percent_matching"></td>
+                </tr>
+                <tr class="warning" style="padding:6px;font-size:10px;" data-bind="visible: percent_matching.hasWarning()">
+                    <td colspan="3">
+                        <i class="text-danger glyphicon glyphicon-warning-sign"></i><span class="text-warning" data-bind='text: percent_matching.validationMessage()'></span>
+                    </td>
+                </tr>
                 <!-- Analysis Date Row -->
                 <tr data-bind="attr:{'class': analyzed_date.hasWarning() ? 'danger' :'' }">
                     <td>Analysis Date :</td>
