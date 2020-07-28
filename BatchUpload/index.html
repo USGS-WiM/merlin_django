@@ -238,13 +238,13 @@
                     </td>
                 </tr>
                 <!-- Percent Matching Row -->
-                <tr data-bind="attr:{'class': percent_matching.hasWarning() ? 'warning' :'' }">
+                <tr data-bind="attr:{'class': percent_matching.hasWarning() ? 'danger' :'' }">
                     <td>Percent Matching :</td>
-                    <td><input type="text" class="form-control" data-bind="numeric, value: percent_matching"></td>
+                    <td><input type="text" class="form-control" data-bind="value: percent_matching"></td>
                 </tr>
-                <tr class="warning" style="padding:6px;font-size:10px;" data-bind="visible: percent_matching.hasWarning()">
+                <tr class="danger" style="padding:6px;font-size:10px;" data-bind="visible: percent_matching.hasWarning()&& percent_matching.show">
                     <td colspan="3">
-                        <i class="text-danger glyphicon glyphicon-warning-sign"></i><span class="text-warning" data-bind='text: percent_matching.validationMessage()'></span>
+                        <i class="text-danger glyphicon glyphicon-warning-sign"></i><span class="text-danger" data-bind='text: percent_matching.validationMessage()'></span>
                     </td>
                 </tr>
                 <!-- Analysis Date Row -->

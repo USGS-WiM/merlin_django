@@ -3,7 +3,7 @@ define(["require", "exports"], function (require, exports) {
     // Class
     var Result = (function () {
         // Constructor
-        function Result(c, m, u, vFinal, ddl, mp, dt, comment, i, qa, cmethods, pm) {
+        function Result(c, m, u, vFinal, ddl, pm, mp, dt, comment, i, qa, cmethods) {
             var _this = this;
             this.id = -999;
             this.constituent = ko.observable(c).extend({ nullValidation: {} });
@@ -11,7 +11,7 @@ define(["require", "exports"], function (require, exports) {
             this.reported_value = ko.observable(vFinal).extend({ nullValidation: {} });
             this.isotope_flag = ko.observable(i).extend({ nullValidation: {} });
             this.daily_detection_limit = ko.observable(ddl).extend({ nullValidation: { msg: "Are you sure you do not want to specify a detection limit?" } });
-            this.percent_matching = ko.observableArray(pm);
+            this.percent_matching = ko.observable(pm).extend({ nullValidation: {} });
             this.unit = ko.observable(u).extend({ unitValidation: { method: this.method } });
             this.massProcess = ko.observable(mp).extend({ massProcessValidation: { method: this.method } });
             this.analyzed_date = ko.observable(dt).extend({ nullValidation: {} });
@@ -33,7 +33,8 @@ define(["require", "exports"], function (require, exports) {
                         var i = _this.isotope_flag.hasWarning();
                         var mp = _this.massProcess.hasWarning();
                         var ad = _this.analyzed_date.hasWarning();
-                        return c || m || u || r || i || mp || ad;
+                        var pm = _this.percent_matching.hasWarning();
+                        return c || m || u || r || i || mp || ad || pm;
                     }
                     catch (e) {
                         return true;

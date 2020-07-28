@@ -156,7 +156,7 @@ define(["require", "exports", "../XLSXOps/XLSXReader", "./ServiceAgent", "./Requ
                 var qa = element.hasOwnProperty(this.sheetDirectory["Quality Assurance"]) ? this.getQualityAssuranceList(element[this.sheetDirectory["Quality Assurance"]]) : [];
                 ;
                 var i = element.hasOwnProperty(this.sheetDirectory["Isotope Flag *"]) ? this.getIsotopeByName(String(element[this.sheetDirectory["Isotope Flag *"]])) : null;
-                var result = new Result(c, m, u, vFinal, ddl, mp, dt, comment, i, qa, cmethods, pm);
+                var result = new Result(c, m, u, vFinal, ddl, pm, mp, dt, comment, i, qa, cmethods);
                 return result;
             }
             catch (e) {
