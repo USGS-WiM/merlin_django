@@ -1419,6 +1419,49 @@ def blankwaters_delete(request):
     return HttpResponse(r)
 
 
+def balanceverifications(request):
+    if not request.session.get('username'):
+        return HttpResponseRedirect('/merlin/')
+    r = http_get(request, 'balanceverifications')
+    data = json.dumps(r.json(), sort_keys=True)
+    context_dict = {'data': data}
+    return render(request,'merlin/balanceverifications.html', context_dict)
+
+
+def balanceverifications_update(request):
+    data = json.loads(request.body.decode('utf-8'))
+    response_data = []
+    # using a loop to send data to the single PUT endpoint instead of just using the bulk PUT endpoint
+    # because the bulk PUT response time has been over 30 seconds, sometimes several minutes
+    item_number = 0
+    for item in data:
+        item_number += 1
+        this_id = item.pop("id")
+        item = json.dumps(item)
+        logger.info("Item #" + str(item_number) + ": " + item)
+        r = http_put(request, 'balanceverifications/'+str(this_id), item)
+        logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
+        this_response_data = r.json()
+        response_data.append(this_response_data)
+    response_data = json.dumps(response_data)
+    return HttpResponse(response_data, content_type='application/json')
+
+
+def balanceverifications_create(request):
+    data = request.body
+    r = http_post(request, 'bulkbalanceverifications', data)
+    logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
+    return HttpResponse(r, content_type='application/json')
+
+
+def balanceverifications_delete(request):
+    data = json.loads(request.body.decode('utf-8'))
+    this_id = data.pop("id")
+    r = http_delete(request, 'balanceverifications/' + str(this_id))
+    logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
+    return HttpResponse(r)
+
+
 def acids(request):
     if not request.session.get('username'):
         return HttpResponseRedirect('/merlin/')

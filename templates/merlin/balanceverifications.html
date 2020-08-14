@@ -1,0 +1,551 @@
+{% extends 'merlin/base.html' %}
+{% block body_block %}
+
+    <div id="loading_overlay"></div>
+    <div style="padding:10px">
+
+        <p>
+            <button type="button" class="btn btn-default" name="add">Add New Balance Verification</button>
+        </p>
+        <div id="form_add" class="panel-default" style="display:none;">
+            <h3>Create Balance Verification</h3>
+            <form class="form-inline" style="border:1px solid;width:1000px;padding:4px;">
+                <div class="form-group" style="padding:2px;text-align:center">
+                    <label for="balance">Balance Serial Number</label><br />
+                    <input class="input-block-level" name="balance" type="text" style="width:400px">
+                </div>
+                <div class="form-group" style="padding:2px;text-align:center">
+                    <label for="analyst">Analyst</label><br />
+                    <input class="input-block-level" name="analyst" type="number">
+                </div>
+                <div class="form-group" style="padding:2px;text-align:center">
+                    <label for="verification_date">Date</label><br />
+                    <input class="input-block-level" name="verification_date" id="verification_date">
+                </div>
+                <div class="form-group" style="padding:2px;text-align:center">
+                    <label for="verification_time">Time</label><br />
+                    <input class="input-block-level" name="verification_time" id="verification_time">
+                </div>
+                <div class="form-group" style="padding:2px;text-align:center">
+                    <label for="weight_tested">Weight Tested</label><br />
+                    <input class="input-block-level" name="weight_tested" id="weight_tested">
+                </div>
+                <div class="form-group" style="padding:2px;text-align:center">
+                    <label for="weight_as_found">Weight as Found</label><br />
+                    <input class="input-block-level" name="weight_as_found" id="weight_as_found">
+                </div>
+                <div class="form-group" style="padding:2px;text-align:center">
+                    <label for="deviation">Deviation</label><br />
+                    <input class="input-block-level" name="deviation" id="deviation">
+                </div>
+                <div class="form-group" style="padding:2px;text-align:center">
+                    <label for="percent_deviation">% Deviation</label><br />
+                    <input class="input-block-level" name="percent_deviation" id="percent_deviation">
+                </div>
+                <div class="form-group" style="padding:2px;text-align:center">
+                    <label for="final_reading">Final Reading</label><br />
+                    <input class="input-block-level" name="final_reading" id="final_reading">
+                </div>
+                <div class="form-group" style="padding:2px;text-align:center">
+                    <label for="comment">Comment</label><br />
+                    <input class="input-block-level" name="comment" type="text" style="width:960px">
+                </div>
+            </form>
+            <br />
+            <button type="button" class="btn btn-primary" data-loading-text="Saving..." name="addSave">Save</button>
+        </div>
+        <br />
+        <pre id="grid_console" class="console" style="width:600px"></pre>
+        <p><input id="select_field" type="hidden" placeholder="Filter by serial number." style="width:600px"/></p>
+        <p>
+            <div class="select2-container select2-container-multi" style="width:600px">
+                <ul class="select2-choices">
+                    <li class="select2-search-field">
+                        <label class="select2-offscreen"></label>
+                        <input id="search_field" type="search" placeholder="Highlight in table." class="select2-input select2-default" style="width:393px;height:30px;font-size:14px;"/>
+                    </li>
+                </ul>
+            </div>
+        <!-- <p><input id="search_field" type="search" placeholder="Highlight in table." style="width:600px; border:1px solid darkgray; height:42px"/></p> -->
+        <br /><br />
+        <p>
+            {% if request.session.is_staff %}
+            <button type="button" class="btn btn-warning" data-loading-text="Saving..." name="save">Save</button>
+            <button type="button" class="btn btn-danger" data-loading-text="Deleting..." name="delete">Delete Row</button>
+            {% endif %}
+            <button type="button" class="btn btn-default" data-loading-text="Reloading..." name="load">Reload Table</button>
+            <button type="button" class="btn btn-default" data-loading-text="Getting Previous..." name="prev">Previous Page</button>
+            <button type="button" class="btn btn-default" data-loading-text="Getting Next..." name="next">Next Page</button>
+            <span id="page"></span>
+        </p>
+        <div id="grid" data-data="{{ data }}" ></div>
+
+		<script>
+            $(document).ready(function() {
+
+				var loading_overlay = $('#loading_overlay');
+				loading_overlay.hide();
+
+                var csrftoken = $.cookie('csrftoken');
+                function csrfSafeMethod(method) {
+                    // these HTTP methods do not require CSRF protection
+                    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+                }
+                $.ajaxSetup({
+                    beforeSend: function(xhr, settings) {
+                        if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                        }
+                    }
+                });
+
+                function calculateDeviation() {
+                    var d = $('#deviation');
+                    var deviation = null;
+                    var weight_tested = $('#weight_tested').val();
+                    var weight_as_found = $('#weight_as_found').val();
+                    if (weight_tested !== null && weight_tested !== "" && weight_as_found !== null && weight_as_found !== "") {
+                        deviation = (weight_tested - weight_as_found).toFixed(5);
+                    }
+                    d.val(deviation);
+                }
+
+                function calculatePercentDeviation() {
+                    var pd = $('#percent_deviation');
+                    var percent_deviation = null;
+                    var weight_tested = $('#weight_tested').val();
+                    var weight_as_found = $('#weight_as_found').val();
+                    if (weight_tested !== null && weight_tested !== "" && weight_as_found !== null && weight_as_found !== "") {
+                        percent_deviation = Math.ceil((weight_as_found / weight_tested) * 100);
+                        console.log(percent_deviation);
+                        if (percent_deviation >= 105 || percent_deviation <= 95) {
+                            console.log('true');
+                            pd.css("background-color", "orange");
+                        }
+                    }
+                    pd.val(percent_deviation);
+                }
+
+                $('#weight_tested, #weight_as_found').change(calculateDeviationValues);
+
+                function calculateDeviationValues() {
+                    calculateDeviation();
+                    calculatePercentDeviation();
+                }
+
+                // TODO: figure out how to make deviation and percent_deviation calculated fields
+                var validatePercentDeviation = function(value, callback) {
+                    if (value >= 105 || value <= 95) {callback(true);}
+                    else {callback(false);}
+                };
+
+                var validTable = false;
+                var dateToday = new Date(); //toISOString().split("T")[0];
+                var objectFields = ["id", "balance", "analyst", "verification_date", "verification_time", "weight_tested", "weight_as_found", "deviation", "percent_deviation", "final_reading", "comment"];
+                var currentPage = 1;
+                var addClicked = false;
+                var grid = $('#grid');
+                var data_data = JSON.parse(grid.attr("data-data"));
+                var resultPages = Math.ceil(data_data['count'] / 100);
+                var grid_console = $("#grid_console");
+                var changedRowIndices = [];
+                var selectionRowIndices = [];
+                grid_console.text('Loading data.');
+                grid.handsontable({
+                    data: data_data.results,
+                    manualColumnResize: true,
+                    manualRowResize: true,
+                    invalidCellClassName: 'customHtInvalid',
+                    search: {searchResultClass: 'customHtSearchResult'},
+                    fillHandle: {
+                        autoInsertRow: false
+                    },
+                    columns: [
+                        {title: "ID", data: "id", readOnly: true, width: 1},
+                        {title: "Balance Serial Number", data: "balance", width: 160},
+                        {title: "Analyst", data: "analyst", width: 80},
+                        {title: "Date", data: "verification_date", width: 100, dateFormat: 'MM/DD/YY', datePickerConfig: {maxDate: new Date()}},
+                        {title: 'Time', data: "verification_time",  width: 60, type: 'numeric'},
+                        {title: 'Weight Tested', data: "weight_tested", width: 120, type: 'numeric', format: '0.00000'},
+                        {title: 'Weight as Found', data: "weight_as_found", width: 120, type: 'numeric', format: '0.00000'},
+                        {title: 'Deviation', data: "deviation", width: 120, type: 'numeric', format: '0.00000'},
+                        {title: '% Deviation', data: "percent_deviation", width: 120, type: 'numeric', validator: validatePercentDeviation},
+                        {title: 'Final Reading', data: "final_reading", width: 120, type: 'numeric', format: '0.00000'},
+                        {title: "Comment", data: "comment", width: 400}
+                    ],
+                    columnSorting: true,
+                    beforeChange: function(changes, source) {
+                         // "changes" is a 2D array containing information about each of the edited cells [ [row, col, oldVal, newVal], [row, col, oldVal, newVal], ... ].
+                        // "source" is one of the following strings: "alter", "empty", "edit", "populateFromArray", "loadData", "autofill", "paste".
+
+                        // get index of changed row
+                        var changedRow = changes[0][0];
+
+                        // remember the indices of all changed rows
+                        if (typeof source !== 'undefined') {
+                            // for all changed cells, get the changed rows
+                            for (var i = 0; i < changes.length; i++) {
+                                // get the row of this cell
+                                var thisRow = changes[i][0];
+                                // find index of this row in the changed rows array
+                                var changedRowIndex = changedRowIndices.indexOf(thisRow);
+                                // if not in the array (index == -1), add it to the array, otherwise ignore
+                                if (changedRowIndex == -1) {
+                                    changedRowIndices.push(thisRow);
+                                }
+                            }
+                        }
+                    },
+                    // get list of selected rows
+                    afterSelectionEnd: function(r, c, r2, c2) {
+                        // clear the array
+                        selectionRowIndices.length = 0;
+                        // add the beginning and ending indices
+                        selectionRowIndices[0] = r;
+                        selectionRowIndices[1] = r2;
+                    }
+                });
+                //grid.data('handsontable').sort(0);
+                $('#page').html("Page " + currentPage + " of " + resultPages);
+                grid_console.text('Data loaded.');
+
+                var verification_date = new Pikaday({
+                    field: $('#verification_date')[0],
+                    format: 'MM/DD/YY',
+                    maxDate: new Date()
+                });
+
+                var form_add = $("#form_add");
+                form_add.find('button[name=addSave]').click(function() {
+                    var button_state = $(this).button('loading');
+                    loading_overlay.show();
+                    var thisDataObject = {};
+                    thisDataObject['balance'] = form_add.find('input[name=lot_number]').val();
+                    thisDataObject['analyst'] = Number(form_add.find('input[name=analyst]').val());
+                    thisDataObject['verification_date'] = Number(form_add.find('input[name=verification_date]').val());
+                    thisDataObject['verification_time'] = Number(form_add.find('input[name=verification_time]').val());
+                    thisDataObject['weight_tested'] = Number(form_add.find('input[name=weight_tested]').val());
+                    thisDataObject['weight_as_found'] = Number(form_add.find('input[name=weight_as_found]').val());
+                    thisDataObject['deviation'] = Number(form_add.find('input[name=deviation]').val());
+                    thisDataObject['percent_deviation'] = Number(form_add.find('input[name=percent_deviation]').val());
+                    thisDataObject['final_reading'] = Number(form_add.find('input[name=final_reading]').val());
+                    thisDataObject['comment'] = form_add.find('input[name=comment]').val();
+                    if (thisDataObject['comment'] == null) {thisDataObject['comment'] = "";}
+                    var baddate = form_add.find('input[name=verification_date]').val();
+                    if (dateRegEx.test(baddate)) {
+                        if (makeYear(baddate)!= null && makeMonth(baddate)!= null && makeDay(baddate) != null) {
+                            var gooddate_string = makeYear(baddate) + "-" + makeMonth(baddate) + "-" + makeDay(baddate);
+                            var gooddate = new Date(makeYear(baddate), makeMonth(baddate)-1, makeDay(baddate));
+                            if (gooddate > dateToday) {
+                                {grid_console.text('Date cannot be a future date!'); button_state.button('reset'); return false;}
+                            }
+                            thisDataObject['verification_date'] = gooddate_string;
+                        }
+                        else {grid_console.text('There is a problem with the Date. Please contact the administrator.'); loading_overlay.hide(); button_state.button('reset'); return false;}
+                    }
+                    else {grid_console.text('Date is badly formed. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); loading_overlay.hide(); button_state.button('reset'); return false;}
+                    var dataJSON = JSON.stringify(thisDataObject);
+                    $.ajax({
+                        url: "{% url 'merlin:balanceverifications_create' %}",
+                        data: dataJSON,
+                        dataType: 'json',
+                        contentType: "application/json",
+                        type: 'POST',
+                        success: function (data, textStatus, jqXHRequest) {
+                            var content_type = jqXHRequest.getResponseHeader("content-type");
+                            // if the content-type is plain text, then it's a custom message from our Django view
+                            if (content_type.indexOf('text') > -1) {
+                                grid_console.text(data);
+                                loading_overlay.hide();
+                                button_state.button('reset');
+                            }
+                            // otherwise, it's JSON from the REST Services
+                            else if (jqXHRequest.status === 200) {
+                                $(":input", "#form_add").not(":button").val("");
+                                grid.parent().find('button[name=add]').click();
+                                grid.parent().find('button[name=load]').click();
+                                grid_console.text(textStatus+': Data saved.');
+                                loading_overlay.hide();
+                                button_state.button('reset');
+                            }
+                            else {
+                                grid_console.text(textStatus+': Save error: '+jqXHRequest.statusText+', code: '+jqXHRequest.status+'.');
+                                loading_overlay.hide();
+                                button_state.button('reset');
+                            }
+                        },
+                        error: function (jqXHRequest, textStatus, errorThrown) {
+                            grid_console.text(errorThrown + ": " + textStatus);
+                            loading_overlay.hide();
+                            button_state.button('reset');
+                        }
+                    });
+                });
+
+                $('#search_field').on('keyup', function (event) {
+                    grid.handsontable('getInstance').search.query(this.value);
+                    grid.handsontable('getInstance').render();
+                });
+
+                $("#select_field").select2({
+                    multiple: true,
+                    maximumSelectionSize: 1,
+                    dropdownCss:{display:'none'},
+                    //minimumResultsForSearch: -1,
+                    //allowClear: true,
+                    minimumInputLength: 1,
+                    ajax: {
+                        url: '/merlinservices/balanceverifications/',
+                        dataType: 'json',
+                        data: function (term, page) {
+                            return {
+                                lot_number: term
+                            };
+                        },
+                        results: function (data, page) {
+                            data_data = data;
+                            grid.data('handsontable').loadData(data_data.results);
+                            grid_console.text('Filtered data loaded.');
+                            return {results: data.results};
+                        }
+                    },
+                    /*sortResults: function(results, container, query) {
+                        return results.sort(function (a, b) {
+                            return a - b;
+                        }); //sort by ID, numerically ascending
+                    },*/
+                    formatResult: formatSelect2,
+                    formatSelection: formatSelect2
+                });
+
+                function formatSelect2(data) {
+                    return data.lot_number;
+                }
+
+                function clearChangedRowIndices() {
+                    changedRowIndices.length = 0;
+                }
+
+                grid.parent().find('button[name=load]').click(function () {
+                    var button_state = $(this).button('loading');
+                    loading_overlay.show();
+                    $.ajax({
+                        url: '/merlinservices/balanceverifications/?page='+currentPage,
+                        dataType: 'json',
+                        success: function (response) {
+                            grid_console.text("success");
+                            data_data = response;
+                            grid.data('handsontable').loadData(data_data.results);
+                            $('#page').html("Page " + currentPage + " of " + resultPages);
+                            grid_console.text('Page '+ currentPage +' data reloaded.');
+                            loading_overlay.hide();
+                            button_state.button('reset');
+                        },
+                        error: function (jqXHRequest, textStatus, errorThrown) {
+                            grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve page to reload.");
+                            loading_overlay.hide();
+                            button_state.button('reset');
+                        }
+                    });
+                    clearChangedRowIndices();
+                });
+
+                grid.parent().find('button[name=next]').click(function () {
+                    var button_state = $(this).button('loading');
+                    loading_overlay.show();
+                    if (currentPage != resultPages) {
+                        $.ajax({
+                            url: data_data.next,
+                            dataType: 'json',
+                            success: function (response) {
+                                grid_console.text("success");
+                                data_data = response;
+                                grid.data('handsontable').loadData(data_data.results);
+                                currentPage++;
+                                $('#page').html("Page " + currentPage + " of " + resultPages);
+                                grid_console.text('Page ' + currentPage + ' of ' + resultPages + ' loaded.');
+                                loading_overlay.hide();
+                                button_state.button('reset');
+                            },
+                            error: function (jqXHRequest, textStatus, errorThrown) {
+                                grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve next page.");
+                                loading_overlay.hide();
+                                button_state.button('reset');
+                            }
+                        });
+                    }
+                    else {
+                        grid_console.text("End of results, there are no pages after Page " + resultPages + ".");
+                        loading_overlay.hide();
+                        button_state.button('reset');
+                    }
+                    clearChangedRowIndices();
+                });
+
+                grid.parent().find('button[name=prev]').click(function () {
+                    var button_state = $(this).button('loading');
+                    loading_overlay.show();
+                    if (currentPage != 1) {
+                        $.ajax({
+                            url: data_data.previous,
+                            dataType: 'json',
+                            success: function (response) {
+                                grid_console.text("success");
+                                data_data = response;
+                                grid.data('handsontable').loadData(data_data.results);
+                                currentPage--;
+                                $('#page').html("Page " + currentPage + " of " + resultPages);
+                                grid_console.text('Page ' + currentPage + ' of ' + resultPages + ' loaded.');
+                                loading_overlay.hide();
+                                button_state.button('reset');
+                            },
+                            error: function (jqXHRequest, textStatus, errorThrown) {
+                                grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve previous page.");
+                                loading_overlay.hide();
+                                button_state.button('reset');
+                            }
+                        });
+                    }
+                    else {
+                        grid_console.text("There are no pages before Page 1.");
+                        loading_overlay.hide();
+                        button_state.button('reset');
+                    }
+                    clearChangedRowIndices();
+                });
+
+                grid.parent().find('button[name=add]').click(function () {
+                    if (addClicked) {
+                        addClicked = false;
+                        $("#form_add").hide();
+                    }
+                    else {
+                        addClicked = true;
+                        $("#form_add").show();
+                    }
+                });
+
+                grid.parent().find('button[name=delete]').click(function () {
+                    var button_state = $(this).button('loading');
+                    loading_overlay.show();
+                    if (typeof selectionRowIndices[0] == 'undefined') {grid_console.text('There are no selected rows to delete!'); loading_overlay.hide(); button_state.button('reset'); return false;}
+                    var thisDataRow = grid.data('handsontable').getDataAtRow(selectionRowIndices[0]);
+                    var thisDataObject = {"id": thisDataRow[0]};
+                    var changedDataJSON = JSON.stringify(thisDataObject);
+                    $.ajax({
+                        url: "{% url 'merlin:balanceverifications_delete' %}",
+                        data: changedDataJSON,
+                        type: 'POST',
+                        success: function (data, textStatus, jqXHRequest) {
+                            var content_type = jqXHRequest.getResponseHeader("content-type");
+                            if (jqXHRequest.status === 200) {
+                                grid.parent().find('button[name=load]').click();
+                                grid_console.text('Data deleted.');
+                                loading_overlay.hide();
+                                button_state.button('reset');
+                            }
+                            else {
+                                grid.parent().find('button[name=load]').click();
+                                grid_console.text(textStatus + ': Delete error: ' + jqXHRequest.statusText + ', code: ' + jqXHRequest.status + '.');
+                                loading_overlay.hide();
+                                button_state.button('reset');
+                            }
+                        },
+                        error: function (jqXHRequest, textStatus, errorThrown) {
+                            grid_console.text(errorThrown + ": " + textStatus);
+                            loading_overlay.hide();
+                            button_state.button('reset');
+                        }
+                    });
+                    // clear list of selected rows
+                    selectionRowIndices.length = 0;
+                });
+
+                grid.parent().find('button[name=save]').click(function () {
+                    var button_state = $(this).button('loading');
+                    loading_overlay.show();
+                    var changedDataArray = [];
+                    // if there are no changed rows, notify the user and stop the submission
+                    if (typeof changedRowIndices == 'undefined' || changedRowIndices.length < 1) {grid_console.text('There are no changed rows to save!!'); validTable = false; loading_overlay.hide(); button_state.button('reset'); return false;}
+                    // otherwise loop through all changed rows
+                    $.each(changedRowIndices, function(index, value) {
+                        var thisDataRow = grid.data('handsontable').getDataAtRow(value);
+                        var thisDataObject = {};
+                        for (var i = 0; i < thisDataRow.length; i++) {
+                            if (objectFields[i] == "weight_tested") {thisDataObject[objectFields[i]] = Number(thisDataRow[i]);}
+                            if (objectFields[i] == "weight_as_found") {thisDataObject[objectFields[i]] = Number(thisDataRow[i]);}
+                            if (objectFields[i] == "deviation") {thisDataObject[objectFields[i]] = Number(thisDataRow[i]);}
+                            if (objectFields[i] == "percent_deviation") {thisDataObject[objectFields[i]] = Number(thisDataRow[i]);}
+                            if (objectFields[i] == "final_reading") {thisDataObject[objectFields[i]] = Number(thisDataRow[i]);}
+                            else if (objectFields[i] == 'verification_date') {
+                                var baddate = thisDataRow[i];
+                                if (dateRegEx.test(baddate)) {
+                                    if (makeYear(baddate)!= null && makeMonth(baddate)!= null && makeDay(baddate) != null) {
+                                        var gooddate_string = makeYear(baddate) + "-" + makeMonth(baddate) + "-" + makeDay(baddate);
+                                        var gooddate = new Date(makeYear(baddate), makeMonth(baddate)-1, makeDay(baddate));
+                                        if (gooddate > dateToday) {
+                                            {grid_console.text('Date cannot be a future date!'); validTable = false; loading_overlay.hide(); button_state.button('reset'); return false;}
+                                        }
+                                        thisDataObject[objectFields[i]] = gooddate_string;
+                                    }
+                                    else {grid_console.text('There is a problem with the Date in row ' + (index + 1) + '. Please contact the administrator.'); validTable = false; loading_overlay.hide(); button_state.button('reset'); return false;}
+                                }
+                                else {grid_console.text('Date is badly formed in row ' + (index + 1) + '. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); validTable = false; loading_overlay.hide(); button_state.button('reset'); return false;}
+                            }
+                            else if (objectFields[i] == "comment") {
+                                if (thisDataRow[i] == null) {
+                                    thisDataRow[i] = "";
+                                }
+                                thisDataObject[objectFields[i]] = thisDataRow[i];
+                            }
+                            else {thisDataObject[objectFields[i]] = thisDataRow[i];}
+                        }
+                        changedDataArray.push(thisDataObject);
+                        // if we made it through the various validations above, then the table must be valid
+                        validTable = true;
+                    });
+                    // if table is valid, submit the POST request, otherwise skip it (implying table is invalid)
+                    if(validTable) {
+                        var changedDataJSON = JSON.stringify(changedDataArray);
+                        $.ajax({
+                            url: "{% url 'merlin:balanceverifications_update' %}",
+                            data: changedDataJSON,
+                            dataType: 'json',
+                            contentType: "application/json",
+                            type: 'POST',
+                            success: function (data, textStatus, jqXHRequest) {
+                                var content_type = jqXHRequest.getResponseHeader("content-type");
+                                // if the content-type is plain text, then it's a custom message from our Django view
+                                if (content_type.indexOf('text') > -1) {
+                                    grid_console.text(data);
+                                    loading_overlay.hide();
+                                    button_state.button('reset');
+                                }
+                                // otherwise, it's JSON from the REST Services
+                                else if (jqXHRequest.status === 200) {
+                                    grid_console.text(textStatus + ': Data saved.');
+                                    loading_overlay.hide();
+                                    button_state.button('reset');
+                                }
+                                else {
+                                    grid_console.text(textStatus + ': Save error: ' + jqXHRequest.statusText + ', code: ' + jqXHRequest.status + '.');
+                                    loading_overlay.hide();
+                                    button_state.button('reset');
+                                }
+                            },
+                            error: function (jqXHRequest, textStatus, errorThrown) {
+                                grid_console.text(errorThrown + ": " + textStatus);
+                                loading_overlay.hide();
+                                button_state.button('reset');
+                            }
+                        });
+                    }
+                    clearChangedRowIndices();
+                });
+
+            });
+        </script>
+
+    </div>
+
+{% endblock %}

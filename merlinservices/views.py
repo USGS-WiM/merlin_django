@@ -1029,6 +1029,30 @@ class ResultDataFileViewSet(viewsets.ModelViewSet):
     serializer_class = ResultDataFileSerializer
 
 
+class BalanceVerificationBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
+    queryset = BalanceVerification.objects.all()
+    serializer_class = BalanceVerificationSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+
+
+class BalanceVerificationViewSet(viewsets.ModelViewSet):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    queryset = BalanceVerification.objects.all()
+    serializer_class = BalanceVerificationSerializer
+
+
+class EquipmentViewSet(viewsets.ModelViewSet):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    queryset = Equipment.objects.all()
+    serializer_class = EquipmentSerializer
+
+
+class EquipmentTypeViewSet(viewsets.ModelViewSet):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    queryset = EquipmentType.objects.all()
+    serializer_class = EquipmentTypeSerializer
+
+
 ######
 #
 # Solution

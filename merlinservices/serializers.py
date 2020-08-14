@@ -310,6 +310,33 @@ class ResultDataFileSerializer(serializers.ModelSerializer, BulkSerializerMixin)
         fields = ('id', 'name', 'file',)
 
 
+class BalanceVerificationSerializer(serializers.ModelSerializer, BulkSerializerMixin):
+    balance_string = serializers.StringRelatedField(source='balance')
+    analyst_string = serializers.StringRelatedField(source='analyst.username')
+
+    class Meta:
+        list_serializer_class = BulkListSerializer
+        model = BalanceVerification
+        fields = ('id', 'balance', 'balance_string', 'analyst', 'analyst_string', 'verification_date', 'verification_time', 'weight_tested', 'weight_as_found', 'deviation', 'percent_deviation', 'final_reading', 'comment')
+
+
+class EquipmentSerializer(serializers.ModelSerializer, BulkSerializerMixin):
+    type_string = serializers.StringRelatedField(source='type')
+
+    class Meta:
+        list_serializer_class = BulkListSerializer
+        model = Equipment
+        fields = ('id', 'serial_number', 'type', 'type_string', 'description', 'location',)
+
+
+class EquipmentTypeSerializer(serializers.ModelSerializer, BulkSerializerMixin):
+
+    class Meta:
+        list_serializer_class = BulkListSerializer
+        model = EquipmentType
+        fields = ('id', 'name', 'description',)
+
+
 ######
 #
 # Solution
