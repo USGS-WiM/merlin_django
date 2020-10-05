@@ -1,4 +1,5 @@
 from datetime import datetime
+from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -413,9 +414,10 @@ class QualityAssuranceType(models.Model):
 class BalanceVerification(models.Model):
     """Verification data for the lab balance equipment."""
 
-    balance = models.ForeignKey('Equipment', on_delete=models.CASCADE, limit_choices_to={'type': 'balance'},
+    balance = models.ForeignKey('Equipment', on_delete=models.CASCADE, limit_choices_to={'type': 1},
                                 related_name='balance_verifications')
-    analyst = models.ForeignKey('UserProfile', on_delete=models.PROTECT, related_name='balance_verifications')
+    analyst = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT,
+                                related_name='balance_verifications')
     verification_date = models.DateField(null=True, blank=True)
     verification_time = models.TimeField(null=True, blank=True)
     weight_tested = models.FloatField(null=True, blank=True)

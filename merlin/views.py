@@ -1424,8 +1424,10 @@ def balanceverifications(request):
         return HttpResponseRedirect('/merlin/')
     r = http_get(request, 'balanceverifications')
     data = json.dumps(r.json(), sort_keys=True)
-    context_dict = {'data': data}
-    return render(request,'merlin/balanceverifications.html', context_dict)
+    balances = json.dumps(http_get(request, 'equipment', {'type': 1}).json(), sort_keys=True)
+    analysts = json.dumps(http_get(request, 'users').json())
+    context_dict = {'data': data, 'balances': balances, 'analysts': analysts}
+    return render(request, 'merlin/balanceverifications.html', context_dict)
 
 
 def balanceverifications_update(request):

@@ -317,7 +317,9 @@ class BalanceVerificationSerializer(serializers.ModelSerializer, BulkSerializerM
     class Meta:
         list_serializer_class = BulkListSerializer
         model = BalanceVerification
-        fields = ('id', 'balance', 'balance_string', 'analyst', 'analyst_string', 'verification_date', 'verification_time', 'weight_tested', 'weight_as_found', 'deviation', 'percent_deviation', 'final_reading', 'comment')
+        fields = ('id', 'balance', 'balance_string', 'analyst', 'analyst_string', 'verification_date',
+                  'verification_time', 'weight_tested', 'weight_as_found', 'deviation', 'percent_deviation',
+                  'final_reading', 'comment')
 
 
 class EquipmentSerializer(serializers.ModelSerializer, BulkSerializerMixin):
@@ -391,8 +393,7 @@ class UserSerializer(serializers.ModelSerializer, BulkSerializerMixin):
     class Meta:
         list_serializer_class = BulkListSerializer
         model = User
-        fields = ('id', 'username', 'first_name', 'last_name', 'email',
-                  'groups', 'user_permissions', 'is_superuser', 'is_staff', 'is_active')
+        fields = ('id', 'username', 'first_name', 'last_name', 'email', 'is_staff', 'is_active')
 
 
 ######
