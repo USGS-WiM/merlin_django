@@ -313,6 +313,8 @@ class ResultDataFileSerializer(serializers.ModelSerializer, BulkSerializerMixin)
 class BalanceVerificationSerializer(serializers.ModelSerializer, BulkSerializerMixin):
     balance_string = serializers.StringRelatedField(source='balance')
     analyst_string = serializers.StringRelatedField(source='analyst.username')
+    verification_date = serializers.DateField(format='%m/%d/%y', input_formats=['%Y-%m-%d'])
+    verification_time = serializers.TimeField(format='%H%M')
 
     class Meta:
         list_serializer_class = BulkListSerializer

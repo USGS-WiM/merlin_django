@@ -101,6 +101,30 @@
 
                 var validTable = false;
                 var dateToday = new Date(); //toISOString().split("T")[0];
+                var validateTime = function(value, callback) {
+                    // convert the string to number to allow math operations; also trims off leading zeroes
+                    value = Number(value);
+                    switch (value.toString().length) {
+                        case 2: // between 12:09am and 1:00am (00:xx)
+                            // minutes must be less than 60
+                            if(value < 60){callback(true);}
+                            else {callback(false);}
+                            break;
+                        case 3: // between 1am and 10am (1:xx thru 9:xx)
+                            // convert to string to extract the minutes, then convert back to number to test if less than 60 (all single digit hours (1 thru 9) are allowed and thus not tested)
+                            if(Number(value.toString().substring(1,3)) < 60){callback(true);}
+                            else {callback(false);}
+                            break;
+                        case 4: // after 10am (10:xx thru xx:xx)
+                            // convert to string to separately extract hours and minutes, then convert back to number to test if less than 24 and 60, respectively
+                            if(Number(value.toString().substring(0,2)) < 24 && Number(value.toString().substring(2,4)) < 60){callback(true);}
+                            else {callback(false);}
+                            break;
+                        default: // any other cases (1 digit, 00:00 thru 00:09) are allowed; column is already limited to 4 digits in the constructor, so no need to test for cases of 5 or more digits
+                            {callback(true);}
+                            break;
+                    }
+                };
                 var objectFields = ["id", "balance", "balance_string", "analyst", "analyst_string", "verification_date", "verification_time", "weight_tested", "weight_as_found", "deviation", "percent_deviation", "final_reading", "comment"];
                 var currentPage = 1;
                 var addClicked = false;
@@ -131,13 +155,13 @@
                         {title: "Analyst", data: "analyst_string", width: 80, type: 'autocomplete', strict: true,
                             source: function (query, process) {getValuesAjax('/merlinservices/users/', 'username',
                                 query, process, ('user=' + grid.handsontable('getInstance').getDataAtCell(selectionRowIndices[0], 3)))}},
-                        {title: "Date", data: "verification_date", width: 100, dateFormat: 'MM/DD/YY', datePickerConfig: {maxDate: new Date()}},
-                        {title: 'Time', data: "verification_time",  width: 60, type: 'numeric'},
-                        {title: 'Weight Tested', data: "weight_tested", width: 120, type: 'numeric', format: '0.00000'},
-                        {title: 'Weight as Found', data: "weight_as_found", width: 120, type: 'numeric', format: '0.00000'},
-                        {title: 'Deviation', data: "deviation", width: 120, type: 'numeric', format: '0.00000'},
+                        {title: "Date", data: "verification_date", width: 100, type: 'date', dateFormat: 'MM/DD/YY', datePickerConfig: {maxDate: new Date()}},
+                        {title: 'Time', data: "verification_time",  width: 60, type: 'numeric', validator: validateTime},
+                        {title: 'Weight Tested', data: "weight_tested", width: 120, type: 'numeric', numericFormat: {pattern: '0.00000', culture: 'en-US'}},
+                        {title: 'Weight as Found', data: "weight_as_found", width: 120, type: 'numeric', numericFormat: {pattern: '0.00000', culture: 'en-US'}},
+                        {title: 'Deviation', data: "deviation", width: 120, type: 'numeric', numericFormat: {pattern: '0.00000', culture: 'en-US'}},
                         {title: '% Deviation', data: "percent_deviation", width: 120, type: 'numeric', validator: validatePercentDeviation},
-                        {title: 'Final Reading', data: "final_reading", width: 120, type: 'numeric', format: '0.00000'},
+                        {title: 'Final Reading', data: "final_reading", width: 120, type: 'numeric', numericFormat: {pattern: '0.00000', culture: 'en-US'}},
                         {title: "Comment", data: "comment", width: 400}
                     ],
                     columnSorting: true,
@@ -170,18 +194,18 @@
                         // update dependent columns when a value in a parent column is changed
                         if (source == 'edit' || source == 'CopyPaste.paste') {
                             // when weight_tested or weight_as_found is changed
-                            if ((changedCol == 5 || changedCol == 6)) {
+                            if ((changedCol == 'weight_tested' || changedCol == 'weight_as_found')) {
                                 // update deviation and percent_deviation
                                 var deviation = null;
                                 var percent_deviation = null;
-                                weight_tested = grid.handsontable('getDataAtCell', changedRow, 5);
-                                weight_as_found = grid.handsontable('getDataAtCell', changedRow, 6);
+                                weight_tested = grid.handsontable('getDataAtCell', changedRow, 7);
+                                weight_as_found = grid.handsontable('getDataAtCell', changedRow, 8);
                                 if ((weight_tested !== null && weight_tested !== "" && !isNaN(weight_tested)) && (weight_as_found !== null && weight_as_found !== "" && !isNaN(weight_as_found))) {
                                     deviation = (weight_tested - weight_as_found).toFixed(5);
                                     percent_deviation = Math.ceil((weight_as_found / weight_tested) * 100);
                                 }
-                                grid.handsontable('setDataAtCell', changedRow, 7, deviation);
-                                grid.handsontable('setDataAtCell', changedRow, 8, percent_deviation);
+                                grid.handsontable('setDataAtCell', changedRow, 9, deviation);
+                                grid.handsontable('setDataAtCell', changedRow, 10, percent_deviation);
                             }
                         }
                     },
@@ -209,10 +233,8 @@
                     var button_state = $(this).button('loading');
                     loading_overlay.show();
                     var thisDataObject = {};
-                    thisDataObject['balance'] = form_add.find('input[name=balance]').val();
-                    thisDataObject['analyst'] = Number(form_add.find('input[name=analyst]').val());
-                    thisDataObject['verification_date'] = Number(form_add.find('input[name=verification_date]').val());
-                    thisDataObject['verification_time'] = Number(form_add.find('input[name=verification_time]').val());
+                    thisDataObject['balance'] = Number(balance.val());
+                    thisDataObject['analyst'] = Number(analyst.val());
                     thisDataObject['weight_tested'] = Number(form_add.find('input[name=weight_tested]').val());
                     thisDataObject['weight_as_found'] = Number(form_add.find('input[name=weight_as_found]').val());
                     thisDataObject['deviation'] = Number(form_add.find('input[name=deviation]').val());
@@ -233,6 +255,31 @@
                         else {grid_console.text('There is a problem with the Date. Please contact the administrator.'); loading_overlay.hide(); button_state.button('reset'); return false;}
                     }
                     else {grid_console.text('Date is badly formed. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); loading_overlay.hide(); button_state.button('reset'); return false;}
+                    var verification_time = form_add.find('input[name=verification_time]').val();
+                    if (timeRegEx.test(verification_time)) {
+                        var changedVal = verification_time.toString();
+                        var newValue;
+                        switch (changedVal.length) {
+                            case 1:
+                                newValue = "00:0" + changedVal;
+                                break;
+                            case 2:
+                                newValue = "00:" + changedVal;
+                                break;
+                            case 3:
+                                newValue = "0" + changedVal.substring(0, 1) + ":" + changedVal.substring(1);
+                                break;
+                            case 4:
+                                newValue = changedVal.substring(0, 2) + ":" + changedVal.substring(2);
+                                break;
+                            default:
+                                // user must have entered an invalid time, so set it to midnight
+                                newValue = "00:00";
+                                break;
+                        }
+                        thisDataObject['verification_time'] = newValue;
+                    }
+                    else {grid_console.text('Time is badly formed. Expecting a time in HHMM format but found ' + verification_time + '!'); loading_overlay.hide(); button_state.button('reset'); return false;}
                     var dataJSON = JSON.stringify(thisDataObject);
                     $.ajax({
                         url: "{% url 'merlin:balanceverifications_create' %}",
@@ -481,6 +528,33 @@
                                 }
                                 else {grid_console.text('Date is badly formed in row ' + (index + 1) + '. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); validTable = false; loading_overlay.hide(); button_state.button('reset'); return false;}
                             }
+                            else if (objectFields[i] == 'verification_time') {
+                                var badtime = thisDataRow[i];
+                                if (timeRegEx.test(badtime)) {
+                                    var changedVal = badtime.toString();
+                                    var newValue;
+                                    switch (changedVal.length) {
+                                        case 1:
+                                            newValue = "00:0" + changedVal;
+                                            break;
+                                        case 2:
+                                            newValue = "00:" + changedVal;
+                                            break;
+                                        case 3:
+                                            newValue = "0" + changedVal.substring(0, 1) + ":" + changedVal.substring(1);
+                                            break;
+                                        case 4:
+                                            newValue = changedVal.substring(0, 2) + ":" + changedVal.substring(2);
+                                            break;
+                                        default:
+                                            // user must have entered an invalid time, so set it to midnight
+                                            newValue = "00:00";
+                                            break;
+                                    }
+                                    thisDataObject[objectFields[i]] = newValue;
+                                }
+                                else {grid_console.text('Time is badly formed. Expecting a time in HHMM format but found ' + badtime + '!'); loading_overlay.hide(); button_state.button('reset'); return false;}
+                            }
                             else if (objectFields[i] == "comment") {
                                 if (thisDataRow[i] == null) {
                                     thisDataRow[i] = "";
@@ -568,7 +642,6 @@
                     var weight_as_found = $('#weight_as_found').val();
                     if (weight_tested !== null && weight_tested !== "" && !isNaN(weight_tested) && weight_as_found !== null && weight_as_found !== "" && !isNaN(weight_as_found)) {
                         percent_deviation = Math.ceil((weight_as_found / weight_tested) * 100);
-                        console.log(percent_deviation);
                         if (percent_deviation >= 105 || percent_deviation <= 95) {
                             console.log('true');
                             pd.css("background-color", "orange");
