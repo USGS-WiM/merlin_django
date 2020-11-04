@@ -135,6 +135,72 @@
                 var changedRowIndices = [];
                 var selectionRowIndices = [];
                 grid_console.text('Loading data.');
+
+
+
+
+                var data_balances = JSON.parse(grid.attr("data-balances"));
+                var balance = $("#balance").select2({
+                    allowClear: true,
+                    multiple: true,
+                    //maximumSelectionSize: 1,
+                    //dropdownCss:{display:'none'},
+                    minimumInputLength: 1,
+                    data: { results: data_balances, text: 'serial_number'},
+                    formatResult: formatName,
+                    formatSelection: formatName
+                });//.on("change", function(e) {});
+
+                var data_analysts = JSON.parse(grid.attr("data-analysts"));
+                var analyst = $("#analyst");
+                for (var i in data_analysts) {
+                    analyst.append(new Option(data_analysts[i].username, data_analysts[i].id));
+                }
+
+                function calculateDeviation() {
+                    var d = $('#deviation');
+                    var deviation = null;
+                    var weight_tested = $('#weight_tested').val();
+                    var weight_as_found = $('#weight_as_found').val();
+                    if (weight_tested !== null && weight_tested !== "" && !isNaN(weight_tested) && weight_as_found !== null && weight_as_found !== "" && !isNaN(weight_as_found)) {
+                        deviation = (weight_tested - weight_as_found).toFixed(5);
+                    }
+                    d.val(deviation);
+                }
+
+                function calculatePercentDeviation() {
+                    var pd = $('#percent_deviation');
+                    var percent_deviation = null;
+                    var weight_tested = $('#weight_tested').val();
+                    var weight_as_found = $('#weight_as_found').val();
+                    if (weight_tested !== null && weight_tested !== "" && !isNaN(weight_tested) && weight_as_found !== null && weight_as_found !== "" && !isNaN(weight_as_found)) {
+                        percent_deviation = Math.ceil((weight_as_found / weight_tested) * 100);
+                        if (percent_deviation >= 105 || percent_deviation <= 95) {
+                            console.log('true');
+                            pd.css("background-color", "orange");
+                        }
+                    }
+                    pd.val(percent_deviation);
+                }
+
+                $('#weight_tested, #weight_as_found').change(calculateDeviationValues);
+
+                function calculateDeviationValues() {
+                    calculateDeviation();
+                    calculatePercentDeviation();
+                }
+
+                // TODO: figure out how to make deviation and percent_deviation calculated fields
+                var validatePercentDeviation = function(value, callback) {
+                    if (value >= 105 || value <= 95) {callback(true);}
+                    else {callback(false);}
+                };
+
+                function formatName(data) {
+                    return data.serial_number;
+                }
+
+
                 grid.handsontable({
                     data: data_data.results,
                     manualColumnResize: true,
@@ -152,9 +218,7 @@
                                 query, process) {getValuesAjax('/merlinservices/equipment/', 'serial_number',
                                 query, process, ('user=' + grid.handsontable('getInstance').getDataAtCell(selectionRowIndices[0], 1)))}},
                         {title: "Analyst ID", data: "analyst", width: 1},
-                        {title: "Analyst", data: "analyst_string", width: 80, type: 'autocomplete', strict: true,
-                            source: function (query, process) {getValuesAjax('/merlinservices/users/', 'username',
-                                query, process, ('user=' + grid.handsontable('getInstance').getDataAtCell(selectionRowIndices[0], 3)))}},
+                        {title: "Analyst", data: "analyst_string", width: 80, type: 'autocomplete', strict: true, source: getValuesDom(data_analysts, "username")},
                         {title: "Date", data: "verification_date", width: 100, type: 'date', dateFormat: 'MM/DD/YY', datePickerConfig: {maxDate: new Date()}},
                         {title: 'Time', data: "verification_time",  width: 60, type: 'numeric', validator: validateTime},
                         {title: 'Weight Tested', data: "weight_tested", width: 120, type: 'numeric', numericFormat: {pattern: '0.00000', culture: 'en-US'}},
@@ -191,6 +255,7 @@
                             }
                         }
 
+                        // TODO: figure out how to get actual new value in edited cell, not previous unedited value
                         // update dependent columns when a value in a parent column is changed
                         if (source == 'edit' || source == 'CopyPaste.paste') {
                             // when weight_tested or weight_as_found is changed
@@ -605,67 +670,6 @@
                     }
                     clearChangedRowIndices();
                 });
-
-                var data_balances = JSON.parse(grid.attr("data-balances"));
-                var balance = $("#balance").select2({
-                    allowClear: true,
-                    multiple: true,
-                    //maximumSelectionSize: 1,
-                    //dropdownCss:{display:'none'},
-                    minimumInputLength: 1,
-                    data: { results: data_balances, text: 'serial_number'},
-                    formatResult: formatName,
-                    formatSelection: formatName
-                });//.on("change", function(e) {});
-
-                var data_analysts = JSON.parse(grid.attr("data-analysts"));
-                var analyst = $("#analyst");
-                for (var i in data_analysts) {
-                    analyst.append(new Option(data_analysts[i].username, data_analysts[i].id));
-                }
-
-                function calculateDeviation() {
-                    var d = $('#deviation');
-                    var deviation = null;
-                    var weight_tested = $('#weight_tested').val();
-                    var weight_as_found = $('#weight_as_found').val();
-                    if (weight_tested !== null && weight_tested !== "" && !isNaN(weight_tested) && weight_as_found !== null && weight_as_found !== "" && !isNaN(weight_as_found)) {
-                        deviation = (weight_tested - weight_as_found).toFixed(5);
-                    }
-                    d.val(deviation);
-                }
-
-                function calculatePercentDeviation() {
-                    var pd = $('#percent_deviation');
-                    var percent_deviation = null;
-                    var weight_tested = $('#weight_tested').val();
-                    var weight_as_found = $('#weight_as_found').val();
-                    if (weight_tested !== null && weight_tested !== "" && !isNaN(weight_tested) && weight_as_found !== null && weight_as_found !== "" && !isNaN(weight_as_found)) {
-                        percent_deviation = Math.ceil((weight_as_found / weight_tested) * 100);
-                        if (percent_deviation >= 105 || percent_deviation <= 95) {
-                            console.log('true');
-                            pd.css("background-color", "orange");
-                        }
-                    }
-                    pd.val(percent_deviation);
-                }
-
-                $('#weight_tested, #weight_as_found').change(calculateDeviationValues);
-
-                function calculateDeviationValues() {
-                    calculateDeviation();
-                    calculatePercentDeviation();
-                }
-
-                // TODO: figure out how to make deviation and percent_deviation calculated fields
-                var validatePercentDeviation = function(value, callback) {
-                    if (value >= 105 || value <= 95) {callback(true);}
-                    else {callback(false);}
-                };
-
-                function formatName(data) {
-                    return data.serial_number;
-                }
 
             });
         </script>
