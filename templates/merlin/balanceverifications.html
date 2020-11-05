@@ -190,10 +190,9 @@
                     calculatePercentDeviation();
                 }
 
-                // TODO: figure out how to make deviation and percent_deviation calculated fields
                 var validatePercentDeviation = function(value, callback) {
-                    if (value >= 105 || value <= 95) {callback(true);}
-                    else {callback(false);}
+                    if (value >= 105 || value <= 95) {callback(false);}
+                    else {callback(true);}
                 };
 
                 function formatName(data) {
@@ -255,7 +254,6 @@
                             }
                         }
 
-                        // TODO: figure out how to get actual new value in edited cell, not previous unedited value
                         // update dependent columns when a value in a parent column is changed
                         if (source == 'edit' || source == 'CopyPaste.paste') {
                             // when weight_tested or weight_as_found is changed
@@ -263,8 +261,15 @@
                                 // update deviation and percent_deviation
                                 var deviation = null;
                                 var percent_deviation = null;
-                                weight_tested = grid.handsontable('getDataAtCell', changedRow, 7);
-                                weight_as_found = grid.handsontable('getDataAtCell', changedRow, 8);
+                                if (changedCol == 'weight_tested') {
+                                    weight_tested = changedVal;
+                                    weight_as_found = grid.handsontable('getDataAtCell', changedRow, 8);
+                                }
+                                else {
+                                    weight_tested = grid.handsontable('getDataAtCell', changedRow, 7);
+                                    weight_as_found = changedVal;
+                                }
+
                                 if ((weight_tested !== null && weight_tested !== "" && !isNaN(weight_tested)) && (weight_as_found !== null && weight_as_found !== "" && !isNaN(weight_as_found))) {
                                     deviation = (weight_tested - weight_as_found).toFixed(5);
                                     percent_deviation = Math.ceil((weight_as_found / weight_tested) * 100);
