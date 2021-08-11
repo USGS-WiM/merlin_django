@@ -149,13 +149,14 @@ define(["require", "exports", "../XLSXOps/XLSXReader", "./ServiceAgent", "./Requ
                 var dt = element.hasOwnProperty(this.sheetDirectory["Date of Analysis *"]) ? this.getExcelDate(Number(element[this.sheetDirectory["Date of Analysis *"]])) : new Date();
                 var vFinal = element.hasOwnProperty(this.sheetDirectory["Raw Value *"]) ? Number(element[this.sheetDirectory["Raw Value *"]]) : null;
                 var ddl = element.hasOwnProperty(this.sheetDirectory["Detection Limit"]) ? Number(element[this.sheetDirectory["Detection Limit"]]) : null;
+                var pm = element.hasOwnProperty(this.sheetDirectory["Percent Matching"]) ? Number(element[this.sheetDirectory["Percent Matching"]]) : null;
                 var mp = element.hasOwnProperty(this.sheetDirectory["Sample Mass Process"]) ? Number(element[this.sheetDirectory["Sample Mass Process"]]) : null;
                 var comment = element.hasOwnProperty(this.sheetDirectory["Analysis Comments"]) ? String(element[this.sheetDirectory["Analysis Comments"]]) : "";
                 var u = element.hasOwnProperty(this.sheetDirectory["Raw Value Units *"]) ? this.getUnitTypeByName(element[this.sheetDirectory["Raw Value Units *"]]) : null;
                 var qa = element.hasOwnProperty(this.sheetDirectory["Quality Assurance"]) ? this.getQualityAssuranceList(element[this.sheetDirectory["Quality Assurance"]]) : [];
                 ;
                 var i = element.hasOwnProperty(this.sheetDirectory["Isotope Flag *"]) ? this.getIsotopeByName(String(element[this.sheetDirectory["Isotope Flag *"]])) : null;
-                var result = new Result(c, m, u, vFinal, ddl, mp, dt, comment, i, qa, cmethods);
+                var result = new Result(c, m, u, vFinal, ddl, pm, mp, dt, comment, i, qa, cmethods);
                 return result;
             }
             catch (e) {

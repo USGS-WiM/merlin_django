@@ -536,7 +536,7 @@ class FullResultSerializer(serializers.ModelSerializer, BulkSerializerMixin):
         fields = ('id', 'method', 'analysis', 'analysis_string', 'constituent', 'constituent_string',
                   'isotope_flag', 'isotope_flag_string', 'raw_value', 'final_value', 'report_value',
                   'detection_flag', 'detection_flag_string', 'raw_daily_detection_limit', 'final_daily_detection_limit',
-                  'final_method_detection_limit', 'sediment_dry_weight', 'sample_mass_processed', 'entry_date',
+                  'final_method_detection_limit', 'percent_matching', 'sediment_dry_weight', 'sample_mass_processed', 'entry_date',
                   'analyzed_date', 'created_date', 'analysis_comment', 'sample_bottle',
                   'quality_assurances', 'quality_assurances_strings',)
 
@@ -558,9 +558,9 @@ class ResultSerializer(serializers.ModelSerializer, BulkSerializerMixin):
         fields = ('id', 'method', 'analysis', 'analysis_string', 'constituent', 'constituent_string',
                   'isotope_flag', 'isotope_flag_string', 'raw_value', 'final_value', 'report_value',
                   'detection_flag', 'detection_flag_string', 'raw_daily_detection_limit', 'final_daily_detection_limit',
-                  'final_method_detection_limit', 'sediment_dry_weight', 'sample_mass_processed', 'entry_date',
-                  'analyzed_date', 'created_date', 'analysis_comment', 'quality_assurances', 'sample_bottle',
-                  'sample_bottle_unique_name',)
+                  'final_method_detection_limit', 'percent_matching', 'sediment_dry_weight', 'sample_mass_processed',
+                  'entry_date', 'analyzed_date', 'created_date', 'analysis_comment', 'quality_assurances',
+                  'sample_bottle', 'sample_bottle_unique_name',)
 
 
 ######
@@ -645,6 +645,7 @@ class ReportResultsCooperatorSerializer(serializers.Serializer):
     constituent = serializers.CharField()
     final_ddl = serializers.CharField()
     detection_flag = serializers.CharField()
+    percent_matching = serializers.CharField()
     final_value = serializers.CharField()
     unit = serializers.CharField()
     sample_id = serializers.IntegerField()

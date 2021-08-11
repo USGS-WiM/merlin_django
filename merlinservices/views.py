@@ -1522,6 +1522,10 @@ class BatchUpload(views.APIView):
                     result_details.analyzed_date = analyzed_date
                 else:
                     result_details.analyzed_date = ""
+                if row["percent_matching"]:
+                    result_details.percent_matching = row["percent_matching"]
+                else:
+                    result_details.percent_matching = None
                 result_details.save()
                 # save quality assurance
                 quality_assurance_id_array = quality_assurance_id_array + qa_flags

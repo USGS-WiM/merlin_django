@@ -2,7 +2,7 @@
 
 configuration.appSettings =
     {
-        'MercuryService': 'http://igsarmewvsmerc.er.usgs.gov/merlinservices',
+        'MercuryService': 'http://localhost:8000/merlinservices',
     }
 configuration.massProcessMethodIDs = [
     157,228
