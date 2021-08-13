@@ -1,4 +1,5 @@
 from datetime import datetime
+from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -372,6 +373,13 @@ class ResultDataFile(models.Model):
         ordering = ['-id']
 
 
+######
+#
+# Quality Assurance
+#
+######
+
+
 class QualityAssurance(models.Model):
     """Table to allow one-to-many relationship between Results and QualityAssuranceType."""
 
@@ -400,6 +408,64 @@ class QualityAssuranceType(models.Model):
 
     class Meta:
         db_table = "mercury_qualityassurancetype"
+        ordering = ['-id']
+
+
+class BalanceVerification(models.Model):
+    """Verification data for the lab balance equipment."""
+
+    balance = models.ForeignKey('Equipment', on_delete=models.CASCADE, limit_choices_to={'type': 1},
+                                related_name='balance_verifications')
+    analyst = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT,
+                                related_name='balance_verifications')
+    verification_date = models.DateField(null=True, blank=True)
+    verification_time = models.TimeField(null=True, blank=True)
+    weight_tested = models.FloatField(null=True, blank=True)
+    weight_as_found = models.FloatField(null=True, blank=True)
+    deviation = models.FloatField(null=True, blank=True)
+    percent_deviation = models.IntegerField(null=True, blank=True)
+    final_reading = models.FloatField(null=True, blank=True)
+    comment = models.TextField(blank=True)
+    created_date = models.DateField(default=datetime.now, null=True, blank=True)
+    modified_date = models.DateField(auto_now=True, null=True, blank=True)
+
+    def __str__(self):
+        return str(self.balance)
+
+    class Meta:
+        db_table = "mercury_balanceverification"
+        ordering = ['-id']
+
+
+class Equipment(models.Model):
+    """Lab equipment like balances."""
+
+    serial_number = models.CharField(max_length=128)
+    type = models.ForeignKey('EquipmentType', on_delete=models.PROTECT, related_name='equipment')
+    description = models.TextField(blank=True)
+    location = models.CharField(max_length=128, blank=True)
+    created_date = models.DateField(default=datetime.now, null=True, blank=True)
+    modified_date = models.DateField(auto_now=True, null=True, blank=True)
+
+    def __str__(self):
+        return self.serial_number
+
+    class Meta:
+        db_table = "mercury_equipment"
+        ordering = ['-id']
+
+
+class EquipmentType(models.Model):
+    """Lab equipment types."""
+
+    name = models.CharField(max_length=128)
+    description = models.TextField(blank=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = "mercury_equipmenttype"
         ordering = ['-id']
 
 

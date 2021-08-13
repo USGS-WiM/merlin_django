@@ -71,6 +71,12 @@ urlpatterns = [
     url(r'^bottle_prefixes_create/$', views.bottle_prefixes_create, name='bottle_prefixes_create'),
     url(r'^bottle_prefixes_range_create/$', views.bottle_prefixes_range_create, name='bottle_prefixes_range_create'),
     url(r'^bottle_prefixes_delete/$', views.bottle_prefixes_delete, name='bottle_prefixes_delete'),
+
+    url(r'^balanceverifications/$', views.balanceverifications, name='balanceverifications'),
+    url(r'^balanceverifications_update/$', views.balanceverifications_update, name='balanceverifications_update'),
+    url(r'^balanceverifications_create/$', views.balanceverifications_create, name='balanceverifications_create'),
+    url(r'^balanceverifications_delete/$', views.balanceverifications_delete, name='balanceverifications_delete'),
+
 ]
 
 if settings.DEBUG:
