@@ -19,6 +19,7 @@ from merlinservices.serializers import *
 from merlinservices.models import *
 from merlinservices.renderers import *
 from merlinservices.paginations import *
+from merlinservices.filters import *
 
 
 ########################################################################################################################
@@ -58,15 +59,8 @@ class CooperatorBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
 class CooperatorViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = CooperatorSerializer
-
-    # override the default queryset to allow filtering by URL arguments
-    def get_queryset(self):
-        queryset = Cooperator.objects.all()
-        # filter by cooperator name, case-insensitive contain
-        name = self.request.query_params.get('name', None)
-        if name is not None:
-            queryset = queryset.filter(name__icontains=name)
-        return queryset
+    queryset = Cooperator.objects.all()
+    filterset_class = CooperatorFilter
 
 
 class ProjectBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
@@ -78,19 +72,8 @@ class ProjectBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
 class ProjectViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = ProjectSerializer
-
-    # override the default queryset to allow filtering by URL arguments
-    def get_queryset(self):
-        queryset = Project.objects.all()
-        # filter by project name, case-insensitive contain
-        name = self.request.query_params.get('name', None)
-        if name is not None:
-            queryset = queryset.filter(name__icontains=name)
-        # filter by project ID, exact
-        project_id = self.request.query_params.get('id', None)
-        if project_id is not None:
-            queryset = queryset.filter(id__exact=project_id)
-        return queryset
+    queryset = Project.objects.all()
+    filterset_class = ProjectFilter
 
 
 class SiteBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
@@ -103,6 +86,8 @@ class SiteViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = SiteSerializer
     pagination_class = StandardResultsSetPagination
+    queryset = Site.objects.all()
+    filterset_class = SiteFilter
 
     # TODO: put this method in an abstract class
     # override the default pagination to allow disabling of pagination
@@ -112,41 +97,6 @@ class SiteViewSet(viewsets.ModelViewSet):
         elif 'no_page' in self.request.query_params:
             return None
         return super().paginate_queryset(*args, **kwargs)
-
-    # override the default queryset to allow filtering by URL arguments
-    def get_queryset(self):
-        queryset = Site.objects.all()
-        # queryset = Site.objects.exclude(usgs_scode__exact="''")
-        # filter by site name, exact
-        name_exact = self.request.query_params.get('name_exact', None)
-        if name_exact is not None:
-            queryset = queryset.filter(name__exact=name_exact)
-        # filter by site name, case-insensitive contain
-        name = self.request.query_params.get('name', None)
-        if name is not None:
-            queryset = queryset.filter(name__icontains=name)
-        # filter by site ID, exact
-        site_id = self.request.query_params.get('id', None)
-        if site_id is not None:
-            queryset = queryset.filter(id__exact=site_id)
-        # filter by site usgs scode, exact
-        usgs_scode = self.request.query_params.get('usgs_scode', None)
-        if usgs_scode is not None:
-            queryset = queryset.filter(usgs_scode__exact=usgs_scode)
-        # filter by project name or ID
-        project = self.request.query_params.get('project', None)
-        if project is not None:
-            # if query value is a project ID
-            if project.isdigit():
-                # get the sites related to this project ID, exact
-                queryset = queryset.filter(projects__exact=project)
-            # else query value is a site name
-            else:
-                # lookup the project ID that matches this project name, exact
-                project_id = Project.objects.get(name__exact=project)
-                # get the sites related to this project ID, exact
-                queryset = queryset.filter(projects__exact=project_id)
-        return queryset
 
 
 class ProjectSiteBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
@@ -159,6 +109,8 @@ class ProjectSiteViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = ProjectSiteSerializer
     pagination_class = StandardResultsSetPagination
+    queryset = ProjectSite.objects.all()
+    filterset_class = ProjectSiteFilter
 
     # override the default pagination to allow disabling of pagination
     def paginate_queryset(self, *args, **kwargs):
@@ -167,31 +119,6 @@ class ProjectSiteViewSet(viewsets.ModelViewSet):
         elif 'no_page' in self.request.query_params:
             return None
         return super().paginate_queryset(*args, **kwargs)
-
-    # override the default queryset to allow filtering by URL arguments
-    def get_queryset(self):
-        queryset = ProjectSite.objects.all()
-        project = self.request.query_params.get('project', None)
-        if project is not None:
-            # if query value is a project ID
-            if project.isdigit():
-                # get the projects-sites with this project ID, exact
-                queryset = queryset.filter(project__exact=project)
-            # else query value is a project name
-            else:
-                # lookup the projects-sites whose related projects contain this project name, case-insensitive
-                queryset = queryset.filter(project__name__icontains=project)
-        site = self.request.query_params.get('site', None)
-        if site is not None:
-            # if query value is a site ID
-            if site.isdigit():
-                # get the projects-sites with this site ID, eact
-                queryset = queryset.filter(site__exact=site)
-            # else query value is a project name
-            else:
-                # lookup the projects-sites whose related sites contain this site name, case-insensitive
-                queryset = queryset.filter(site__name__icontains=site)
-        return queryset
 
 
 ######
@@ -207,10 +134,13 @@ class SampleBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkUpdateModelMixin, 
     permission_classes = (permissions.IsAuthenticated,)
 
 
+# Note that a unique field sample is determined by project+site+time_stamp+depth+replicate
 class SampleViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = SampleSerializer
     pagination_class = StandardResultsSetPagination
+    queryset = Sample.objects.all()
+    filterset_class = SampleFilter
 
     # override the default pagination to allow disabling of pagination
     def paginate_queryset(self, *args, **kwargs):
@@ -219,40 +149,6 @@ class SampleViewSet(viewsets.ModelViewSet):
         elif 'no_page' in self.request.query_params:
             return None
         return super().paginate_queryset(*args, **kwargs)
-
-    # Note that a unique field sample is determined by project+site+time_stamp+depth+replicate
-
-    def get_queryset(self):
-        queryset = Sample.objects.all()
-        # filter by sample ID, exact
-        sample_id = self.request.query_params.get('id', None)
-        if sample_id is not None:
-            queryset = queryset.filter(id__exact=sample_id)
-        # filter by project ID, exact
-        project = self.request.query_params.get('project', None)
-        if project is not None:
-            queryset = queryset.filter(project__exact=project)
-        # filter by site ID, exact
-        site = self.request.query_params.get('site', None)
-        if site is not None:
-            queryset = queryset.filter(site__exact=site)
-        # filter by sample datetime, exact
-        sample_date_time = self.request.query_params.get('sample_date_time', None)
-        if sample_date_time is not None:
-            queryset = queryset.filter(sample_date_time__exact=sample_date_time)
-        # filter by depth, exact
-        depth = self.request.query_params.get('depth', None)
-        if depth is not None:
-            queryset = queryset.filter(depth__exact=depth)
-        # filter by replicate, exact
-        replicate = self.request.query_params.get('replicate', None)
-        if replicate is not None:
-            queryset = queryset.filter(replicate__exact=replicate)
-        # filter by medium type, exact
-        medium_type = self.request.query_params.get('medium_type', None)
-        if medium_type is not None:
-            queryset = queryset.filter(medium_type__exact=medium_type)
-        return queryset
 
 
 class SampleBottleBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkUpdateModelMixin, viewsets.ModelViewSet):
@@ -265,6 +161,8 @@ class SampleBottleViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = SampleBottleSerializer
     pagination_class = StandardResultsSetPagination
+    queryset = SampleBottle.objects.all()
+    filterset_class = SampleBottleFilter
 
     # override the default pagination to allow disabling of pagination
     def paginate_queryset(self, *args, **kwargs):
@@ -273,83 +171,14 @@ class SampleBottleViewSet(viewsets.ModelViewSet):
         elif 'no_page' in self.request.query_params:
             return None
         return super().paginate_queryset(*args, **kwargs)
-
-    def get_queryset(self):
-        queryset = SampleBottle.objects.all().select_related('sample')
-        # filter by samplebottle ID, exact
-        samplebottle_id = self.request.query_params.get('id', None)
-        if samplebottle_id is not None:
-            queryset = queryset.filter(id__exact=samplebottle_id)
-        # filter by sample ID, exact
-        sample_id = self.request.query_params.get('sample_id', None)
-        if sample_id is not None:
-            queryset = queryset.filter(sample__id__exact=sample_id)
-        # filter by project IDs, exact list
-        project = self.request.query_params.get('project', None)
-        if project is not None:
-            project_list = project.split(',')
-            queryset = queryset.filter(sample__project__in=project_list)
-        # filter by site IDs, exact list
-        site = self.request.query_params.get('site', None)
-        if site is not None:
-            site_list = site.split(',')
-            queryset = queryset.filter(sample__site__in=site_list)
-        # filter by bottle ID, exact
-        bottle = self.request.query_params.get('bottle', None)
-        if bottle is not None:
-            queryset = queryset.filter(bottle__exact=bottle)
-        # filter by bottle_string (bottle unique name)
-        bottle_string = self.request.query_params.get('bottle_string', None)
-        if bottle_string is not None:
-            bottle_string_list = bottle_string.split(',')
-            # if there is only one, chances are the user is trying to look up a specific bottle
-            if len(bottle_string_list) == 1:
-                try:
-                    # look up this bottle
-                    this_sample_bottle = SampleBottle.objects.get(bottle__bottle_unique_name=bottle_string_list[0])
-                    # if there is one match, the user just wants the details of this bottle, so add it to the query set
-                    if this_sample_bottle:
-                        queryset = queryset.filter(bottle__bottle_unique_name__in=bottle_string_list)
-                except (ObjectDoesNotExist, MultipleObjectsReturned):
-                    # if there are multiple matches, or if it doesn't exist, then the submitted bottle value
-                    # is not a full/valid bottle name, but just a partial name, so the user wants
-                    # a list of bottles whose name contains the value
-                    queryset = queryset.filter(bottle__bottle_unique_name__icontains=bottle_string_list[0])
-            else:
-                queryset = queryset.filter(bottle__bottle_unique_name__in=bottle_string_list)
-        # filter by constituent IDs, exact list
-        constituent = self.request.query_params.get('constituent', None)
-        if constituent is not None:
-            constituent_list = constituent.split(',')
-            queryset = queryset.filter(results__constituent_id__in=constituent_list).distinct('id')
-        # filter by sample datetime (after only, before only, or between both, depending on which URL params appear)
-        date_after = self.request.query_params.get('date_after', None)
-        date_before = self.request.query_params.get('date_before', None)
-        # filtering datetime fields using only date is problematic
-        # (see warning at https://docs.djangoproject.com/en/dev/ref/models/querysets/#range)
-        # to properly do the date math on datetime fields,
-        # set date_after to 23:59 of that date and date_before to 00:00 of that date
-        if date_after is not None:
-            date_after_plus = dt.combine(dt.strptime(date_after, '%Y-%m-%d').date(), dtmod.time.max)
-        if date_before is not None:
-            date_before_minus = dt.combine(dt.strptime(date_before, '%Y-%m-%d').date(), dtmod.time.min)
-        if date_after is not None and date_before is not None:
-            # the filter below using __range is date-inclusive
-            # queryset = queryset.filter(sample__sample_date_time__range=(date_after_plus, date_before_minus))
-            # the filter below is date-exclusive
-            queryset = queryset.filter(sample__sample_date_time__gt=date_after_plus,
-                                       sample__sample_date_time__lt=date_before_minus)
-        elif date_after is not None:
-            queryset = queryset.filter(sample__sample_date_time__gt=date_after_plus)
-        elif date_before is not None:
-            queryset = queryset.filter(sample__sample_date_time__lt=date_before_minus)
-        return queryset
 
 
 class FullSampleBottleViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated,)
     serializer_class = FullSampleBottleSerializer
     pagination_class = StandardResultsSetPagination
+    queryset = SampleBottle.objects.all()
+    filterset_class = SampleBottleFilter
 
     # override the default pagination to allow disabling of pagination
     def paginate_queryset(self, *args, **kwargs):
@@ -358,59 +187,6 @@ class FullSampleBottleViewSet(viewsets.ModelViewSet):
         elif 'no_page' in self.request.query_params:
             return None
         return super().paginate_queryset(*args, **kwargs)
-
-    def get_queryset(self):
-        queryset = SampleBottle.objects.all().select_related()
-        # filter by samplebottle ID, exact
-        samplebottle_id = self.request.query_params.get('id', None)
-        if samplebottle_id is not None:
-            queryset = queryset.filter(id__exact=samplebottle_id)
-        # filter by sample ID, exact
-        sample_id = self.request.query_params.get('sample_id', None)
-        if sample_id is not None:
-            queryset = queryset.filter(sample__id__exact=sample_id)
-        # filter by project IDs, exact list
-        project = self.request.query_params.get('project', None)
-        if project is not None:
-            project_list = project.split(',')
-            queryset = queryset.filter(sample__project__in=project_list)
-        # filter by site IDs, exact list
-        site = self.request.query_params.get('site', None)
-        if site is not None:
-            site_list = site.split(',')
-            queryset = queryset.filter(sample__site__in=site_list)
-        # filter by bottle ID, exact
-        bottle = self.request.query_params.get('bottle', None)
-        if bottle is not None:
-            bottle_list = bottle.split(',')
-            queryset = queryset.filter(bottle__bottle_unique_name__in=bottle_list)
-        # filter by constituent IDs, exact list
-        constituent = self.request.query_params.get('constituent', None)
-        if constituent is not None:
-            constituent_list = constituent.split(',')
-            queryset = queryset.filter(results__constituent_id__in=constituent_list)
-        # filter by sample datetime (after only, before only, or between both, depending on which URL params appear)
-        date_after = self.request.query_params.get('date_after', None)
-        date_before = self.request.query_params.get('date_before', None)
-        # filtering datetime fields using only date is problematic
-        # (see warning at https://docs.djangoproject.com/en/dev/ref/models/querysets/#range)
-        # to properly do the date math on datetime fields,
-        # set date_after to 23:59 of that date and date_before to 00:00 of that date
-        if date_after is not None:
-            date_after_plus = dt.combine(dt.strptime(date_after, '%Y-%m-%d').date(), dtmod.time.max)
-        if date_before is not None:
-            date_before_minus = dt.combine(dt.strptime(date_before, '%Y-%m-%d').date(), dtmod.time.min)
-        if date_after is not None and date_before is not None:
-            # the filter below using __range is date-inclusive
-            # queryset = queryset.filter(sample__sample_date_time__range=(date_after_plus, date_before_minus))
-            # the filter below is date-exclusive
-            queryset = queryset.filter(sample__sample_date_time__gt=date_after_plus,
-                                       sample__sample_date_time__lt=date_before_minus)
-        elif date_after is not None:
-            queryset = queryset.filter(sample__sample_date_time__gt=date_after_plus)
-        elif date_before is not None:
-            queryset = queryset.filter(sample__sample_date_time__lt=date_before_minus)
-        return queryset
 
 
 class SampleBottleBrominationBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkUpdateModelMixin, viewsets.ModelViewSet):
@@ -423,6 +199,8 @@ class SampleBottleBrominationViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = SampleBottleBrominationSerializer
     pagination_class = StandardResultsSetPagination
+    queryset = SampleBottleBromination.objects.all()
+    filterset_class = SampleBottleBrominationFilter
 
     # override the default pagination to allow disabling of pagination
     def paginate_queryset(self, *args, **kwargs):
@@ -431,41 +209,6 @@ class SampleBottleBrominationViewSet(viewsets.ModelViewSet):
         elif 'no_page' in self.request.query_params:
             return None
         return super().paginate_queryset(*args, **kwargs)
-
-    def get_queryset(self):
-        # logger.info(self.request.query_params)
-        queryset = SampleBottleBromination.objects.all()
-        # filter by bottle name or ID
-        bottle = self.request.query_params.get('bottle', None)
-        if bottle is not None:
-            bottle_list = bottle.split(',')
-            # if query values are IDs
-            if bottle_list[0].isdigit():
-                # logger.info(bottle_list[0])
-                # queryset = queryset.filter(sample_bottle__bottle__id__in=bottle_list)
-                clauses = ' '.join(['WHEN bottle_id=%s THEN %s' % (pk, i) for i, pk in enumerate(bottle_list)])
-                ordering = 'CASE %s END' % clauses
-                queryset = queryset.filter(sample_bottle__bottle__id__in=bottle_list).extra(
-                    select={'ordering': ordering}, order_by=('ordering',))
-                # logger.info(queryset)
-            # else query values are names
-            else:
-                queryset = queryset.filter(sample_bottle__bottle__bottle_unique_name__in=bottle_list)
-            return queryset
-        # filter by created date (after only, before only, or between both, depending on which URL params appear)
-        date_after = self.request.query_params.get('date_after', None)
-        date_before = self.request.query_params.get('date_before', None)
-        if date_after is not None and date_before is not None:
-            # the filter below using __range is date-inclusive
-            # queryset = queryset.filter(created_date__range=(date_after, date_before))
-            # the filter below is date-exclusive
-            queryset = queryset.filter(created_date__gt=date_after,
-                                       created_date__lt=date_before)
-        elif date_after is not None:
-                queryset = queryset.filter(created_date__gt=date_after)
-        elif date_before is not None:
-            queryset = queryset.filter(created_date__lt=date_before)
-        return queryset
 
 
 class BottleBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkUpdateModelMixin, viewsets.ModelViewSet):
@@ -478,6 +221,8 @@ class BottleViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = BottleSerializer
     pagination_class = StandardResultsSetPagination
+    queryset = Bottle.objects.all()
+    filterset_class = BottleFilter
 
     # override the default pagination to allow disabling of pagination
     def paginate_queryset(self, *args, **kwargs):
@@ -486,31 +231,6 @@ class BottleViewSet(viewsets.ModelViewSet):
         elif 'no_page' in self.request.query_params:
             return None
         return super().paginate_queryset(*args, **kwargs)
-
-    def get_queryset(self):
-        queryset = Bottle.objects.all()
-        # filter by bottle ID, exact
-        bottle_id = self.request.query_params.get('id', None)
-        if bottle_id is not None:
-            queryset = queryset.filter(id__exact=bottle_id)
-        # filter by bottle name, case-insensitive contain
-        bottle_unique_name = self.request.query_params.get('bottle_unique_name', None)
-        if bottle_unique_name is not None:
-            if ',' in bottle_unique_name:
-                bottle_list = bottle_unique_name.split(',')
-                # maintain the order of the bottles that were queried
-                clauses = ' '.join(['WHEN bottle_unique_name=\'%s\' THEN %s' % (pk, i) for i, pk in enumerate(bottle_list)])
-                ordering = 'CASE %s END' % clauses
-                queryset = queryset.filter(bottle_unique_name__in=bottle_list).extra(
-                    select={'ordering': ordering}, order_by=('ordering',))
-            else:
-                queryset = queryset.filter(bottle_unique_name__icontains=bottle_unique_name)
-        # filter by unused bottles (i.e., bottles not yet used as sample bottles)
-        unused = self.request.query_params.get('unused', None)
-        if unused is not None:
-            if unused == 'True' or unused == 'true':
-                queryset = queryset.filter(sample_bottles=None)
-        return queryset
 
 
 class BottlePrefixBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkUpdateModelMixin, viewsets.ModelViewSet):
@@ -523,6 +243,8 @@ class BottlePrefixViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = BottlePrefixSerializer
     pagination_class = StandardResultsSetPagination
+    queryset = BottlePrefix.objects.all()
+    filterset_class = BottlePrefixFilter
 
     # override the default pagination to allow disabling of pagination
     def paginate_queryset(self, *args, **kwargs):
@@ -531,29 +253,6 @@ class BottlePrefixViewSet(viewsets.ModelViewSet):
         elif 'no_page' in self.request.query_params:
             return None
         return super().paginate_queryset(*args, **kwargs)
-
-    def get_queryset(self):
-        queryset = BottlePrefix.objects.all()
-        # filter by bottle prefix ID, exact
-        bottleprefix_id = self.request.query_params.get('id', None)
-        if bottleprefix_id is not None:
-            queryset = queryset.filter(id__exact=bottleprefix_id)
-        # filter by bottle prefix name, exact
-        bottle_prefix_exact = self.request.query_params.get('bottle_prefix_exact', None)
-        if bottle_prefix_exact is not None:
-            queryset = queryset.filter(bottle_prefix__exact=bottle_prefix_exact)
-        # filter by bottle prefix ID or name
-        bottle_prefix = self.request.query_params.get('bottle_prefix', None)
-        if bottle_prefix is not None:
-            # if query value is a bottle prefix ID
-            if bottle_prefix.isdigit():
-                # get the bottle prefix by ID, exact
-                queryset = queryset.filter(id__exact=bottle_prefix)
-            # if query value is a bottle prefix name
-            else:
-                # get the bottle prefix by name, case-insensitive contain
-                queryset = queryset.filter(bottle_prefix__icontains=bottle_prefix)
-        return queryset
 
 
 class BottleTypeViewSet(viewsets.ModelViewSet):
@@ -610,6 +309,7 @@ class MethodTypeViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = MethodTypeSerializer
 
+    # TODO: continue refactoring filters from here
     def get_queryset(self):
         queryset = MethodType.objects.all()
         # filter by analysis ID, exact
