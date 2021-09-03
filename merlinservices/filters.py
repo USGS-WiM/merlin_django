@@ -1,12 +1,16 @@
 import datetime as dtmod
 from datetime import datetime as dt
-from django_filters.rest_framework import FilterSet, BaseInFilter, NumberFilter, CharFilter, BooleanFilter, MultipleChoiceFilter, DateFilter, DateTimeFilter
+from django_filters.rest_framework import FilterSet, BaseInFilter, NumberFilter, CharFilter, BooleanFilter, DateFilter, DateTimeFilter
 from merlinservices.models import *
 from django.core.exceptions import MultipleObjectsReturned
 from django.db.models.base import ObjectDoesNotExist
 
 
 LIST_DELIMITER = ','
+
+
+class NumberInFilter(BaseInFilter, NumberFilter):
+    pass
 
 
 class CooperatorFilter(FilterSet):
@@ -47,7 +51,7 @@ class SiteFilter(FilterSet):
     name_exact = CharFilter(field_name='name', lookup_expr='exact', label='Filter by string of name, exact')
     name = CharFilter(field_name='name', lookup_expr='icontains', label='Filter by string contained in name, not case-sensitive')
     usgs_scode = CharFilter(field_name='usgs_scode', lookup_expr='exact', label='Filter by string of usgs_scode, exact')
-    project = CharFilter(method='filter_project', label='Filter by project ID or name (or list of IDs or names), exact')
+    project = CharFilter(method='filter_project', label='Filter by project ID or name, exact')
 
     class Meta:
         model = Site
@@ -65,10 +69,8 @@ class ProjectSiteFilter(FilterSet):
                 queryset = queryset.filter(projects__exact=value)
             # else query value is a project name
             else:
-                # lookup the project ID that matches this project name, exact
-                project_id = Project.objects.get(name__exact=value)
-                # get the sites related to this project ID, exact
-                queryset = queryset.filter(projects__exact=project_id)
+                # lookup the projects-sites whose related projects contain this project name, case-insensitive
+                queryset = queryset.filter(project__name__icontains=value)
         return queryset
 
     # filter by site name or ID
@@ -80,14 +82,12 @@ class ProjectSiteFilter(FilterSet):
                 queryset = queryset.filter(sites__exact=value)
             # else query value is a project name
             else:
-                # lookup the project ID that matches this site name, exact
-                site_id = Site.objects.get(name__exact=value)
-                # get the sites related to this site ID, exact
-                queryset = queryset.filter(sites__exact=site_id)
+                # lookup the projects-sites whose related sites contain this site name, case-insensitive
+                queryset = queryset.filter(site__name__icontains=value)
         return queryset
 
-    project = CharFilter(method='filter_project', label='Filter by project ID or name (or list of IDs or names), exact')
-    site = CharFilter(method='filter_site', label='Filter by site ID or name (or list of IDs or names), exact')
+    project = CharFilter(method='filter_project', label='Filter by integer project ID, exact, or string name, not case-sensitive')
+    site = CharFilter(method='filter_site', label='Filter by integer site ID, exact, or string name, not case-sensitive')
 
     class Meta:
         model = ProjectSite
@@ -163,12 +163,12 @@ class SampleBottleFilter(FilterSet):
         return queryset
 
     id = NumberFilter(field_name='id', lookup_expr='exact', label='Filter by integer sample bottle ID, exact')
-    sample_id = NumberFilter(field_name='sample_id', lookup_expr='exact', label='Filter by integer sample ID, exact')
-    project = NumberFilter(field_name='project', lookup_expr='exact', label='Filter by integer project ID, exact')
-    site = NumberFilter(field_name='site', lookup_expr='exact', label='Filter by integer site ID, exact')
+    sample_id = NumberFilter(field_name='sample__id', lookup_expr='exact', label='Filter by integer sample ID, exact')
+    project = NumberInFilter(field_name='sample__project', lookup_expr='in', label='Filter by integer project ID (or list of IDs), exact')
+    site = NumberInFilter(field_name='sample__site', lookup_expr='in', label='Filter by integer site ID (or list of IDs), exact')
     bottle = NumberFilter(field_name='bottle', lookup_expr='exact', label='Filter by integer bottle ID, exact')
     bottle_string = CharFilter(method='filter_bottle_string', label='Filter by string bottle unique name (or list of names), exact')
-    constituent = NumberFilter(field_name='constituent', lookup_expr='exact', label='Filter by integer constituent ID, exact')
+    constituent = NumberInFilter(field_name='results__constituent_id', lookup_expr='in', label='Filter by integer constituent ID (or list of IDs), exact')
     date_after = DateFilter(method='filter_start_end_date', label='Filter by sample datetime (after this date)', help_text='YYYY-MM-DD format')
     date_before = DateFilter(method='filter_start_end_date', label='Filter by sample datetime before this date)', help_text='YYYY-MM-DD format')
 
@@ -210,12 +210,12 @@ class SampleBottleBrominationFilter(FilterSet):
             queryset = queryset.filter(created_date__lt=date_before)
         return queryset
 
-    bottle = NumberFilter(method='filter_bottle', label='Filter by integer bottle ID or string name (or list of IDs or names), exact')
-    date_after = DateFilter(method='filter_start_end_date', label='Filter by bromination datetime (after this date)', help_text='YYYY-MM-DD format')
-    date_before = DateFilter(method='filter_start_end_date', label='Filter by bromination datetime before this date)', help_text='YYYY-MM-DD format')
+    bottle = CharFilter(method='filter_bottle', label='Filter by EITHER integer bottle ID (or list of IDs) OR string name (or list of names), but not a mix of IDs and names, exact')
+    date_after = DateFilter(method='filter_start_end_date', label='Filter by bromination date (after this date)', help_text='YYYY-MM-DD format')
+    date_before = DateFilter(method='filter_start_end_date', label='Filter by bromination date (before this date)', help_text='YYYY-MM-DD format')
 
     class Meta:
-        model = SampleBottle
+        model = SampleBottleBromination
         fields = ['bottle', 'date_after', 'date_before', ]
 
 
@@ -240,11 +240,11 @@ class BottleFilter(FilterSet):
         return queryset
 
     id = NumberFilter(field_name='id', lookup_expr='exact', label='Filter by integer bottle ID, exact')
-    bottle_unique_name = CharFilter(method='filter_bottle_string', label='Filter by string bottle unique name (or list of names), exact')
-    unused = BooleanFilter(label='Filter by whether bottle has been used yet as a sample bottle')
+    bottle_unique_name = CharFilter(method='filter_bottle_string', label='Filter by string bottle unique name, not case-sensitive, or list of names, exact')
+    unused = BooleanFilter(field='sample_bottles', label='Filter by whether bottle has been used yet as a sample bottle')
 
     class Meta:
-        model = SampleBottle
+        model = Bottle
         fields = ['id', 'bottle_unique_name', 'unused', ]
 
 
@@ -264,9 +264,310 @@ class BottlePrefixFilter(FilterSet):
         return queryset
 
     id = NumberFilter(field_name='id', lookup_expr='exact', label='Filter by integer bottle ID, exact')
-    bottle_prefix_exact = CharFilter(field='bottle_prefix', lookup_expr='exact', label='Filter by string bottle prefix name (or list of names), exact')
-    bottle_prefix = CharFilter(method='filter_bottle_prefix', label='Filter by bottle prefix ID or name (or list of IDs or names), exact for IDs and not case-sensitive for names')
+    bottle_prefix_exact = CharFilter(field='bottle_prefix', lookup_expr='exact', label='Filter by string bottle prefix name, exact')
+    bottle_prefix = CharFilter(method='filter_bottle_prefix', label='Filter by bottle prefix ID or name, exact for ID and not case-sensitive for name')
 
     class Meta:
-        model = SampleBottle
+        model = BottlePrefix
         fields = ['id', 'bottle_prefix_exact', 'bottle_prefix', ]
+
+
+class BottleTypeFilter(FilterSet):
+
+    bottle_type_string = CharFilter(field='bottle_type_string', lookup_expr='exact', label='Filter by string bottle type, exact')
+
+    class Meta:
+        model = BottleType
+        fields = ['bottle_type_string', ]
+
+
+class MethodTypeFilter(FilterSet):
+
+    id = NumberFilter(field_name='id', lookup_expr='exact', label='Filter by integer bottle ID, exact')
+    analysis = NumberFilter(field_name='analyses', lookup_expr='exact', label='Filter by integer analysis ID, exact')
+    constituent = CharFilter(field_name='analyses__constituents', label='Filter by integer constituent ID, exact')
+
+    class Meta:
+        model = MethodType
+        fields = ['id', 'analysis', 'constituent', ]
+
+
+class ResultFilter(FilterSet):
+
+    sample_bottle = NumberFilter(field_name='sample_bottle', lookup_expr='exact', label='Filter by integer sample_bottle ID, exact')
+    constituent = NumberFilter(field_name='constituent', lookup_expr='exact', label='Filter by integer constituent ID, exact')
+    isotope_flag = NumberFilter(field_name='isotope_flag', label='Filter by integer isotope_flag ID, exact')
+
+    class Meta:
+        model = Result
+        fields = ['sample_bottle', 'constituent', 'isotope_flag', ]
+
+
+class FullResultFilter(FilterSet):
+
+    @property
+    def qs(self):
+        parent = super().qs
+        # prefetch_related only the exact, necessary fields to greatly improve the response time of the query
+        queryset = parent.prefetch_related(
+            'sample_bottle', 'sample_bottle__bottle', 'sample_bottle__bottle__bottle_prefix', 'sample_bottle__sample',
+            'sample_bottle__sample__site', 'sample_bottle__sample__project', 'constituent', 'isotope_flag',
+            'detection_flag', 'method'
+        )
+        return queryset
+
+    # filter by bottle prefix name or ID
+    def filter_bottle(self, queryset, name, value):
+        if value is not None and value != '':
+            bottle_list = value.split(',')
+            # if query values are IDs, match exact list of bottle IDs
+            if bottle_list[0].isdigit():
+                # logger.info(bottle_list[0])
+                # queryset = queryset.filter(sample_bottle__bottle__id__in=bottle_list)
+                # maintain the order of the bottles that were queried
+                clauses = ' '.join(['WHEN bottle_id=%s THEN %s' % (pk, i) for i, pk in enumerate(bottle_list)])
+                ordering = 'CASE %s END' % clauses
+                queryset = queryset.filter(sample_bottle__bottle__id__in=bottle_list).extra(
+                    select={'ordering': ordering}, order_by=('ordering',))
+                #  logger.info(queryset)
+            # if query values are names, match exact list of bottle unique names
+            else:
+                # queryset = queryset.filter(sample_bottle__bottle__bottle_unique_name__in=bottle_list)
+                # maintain the order of the bottles that were queried
+                clauses = ' '.join(
+                    ["WHEN bottle_unique_name='%s' THEN %s" % (pk, i) for i, pk in enumerate(bottle_list)])
+                ordering = 'CASE %s END' % clauses
+                queryset = queryset.filter(sample_bottle__bottle__bottle_unique_name__in=bottle_list).extra(
+                    select={'ordering': ordering}, order_by=('ordering',))
+            # if exclude_null_results is a param, then exclude null results, otherwise return all results
+            exclude_null_results = self.request.query_params.get('exclude_null_results')
+            if exclude_null_results is not None:
+                if exclude_null_results == 'True' or exclude_null_results == 'true':
+                    queryset = queryset.filter(final_value__isnull=False)
+                # elif exclude_null_results == 'False' or exclude_null_results == 'false':
+                #    queryset = queryset.filter(final_value__isnull=True)
+        return queryset
+
+    # filter by sample date (after only, before only, or between both, depending on which URL params appear)
+    # remember that sample date is actually a date time object, so convert it to date before doing date math
+    def filter_sample_start_end_date(self, queryset, name, value):
+        date_after_sample = self.request.query_params.get('date_after_sample', None)
+        date_before_sample = self.request.query_params.get('date_before_sample', None)
+        # filtering datetime fields using only date is problematic
+        # (see warning at https://docs.djangoproject.com/en/dev/ref/models/querysets/#range)
+        # to properly do the date math on datetime fields,
+        # set date_after to 23:59 of the current date and date_before to 00:00 of the same day
+        if date_after_sample is not None:
+            date_after_sample_plus = dt.combine(dt.strptime(date_after_sample, '%Y-%m-%d').date(), dtmod.time.max)
+        if date_before_sample is not None:
+            date_before_sample_minus = dt.combine(
+                dt.strptime(date_before_sample, '%Y-%m-%d').date(), dtmod.time.min)
+        if date_after_sample is not None and date_before_sample is not None:
+            # the filter below using __range is date-inclusive
+            # queryset = queryset.filter(sample_bottle__sample__sample_date_time__range=(
+            #    date_after_sample_plus, date_before_sample_minus))
+            # the filter below is date-exclusive
+            queryset = queryset.filter(sample_bottle__sample__sample_date_time__gt=date_after_sample_plus,
+                                       sample_bottle__sample__sample_date_time__lt=date_before_sample_minus)
+        elif date_after_sample is not None:
+            queryset = queryset.filter(sample_bottle__sample__sample_date_time__gt=date_after_sample_plus)
+        elif date_before_sample is not None:
+            queryset = queryset.filter(sample_bottle__sample__sample_date_time__lt=date_before_sample_minus)
+        return queryset
+
+    # filter by created date (after only, before only, or between both, depending on which URL params appear)
+    def filter_entry_start_end_date(self, queryset, name, value):
+        date_after_entry = self.request.query_params.get('date_after_entry', None)
+        date_before_entry = self.request.query_params.get('date_before_entry', None)
+        if date_after_entry is not None and date_before_entry is not None:
+            # the filter below using __range is date-inclusive
+            # queryset = queryset.filter(created_date__range=(date_after, date_before))
+            # the filter below is date-exclusive
+            queryset = queryset.filter(created_date__gt=date_after_entry, created_date__lt=date_before_entry)
+        elif date_after_entry is not None:
+            queryset = queryset.filter(created_date__gt=date_after_entry)
+        elif date_before_entry is not None:
+            queryset = queryset.filter(created_date__lt=date_before_entry)
+        return queryset
+
+    bottle = NumberFilter(method='filter_bottle', label='Filter by integer bottle ID (or list of IDs), exact')
+    analysis = NumberInFilter(field_name='analysis', lookup_expr='in', label='Filter by integer analysis ID (or list of IDs), exact')
+    constituent = NumberInFilter(field_name='constituent', lookup_expr='in', label='Filter by integer constituent ID (or list of IDs), exact')
+    isotope_flag = NumberFilter(field_name='isotope_flag', label='Filter by integer isotope_flag ID, exact')
+    project = NumberInFilter(field_name='sample_bottle__sample__project', lookup_expr='in', label='Filter by integer project ID (or list of IDs), exact')
+    site = NumberInFilter(field_name='sample_bottle__sample__site', lookup_expr='in', label='Filter by integer site ID (or list of IDs), exact')
+    depth = NumberFilter(field_name='sample_bottle__sample__depth', label='Filter by float depth, exact')
+    replicate = NumberFilter(field_name='sample_bottle__sample__replicate', label='Filter by integer replicate, exact')
+    date_after_sample = DateFilter(method='filter_sample_start_end_date', label='Filter by sample date after this date, exclusive)', help_text='YYYY-MM-DD format')
+    date_before_sample = DateFilter(method='filter_sample_start_end_date', label='Filter by sample date before this date, exclusive)', help_text='YYYY-MM-DD format')
+    date_after_entry = DateFilter(method='filter_entry_start_end_date', label='Filter by entry date before this date, exclusive)', help_text='YYYY-MM-DD format')
+    date_before_entry = DateFilter(method='filter_entry_start_end_date', label='Filter by entry date before this date, exclusive)', help_text='YYYY-MM-DD format')
+    exclude_null_results = BooleanFilter(field_name='final_value', label='Exclude null results (otherwise include all results)')
+
+    class Meta:
+        model = Result
+        fields = ['bottle', 'analysis', 'constituent', 'isotope_flag', 'project', 'site', 'depth', 'replicate',
+                  'date_after_sample', 'date_before_sample', 'date_after_entry', 'date_before_entry',
+                  'exclude_null_results', ]
+
+
+class AnalysisTypeFilter(FilterSet):
+
+    # filter by method name or ID
+    def filter_method(self, queryset, name, value):
+        if value is not None and value != '':
+            # if query value is a method ID
+            if value.isdigit():
+                # get the analyses related to this method ID, exact
+                queryset = queryset.filter(methods__exact=value)
+            # else query value is a method name
+            else:
+                # lookup the method ID that matches this method name, exact
+                method_id = MethodType.objects.get(methods__exact=value)
+                # get the analyses related to this method ID, exact
+                queryset = queryset.filter(methods__exact=method_id)
+        return queryset
+
+    # filter by medium name or ID
+    def filter_medium(self, queryset, name, value):
+        if value is not None and value != '':
+            # if query value is a medium ID
+            if value.isdigit():
+                # get the analyses related to this medium ID, exact
+                queryset = queryset.filter(mediums__exact=value)
+            # else query value is a medium name
+            else:
+                # lookup the medium ID that matches this medium name, exact
+                medium_id = MediumType.objects.get(mediums__exact=value)
+                # get the analyses related to this medium ID, exact
+                queryset = queryset.filter(mediums__exact=medium_id)
+        return queryset
+
+    id = NumberFilter(field_name='id', lookup_expr='exact', label='Filter by integer analysis ID, exact')
+    analysis = CharFilter(field_name='analyses', lookup_expr='icontains', label='Filter by string contained in analysis name, not case-sensitive')
+    method = CharFilter(method='filter_method', label='Filter by integer method ID or string name, exact')
+    medium = CharFilter(method='filter_medium', label='Filter by integer medium ID or string name, exact')
+    nwis_code = CharFilter(field_name='mediums__nwis_code', label='Filter by integer NWIS Code ID, exact')
+
+    class Meta:
+        model = AnalysisType
+        fields = ['id', 'analysis', 'method', 'medium', 'nwis_code', ]
+
+
+class ConstituentTypeFilter(FilterSet):
+
+    # filter by analysis name or ID
+    def filter_analysis(self, queryset, name, value):
+        if value is not None and value != '':
+            # if query value is a analysis ID
+            if value.isdigit():
+                # get the constituents related to this analysis ID, exact
+                queryset = queryset.filter(analyses__exact=value)
+            # else query value is a analysis name
+            else:
+                # lookup the analysis ID that matches this analysis name, exact
+                method_id = AnalysisType.objects.get(analysis__exact=value)
+                # get the constituents related to this analysis ID, exact
+                queryset = queryset.filter(analyses__exact=method_id)
+        return queryset
+
+    # filter by method name or ID
+    def filter_method(self, queryset, name, value):
+        if value is not None and value != '':
+            # if query value is a method ID
+            if value.isdigit():
+                # get the constituents related to this method ID, exact
+                queryset = queryset.filter(analyses__methods__exact=value)
+            # else query value is a method name
+            else:
+                # lookup the method ID that matches this method name, exact
+                method_id = MethodType.objects.get(analyses__methods__exact=value)
+                # get the constituents related to this method ID, exact
+                queryset = queryset.filter(analyses__methods__exact=method_id)
+        return queryset
+
+    # filter by medium name or ID
+    def filter_medium(self, queryset, name, value):
+        if value is not None and value != '':
+            # if query value is a medium ID
+            if value.isdigit():
+                # get the constituents related to this medium ID, exact
+                queryset = queryset.filter(analyses__mediums__exact=value)
+            # else query value is a medium name
+            else:
+                # lookup the medium ID that matches this medium name, exact
+                medium_id = MediumType.objects.get(analyses__mediums__exact=value)
+                # get the constituents related to this medium ID, exact
+                queryset = queryset.filter(analyses__mediums__exact=medium_id)
+        return queryset
+
+    id = NumberFilter(field_name='id', lookup_expr='exact', label='Filter by integer constituent ID, exact')
+    constituent = CharFilter(field_name='constituent', lookup_expr='icontains', label='Filter by string contained in constituent name, not case-sensitive')
+    analysis = CharFilter(method='filter_analysis', label='Filter by integer analysis ID or string name exact')
+    method = CharFilter(method='filter_method', label='Filter by integer method ID or string name, exact')
+    medium = CharFilter(method='filter_medium', label='Filter by integer medium ID or string name, exact')
+    nwis_code = CharFilter(field_name='mediums__nwis_code', label='Filter by integer NWIS Code ID, exact')
+
+    class Meta:
+        model = ConstituentType
+        fields = ['id', 'constituent', 'analysis', 'method', 'medium', 'nwis_code', ]
+
+
+class IsotopeFlagFilter(FilterSet):
+    # TODO: this is changed from the old filtering, make sure to test this
+    id = NumberFilter(field_name='id', lookup_expr='exact', label='Filter by integer isotope flag ID, exact')
+    isotope_flag = CharFilter(field_name='isotope_flag', lookup_expr='icontains', label='Filter by string contained in isotope flag, not case-sensitive')
+
+    class Meta:
+        model = IsotopeFlag
+        fields = ['id', 'isotope_flag', ]
+
+
+class EquipmentFilter(FilterSet):
+    type = NumberFilter(field_name='type', lookup_expr='exact', label='Filter by integer type ID, exact')
+    serial_number = CharFilter(field_name='serial_number', lookup_expr='icontains', label='Filter by string contained in serial_number, not case-sensitive')
+
+    class Meta:
+        model = Equipment
+        fields = ['type', 'serial_number', ]
+
+
+class AcidFilter(FilterSet):
+    code_exact = CharFilter(field_name='code', lookup_expr='exact', label='Filter by string acid code, exact')
+    code = CharFilter(field_name='code', lookup_expr='icontains', label='Filter by string contained in acid code, not case-sensitive')
+
+    class Meta:
+        model = Acid
+        fields = ['code', 'code_exact', ]
+
+
+class BlankWaterFilter(FilterSet):
+    lot_number = CharFilter(field_name='lot_number', lookup_expr='icontains', label='Filter by string contained in lot number, not case-sensitive')
+
+    class Meta:
+        model = BlankWater
+        fields = ['lot_number', ]
+
+
+class BrominationFilter(FilterSet):
+    id = CharFilter(field_name='id', lookup_expr='icontains', label='Filter by string contained in bromination ID, not case-sensitive')
+    date = DateTimeFilter(field_name='created_date', lookup_expr='icontains', label='Filter by string contained in created date, not case-sensitive', help_text='YYYY-MM-DD format')
+
+    class Meta:
+        model = Bromination
+        fields = ['id', 'date', ]
+
+
+class UserFilter(FilterSet):
+
+    @property
+    def qs(self):
+        parent = super().qs
+        queryset = parent.order_by('-last_login')
+        return queryset
+
+    username = CharFilter(field_name='username', lookup_expr='exact', label='Filter by string username, exact')
+
+    class Meta:
+        model = User
+        fields = ['username', ]

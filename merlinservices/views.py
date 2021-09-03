@@ -258,14 +258,8 @@ class BottlePrefixViewSet(viewsets.ModelViewSet):
 class BottleTypeViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = BottleTypeSerializer
-
-    def get_queryset(self):
-        queryset = BottleType.objects.all()
-        # filter by bottle_type_string (bottle type name), exact
-        bottle_type_string = self.request.query_params.get('bottle_type_string', None)
-        if bottle_type_string is not None:
-            queryset = queryset.filter(bottle_type__exact=bottle_type_string)
-        return queryset
+    queryset = BottleType.objects.all()
+    filterset_class = BottleTypeFilter
 
 
 class FilterTypeViewSet(viewsets.ModelViewSet):
@@ -308,23 +302,8 @@ class UnitTypeViewSet(viewsets.ModelViewSet):
 class MethodTypeViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = MethodTypeSerializer
-
-    # TODO: continue refactoring filters from here
-    def get_queryset(self):
-        queryset = MethodType.objects.all()
-        # filter by analysis ID, exact
-        analysis = self.request.query_params.get('analysis', None)
-        if analysis is not None:
-            queryset = queryset.filter(analyses__exact=analysis)
-        # filter by constituent ID, exact
-        constituent = self.request.query_params.get('constituent', None)
-        if constituent is not None:
-            queryset = queryset.filter(analyses__constituents__exact=constituent)
-        # filter by method ID, exact
-        method_id = self.request.query_params.get('id', None)
-        if method_id is not None:
-            queryset = queryset.filter(id__exact=method_id)
-        return queryset
+    queryset = MethodType.objects.all()
+    filterset_class = MethodTypeFilter
 
 
 class ResultBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkUpdateModelMixin, viewsets.ModelViewSet):
@@ -337,6 +316,8 @@ class ResultViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = ResultSerializer
     pagination_class = StandardResultsSetPagination
+    queryset = Result.objects.all()
+    filterset_class = ResultFilter
 
     # override the default pagination to allow disabling of pagination
     def paginate_queryset(self, *args, **kwargs):
@@ -346,26 +327,12 @@ class ResultViewSet(viewsets.ModelViewSet):
             return None
         return super().paginate_queryset(*args, **kwargs)
 
-    def get_queryset(self):
-        queryset = Result.objects.all()
-        # filter by sample bottle ID, exact
-        sample_bottle = self.request.query_params.get('sample_bottle', None)
-        if sample_bottle is not None:
-            queryset = queryset.filter(sample_bottle__exact=sample_bottle)
-        # filter by constituent ID, exact
-        constituent = self.request.query_params.get('constituent', None)
-        if constituent is not None:
-            queryset = queryset.filter(constituent__exact=constituent)
-        # filter by isotope ID, exact
-        isotope_flag = self.request.query_params.get('isotope_flag', None)
-        if isotope_flag is not None:
-            queryset = queryset.filter(isotope_flag__exact=isotope_flag)
-        return queryset
-
 
 class FullResultViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     pagination_class = StandardResultsSetPagination
+    queryset = Result.objects.all()
+    filterset_class = FullResultFilter
 
     # override the default pagination to allow disabling of pagination
     def paginate_queryset(self, *args, **kwargs):
@@ -426,130 +393,6 @@ class FullResultViewSet(viewsets.ModelViewSet):
             response['Content-Disposition'] = "attachment; filename=%s" % filename
         return response
 
-    # override the default queryset to allow filtering by URL arguments
-    def get_queryset(self):
-        # queryset = Result.objects.all()
-        # prefetch_related only the exact, necessary fields to greatly improve the response time of the query
-        queryset = Result.objects.all().prefetch_related(
-            'sample_bottle', 'sample_bottle__bottle',
-            'sample_bottle__bottle__bottle_prefix', 'sample_bottle__sample',
-            'sample_bottle__sample__site', 'sample_bottle__sample__project', 'constituent', 'isotope_flag',
-            'detection_flag', 'method'
-        )
-
-        # if bottle is in query, only search by bottle and ignore other params
-        bottle = self.request.query_params.get('bottle', None)
-        if bottle is not None:
-            bottle_list = bottle.split(',')
-            # if query values are IDs, match exact list of bottle IDs
-            if bottle_list[0].isdigit():
-                # logger.info(bottle_list[0])
-                # queryset = queryset.filter(sample_bottle__bottle__id__in=bottle_list)
-                # maintain the order of the bottles that were queried
-                clauses = ' '.join(['WHEN bottle_id=%s THEN %s' % (pk, i) for i, pk in enumerate(bottle_list)])
-                ordering = 'CASE %s END' % clauses
-                queryset = queryset.filter(sample_bottle__bottle__id__in=bottle_list).extra(
-                    select={'ordering': ordering}, order_by=('ordering',))
-                #  logger.info(queryset)
-            # if query values are names, match exact list of bottle unique names
-            else:
-                # queryset = queryset.filter(sample_bottle__bottle__bottle_unique_name__in=bottle_list)
-                # maintain the order of the bottles that were queried
-                clauses = ' '.join(
-                    ["WHEN bottle_unique_name='%s' THEN %s" % (pk, i) for i, pk in enumerate(bottle_list)])
-                ordering = 'CASE %s END' % clauses
-                queryset = queryset.filter(sample_bottle__bottle__bottle_unique_name__in=bottle_list).extra(
-                    select={'ordering': ordering}, order_by=('ordering',))
-            # if exclude_null_results is a param, then exclude null results, otherwise return all results
-            exclude_null_results = self.request.query_params.get('exclude_null_results')
-            if exclude_null_results is not None:
-                if exclude_null_results == 'True' or exclude_null_results == 'true':
-                    queryset = queryset.filter(final_value__isnull=False)
-                # elif exclude_null_results == 'False' or exclude_null_results == 'false':
-                #    queryset = queryset.filter(final_value__isnull=True)
-            return queryset
-        # else, search by other params (that don't include bottle ID or name)
-        else:
-            # barcode = self.request.query_params.get('barcode', None)
-            # if barcode is not None:
-            #    queryset = queryset.filter(sample_bottle__exact=barcode)
-            # if exclude_null_results is a param, then exclude null results, otherwise return all results
-            exclude_null_results = self.request.query_params.get('exclude_null_results')
-            if exclude_null_results is not None:
-                if exclude_null_results == 'True' or exclude_null_results == 'true':
-                    queryset = queryset.filter(final_value__isnull=False)
-                # elif exclude_null_results == 'False' or exclude_null_results == 'false':
-                #    queryset = queryset.filter(final_value__isnull=True)
-            # filter by analysis ID, exact list
-            analysis = self.request.query_params.get('analysis', None)
-            if analysis is not None:
-                analysis_list = analysis.split(',')
-                queryset = queryset.filter(analysis__in=analysis_list)
-            # filter by constituent ID, exact list
-            constituent = self.request.query_params.get('constituent', None)
-            if constituent is not None:
-                constituent_list = constituent.split(',')
-                queryset = queryset.filter(constituent__in=constituent_list)
-            # filter by isotope ID, exact
-            isotope_flag = self.request.query_params.get('isotope_flag', None)
-            if isotope_flag is not None:
-                queryset = queryset.filter(isotope_flag__exact=isotope_flag)
-            # filter by project ID, exact list
-            project = self.request.query_params.get('project', None)
-            if project is not None:
-                project_list = project.split(',')
-                queryset = queryset.filter(sample_bottle__sample__project__in=project_list)
-            # filter by site ID, exact list
-            site = self.request.query_params.get('site', None)
-            if site is not None:
-                site_list = site.split(',')
-                queryset = queryset.filter(sample_bottle__sample__site__in=site_list)
-            # filter by depth, exact
-            depth = self.request.query_params.get('depth', None)
-            if depth is not None:
-                queryset = queryset.filter(sample_bottle__sample__depth__exact=depth)
-            # filter by replicate, exact
-            replicate = self.request.query_params.get('replicate', None)
-            if replicate is not None:
-                queryset = queryset.filter(sample_bottle__sample__replicate__exact=replicate)
-            # filter by sample date (after only, before only, or between both, depending on which URL params appear)
-            # remember that sample date is actually a date time object, so convert it to date before doing date math
-            date_after_sample = self.request.query_params.get('date_after_sample', None)
-            date_before_sample = self.request.query_params.get('date_before_sample', None)
-            # filtering datetime fields using only date is problematic
-            # (see warning at https://docs.djangoproject.com/en/dev/ref/models/querysets/#range)
-            # to properly do the date math on datetime fields,
-            # set date_after to 23:59 of the current date and date_before to 00:00 of the same day
-            if date_after_sample is not None:
-                date_after_sample_plus = dt.combine(dt.strptime(date_after_sample, '%Y-%m-%d').date(), dtmod.time.max)
-            if date_before_sample is not None:
-                date_before_sample_minus = dt.combine(
-                        dt.strptime(date_before_sample, '%Y-%m-%d').date(), dtmod.time.min)
-            if date_after_sample is not None and date_before_sample is not None:
-                # the filter below using __range is date-inclusive
-                # queryset = queryset.filter(sample_bottle__sample__sample_date_time__range=(
-                #    date_after_sample_plus, date_before_sample_minus))
-                # the filter below is date-exclusive
-                queryset = queryset.filter(sample_bottle__sample__sample_date_time__gt=date_after_sample_plus,
-                                           sample_bottle__sample__sample_date_time__lt=date_before_sample_minus)
-            elif date_after_sample is not None:
-                queryset = queryset.filter(sample_bottle__sample__sample_date_time__gt=date_after_sample_plus)
-            elif date_before_sample is not None:
-                queryset = queryset.filter(sample_bottle__sample__sample_date_time__lt=date_before_sample_minus)
-            # filter by entry date (after only, before only, or between both, depending on which URL params appear)
-            date_after_entry = self.request.query_params.get('date_after_entry', None)
-            date_before_entry = self.request.query_params.get('date_before_entry', None)
-            if date_after_entry is not None and date_before_entry is not None:
-                # the filter below using __range is date-inclusive
-                # queryset = queryset.filter(entry_date__range=(date_after_entry, date_before_entry))
-                # the filter below is date-exclusive
-                queryset = queryset.filter(entry_date__gt=date_after_entry, entry_date__lt=date_before_entry)
-            elif date_after_entry is not None:
-                queryset = queryset.filter(entry_date__gt=date_after_entry)
-            elif date_before_entry is not None:
-                queryset = queryset.filter(entry_date__lt=date_before_entry)
-            return queryset
-
 
 ######
 #
@@ -561,110 +404,15 @@ class FullResultViewSet(viewsets.ModelViewSet):
 class AnalysisTypeViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = AnalysisTypeSerializer
-
-    # override the default queryset to allow filtering by URL arguments
-    def get_queryset(self):
-        queryset = AnalysisType.objects.all()
-        # filter by method ID or name
-        method = self.request.query_params.get('method', None)
-        if method is not None:
-            # if query value is a method ID
-            if method.isdigit():
-                # get the constituents related to this method ID, exact
-                queryset = queryset.filter(methods__exact=method)
-            # else query value is a method name
-            else:
-                # lookup the method ID that matches this method name, exact
-                method_id = MethodType.objects.get(methods__exact=method)
-                # get the constituents related to this medium ID, exact
-                queryset = queryset.filter(methods__exact=method_id)
-        # filter by medium ID or name
-        medium = self.request.query_params.get('medium', None)
-        if medium is not None:
-            # if query value is a medium ID
-            if medium.isdigit():
-                # get the constituents related to this medium ID, exact
-                queryset = queryset.filter(mediums__exact=medium)
-            # else query value is a medium name
-            else:
-                # lookup the medium ID that matches this medium name, exact
-                medium_id = MediumType.objects.get(mediums__exact=medium)
-                # get the constituents related to this medium ID, exact
-                queryset = queryset.filter(mediums__exact=medium_id)
-        # filter by nwis code, exact
-        nwis_code = self.request.query_params.get('nwis_code', None)
-        if nwis_code is not None:
-            queryset = queryset.filter(mediums__nwis_code__exact=nwis_code)
-        # filter by analysis name, case-insensitive contain
-        analysis = self.request.query_params.get('analysis', None)
-        if analysis is not None:
-            queryset = queryset.filter(analysis__icontains=analysis)
-        # filter by analysis ID, exact
-        analysis_id = self.request.query_params.get('id', None)
-        if analysis_id is not None:
-            queryset = queryset.filter(id__exact=analysis_id)
-        return queryset
+    queryset = AnalysisType.objects.all()
+    filterset_class = AnalysisTypeFilter
 
 
 class ConstituentTypeViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = ConstituentTypeSerializer
-
-    # override the default queryset to allow filtering by URL arguments
-    def get_queryset(self):
-        queryset = ConstituentType.objects.all()
-        # filter by analysis ID or name
-        analysis = self.request.query_params.get('analysis', None)
-        if analysis is not None:
-            # if query value is an analysis ID
-            if analysis.isdigit():
-                # get the constituents related to this analysis ID, exact
-                queryset = queryset.filter(analyses__exact=analysis)
-            # else query value is an analysis name
-            else:
-                # lookup the analysis ID that matches this analysis name, exact
-                analysis_id = AnalysisType.objects.get(analysis__exact=analysis)
-                # get the constituents related to this analysis ID, exact
-                queryset = queryset.filter(analyses__exact=analysis_id)
-        # filter by method ID or name
-        method = self.request.query_params.get('method', None)
-        if method is not None:
-            # if query value is a method ID
-            if method.isdigit():
-                # get the constituents related to this method ID, exact
-                queryset = queryset.filter(analyses__methods__exact=method)
-            # else query value is a method name
-            else:
-                # lookup the method ID that matches this method name, exact
-                method_id = MethodType.objects.get(analyses__methods__exact=method)
-                # get the constituents related to this medium ID, exact
-                queryset = queryset.filter(analyses__methods__exact=method_id)
-        # filter by medium ID or name
-        medium = self.request.query_params.get('medium', None)
-        if medium is not None:
-            # if query value is a medium ID
-            if medium.isdigit():
-                # get the constituents related to this medium ID, exact
-                queryset = queryset.filter(analyses__mediums__exact=medium)
-            # else query value is a medium name
-            else:
-                # lookup the medium ID that matches this medium name, exact
-                medium_id = MediumType.objects.get(analyses__mediums__exact=medium)
-                # get the constituents related to this medium ID, exact
-                queryset = queryset.filter(analyses__mediums__exact=medium_id)
-        # filter by nwis code, exact
-        nwis_code = self.request.query_params.get('nwis_code', None)
-        if nwis_code is not None:
-            queryset = queryset.filter(analyses__mediums__nwis_code__exact=nwis_code)
-        # filter by constituent name, case-insensitive contain
-        constituent = self.request.query_params.get('constituent', None)
-        if constituent is not None:
-            queryset = queryset.filter(constituent__icontains=constituent)
-        # filter by constituent ID, exact
-        constituent_id = self.request.query_params.get('id', None)
-        if constituent_id is not None:
-            queryset = queryset.filter(id__exact=constituent_id)
-        return queryset
+    queryset = ConstituentType.objects.all()
+    filterset_class = ConstituentTypeFilter
 
 
 class AnalysisConstituentViewSet(viewsets.ModelViewSet):
@@ -713,15 +461,8 @@ class DetectionFlagViewSet(viewsets.ModelViewSet):
 class IsotopeFlagViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = IsotopeFlagSerializer
-
-    # override the default queryset to allow filtering by URL arguments
-    def get_queryset(self):
-        queryset = IsotopeFlag.objects.all()
-        # filter by isotope ID, case-insensitive contain
-        isotope_id = self.request.query_params.get('id', None)
-        if isotope_id is not None:
-            queryset = queryset.filter(id__icontains=isotope_id)
-        return queryset
+    queryset = IsotopeFlag.objects.all()
+    filterset_class = IsotopeFlagFilter
 
 
 class ResultDataFileViewSet(viewsets.ModelViewSet):
@@ -746,19 +487,8 @@ class BalanceVerificationViewSet(viewsets.ModelViewSet):
 class EquipmentViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = EquipmentSerializer
-
-    # override the default queryset to allow filtering by URL arguments
-    def get_queryset(self):
-        queryset = Equipment.objects.all()
-        # filter by type, exact
-        type = self.request.query_params.get('type', None)
-        if type is not None:
-            queryset = queryset.filter(type__exact=type)
-        # filter by serial_number, case-insensitive contain
-        serial_number = self.request.query_params.get('serial_number', None)
-        if serial_number is not None:
-            queryset = queryset.filter(serial_number__icontains=serial_number)
-        return queryset
+    queryset = Equipment.objects.all()
+    filterset_class = EquipmentFilter
 
 
 class EquipmentTypeViewSet(viewsets.ModelViewSet):
@@ -784,6 +514,8 @@ class AcidViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = AcidSerializer
     pagination_class = StandardResultsSetPagination
+    queryset = Acid.objects.all()
+    filterset_class = AcidFilter
 
     # override the default pagination to allow disabling of pagination
     def paginate_queryset(self, *args, **kwargs):
@@ -792,19 +524,6 @@ class AcidViewSet(viewsets.ModelViewSet):
         elif 'no_page' in self.request.query_params:
             return None
         return super().paginate_queryset(*args, **kwargs)
-
-    # override the default queryset to allow filtering by URL arguments
-    def get_queryset(self):
-        queryset = Acid.objects.all()
-        # filter by acid code, exact
-        code_exact = self.request.query_params.get('code_exact', None)
-        if code_exact is not None:
-            queryset = queryset.filter(code__exact=code_exact)
-        # filter by acid code, case-insensitive contain
-        code = self.request.query_params.get('code', None)
-        if code is not None:
-            queryset = queryset.filter(code__icontains=code)
-        return queryset
 
 
 class BlankWaterBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
@@ -817,6 +536,8 @@ class BlankWaterViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = BlankWaterSerializer
     pagination_class = StandardResultsSetPagination
+    queryset = BlankWater.objects.all()
+    filterset_class = BlankWaterFilter
 
     # override the default pagination to allow disabling of pagination
     def paginate_queryset(self, *args, **kwargs):
@@ -825,15 +546,6 @@ class BlankWaterViewSet(viewsets.ModelViewSet):
         elif 'no_page' in self.request.query_params:
             return None
         return super().paginate_queryset(*args, **kwargs)
-
-    # override the default queryset to allow filtering by URL arguments
-    def get_queryset(self):
-        queryset = BlankWater.objects.all()
-        # filter by lot number, case-insensitive contain
-        lot_number = self.request.query_params.get('lot_number', None)
-        if lot_number is not None:
-            queryset = queryset.filter(lot_number__icontains=lot_number)
-        return queryset
 
 
 class BrominationBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
@@ -846,6 +558,8 @@ class BrominationViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = BrominationSerializer
     pagination_class = StandardResultsSetPagination
+    queryset = Bromination.objects.all()
+    filterset_class = BrominationFilter
 
     # override the default pagination to allow disabling of pagination
     def paginate_queryset(self, *args, **kwargs):
@@ -854,19 +568,6 @@ class BrominationViewSet(viewsets.ModelViewSet):
         elif 'no_page' in self.request.query_params:
             return None
         return super().paginate_queryset(*args, **kwargs)
-
-    # override the default queryset to allow filtering by URL arguments
-    def get_queryset(self):
-        queryset = Bromination.objects.all()
-        # filter by bromination ID, case-insensitive contain
-        bromination_id = self.request.query_params.get('id', None)
-        if bromination_id is not None:
-            queryset = queryset.filter(id__icontains=bromination_id)
-        # filter by created date
-        date = self.request.query_params.get('date', None)
-        if date is not None:
-            queryset = queryset.filter(created_date__icontains=date)
-        return queryset
 
 
 #######
@@ -879,14 +580,8 @@ class BrominationViewSet(viewsets.ModelViewSet):
 class UserViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated,)
     serializer_class = UserSerializer
-
-    def get_queryset(self):
-        queryset = User.objects.all().order_by('-last_login')
-        # filter by username, exact
-        username = self.request.query_params.get('username', None)
-        if username is not None:
-            queryset = queryset.filter(username__exact=username)
-        return queryset
+    queryset = User.objects.all()
+    filterset_class = UserFilter
 
 
 class AuthView(views.APIView):
