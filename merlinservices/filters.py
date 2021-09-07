@@ -3,6 +3,7 @@ from datetime import datetime as dt
 from django_filters.rest_framework import FilterSet, BaseInFilter, NumberFilter, CharFilter, BooleanFilter, DateFilter, DateTimeFilter
 from merlinservices.models import *
 from django.core.exceptions import MultipleObjectsReturned
+from django.db.models import Count
 from django.db.models.base import ObjectDoesNotExist
 
 
@@ -10,6 +11,10 @@ LIST_DELIMITER = ','
 
 
 class NumberInFilter(BaseInFilter, NumberFilter):
+    pass
+
+
+class CharInFilter(BaseInFilter, CharFilter):
     pass
 
 
@@ -571,3 +576,184 @@ class UserFilter(FilterSet):
     class Meta:
         model = User
         fields = ['username', ]
+
+
+class ReportResultsCountNawqaFilter(FilterSet):
+
+    # @property
+    # def qs(self):
+    #     parent = super().qs
+    #     # create a new column for counts that doesn't appear in the database view, using the Django annotate() method,
+    #     # which will count the number of records after the date filter has been applied, rather than before,
+    #     # (which is what would happen if we had a count column in the database view)
+    #     queryset = parent.values('project_name', 'site_name').annotate(count=Count('project_name'))
+    #     return queryset
+
+    # filter by entry date (after only, before only, or between both, depending on which URL params appear)
+    def filter_entry_start_end_date(self, queryset, name, value):
+        date_after_entry = self.request.query_params.get('date_after_entry', None)
+        date_before_entry = self.request.query_params.get('date_before_entry', None)
+        if date_after_entry is not None and date_before_entry is not None:
+            # the filter below using __range is date-inclusive
+            # queryset = queryset.filter(entry_date__range=(date_after_entry, date_before_entry))
+            # the filter below is date-exclusive
+            queryset = queryset.filter(entry_date__gt=date_after_entry, entry_date__lt=date_before_entry)
+        elif date_after_entry is not None:
+            queryset = queryset.filter(entry_date__gt=date_after_entry)
+        elif date_before_entry is not None:
+            queryset = queryset.filter(entry_date__lt=date_before_entry)
+        # create a new column for counts that doesn't appear in the database view, using the Django annotate() method,
+        # which will count the number of records after the date filter has been applied, rather than before,
+        # (which is what would happen if we had a count column in the database view)
+        queryset = queryset.values('project_name', 'site_name').annotate(count=Count('project_name'))
+        return queryset
+
+    date_after_entry = DateFilter(method='filter_entry_start_end_date', label='Filter by entry date before this date, exclusive)', help_text='YYYY-MM-DD format')
+    date_before_entry = DateFilter(method='filter_entry_start_end_date', label='Filter by entry date before this date, exclusive)', help_text='YYYY-MM-DD format')
+
+    class Meta:
+        model = ResultCountNawqa
+        fields = ['date_after_entry', 'date_before_entry', ]
+
+
+class ReportResultsCountProjectsFilter(FilterSet):
+
+    # filter by entry date (after only, before only, or between both, depending on which URL params appear)
+    def filter_entry_start_end_date(self, queryset, name, value):
+        date_after_entry = self.request.query_params.get('date_after_entry', None)
+        date_before_entry = self.request.query_params.get('date_before_entry', None)
+        if date_after_entry is not None and date_before_entry is not None:
+            # the filter below using __range is date-inclusive
+            # queryset = queryset.filter(entry_date__range=(date_after_entry, date_before_entry))
+            # the filter below is date-exclusive
+            queryset = queryset.filter(entry_date__gt=date_after_entry, entry_date__lt=date_before_entry)
+        elif date_after_entry is not None:
+            queryset = queryset.filter(entry_date__gt=date_after_entry)
+        elif date_before_entry is not None:
+            queryset = queryset.filter(entry_date__lt=date_before_entry)
+        # create a new column for counts that doesn't appear in the database view, using the Django annotate() method,
+        # which will count the number of records after the date filter has been applied, rather than before,
+        # (which is what would happen if we had a count column in the database view)
+        queryset = queryset.values(
+            'project_name', 'nwis_customer_code', 'cooperator_email').annotate(count=Count('project_name'))
+        return queryset
+
+    date_after_entry = DateFilter(method='filter_entry_start_end_date', label='Filter by entry date before this date, exclusive)', help_text='YYYY-MM-DD format')
+    date_before_entry = DateFilter(method='filter_entry_start_end_date', label='Filter by entry date before this date, exclusive)', help_text='YYYY-MM-DD format')
+
+    class Meta:
+        model = ResultCountProjects
+        fields = ['date_after_entry', 'date_before_entry', ]
+
+
+class ReportSamplesNwisFilter(FilterSet):
+
+    # filter by entry date (after only, before only, or between both, depending on which URL params appear)
+    def filter_entry_start_end_date(self, queryset, name, value):
+        date_after_entry = self.request.query_params.get('date_after_entry', None)
+        date_before_entry = self.request.query_params.get('date_before_entry', None)
+        if date_after_entry is not None and date_before_entry is not None:
+            # the filter below using __range is date-inclusive
+            # queryset = queryset.filter(entry_date__range=(date_after_entry, date_before_entry))
+            # the filter below is date-exclusive
+            queryset = queryset.filter(entry_date__gt=date_after_entry, entry_date__lt=date_before_entry)
+        elif date_after_entry is not None:
+            queryset = queryset.filter(entry_date__gt=date_after_entry)
+        elif date_before_entry is not None:
+            queryset = queryset.filter(entry_date__lt=date_before_entry)
+        # Because of the design of the underlying database view (originally written in Oracle for Starlims, and migrated
+        # to PostgreSQL for Merlin), which uses entry_dates from the results table and not the sample table, there
+        # can be many records from the database view whose values are identical except for the entry_date column.
+        # This is a problem, because NWIS requires only one record per sample. The following distinct() method call
+        # will return just one record per occurrence of a unique sample_integer. Since all the other values are the same
+        # for each occurrence of a sample_integer (except for entry_date, which isn't sent to NWIS), there is no risk
+        # in doing this, and it gets us exactly the data we need, in the format we need. Finally, the reason for calling
+        # the .distinct() method at the end, rather than at the beginning, is because a user needs to be able to filter
+        # by any possible entry_date associated with a sample_integer, not just one entry_date, so we need the full set
+        # available for filtering, but just the distinct set to send back to the user after filtering.
+        queryset = queryset.distinct('sample_integer')
+        return queryset
+
+    project = CharInFilter(field_name='project_name', lookup_expr='in', label='Filter by string project name (or list of names), exact')
+    project_not = CharInFilter(field_name='project_name', lookup_expr='in', exclude=True, label='Filter by string project name to exclude (or list of names to exclude), exact')
+    date_after_entry = DateFilter(method='filter_entry_start_end_date', label='Filter by entry date before this date, exclusive)', help_text='YYYY-MM-DD format')
+    date_before_entry = DateFilter(method='filter_entry_start_end_date', label='Filter by entry date before this date, exclusive)', help_text='YYYY-MM-DD format')
+
+    class Meta:
+        model = SampleNwis
+        fields = ['project', 'project_not', 'date_after_entry', 'date_before_entry', ]
+
+
+class ReportResultsNwisFilter(FilterSet):
+
+    # filter by exclude of length and depth parameters
+    def filter_exclude_ld(self, queryset, name, value):
+        if value is not None and value != '':
+            if value.lower() == 'true':
+                # parameter_cd for length is '00024' and depth is '00098'
+                queryset = queryset.exclude(parameter_cd__exact='00024').exclude(parameter_cd__exact='00098')
+            return queryset
+
+    # filter by entry date (after only, before only, or between both, depending on which URL params appear)
+    def filter_entry_start_end_date(self, queryset, name, value):
+        date_after_entry = self.request.query_params.get('date_after_entry', None)
+        date_before_entry = self.request.query_params.get('date_before_entry', None)
+        if date_after_entry is not None and date_before_entry is not None:
+            # the filter below using __range is date-inclusive
+            # queryset = queryset.filter(entry_date__range=(date_after_entry, date_before_entry))
+            # the filter below is date-exclusive
+            queryset = queryset.filter(entry_date__gt=date_after_entry, entry_date__lt=date_before_entry)
+        elif date_after_entry is not None:
+            queryset = queryset.filter(entry_date__gt=date_after_entry)
+        elif date_before_entry is not None:
+            queryset = queryset.filter(entry_date__lt=date_before_entry)
+        # Because of the design of the underlying database view (originally written in Oracle for Starlims, and migrated
+        # to PostgreSQL for Merlin), which uses entry_dates from the results table and not the sample table, there
+        # can be many records from the database view whose values are identical except for the entry_date column.
+        # This is a problem, because NWIS requires only one record per sample. The following distinct() method call
+        # will return just one record per occurrence of a unique sample_integer. Since all the other values are the same
+        # for each occurrence of a sample_integer (except for entry_date, which isn't sent to NWIS), there is no risk
+        # in doing this, and it gets us exactly the data we need, in the format we need. Finally, the reason for calling
+        # the .distinct() method at the end, rather than at the beginning, is because a user needs to be able to filter
+        # by any possible entry_date associated with a sample_integer, not just one entry_date, so we need the full set
+        # available for filtering, but just the distinct set to send back to the user after filtering.
+        queryset = queryset.distinct('sample_integer')
+        return queryset
+
+    exclude_ld = CharFilter(method='filter_exclude_ld', label='Filter by excluding length and depth parameters (otherwise include all parameters)')
+    project = CharInFilter(field_name='project_name', lookup_expr='in', label='Filter by string project name (or list of names), exact')
+    project_not = CharInFilter(field_name='project_name', lookup_expr='in', exclude=True, label='Filter by string project name to exclude (or list of names to exclude), exact')
+    date_after_entry = DateFilter(method='filter_entry_start_end_date', label='Filter by entry date before this date, exclusive)', help_text='YYYY-MM-DD format')
+    date_before_entry = DateFilter(method='filter_entry_start_end_date', label='Filter by entry date before this date, exclusive)', help_text='YYYY-MM-DD format')
+
+    class Meta:
+        model = ResultNwis
+        fields = ['project', 'project_not', 'date_after_entry', 'date_before_entry', ]
+
+
+class ReportResultsCooperatorFilter(FilterSet):
+
+    # filter by entry date (after only, before only, or between both, depending on which URL params appear)
+    def filter_entry_start_end_date(self, queryset, name, value):
+        date_after_entry = self.request.query_params.get('date_after_entry', None)
+        date_before_entry = self.request.query_params.get('date_before_entry', None)
+        if date_after_entry is not None and date_before_entry is not None:
+            # the filter below using __range is date-inclusive
+            # queryset = queryset.filter(entry_date__range=(date_after_entry, date_before_entry))
+            # the filter below is date-exclusive
+            queryset = queryset.filter(entry_date__gt=date_after_entry, entry_date__lt=date_before_entry)
+        elif date_after_entry is not None:
+            queryset = queryset.filter(entry_date__gt=date_after_entry)
+        elif date_before_entry is not None:
+            queryset = queryset.filter(entry_date__lt=date_before_entry)
+        return queryset
+
+    cooperator = NumberInFilter(field_name='cooperator_name__in', lookup_expr='in', label='Filter by string cooperator name (or list of names), exact')
+    project = CharInFilter(field_name='project_name', lookup_expr='in', label='Filter by string project name (or list of names), exact')
+    project_not = CharInFilter(field_name='project_name', lookup_expr='in', exclude=True, label='Filter by string project name to exclude (or list of names to exclude), exact')
+    date_after_entry = DateFilter(method='filter_entry_start_end_date', label='Filter by entry date before this date, exclusive)', help_text='YYYY-MM-DD format')
+    date_before_entry = DateFilter(method='filter_entry_start_end_date', label='Filter by entry date before this date, exclusive)', help_text='YYYY-MM-DD format')
+
+    class Meta:
+        model = ResultCooperator
+        fields = ['cooperator', 'project', 'project_not', 'date_after_entry', 'date_before_entry', ]

@@ -2,6 +2,7 @@ from django.urls import path
 from django.conf.urls import url, include
 from django.views.generic.base import TemplateView
 from merlinservices import views
+from merlinservices import batchupload
 from rest_framework.routers import DefaultRouter
 from rest_framework.schemas import get_schema_view
 from rest_framework_bulk.routes import BulkRouter
@@ -69,7 +70,7 @@ urlpatterns = [
     path('redoc/', TemplateView.as_view(template_name='redoc.html',
                                         extra_context={'schema_url': 'openapi-schema'}), name='redoc'),
     url(r'^auth/$', views.AuthView.as_view(), name='authenticate'),
-    url(r'^batchupload', views.BatchUpload.as_view(), name='batchupload'),
+    url(r'^batchupload', batchupload.BatchUpload.as_view(), name='batchupload'),
     url(r'^reportresultscooperator/',
         views.ReportResultsCooperator.as_view(), name='reportresultscooperator'),
     url(r'^reportresultsnwis/', views.ReportResultsNwis.as_view(), name='reportresultsnwis'),
