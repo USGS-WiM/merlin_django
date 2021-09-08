@@ -246,7 +246,7 @@ class BottleFilter(FilterSet):
 
     id = NumberFilter(field_name='id', lookup_expr='exact', label='Filter by integer bottle ID, exact')
     bottle_unique_name = CharFilter(method='filter_bottle_string', label='Filter by string bottle unique name, not case-sensitive, or list of names, exact')
-    unused = BooleanFilter(field='sample_bottles', label='Filter by whether bottle has been used yet as a sample bottle')
+    unused = BooleanFilter(field_name='sample_bottles', label='Filter by whether bottle has been used yet as a sample bottle')
 
     class Meta:
         model = Bottle
@@ -269,7 +269,7 @@ class BottlePrefixFilter(FilterSet):
         return queryset
 
     id = NumberFilter(field_name='id', lookup_expr='exact', label='Filter by integer bottle ID, exact')
-    bottle_prefix_exact = CharFilter(field='bottle_prefix', lookup_expr='exact', label='Filter by string bottle prefix name, exact')
+    bottle_prefix_exact = CharFilter(field_name='bottle_prefix', lookup_expr='exact', label='Filter by string bottle prefix name, exact')
     bottle_prefix = CharFilter(method='filter_bottle_prefix', label='Filter by bottle prefix ID or name, exact for ID and not case-sensitive for name')
 
     class Meta:
@@ -279,7 +279,7 @@ class BottlePrefixFilter(FilterSet):
 
 class BottleTypeFilter(FilterSet):
 
-    bottle_type_string = CharFilter(field='bottle_type_string', lookup_expr='exact', label='Filter by string bottle type, exact')
+    bottle_type_string = CharFilter(field_name='bottle_type_string', lookup_expr='exact', label='Filter by string bottle type, exact')
 
     class Meta:
         model = BottleType
@@ -556,7 +556,7 @@ class BlankWaterFilter(FilterSet):
 
 class BrominationFilter(FilterSet):
     id = CharFilter(field_name='id', lookup_expr='icontains', label='Filter by string contained in bromination ID, not case-sensitive')
-    date = DateTimeFilter(field_name='created_date', lookup_expr='icontains', label='Filter by string contained in created date, not case-sensitive', help_text='YYYY-MM-DD format')
+    date = CharFilter(field_name='created_date', lookup_expr='icontains', label='Filter by string contained in created date, not case-sensitive')
 
     class Meta:
         model = Bromination
@@ -580,14 +580,13 @@ class UserFilter(FilterSet):
 
 class ReportResultsCountNawqaFilter(FilterSet):
 
-    # @property
-    # def qs(self):
-    #     parent = super().qs
-    #     # create a new column for counts that doesn't appear in the database view, using the Django annotate() method,
-    #     # which will count the number of records after the date filter has been applied, rather than before,
-    #     # (which is what would happen if we had a count column in the database view)
-    #     queryset = parent.values('project_name', 'site_name').annotate(count=Count('project_name'))
-    #     return queryset
+    # override base queryset to use annotation
+    # moved this here because annotation does not seem to work from within a custom filter method
+    @property
+    def qs(self):
+        parent = super().qs
+        queryset = parent.values('project_name', 'site_name').annotate(count=Count('project_name'))
+        return queryset
 
     # filter by entry date (after only, before only, or between both, depending on which URL params appear)
     def filter_entry_start_end_date(self, queryset, name, value):
@@ -602,10 +601,10 @@ class ReportResultsCountNawqaFilter(FilterSet):
             queryset = queryset.filter(entry_date__gt=date_after_entry)
         elif date_before_entry is not None:
             queryset = queryset.filter(entry_date__lt=date_before_entry)
-        # create a new column for counts that doesn't appear in the database view, using the Django annotate() method,
-        # which will count the number of records after the date filter has been applied, rather than before,
-        # (which is what would happen if we had a count column in the database view)
-        queryset = queryset.values('project_name', 'site_name').annotate(count=Count('project_name'))
+        # # create a new column for counts that doesn't appear in the database view, using the Django annotate() method,
+        # # which will count the number of records after the date filter has been applied, rather than before,
+        # # (which is what would happen if we had a count column in the database view)
+        # queryset = queryset.values('project_name', 'site_name').annotate(count=Count('project_name'))
         return queryset
 
     date_after_entry = DateFilter(method='filter_entry_start_end_date', label='Filter by entry date before this date, exclusive)', help_text='YYYY-MM-DD format')
@@ -618,6 +617,15 @@ class ReportResultsCountNawqaFilter(FilterSet):
 
 class ReportResultsCountProjectsFilter(FilterSet):
 
+    # override base queryset to use annotation
+    # moved this here because annotation does not seem to work from within a custom filter method
+    @property
+    def qs(self):
+        parent = super().qs
+        queryset = parent.values(
+            'project_name', 'nwis_customer_code', 'cooperator_email').annotate(count=Count('project_name'))
+        return queryset
+
     # filter by entry date (after only, before only, or between both, depending on which URL params appear)
     def filter_entry_start_end_date(self, queryset, name, value):
         date_after_entry = self.request.query_params.get('date_after_entry', None)
@@ -631,11 +639,11 @@ class ReportResultsCountProjectsFilter(FilterSet):
             queryset = queryset.filter(entry_date__gt=date_after_entry)
         elif date_before_entry is not None:
             queryset = queryset.filter(entry_date__lt=date_before_entry)
-        # create a new column for counts that doesn't appear in the database view, using the Django annotate() method,
-        # which will count the number of records after the date filter has been applied, rather than before,
-        # (which is what would happen if we had a count column in the database view)
-        queryset = queryset.values(
-            'project_name', 'nwis_customer_code', 'cooperator_email').annotate(count=Count('project_name'))
+        # # create a new column for counts that doesn't appear in the database view, using the Django annotate() method,
+        # # which will count the number of records after the date filter has been applied, rather than before,
+        # # (which is what would happen if we had a count column in the database view)
+        # queryset = queryset.values(
+        #     'project_name', 'nwis_customer_code', 'cooperator_email').annotate(count=Count('project_name'))
         return queryset
 
     date_after_entry = DateFilter(method='filter_entry_start_end_date', label='Filter by entry date before this date, exclusive)', help_text='YYYY-MM-DD format')

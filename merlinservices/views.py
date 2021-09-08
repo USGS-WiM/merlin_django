@@ -88,6 +88,7 @@ class CooperatorBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
 
 class CooperatorViewSet(ModelFilterView):
     serializer_class = CooperatorSerializer
+    pagination_class = None
     queryset = Cooperator.objects.all()
     filterset_class = CooperatorFilter
 
@@ -100,6 +101,7 @@ class ProjectBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
 
 class ProjectViewSet(ModelFilterView):
     serializer_class = ProjectSerializer
+    pagination_class = None
     queryset = Project.objects.all()
     filterset_class = ProjectFilter
 
@@ -241,7 +243,6 @@ class BottleBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkUpdateModelMixin, 
 
 class BottleViewSet(ModelFilterView):
     serializer_class = BottleSerializer
-    pagination_class = StandardResultsSetPagination
     queryset = Bottle.objects.all()
     filterset_class = BottleFilter
 
@@ -262,7 +263,6 @@ class BottlePrefixBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkUpdateModelM
 
 class BottlePrefixViewSet(ModelFilterView):
     serializer_class = BottlePrefixSerializer
-    pagination_class = StandardResultsSetPagination
     queryset = BottlePrefix.objects.all()
     filterset_class = BottlePrefixFilter
 
@@ -277,6 +277,7 @@ class BottlePrefixViewSet(ModelFilterView):
 
 class BottleTypeViewSet(ModelFilterView):
     serializer_class = BottleTypeSerializer
+    pagination_class = None
     queryset = BottleType.objects.all()
     filterset_class = BottleTypeFilter
 
@@ -419,12 +420,14 @@ class FullResultViewSet(ModelFilterView):
 
 class AnalysisTypeViewSet(ModelFilterView):
     serializer_class = AnalysisTypeSerializer
+    pagination_class = None
     queryset = AnalysisType.objects.all()
     filterset_class = AnalysisTypeFilter
 
 
 class ConstituentTypeViewSet(ModelFilterView):
     serializer_class = ConstituentTypeSerializer
+    pagination_class = None
     queryset = ConstituentType.objects.all()
     filterset_class = ConstituentTypeFilter
 
@@ -474,6 +477,7 @@ class DetectionFlagViewSet(viewsets.ModelViewSet):
 
 class IsotopeFlagViewSet(ModelFilterView):
     serializer_class = IsotopeFlagSerializer
+    pagination_class = None
     queryset = IsotopeFlag.objects.all()
     filterset_class = IsotopeFlagFilter
 
@@ -499,6 +503,7 @@ class BalanceVerificationViewSet(viewsets.ModelViewSet):
 
 class EquipmentViewSet(ModelFilterView):
     serializer_class = EquipmentSerializer
+    pagination_class = None
     queryset = Equipment.objects.all()
     filterset_class = EquipmentFilter
 
