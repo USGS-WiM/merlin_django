@@ -405,7 +405,7 @@
                         dataType: 'json',
                         data: function (term, page) {
                             return {
-                                lot_number: term
+                                serial_number: term
                             };
                         },
                         results: function (data, page) {
@@ -425,7 +425,7 @@
                 });
 
                 function formatSelect2(data) {
-                    return data.lot_number;
+                    return data.serial_number;
                 }
 
                 function clearChangedRowIndices() {
