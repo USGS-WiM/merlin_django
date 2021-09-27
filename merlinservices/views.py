@@ -992,16 +992,16 @@ class AnalysisMethodViewSet(viewsets.ModelViewSet):
 ######
 
 
-class QualityAssuranceViewSet(viewsets.ModelViewSet):
+class ResultQualityAssuranceFlagViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    queryset = QualityAssurance.objects.all()
-    serializer_class = QualityAssuranceSerializer
+    queryset = ResultQualityAssuranceFlag.objects.all()
+    serializer_class = ResultQualityAssuranceFlagSerializer
 
 
-class QualityAssuranceTypeViewSet(viewsets.ModelViewSet):
+class QualityAssuranceFlagViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    queryset = QualityAssuranceType.objects.all()
-    serializer_class = QualityAssuranceTypeSerializer
+    queryset = QualityAssuranceFlag.objects.all()
+    serializer_class = QualityAssuranceFlagSerializer
 
 
 class DetectionFlagViewSet(viewsets.ModelViewSet):
@@ -1481,8 +1481,8 @@ class BatchUpload(views.APIView):
                 if not is_valid:
                     status.append({"message": message, "success": "false", "bottle_unique_name": bottle_unique_name})
                     continue
-                # validate quality assurance
-                is_valid, message, quality_assurance_id_array = validate_quality_assurance(row)
+                # validate quality assurance flags
+                is_valid, message, quality_assurance_flag_id_array = validate_quality_assurance_flag(row)
                 if not is_valid:
                     status.append({"message": message, "success": "false", "bottle_unique_name": bottle_unique_name})
                     continue
@@ -1569,10 +1569,11 @@ class BatchUpload(views.APIView):
                 else:
                     result_details.percent_matching = None
                 result_details.save()
-                # save quality assurance
-                quality_assurance_id_array = quality_assurance_id_array + qa_flags
-                for quality_assurance_id in quality_assurance_id_array:
-                    QualityAssurance.objects.create(result_id=result_id, quality_assurance_id=quality_assurance_id)
+                # save result quality assurance flags
+                quality_assurance_flag_id_array = quality_assurance_flag_id_array + qa_flags
+                for quality_assurance_flag_id in quality_assurance_flag_id_array:
+                    ResultQualityAssuranceFlag.objects.create(
+                        result_id=result_id, quality_assurance_flag_id=quality_assurance_flag_id)
                 status.append({"success": "true", "result_id": result_id, "bottle_unique_name": bottle_unique_name})
         except BaseException as e:
             if isinstance(data, list) is False:
@@ -1710,33 +1711,34 @@ def validate_analysis_method(constituent_id, row):
         return is_valid, message, analysis_method_id
 
 
-def validate_quality_assurance(row):
+def validate_quality_assurance_flag(row):
     is_valid = False
     message = ""
-    quality_assurance_id_array = []
-    quality_assurance_array = []
+    quality_assurance_flag_id_array = []
+    quality_assurance_flag_array = []
     try:
-        quality_assurance_array = row["quality_assurance"]
+        quality_assurance_flag_array = row["quality_assurance_flag"]
         #  check if it's an array
-        if isinstance(quality_assurance_array, list) is False:
-            message = "'quality_assurance' needs to be a list of values"
-            return is_valid, message, quality_assurance_id_array
+        if isinstance(quality_assurance_flag_array, list) is False:
+            message = "'quality_assurance_flag' needs to be a list of values"
+            return is_valid, message, quality_assurance_flag_id_array
     except KeyError:
         is_valid = True
 
-    # check that the given quality assurance exists
-    for quality_assurance in quality_assurance_array:
+    # check that the given quality assurance flag exists
+    for quality_assurance_flag in quality_assurance_flag_array:
         try:
-            quality_assurance_type_details = QualityAssuranceType.objects.get(quality_assurance=quality_assurance)
+            quality_assurance_flag_details = QualityAssuranceFlag.objects.get(
+                quality_assurance_flag=quality_assurance_flag)
         except ObjectDoesNotExist:
-            message = "The quality assurance type '"+quality_assurance+"' does not exist"
-            return is_valid, message, quality_assurance_id_array
+            message = "The quality assurance flag '"+quality_assurance_flag+"' does not exist"
+            return is_valid, message, quality_assurance_flag_id_array
 
-        quality_assurance_id = quality_assurance_type_details.id
-        quality_assurance_id_array.append(quality_assurance_id)
+        quality_assurance_flag_id = quality_assurance_flag_details.id
+        quality_assurance_flag_id_array.append(quality_assurance_flag_id)
 
     is_valid = True
-    return is_valid, message, quality_assurance_id_array
+    return is_valid, message, quality_assurance_flag_id_array
 
 
 def validate_analyzed_date(row):
@@ -1925,7 +1927,7 @@ def get_lost_sample_result(raw_value, daily_detection_limit):
     detection_flag = 'L'
     display_value = str(raw_value)
     qa_flags = []
-    # qa = QualityAssuranceType.objects.get(quality_assurance='LS')
+    # qa = QualityAssuranceFlag.objects.get(quality_assurance_flag='LS')
     # qa_flag_id = qa.id
     # qa_flags.append(qa_flag_id)
     return display_value, reported_value, detection_flag, daily_detection_limit, qa_flags

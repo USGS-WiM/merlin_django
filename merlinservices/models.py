@@ -380,34 +380,34 @@ class ResultDataFile(models.Model):
 ######
 
 
-class QualityAssurance(models.Model):
+class ResultQualityAssuranceFlag(models.Model):
     """Table to allow one-to-many relationship between Results and QualityAssuranceType."""
 
-    quality_assurance = models.ForeignKey('QualityAssuranceType', on_delete=models.CASCADE)
-    result = models.ForeignKey('Result', on_delete=models.CASCADE, related_name='quality_assurances')  # usually three QAs per one result
+    quality_assurance_flag = models.ForeignKey('QualityAssuranceFlag', on_delete=models.CASCADE)
+    result = models.ForeignKey('Result', on_delete=models.CASCADE, related_name='quality_assurance_flags')  # usually three QAs per one result
 
     def __str__(self):
-        return str(self.quality_assurance)
+        return str(self.quality_assurance_flag)
 
     class Meta:
-        db_table = "mercury_qualityassurance"
+        db_table = "mercury_resultqualityassuranceflag"
         ordering = ['-id']
         unique_together = ("quality_assurance", "result")
 
 
-class QualityAssuranceType(models.Model):
+class QualityAssuranceFlag(models.Model):
     """Activities performed to prevent mistakes or contamination of samples."""
 
-    quality_assurance = models.CharField(max_length=128, unique=True)
+    quality_assurance_flag = models.CharField(max_length=128, unique=True)
     description = models.TextField(blank=True)
     nwis_value_qualifier = models.CharField(max_length=128, blank=True)
     nwis_value_qualifier_comment = models.TextField(blank=True)
 
     def __str__(self):
-        return self.quality_assurance
+        return self.quality_assurance_flag
 
     class Meta:
-        db_table = "mercury_qualityassurancetype"
+        db_table = "mercury_qualityassuranceflag"
         ordering = ['-id']
 
 

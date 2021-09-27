@@ -269,21 +269,21 @@ class AnalysisMethodSerializer(serializers.ModelSerializer, BulkSerializerMixin)
 ######
 
 
-class QualityAssuranceSerializer(serializers.ModelSerializer, BulkSerializerMixin):
-    quality_assurance_string = serializers.StringRelatedField(source='quality_assurance')
+class ResultQualityAssuranceFlagSerializer(serializers.ModelSerializer, BulkSerializerMixin):
+    quality_assurance_flag_string = serializers.StringRelatedField(source='quality_assurance_flag')
 
     class Meta:
         list_serializer_class = BulkListSerializer
-        model = QualityAssurance
-        fields = ('id', 'quality_assurance', 'quality_assurance_string', 'result',)
+        model = ResultQualityAssuranceFlag
+        fields = ('id', 'quality_assurance_flag', 'quality_assurance_flag_string', 'result',)
 
 
-class QualityAssuranceTypeSerializer(serializers.ModelSerializer, BulkSerializerMixin):
+class QualityAssuranceFlagSerializer(serializers.ModelSerializer, BulkSerializerMixin):
 
     class Meta:
         list_serializer_class = BulkListSerializer
-        model = QualityAssuranceType
-        fields = ('id', 'quality_assurance', 'description',)
+        model = QualityAssuranceFlag
+        fields = ('id', 'quality_assurance_flag', 'description',)
 
 
 class DetectionFlagSerializer(serializers.ModelSerializer, BulkSerializerMixin):
@@ -471,7 +471,7 @@ class FlatResultSerializer(serializers.ModelSerializer):
         for val in vals:
             qas_count += 1
             qaid = val.get('quality_assurance_id')
-            qa = QualityAssuranceType.objects.filter(id=qaid).values_list('quality_assurance', flat=True)[0]
+            qa = QualityAssuranceFlag.objects.filter(id=qaid).values_list('quality_assurance_flag', flat=True)[0]
             if qas_count > 1:
                 qas += ","
             qas += qa
@@ -557,8 +557,8 @@ class FullResultSerializer(serializers.ModelSerializer, BulkSerializerMixin):
     constituent_string = serializers.StringRelatedField(source='constituent')
     isotope_flag_string = serializers.StringRelatedField(source='isotope_flag')
     detection_flag_string = serializers.StringRelatedField(source='detection_flag')
-    quality_assurances = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
-    quality_assurances_strings = serializers.StringRelatedField(source='quality_assurances', many=True)
+    quality_assurance_flags = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
+    quality_assurance_flags_strings = serializers.StringRelatedField(source='quality_assurance_flags', many=True)
 
     class Meta:
         list_serializer_class = BulkListSerializer
@@ -568,7 +568,7 @@ class FullResultSerializer(serializers.ModelSerializer, BulkSerializerMixin):
                   'detection_flag', 'detection_flag_string', 'raw_daily_detection_limit', 'final_daily_detection_limit',
                   'final_method_detection_limit', 'sediment_dry_weight', 'sample_mass_processed', 'entry_date',
                   'analyzed_date', 'created_date', 'analysis_comment', 'sample_bottle',
-                  'quality_assurances', 'quality_assurances_strings',)
+                  'quality_assurance_flags', 'quality_assurance_flags_strings',)
 
 
 class ResultSerializer(serializers.ModelSerializer, BulkSerializerMixin):
@@ -580,7 +580,7 @@ class ResultSerializer(serializers.ModelSerializer, BulkSerializerMixin):
     constituent_string = serializers.StringRelatedField(source='constituent')
     isotope_flag_string = serializers.StringRelatedField(source='isotope_flag')
     detection_flag_string = serializers.StringRelatedField(source='detection_flag')
-    quality_assurances = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
+    quality_assurance_flags = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
 
     class Meta:
         list_serializer_class = BulkListSerializer
@@ -589,7 +589,7 @@ class ResultSerializer(serializers.ModelSerializer, BulkSerializerMixin):
                   'isotope_flag', 'isotope_flag_string', 'raw_value', 'final_value', 'report_value',
                   'detection_flag', 'detection_flag_string', 'raw_daily_detection_limit', 'final_daily_detection_limit',
                   'final_method_detection_limit', 'percent_matching', 'sediment_dry_weight', 'sample_mass_processed',
-                  'entry_date', 'analyzed_date', 'created_date', 'analysis_comment', 'quality_assurances',
+                  'entry_date', 'analyzed_date', 'created_date', 'analysis_comment', 'quality_assurance_flags',
                   'sample_bottle', 'sample_bottle_unique_name',)
 
 

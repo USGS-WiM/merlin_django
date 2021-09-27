@@ -16,11 +16,11 @@ define(["require", "exports"], function (require, exports) {
             this.massProcess = ko.observable(mp).extend({ massProcessValidation: { method: this.method } });
             this.analyzed_date = ko.observable(dt).extend({ nullValidation: {} });
             this.analysis_comment = ko.observable(comment);
-            this.qualityAssuranceList = ko.observableArray(qa);
+            this.qualityAssuranceFlagList = ko.observableArray(qa);
             this.constituentMethods = ko.observableArray(cmethods);
             //methods for knockout to work with
             this.RemoveQA = function (item) {
-                _this.qualityAssuranceList.remove(item);
+                _this.qualityAssuranceFlagList.remove(item);
             };
             this.HasErrors = ko.computed({
                 owner: this,
@@ -57,8 +57,8 @@ define(["require", "exports"], function (require, exports) {
                 "analyzed_date": (this.analyzed_date().getMonth() + 1) + '/' + this.analyzed_date().getDate() + '/' + this.analyzed_date().getFullYear(),
                 "daily_detection_limit": this.daily_detection_limit,
                 "percent_matching": this.percent_matching,
-                "quality_assurance": $.map(this.qualityAssuranceList(), function (obj) {
-                    return obj.quality_assurance;
+                "quality_assurance_flag": $.map(this.qualityAssuranceFlagList(), function (obj) {
+                    return obj.quality_assurance_flag;
                 }),
                 "analysis_comment": this.analysis_comment,
                 "sample_mass_processed": this.massProcess()

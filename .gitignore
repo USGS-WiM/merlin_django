@@ -3,6 +3,7 @@
 # sensitive files
 *.cfg
 *.crt
+*.log
 
 # compiled output
 *.pyc

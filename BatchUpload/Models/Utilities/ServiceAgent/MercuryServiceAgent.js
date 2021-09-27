@@ -7,7 +7,7 @@ var __extends = this.__extends || function (d, b) {
     __.prototype = b.prototype;
     d.prototype = new __();
 };
-define(["require", "exports", "../XLSXOps/XLSXReader", "./ServiceAgent", "./RequestInfo", "../../vos/Constituent", "../../vos/IsotopeFlag", "../../vos/QualityAssuranceType", "../../vos/Bottle", "../../vos/Method", "../../vos/Result", "../../vos/UnitType", "../../vos/Sample", "Scripts/events/EventArgs", "Scripts/events/EventHandler", "Scripts/events/Delegate", "../../Messaging/Notification"], function (require, exports, XLSXReader, ServiceAgent, RequestInfo, Constituent, IsotopeFlag, QualityAssurance, Bottle, Method, Result, UnitType, Sample, EventArgs, EventHandler, Delegate, MSG) {
+define(["require", "exports", "../XLSXOps/XLSXReader", "./ServiceAgent", "./RequestInfo", "../../vos/Constituent", "../../vos/IsotopeFlag", "../../vos/QualityAssuranceFlag", "../../vos/Bottle", "../../vos/Method", "../../vos/Result", "../../vos/UnitType", "../../vos/Sample", "Scripts/events/EventArgs", "Scripts/events/EventHandler", "Scripts/events/Delegate", "../../Messaging/Notification"], function (require, exports, XLSXReader, ServiceAgent, RequestInfo, Constituent, IsotopeFlag, QualityAssuranceFlag, Bottle, Method, Result, UnitType, Sample, EventArgs, EventHandler, Delegate, MSG) {
     // Class
     var MercuryServiceAgent = (function (_super) {
         __extends(MercuryServiceAgent, _super);
@@ -83,13 +83,13 @@ define(["require", "exports", "../XLSXOps/XLSXReader", "./ServiceAgent", "./Requ
             this.ConstituentList = [];
             this.UnitList = [];
             this.SampleList = [];
-            this.QualityAssuranceList = [];
+            this.QualityAssuranceFlagList = [];
             this.IsotopeList = [];
             this.FileValid = false;
             this.Execute(new RequestInfo("/constituents/", true), function (x) { return _this.HandleOnSerializableComplete(Constituent, x, _this.ConstituentList); }, this.HandleOnError);
             this.Execute(new RequestInfo("/isotopeflags/", true), function (x) { return _this.HandleOnSerializableComplete(IsotopeFlag, x, _this.IsotopeList); }, this.HandleOnError);
             this.Execute(new RequestInfo("/units/", true), function (x) { return _this.HandleOnSerializableComplete(UnitType, x, _this.UnitList); }, this.HandleOnError);
-            this.Execute(new RequestInfo("/qualityassurancetypes/", true), function (x) { return _this.HandleOnSerializableComplete(QualityAssurance, x, _this.QualityAssuranceList); }, this.HandleOnError);
+            this.Execute(new RequestInfo("/qualityassuranceflags/", true), function (x) { return _this.HandleOnSerializableComplete(QualityAssuranceFlag, x, _this.QualityAssuranceFlagList); }, this.HandleOnError);
         }; //end init       
         MercuryServiceAgent.prototype.onFileLoaded = function (reader, e) {
             var _this = this;
@@ -153,7 +153,7 @@ define(["require", "exports", "../XLSXOps/XLSXReader", "./ServiceAgent", "./Requ
                 var mp = element.hasOwnProperty(this.sheetDirectory["Sample Mass Process"]) ? Number(element[this.sheetDirectory["Sample Mass Process"]]) : null;
                 var comment = element.hasOwnProperty(this.sheetDirectory["Analysis Comments"]) ? String(element[this.sheetDirectory["Analysis Comments"]]) : "";
                 var u = element.hasOwnProperty(this.sheetDirectory["Raw Value Units *"]) ? this.getUnitTypeByName(element[this.sheetDirectory["Raw Value Units *"]]) : null;
-                var qa = element.hasOwnProperty(this.sheetDirectory["Quality Assurance"]) ? this.getQualityAssuranceList(element[this.sheetDirectory["Quality Assurance"]]) : [];
+                var qa = element.hasOwnProperty(this.sheetDirectory["Quality Assurance Flag"]) ? this.getQualityAssuranceFlagList(element[this.sheetDirectory["Quality Assurance Flag"]]) : [];
                 ;
                 var i = element.hasOwnProperty(this.sheetDirectory["Isotope Flag *"]) ? this.getIsotopeByName(String(element[this.sheetDirectory["Isotope Flag *"]])) : null;
                 var result = new Result(c, m, u, vFinal, ddl, pm, mp, dt, comment, i, qa, cmethods);
@@ -209,28 +209,28 @@ define(["require", "exports", "../XLSXOps/XLSXReader", "./ServiceAgent", "./Requ
             }
             return null;
         };
-        MercuryServiceAgent.prototype.getQualityAssuranceList = function (qaNames) {
+        MercuryServiceAgent.prototype.getQualityAssuranceFlagList = function (qaNames) {
             //split by char
             var qaList;
-            var qualityAssuranceList = [];
+            var qualityAssuranceFlagList = [];
             var qa;
             try {
                 qaList = qaNames.split(',');
                 for (var i = 0; i < qaList.length; i++) {
                     qa = this.getQAByName(qaList[i]);
                     if (qa != null)
-                        qualityAssuranceList.push(qa);
+                        qualityAssuranceFlagList.push(qa);
                 }
-                return qualityAssuranceList;
+                return qualityAssuranceFlagList;
             }
             catch (e) {
                 return [];
             }
         };
         MercuryServiceAgent.prototype.getQAByName = function (QAName) {
-            for (var i = 0; i < this.QualityAssuranceList.length; i++) {
-                var selectedQA = this.QualityAssuranceList[i];
-                if (selectedQA.quality_assurance.trim().toUpperCase() === QAName.trim().toUpperCase())
+            for (var i = 0; i < this.QualityAssuranceFlagList.length; i++) {
+                var selectedQA = this.QualityAssuranceFlagList[i];
+                if (selectedQA.quality_assurance_flag.trim().toUpperCase() === QAName.trim().toUpperCase())
                     return selectedQA;
             }
             return null;

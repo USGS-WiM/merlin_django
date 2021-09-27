@@ -264,15 +264,15 @@
                 </tr>
                 <!-- QA Row -->
                 <tr>
-                    <td>Quality Assurance :</td>
+                    <td>Quality Assurance Flags:</td>
                     <td>
                         <table class ="WiMtable table">
                             <thead>
                                 <tr><th>QA code</th><th>description</th></tr>
                             </thead>
-                            <tbody data-bind="foreach: qualityAssuranceList">
+                            <tbody data-bind="foreach: qualityAssuranceFlagList">
                                 <tr>
-                                    <td data-bind="text: quality_assurance"></td>
+                                    <td data-bind="text: quality_assurance_flag"></td>
                                     <td data-bind="text: description"></td>
                                     <td><a href="#" data-bind="click: $parent.RemoveQA">Remove</a></td>
                                 </tr>
@@ -341,11 +341,11 @@
                     <h4 class="modal-title">Login</h4>
                 </div>
                 <div class="modal-body">
-                    Select a "Quality Assurance" to add to selected sample.
+                    Select a "Quality Assurance Flag" to add to selected sample.
                     <div class="form-horizontal">
-                        <select id="ddQA" class="form-control" data-bind="options: QualityAssuranceList,
-                                               optionsText: 'quality_assurance',
-                                               value: SelectedQualityAssurance,
+                        <select id="ddQA" class="form-control" data-bind="options: QualityAssuranceFlagList,
+                                               optionsText: 'quality_assurance_flag',
+                                               value: SelectedQualityAssuranceFlag,
                                                optionsCaption: 'Choose...'"></select>
                         <button class="btn" data-bind="click:$root.AddQAToSelectedSample"><span> Add QA </span></button>
                     </div>
