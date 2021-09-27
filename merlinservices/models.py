@@ -392,7 +392,7 @@ class ResultQualityAssuranceFlag(models.Model):
     class Meta:
         db_table = "mercury_resultqualityassuranceflag"
         ordering = ['-id']
-        unique_together = ("quality_assurance", "result")
+        unique_together = ("quality_assurance_flag", "result")
 
 
 class QualityAssuranceFlag(models.Model):
