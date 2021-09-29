@@ -1004,6 +1004,18 @@ class QualityAssuranceFlagViewSet(viewsets.ModelViewSet):
     serializer_class = QualityAssuranceFlagSerializer
 
 
+class MethodQualityAssuranceViewSet(viewsets.ModelViewSet):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    queryset = MethodQualityAssurance.objects.all()
+    serializer_class = MethodQualityAssuranceSerializer
+
+
+class QualityAssuranceTypeViewSet(viewsets.ModelViewSet):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    queryset = QualityAssuranceType.objects.all()
+    serializer_class = QualityAssuranceTypeSerializer
+
+
 class DetectionFlagViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     queryset = DetectionFlag.objects.all()

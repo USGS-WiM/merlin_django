@@ -286,6 +286,22 @@ class QualityAssuranceFlagSerializer(serializers.ModelSerializer, BulkSerializer
         fields = ('id', 'quality_assurance_flag', 'description',)
 
 
+class MethodQualityAssuranceSerializer(serializers.ModelSerializer, BulkSerializerMixin):
+
+    class Meta:
+        list_serializer_class = BulkListSerializer
+        model = MethodQualityAssurance
+        fields = ('id', 'quality_assurance', 'method', 'value', 'observed_date', 'entry_date',)
+
+
+class QualityAssuranceTypeSerializer(serializers.ModelSerializer, BulkSerializerMixin):
+
+    class Meta:
+        list_serializer_class = BulkListSerializer
+        model = QualityAssuranceType
+        fields = ('id', 'name', 'description',)
+
+
 class DetectionFlagSerializer(serializers.ModelSerializer, BulkSerializerMixin):
 
     class Meta:

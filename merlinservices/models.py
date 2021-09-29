@@ -411,6 +411,38 @@ class QualityAssuranceFlag(models.Model):
         ordering = ['-id']
 
 
+class MethodQualityAssurance(models.Model):
+    """Table to allow one-to-many relationship between Methods and QualityAssuranceType and record observations."""
+
+    quality_assurance = models.ForeignKey('QualityAssuranceType', on_delete=models.CASCADE)
+    method = models.ForeignKey('MethodType', on_delete=models.CASCADE, related_name='quality_assurances')
+    value = models.FloatField(null=True, blank=True)
+    observed_date = models.DateField(null=True, blank=True)
+    entry_date = models.DateField(null=True, blank=True)
+
+    def __str__(self):
+        return str(self.quality_assurance) + ": " + str(self.value)
+
+    class Meta:
+        db_table = "mercury_methodqualityassurance"
+        ordering = ['-id']
+        unique_together = ("quality_assurance", "method")
+
+
+class QualityAssuranceType(models.Model):
+    """Activities performed to prevent mistakes or contamination of samples."""
+
+    name = models.CharField(max_length=128, unique=True)
+    description = models.TextField(blank=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = "mercury_qualityassurancetype"
+        ordering = ['-id']
+
+
 class BalanceVerification(models.Model):
     """Verification data for the lab balance equipment."""
 
