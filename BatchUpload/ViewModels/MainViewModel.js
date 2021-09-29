@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 //----- MainVM ---------------------------------------------------------------
 //------------------------------------------------------------------------------
-define(["require", "exports", "Scripts/events/EventHandler", "Models/Utilities/ServiceAgent/MercuryServiceAgent", "Models/Messaging/Notification", "ViewModels/AuthenticationViewModel", "ViewModels/QualityAssuranceViewModel", "Models/Messaging/LogEntry", "knockout", "modernizr"], function (require, exports, EventHandler, MercuryServiceAgent, MSG, AuthenticationVM, QAViewModel, LogEntry) {
+define(["require", "exports", "Scripts/events/EventHandler", "Models/Utilities/ServiceAgent/MercuryServiceAgent", "Models/Messaging/Notification", "ViewModels/AuthenticationViewModel", "ViewModels/QualityAssuranceFlagViewModel", "Models/Messaging/LogEntry", "knockout", "modernizr"], function (require, exports, EventHandler, MercuryServiceAgent, MSG, AuthenticationVM, QAViewModel, LogEntry) {
     // Class
     var MainViewModel = (function () {
         //Constructor
@@ -104,7 +104,7 @@ define(["require", "exports", "Scripts/events/EventHandler", "Models/Utilities/S
                 _this.QAViewModel.Show(true);
             };
             this.AddQAToSelectedSample = function () {
-                _this.SelectedSample().Result().qualityAssuranceList.push(_this.QAViewModel.SelectedQualityAssurance());
+                _this.SelectedSample().Result().qualityAssuranceFlagList.push(_this.QAViewModel.SelectedQualityAssuranceFlag());
                 _this.QAViewModel.Show(false);
             };
         };
@@ -115,7 +115,7 @@ define(["require", "exports", "Scripts/events/EventHandler", "Models/Utilities/S
                 this.ConstituentList = agent.ConstituentList;
                 this.UnitList = agent.UnitList;
                 this.IsotopeFlagList = agent.IsotopeList;
-                this.QAViewModel.QualityAssuranceList(agent.QualityAssuranceList);
+                this.QAViewModel.QualityAssuranceFlagList(agent.QualityAssuranceFlagList);
                 this.fileLoaded = true;
                 this.fileValid = agent.FileValid;
                 if (this.fileValid) {

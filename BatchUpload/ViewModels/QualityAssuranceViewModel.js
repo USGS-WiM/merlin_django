@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-//----- QualityAssuranceViewModel -----------------------------------------
+//----- QualityAssuranceFlagViewModel -----------------------------------------
 //------------------------------------------------------------------------------
 define(["require", "exports"], function (require, exports) {
     //-------1---------2---------3---------4---------5---------6---------7---------8
@@ -16,16 +16,16 @@ define(["require", "exports"], function (require, exports) {
     //03.6.2015 jkn - Created
     //Imports"
     // Class
-    var QualityAssuranceViewModel = (function () {
+    var QualityAssuranceFlagViewModel = (function () {
         //Constructor
         //-+-+-+-+-+-+-+-+-+-+-+-
-        function QualityAssuranceViewModel() {
+        function QualityAssuranceFlagViewModel() {
             this.Show = ko.observable(false);
-            this.QualityAssuranceList = ko.observableArray([]);
-            this.SelectedQualityAssurance = ko.observable(null);
+            this.QualityAssuranceFlagList = ko.observableArray([]);
+            this.SelectedQualityAssuranceFlag = ko.observable(null);
         }
-        return QualityAssuranceViewModel;
+        return QualityAssuranceFlagViewModel;
     })(); //end class
-    return QualityAssuranceViewModel;
+    return QualityAssuranceFlagViewModel;
 });
-//# sourceMappingURL=QualityAssuranceViewModel.js.map
+//# sourceMappingURL=QualityAssuranceFlagViewModel.js.map
