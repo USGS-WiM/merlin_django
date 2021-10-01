@@ -620,6 +620,10 @@ class MethodTypeViewSet(viewsets.ModelViewSet):
         constituent = self.request.query_params.get('constituent', None)
         if constituent is not None:
             queryset = queryset.filter(analyses__constituents__exact=constituent)
+        # filter by method name, exact
+        method_name = self.request.query_params.get('method', None)
+        if method_name is not None:
+            queryset = queryset.filter(method__exact=method_name)
         # filter by method ID, exact
         method_id = self.request.query_params.get('id', None)
         if method_id is not None:
@@ -1004,16 +1008,31 @@ class QualityAssuranceFlagViewSet(viewsets.ModelViewSet):
     serializer_class = QualityAssuranceFlagSerializer
 
 
+class MethodQualityAssuranceBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
+    queryset = MethodQualityAssurance.objects.all()
+    serializer_class = MethodQualityAssuranceSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+
+
 class MethodQualityAssuranceViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     queryset = MethodQualityAssurance.objects.all()
     serializer_class = MethodQualityAssuranceSerializer
+    pagination_class = StandardResultsSetPagination
 
 
 class QualityAssuranceTypeViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    queryset = QualityAssuranceType.objects.all()
     serializer_class = QualityAssuranceTypeSerializer
+
+    # override the default queryset to allow filtering by URL arguments
+    def get_queryset(self):
+        queryset = QualityAssuranceType.objects.all()
+        # filter by quality assurance name, exact
+        qa_name = self.request.query_params.get('name', None)
+        if qa_name is not None:
+            queryset = queryset.filter(name__exact=qa_name)
+        return queryset
 
 
 class DetectionFlagViewSet(viewsets.ModelViewSet):

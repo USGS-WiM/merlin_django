@@ -23,6 +23,11 @@ urlpatterns = [
     url(r'^results_nwis_report/$', views.results_nwis_report, name='results_nwis_report'),
     url(r'^results_cooperator_report/$', views.results_cooperator_report, name='results_cooperator_report'),
 
+    url(r'^methodqualityassurances/$', views.methodqualityassurances, name='methodqualityassurances'),
+    url(r'^methodqualityassurances_update/$', views.methodqualityassurances_update, name='methodqualityassurances_update'),
+    url(r'^methodqualityassurances_create/$', views.methodqualityassurances_create, name='methodqualityassurances_create'),
+    url(r'^methodqualityassurances_delete/$', views.methodqualityassurances_delete, name='methodqualityassurances_delete'),
+
     url(r'^cooperators/$', views.cooperators, name='cooperators'),
     url(r'^cooperators_update/$', views.cooperators_update, name='cooperators_update'),
     url(r'^cooperators_create/$', views.cooperators_create, name='cooperators_create'),

@@ -287,11 +287,16 @@ class QualityAssuranceFlagSerializer(serializers.ModelSerializer, BulkSerializer
 
 
 class MethodQualityAssuranceSerializer(serializers.ModelSerializer, BulkSerializerMixin):
+    quality_assurance_string = serializers.StringRelatedField(source='quality_assurance')
+    method_string = serializers.StringRelatedField(source='method')
+    observed_date = serializers.DateField(format='%m/%d/%y', input_formats=['%Y-%m-%d'])
+    entry_date = serializers.DateField(format='%m/%d/%y', input_formats=['%Y-%m-%d'])
 
     class Meta:
         list_serializer_class = BulkListSerializer
         model = MethodQualityAssurance
-        fields = ('id', 'quality_assurance', 'method', 'value', 'observed_date', 'entry_date',)
+        fields = ('id', 'quality_assurance', 'quality_assurance_string', 'method', 'method_string', 'value',
+                  'observed_date', 'entry_date',)
 
 
 class QualityAssuranceTypeSerializer(serializers.ModelSerializer, BulkSerializerMixin):

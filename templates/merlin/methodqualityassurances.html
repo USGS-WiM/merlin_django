@@ -5,50 +5,26 @@
     <div style="padding:10px">
 
         <p>
-            <button type="button" class="btn btn-default" name="add">Add New Balance Verification</button>
+            <button type="button" class="btn btn-default" name="add">Add New Method Quality Assurance</button>
         </p>
         <div id="form_add" class="panel-default" style="display:none;">
-            <h3>Create Balance Verification</h3>
-            <form class="form-inline" style="border:1px solid;width:1000px;padding:4px;">
+            <h3>Create Method Quality Assurance</h3>
+            <form class="form-inline" style="border:1px solid;width:1200px;padding:4px;">
                 <div class="form-group" style="padding:2px;text-align:center">
-                    <label for="balance">Balance Serial Number</label><br />
-                    <input class="input-block-level" name="balance" id="balance" type="text" style="width:400px">
+                    <label for="qualityassurance">Quality Assurance Type</label><br />
+                    <select class="input-block-level" name="qualityassurance" id="qualityassurance" style="height:26px;"></select>
                 </div>
                 <div class="form-group" style="padding:2px;text-align:center">
-                    <label for="analyst">Analyst</label><br />
-                    <select class="input-block-level" name="analyst" id="analyst" style="height:26px;"></select>
+                    <label for="method">Method</label><br />
+                    <select class="input-block-level" name="method" id="method" style="height:26px;"></select>
                 </div>
                 <div class="form-group" style="padding:2px;text-align:center">
-                    <label for="verification_date">Date</label><br />
-                    <input class="input-block-level" name="verification_date" id="verification_date">
+                    <label for="value">Value</label><br />
+                    <input class="input-block-level" name="value" id="value">
                 </div>
                 <div class="form-group" style="padding:2px;text-align:center">
-                    <label for="verification_time">Time</label><br />
-                    <input class="input-block-level" name="verification_time" id="verification_time">
-                </div>
-                <div class="form-group" style="padding:2px;text-align:center">
-                    <label for="weight_tested">Weight Tested</label><br />
-                    <input class="input-block-level" name="weight_tested" id="weight_tested">
-                </div>
-                <div class="form-group" style="padding:2px;text-align:center">
-                    <label for="weight_as_found">Weight as Found</label><br />
-                    <input class="input-block-level" name="weight_as_found" id="weight_as_found">
-                </div>
-                <div class="form-group" style="padding:2px;text-align:center">
-                    <label for="deviation">Deviation</label><br />
-                    <input class="input-block-level" name="deviation" id="deviation">
-                </div>
-                <div class="form-group" style="padding:2px;text-align:center">
-                    <label for="percent_deviation">% Deviation</label><br />
-                    <input class="input-block-level" name="percent_deviation" id="percent_deviation">
-                </div>
-                <div class="form-group" style="padding:2px;text-align:center">
-                    <label for="final_reading">Final Reading</label><br />
-                    <input class="input-block-level" name="final_reading" id="final_reading">
-                </div>
-                <div class="form-group" style="padding:2px;text-align:center">
-                    <label for="comment">Comment</label><br />
-                    <input class="input-block-level" name="comment" type="text" style="width:960px">
+                    <label for="observed_date">Observed Date</label><br />
+                    <input class="input-block-level" name="observed_date" id="observed_date">
                 </div>
             </form>
             <br />
@@ -56,7 +32,8 @@
         </div>
         <br />
         <pre id="grid_console" class="console" style="width:600px"></pre>
-        <p><input id="select_field" type="hidden" placeholder="Filter by serial number." style="width:600px"/></p>
+        <p><input id="select_field_qualityassurance" type="hidden" placeholder="Filter by quality assurance type." style="width:600px"/></p>
+        <p><input id="select_field_method" type="hidden" placeholder="Filter by method." style="width:600px"/></p>
         <p>
             <div class="select2-container select2-container-multi" style="width:600px">
                 <ul class="select2-choices">
@@ -78,7 +55,7 @@
             <button type="button" class="btn btn-default" data-loading-text="Getting Next..." name="next">Next Page</button>
             <span id="page"></span>
         </p>
-        <div id="grid" data-data="{{ data }}" data-balances="{{ balances }}" data-analysts="{{ analysts }}" ></div>
+        <div id="grid" data-data="{{ data }}" data-qualityassurances="{{ qualityassurances }}" data-methods="{{ methods }}" ></div>
 
 		<script>
             $(document).ready(function() {
@@ -101,31 +78,7 @@
 
                 var validTable = false;
                 var dateToday = new Date(); //toISOString().split("T")[0];
-                var validateTime = function(value, callback) {
-                    // convert the string to number to allow math operations; also trims off leading zeroes
-                    value = Number(value);
-                    switch (value.toString().length) {
-                        case 2: // between 12:09am and 1:00am (00:xx)
-                            // minutes must be less than 60
-                            if(value < 60){callback(true);}
-                            else {callback(false);}
-                            break;
-                        case 3: // between 1am and 10am (1:xx thru 9:xx)
-                            // convert to string to extract the minutes, then convert back to number to test if less than 60 (all single digit hours (1 thru 9) are allowed and thus not tested)
-                            if(Number(value.toString().substring(1,3)) < 60){callback(true);}
-                            else {callback(false);}
-                            break;
-                        case 4: // after 10am (10:xx thru xx:xx)
-                            // convert to string to separately extract hours and minutes, then convert back to number to test if less than 24 and 60, respectively
-                            if(Number(value.toString().substring(0,2)) < 24 && Number(value.toString().substring(2,4)) < 60){callback(true);}
-                            else {callback(false);}
-                            break;
-                        default: // any other cases (1 digit, 00:00 thru 00:09) are allowed; column is already limited to 4 digits in the constructor, so no need to test for cases of 5 or more digits
-                            {callback(true);}
-                            break;
-                    }
-                };
-                var objectFields = ["id", "balance", "balance_string", "analyst", "analyst_string", "verification_date", "verification_time", "weight_tested", "weight_as_found", "deviation", "percent_deviation", "final_reading", "comment"];
+                var objectFields = ["id", "quality_assurance", "quality_assurance_string", "method", "method_string", "value", "observed_date", "entry_date"];
                 var currentPage = 1;
                 var addClicked = false;
                 var grid = $('#grid');
@@ -139,63 +92,20 @@
 
 
 
-                var data_balances = JSON.parse(grid.attr("data-balances"));
-                var balance = $("#balance").select2({
-                    allowClear: true,
-                    multiple: true,
-                    //maximumSelectionSize: 1,
-                    //dropdownCss:{display:'none'},
-                    minimumInputLength: 1,
-                    data: { results: data_balances, text: 'serial_number'},
-                    formatResult: formatName,
-                    formatSelection: formatName
-                });//.on("change", function(e) {});
-
-                var data_analysts = JSON.parse(grid.attr("data-analysts"));
-                var analyst = $("#analyst");
-                for (var i in data_analysts) {
-                    analyst.append(new Option(data_analysts[i].username, data_analysts[i].id));
+                var data_qualityassurances = JSON.parse(grid.attr("data-qualityassurances"));
+                var qualityassurance = $("#qualityassurance");
+                for (var i in data_qualityassurances) {
+                    qualityassurance.append(new Option(data_qualityassurances[i].name, data_qualityassurances[i].id));
                 }
 
-                function calculateDeviation() {
-                    var d = $('#deviation');
-                    var deviation = null;
-                    var weight_tested = $('#weight_tested').val();
-                    var weight_as_found = $('#weight_as_found').val();
-                    if (weight_tested !== null && weight_tested !== "" && !isNaN(weight_tested) && weight_as_found !== null && weight_as_found !== "" && !isNaN(weight_as_found)) {
-                        deviation = (weight_tested - weight_as_found).toFixed(5);
-                    }
-                    d.val(deviation);
+                var data_methods = JSON.parse(grid.attr("data-methods"));
+                var method = $("#method");
+                for (var i in data_methods) {
+                    method.append(new Option(data_methods[i].method, data_methods[i].id));
                 }
-
-                function calculatePercentDeviation() {
-                    var pd = $('#percent_deviation');
-                    var percent_deviation = null;
-                    var weight_tested = $('#weight_tested').val();
-                    var weight_as_found = $('#weight_as_found').val();
-                    if (weight_tested !== null && weight_tested !== "" && !isNaN(weight_tested) && weight_as_found !== null && weight_as_found !== "" && !isNaN(weight_as_found)) {
-                        percent_deviation = Math.ceil((weight_as_found / weight_tested) * 100);
-                        if (percent_deviation >= 105 || percent_deviation <= 95) {
-                            pd.css("background-color", "orange");
-                        }
-                    }
-                    pd.val(percent_deviation);
-                }
-
-                $('#weight_tested, #weight_as_found').change(calculateDeviationValues);
-
-                function calculateDeviationValues() {
-                    calculateDeviation();
-                    calculatePercentDeviation();
-                }
-
-                var validatePercentDeviation = function(value, callback) {
-                    if (value >= 105 || value <= 95) {callback(false);}
-                    else {callback(true);}
-                };
 
                 function formatName(data) {
-                    return data.serial_number;
+                    return data.name;
                 }
 
 
@@ -210,21 +120,13 @@
                     },
                     columns: [
                         {title: "ID", data: "id", readOnly: true, width: 1},
-                        {title: "Balance Serial Number ID", data: "balance", width: 1},
-                        {title: "Balance Serial Number", data: "balance_string", width: 160, type: 'autocomplete',
-                            strict: true, source: function (
-                                query, process) {getValuesAjax('/merlinservices/equipment/', 'serial_number',
-                                query, process, ('user=' + grid.handsontable('getInstance').getDataAtCell(selectionRowIndices[0], 1)))}},
-                        {title: "Analyst ID", data: "analyst", width: 1},
-                        {title: "Analyst", data: "analyst_string", width: 80, type: 'autocomplete', strict: true, source: getValuesDom(data_analysts, "username")},
-                        {title: "Date", data: "verification_date", width: 100, type: 'date', dateFormat: 'MM/DD/YY', datePickerConfig: {maxDate: new Date()}},
-                        {title: 'Time', data: "verification_time",  width: 60, type: 'numeric', validator: validateTime},
-                        {title: 'Weight Tested', data: "weight_tested", width: 120, type: 'numeric', numericFormat: {pattern: '0.00000', culture: 'en-US'}},
-                        {title: 'Weight as Found', data: "weight_as_found", width: 120, type: 'numeric', numericFormat: {pattern: '0.00000', culture: 'en-US'}},
-                        {title: 'Deviation', data: "deviation", width: 120, type: 'numeric', numericFormat: {pattern: '0.00000', culture: 'en-US'}},
-                        {title: '% Deviation', data: "percent_deviation", width: 120, type: 'numeric', validator: validatePercentDeviation},
-                        {title: 'Final Reading', data: "final_reading", width: 120, type: 'numeric', numericFormat: {pattern: '0.00000', culture: 'en-US'}},
-                        {title: "Comment", data: "comment", width: 400}
+                        {title: "Quality Assurance ID", data: "quality_assurance", width: 1},
+                        {title: "Quality Assurance Type", data: "quality_assurance_string", width: 400, type: 'autocomplete', strict: true, source: getValuesDom(data_qualityassurances, "name")},
+                        {title: "Method ID", data: "method", width: 1},
+                        {title: "Method", data: "method_string", width: 400, type: 'autocomplete', strict: true, source: getValuesDom(data_methods, "method")},
+                        {title: 'Value', data: "value", width: 120, type: 'numeric', numericFormat: {pattern: '0.00000', culture: 'en-US'}},
+                        {title: "Observed Date", data: "observed_date", width: 100, type: 'date', dateFormat: 'MM/DD/YY', datePickerConfig: {maxDate: new Date()}},
+                        {title: "Entry Date", data: "entry_date", width: 1},
                     ],
                     columnSorting: true,
                     beforeChange: function(changes, source) {
@@ -254,27 +156,18 @@
                         }
 
                         // update dependent columns when a value in a parent column is changed
-                        if (source == 'edit' || source == 'CopyPaste.paste') {
-                            // when weight_tested or weight_as_found is changed
-                            if ((changedCol == 'weight_tested' || changedCol == 'weight_as_found')) {
-                                // update deviation and percent_deviation
-                                var deviation = null;
-                                var percent_deviation = null;
-                                if (changedCol == 'weight_tested') {
-                                    weight_tested = changedVal;
-                                    weight_as_found = grid.handsontable('getDataAtCell', changedRow, 8);
-                                }
-                                else {
-                                    weight_tested = grid.handsontable('getDataAtCell', changedRow, 7);
-                                    weight_as_found = changedVal;
-                                }
-
-                                if ((weight_tested !== null && weight_tested !== "" && !isNaN(weight_tested)) && (weight_as_found !== null && weight_as_found !== "" && !isNaN(weight_as_found))) {
-                                    deviation = (weight_tested - weight_as_found).toFixed(5);
-                                    percent_deviation = Math.ceil((weight_as_found / weight_tested) * 100);
-                                }
-                                grid.handsontable('setDataAtCell', changedRow, 9, deviation);
-                                grid.handsontable('setDataAtCell', changedRow, 10, percent_deviation);
+                        if (source == 'edit') {
+                            // when quality assurance type string is changed to a non-null, non-blank value
+                            if (changedCol == 'quality_assurance_string' && changedVal !== null && changedVal !== "") {
+                                // update quality assurance type ID to match site name
+                                var newValue = updateValueAjax('/merlinservices/qualityassurancetypes/', 'name', 'id', changedVal);
+                                grid.handsontable('setDataAtCell', changedRow, 1, newValue);
+                            }
+                            // when method name is changed to a non-null, non-blank value
+                            if (changedCol == 'method_string' && changedVal !== null && changedVal !== "") {
+                                // update method ID to match method name
+                                var newValue = updateValueAjax('/merlinservices/methods/', 'method', 'id', changedVal);
+                                grid.handsontable('setDataAtCell', changedRow, 3, newValue);
                             }
                         }
                     },
@@ -291,8 +184,8 @@
                 $('#page').html("Page " + currentPage + " of " + resultPages);
                 grid_console.text('Data loaded.');
 
-                var verification_date = new Pikaday({
-                    field: $('#verification_date')[0],
+                var observed_date = new Pikaday({
+                    field: $('#observed_date')[0],
                     format: 'MM/DD/YY',
                     maxDate: new Date()
                 });
@@ -302,16 +195,10 @@
                     var button_state = $(this).button('loading');
                     loading_overlay.show();
                     var thisDataObject = {};
-                    thisDataObject['balance'] = Number(balance.val());
-                    thisDataObject['analyst'] = Number(analyst.val());
-                    thisDataObject['weight_tested'] = Number(form_add.find('input[name=weight_tested]').val());
-                    thisDataObject['weight_as_found'] = Number(form_add.find('input[name=weight_as_found]').val());
-                    thisDataObject['deviation'] = Number(form_add.find('input[name=deviation]').val());
-                    thisDataObject['percent_deviation'] = Number(form_add.find('input[name=percent_deviation]').val());
-                    thisDataObject['final_reading'] = Number(form_add.find('input[name=final_reading]').val());
-                    thisDataObject['comment'] = form_add.find('input[name=comment]').val();
-                    if (thisDataObject['comment'] == null) {thisDataObject['comment'] = "";}
-                    var baddate = form_add.find('input[name=verification_date]').val();
+                    thisDataObject['quality_assurance'] = Number(qualityassurance.val());
+                    thisDataObject['method'] = Number(method.val());
+                    thisDataObject['value'] = Number(form_add.find('input[name=value]').val());
+                    var baddate = form_add.find('input[name=observed_date]').val();
                     if (dateRegEx.test(baddate)) {
                         if (makeYear(baddate)!= null && makeMonth(baddate)!= null && makeDay(baddate) != null) {
                             var gooddate_string = makeYear(baddate) + "-" + makeMonth(baddate) + "-" + makeDay(baddate);
@@ -319,39 +206,15 @@
                             if (gooddate > dateToday) {
                                 {grid_console.text('Date cannot be a future date!'); button_state.button('reset'); return false;}
                             }
-                            thisDataObject['verification_date'] = gooddate_string;
+                            thisDataObject['observed_date'] = gooddate_string;
                         }
                         else {grid_console.text('There is a problem with the Date. Please contact the administrator.'); loading_overlay.hide(); button_state.button('reset'); return false;}
                     }
                     else {grid_console.text('Date is badly formed. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); loading_overlay.hide(); button_state.button('reset'); return false;}
-                    var verification_time = form_add.find('input[name=verification_time]').val();
-                    if (timeRegEx.test(verification_time)) {
-                        var changedVal = verification_time.toString();
-                        var newValue;
-                        switch (changedVal.length) {
-                            case 1:
-                                newValue = "00:0" + changedVal;
-                                break;
-                            case 2:
-                                newValue = "00:" + changedVal;
-                                break;
-                            case 3:
-                                newValue = "0" + changedVal.substring(0, 1) + ":" + changedVal.substring(1);
-                                break;
-                            case 4:
-                                newValue = changedVal.substring(0, 2) + ":" + changedVal.substring(2);
-                                break;
-                            default:
-                                // user must have entered an invalid time, so set it to midnight
-                                newValue = "00:00";
-                                break;
-                        }
-                        thisDataObject['verification_time'] = newValue;
-                    }
-                    else {grid_console.text('Time is badly formed. Expecting a time in HHMM format but found ' + verification_time + '!'); loading_overlay.hide(); button_state.button('reset'); return false;}
+                    thisDataObject['entry_date'] = dateToday.toISOString().substr(0,10);
                     var dataJSON = JSON.stringify(thisDataObject);
                     $.ajax({
-                        url: "{% url 'merlin:balanceverifications_create' %}",
+                        url: "{% url 'merlin:methodqualityassurances_create' %}",
                         data: dataJSON,
                         dataType: 'json',
                         contentType: "application/json",
@@ -392,7 +255,7 @@
                     grid.handsontable('getInstance').render();
                 });
 
-                $("#select_field").select2({
+                $("#select_field_qualityassurance").select2({
                     multiple: true,
                     maximumSelectionSize: 1,
                     dropdownCss:{display:'none'},
@@ -400,11 +263,11 @@
                     //allowClear: true,
                     minimumInputLength: 1,
                     ajax: {
-                        url: '/merlinservices/balanceverifications/',
+                        url: '/merlinservices/qualityassurancetypes/',
                         dataType: 'json',
                         data: function (term, page) {
                             return {
-                                serial_number: term
+                                name: term
                             };
                         },
                         results: function (data, page) {
@@ -419,12 +282,48 @@
                             return a - b;
                         }); //sort by ID, numerically ascending
                     },*/
-                    formatResult: formatSelect2,
-                    formatSelection: formatSelect2
+                    formatResult: formatSelect2_qualityassurance,
+                    formatSelection: formatSelect2_qualityassurance
                 });
 
-                function formatSelect2(data) {
-                    return data.serial_number;
+                function formatSelect2_qualityassurance(data) {
+                    return data.name;
+                }
+
+
+                $("#select_field_method").select2({
+                    multiple: true,
+                    maximumSelectionSize: 1,
+                    dropdownCss:{display:'none'},
+                    //minimumResultsForSearch: -1,
+                    //allowClear: true,
+                    minimumInputLength: 1,
+                    ajax: {
+                        url: '/merlinservices/methods/',
+                        dataType: 'json',
+                        data: function (term, page) {
+                            return {
+                                method: term
+                            };
+                        },
+                        results: function (data, page) {
+                            data_data = data;
+                            grid.data('handsontable').loadData(data_data.results);
+                            grid_console.text('Filtered data loaded.');
+                            return {results: data.results};
+                        }
+                    },
+                    /*sortResults: function(results, container, query) {
+                        return results.sort(function (a, b) {
+                            return a - b;
+                        }); //sort by ID, numerically ascending
+                    },*/
+                    formatResult: formatSelect2_method,
+                    formatSelection: formatSelect2_method
+                });
+
+                function formatSelect2_method(data) {
+                    return data.method;
                 }
 
                 function clearChangedRowIndices() {
@@ -435,7 +334,7 @@
                     var button_state = $(this).button('loading');
                     loading_overlay.show();
                     $.ajax({
-                        url: '/merlinservices/balanceverifications/?page='+currentPage,
+                        url: '/merlinservices/methodqualityassurances/?page='+currentPage,
                         dataType: 'json',
                         success: function (response) {
                             grid_console.text("success");
@@ -538,7 +437,7 @@
                     var thisDataObject = {"id": thisDataRow[0]};
                     var changedDataJSON = JSON.stringify(thisDataObject);
                     $.ajax({
-                        url: "{% url 'merlin:balanceverifications_delete' %}",
+                        url: "{% url 'merlin:methodqualityassurances_delete' %}",
                         data: changedDataJSON,
                         type: 'POST',
                         success: function (data, textStatus, jqXHRequest) {
@@ -577,12 +476,8 @@
                         var thisDataRow = grid.data('handsontable').getDataAtRow(value);
                         var thisDataObject = {};
                         for (var i = 0; i < thisDataRow.length; i++) {
-                            if (objectFields[i] == "weight_tested") {thisDataObject[objectFields[i]] = Number(thisDataRow[i]);}
-                            if (objectFields[i] == "weight_as_found") {thisDataObject[objectFields[i]] = Number(thisDataRow[i]);}
-                            if (objectFields[i] == "deviation") {thisDataObject[objectFields[i]] = Number(thisDataRow[i]);}
-                            if (objectFields[i] == "percent_deviation") {thisDataObject[objectFields[i]] = Number(thisDataRow[i]);}
-                            if (objectFields[i] == "final_reading") {thisDataObject[objectFields[i]] = Number(thisDataRow[i]);}
-                            else if (objectFields[i] == 'verification_date') {
+                            if (objectFields[i] == "value") {thisDataObject[objectFields[i]] = Number(thisDataRow[i]);}
+                            else if (objectFields[i] == 'observed_date') {
                                 var baddate = thisDataRow[i];
                                 if (dateRegEx.test(baddate)) {
                                     if (makeYear(baddate)!= null && makeMonth(baddate)!= null && makeDay(baddate) != null) {
@@ -597,38 +492,10 @@
                                 }
                                 else {grid_console.text('Date is badly formed in row ' + (index + 1) + '. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); validTable = false; loading_overlay.hide(); button_state.button('reset'); return false;}
                             }
-                            else if (objectFields[i] == 'verification_time') {
-                                var badtime = thisDataRow[i];
-                                if (timeRegEx.test(badtime)) {
-                                    var changedVal = badtime.toString();
-                                    var newValue;
-                                    switch (changedVal.length) {
-                                        case 1:
-                                            newValue = "00:0" + changedVal;
-                                            break;
-                                        case 2:
-                                            newValue = "00:" + changedVal;
-                                            break;
-                                        case 3:
-                                            newValue = "0" + changedVal.substring(0, 1) + ":" + changedVal.substring(1);
-                                            break;
-                                        case 4:
-                                            newValue = changedVal.substring(0, 2) + ":" + changedVal.substring(2);
-                                            break;
-                                        default:
-                                            // user must have entered an invalid time, so set it to midnight
-                                            newValue = "00:00";
-                                            break;
-                                    }
-                                    thisDataObject[objectFields[i]] = newValue;
-                                }
-                                else {grid_console.text('Time is badly formed. Expecting a time in HHMM format but found ' + badtime + '!'); loading_overlay.hide(); button_state.button('reset'); return false;}
-                            }
-                            else if (objectFields[i] == "comment") {
-                                if (thisDataRow[i] == null) {
-                                    thisDataRow[i] = "";
-                                }
-                                thisDataObject[objectFields[i]] = thisDataRow[i];
+                            else if (objectFields[i] == 'entry_date') {
+                                var baddate = thisDataRow[i];
+                                var gooddate_string = makeYear(baddate) + "-" + makeMonth(baddate) + "-" + makeDay(baddate);
+                                thisDataObject[objectFields[i]] = gooddate_string;
                             }
                             else {thisDataObject[objectFields[i]] = thisDataRow[i];}
                         }
@@ -640,7 +507,7 @@
                     if(validTable) {
                         var changedDataJSON = JSON.stringify(changedDataArray);
                         $.ajax({
-                            url: "{% url 'merlin:balanceverifications_update' %}",
+                            url: "{% url 'merlin:methodqualityassurances_update' %}",
                             data: changedDataJSON,
                             dataType: 'json',
                             contentType: "application/json",

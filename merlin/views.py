@@ -1219,6 +1219,51 @@ def bottles_create(request):
         return HttpResponse(r, content_type='application/json')
 
 
+def methodqualityassurances(request):
+    if not request.session.get('username'):
+        return HttpResponseRedirect('/merlin/')
+    r = http_get(request, 'methodqualityassurances')
+    data = json.dumps(r.json(), sort_keys=True)
+    qualityassurances = json.dumps(http_get(request, 'qualityassurancetypes').json(), sort_keys=True)
+    methods = json.dumps(http_get(request, 'methods').json(), sort_keys=True)
+    context_dict = {'data': data, 'qualityassurances': qualityassurances, 'methods': methods}
+    return render(request, 'merlin/methodqualityassurances.html', context_dict)
+
+
+def methodqualityassurances_update(request):
+    data = json.loads(request.body.decode('utf-8'))
+    response_data = []
+    # using a loop to send data to the single PUT endpoint instead of just using the bulk PUT endpoint
+    # because the bulk PUT response time has been over 30 seconds, sometimes several minutes
+    item_number = 0
+    for item in data:
+        item_number += 1
+        this_id = item.pop("id")
+        item = json.dumps(item)
+        logger.info("Item #" + str(item_number) + ": " + item)
+        r = http_put(request, 'methodqualityassurances/'+str(this_id), item)
+        logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
+        this_response_data = r.json()
+        response_data.append(this_response_data)
+    response_data = json.dumps(response_data)
+    return HttpResponse(response_data, content_type='application/json')
+
+
+def methodqualityassurances_create(request):
+    data = request.body
+    r = http_post(request, 'bulkmethodqualityassurances', data)
+    logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
+    return HttpResponse(r, content_type='application/json')
+
+
+def methodqualityassurances_delete(request):
+    data = json.loads(request.body.decode('utf-8'))
+    this_id = data.pop("id")
+    r = http_delete(request, 'methodqualityassurances/' + str(this_id))
+    logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
+    return HttpResponse(r)
+
+
 def bottles_delete(request):
     data = json.loads(request.body.decode('utf-8'))
     this_id = data.pop("id")
