@@ -288,8 +288,8 @@
                             // when project name is changed to a non-null, non-blank value
                             if (changedCol == 'sample_bottle.sample.project_string' && changedVal !== null && changedVal !== "") {
                                 // update project ID to match project name
-                                //var newValue = updateValueDom(data_sites, 'name', 'id', changedVal);
-                                //grid.handsontable('setDataAtCell', changedRow, 2, newValue);
+                                var newValue = updateValueDom(data_projects, 'name', 'id', changedVal);
+                                grid.handsontable('setDataAtCell', changedRow, 2, newValue);
                                 // update lists of site names and IDs filtered by the selected project name
                                 $.ajax({
                                     url: '/merlinservices/sites/',
