@@ -39,8 +39,8 @@
                     <input class="input-block-level" name="deviation" id="deviation">
                 </div>
                 <div class="form-group" style="padding:2px;text-align:center">
-                    <label for="percent_deviation">% Deviation</label><br />
-                    <input class="input-block-level" name="percent_deviation" id="percent_deviation">
+                    <label for="percent_recovery">% Recovery</label><br />
+                    <input class="input-block-level" name="percent_recovery" id="percent_recovery">
                 </div>
                 <div class="form-group" style="padding:2px;text-align:center">
                     <label for="final_reading">Final Reading</label><br />
@@ -125,7 +125,7 @@
                             break;
                     }
                 };
-                var objectFields = ["id", "balance", "balance_string", "analyst", "analyst_string", "verification_date", "verification_time", "weight_tested", "weight_as_found", "deviation", "percent_deviation", "final_reading", "comment"];
+                var objectFields = ["id", "balance", "balance_string", "analyst", "analyst_string", "verification_date", "verification_time", "weight_tested", "weight_as_found", "deviation", "percent_recovery", "final_reading", "comment"];
                 var currentPage = 1;
                 var addClicked = false;
                 var grid = $('#grid');
@@ -168,29 +168,32 @@
                     d.val(deviation);
                 }
 
-                function calculatePercentDeviation() {
-                    var pd = $('#percent_deviation');
-                    var percent_deviation = null;
+                function calculatePercentRecovery() {
+                    var pd = $('#percent_recovery');
+                    var percent_recovery = null;
                     var weight_tested = $('#weight_tested').val();
                     var weight_as_found = $('#weight_as_found').val();
                     if (weight_tested !== null && weight_tested !== "" && !isNaN(weight_tested) && weight_as_found !== null && weight_as_found !== "" && !isNaN(weight_as_found)) {
-                        percent_deviation = Math.ceil((weight_as_found / weight_tested) * 100);
-                        if (percent_deviation >= 105 || percent_deviation <= 95) {
+                        percent_recovery = Math.ceil((weight_as_found / weight_tested) * 100);
+                        if (percent_recovery >= 105 || percent_recovery <= 95) {
                             console.log('true');
                             pd.css("background-color", "orange");
                         }
+                        else {
+                            pd.css("background-color", "white");
+                        }
                     }
-                    pd.val(percent_deviation);
+                    pd.val(percent_recovery);
                 }
 
                 $('#weight_tested, #weight_as_found').change(calculateDeviationValues);
 
                 function calculateDeviationValues() {
                     calculateDeviation();
-                    calculatePercentDeviation();
+                    calculatePercentRecovery();
                 }
 
-                var validatePercentDeviation = function(value, callback) {
+                var validatePercentRecovery = function(value, callback) {
                     if (value >= 105 || value <= 95) {callback(false);}
                     else {callback(true);}
                 };
@@ -223,7 +226,7 @@
                         {title: 'Weight Tested', data: "weight_tested", width: 120, type: 'numeric', numericFormat: {pattern: '0.00000', culture: 'en-US'}},
                         {title: 'Weight as Found', data: "weight_as_found", width: 120, type: 'numeric', numericFormat: {pattern: '0.00000', culture: 'en-US'}},
                         {title: 'Deviation', data: "deviation", width: 120, type: 'numeric', numericFormat: {pattern: '0.00000', culture: 'en-US'}},
-                        {title: '% Deviation', data: "percent_deviation", width: 120, type: 'numeric', validator: validatePercentDeviation},
+                        {title: '% Deviation', data: "percent_recovery", width: 120, type: 'numeric', validator: validatePercentRecovery},
                         {title: 'Final Reading', data: "final_reading", width: 120, type: 'numeric', numericFormat: {pattern: '0.00000', culture: 'en-US'}},
                         {title: "Comment", data: "comment", width: 400}
                     ],
@@ -258,9 +261,9 @@
                         if (source == 'edit' || source == 'CopyPaste.paste') {
                             // when weight_tested or weight_as_found is changed
                             if ((changedCol == 'weight_tested' || changedCol == 'weight_as_found')) {
-                                // update deviation and percent_deviation
+                                // update deviation and percent_recovery
                                 var deviation = null;
-                                var percent_deviation = null;
+                                var percent_recovery = null;
                                 if (changedCol == 'weight_tested') {
                                     weight_tested = changedVal;
                                     weight_as_found = grid.handsontable('getDataAtCell', changedRow, 8);
@@ -272,10 +275,10 @@
 
                                 if ((weight_tested !== null && weight_tested !== "" && !isNaN(weight_tested)) && (weight_as_found !== null && weight_as_found !== "" && !isNaN(weight_as_found))) {
                                     deviation = (weight_tested - weight_as_found).toFixed(5);
-                                    percent_deviation = Math.ceil((weight_as_found / weight_tested) * 100);
+                                    percent_recovery = Math.ceil((weight_as_found / weight_tested) * 100);
                                 }
                                 grid.handsontable('setDataAtCell', changedRow, 9, deviation);
-                                grid.handsontable('setDataAtCell', changedRow, 10, percent_deviation);
+                                grid.handsontable('setDataAtCell', changedRow, 10, percent_recovery);
                             }
                         }
                     },
@@ -308,7 +311,7 @@
                     thisDataObject['weight_tested'] = Number(form_add.find('input[name=weight_tested]').val());
                     thisDataObject['weight_as_found'] = Number(form_add.find('input[name=weight_as_found]').val());
                     thisDataObject['deviation'] = Number(form_add.find('input[name=deviation]').val());
-                    thisDataObject['percent_deviation'] = Number(form_add.find('input[name=percent_deviation]').val());
+                    thisDataObject['percent_recovery'] = Number(form_add.find('input[name=percent_recovery]').val());
                     thisDataObject['final_reading'] = Number(form_add.find('input[name=final_reading]').val());
                     thisDataObject['comment'] = form_add.find('input[name=comment]').val();
                     if (thisDataObject['comment'] == null) {thisDataObject['comment'] = "";}
@@ -581,7 +584,7 @@
                             if (objectFields[i] == "weight_tested") {thisDataObject[objectFields[i]] = Number(thisDataRow[i]); console.log(thisDataObject[objectFields[i]]);}
                             if (objectFields[i] == "weight_as_found") {thisDataObject[objectFields[i]] = Number(thisDataRow[i]); console.log(thisDataObject[objectFields[i]]);}
                             if (objectFields[i] == "deviation") {thisDataObject[objectFields[i]] = Number(thisDataRow[i]); console.log(thisDataObject[objectFields[i]]);}
-                            if (objectFields[i] == "percent_deviation") {thisDataObject[objectFields[i]] = Number(thisDataRow[i]); console.log(thisDataObject[objectFields[i]]);}
+                            if (objectFields[i] == "percent_recovery") {thisDataObject[objectFields[i]] = Number(thisDataRow[i]); console.log(thisDataObject[objectFields[i]]);}
                             if (objectFields[i] == "final_reading") {thisDataObject[objectFields[i]] = Number(thisDataRow[i]);}
                             else if (objectFields[i] == 'verification_date') {
                                 var baddate = thisDataRow[i];

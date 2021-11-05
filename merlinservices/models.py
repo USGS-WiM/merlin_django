@@ -423,7 +423,7 @@ class BalanceVerification(models.Model):
     weight_tested = models.FloatField(null=True, blank=True)
     weight_as_found = models.FloatField(null=True, blank=True)
     deviation = models.FloatField(null=True, blank=True)
-    percent_deviation = models.IntegerField(null=True, blank=True)
+    percent_recovery = models.IntegerField(null=True, blank=True)
     final_reading = models.FloatField(null=True, blank=True)
     comment = models.TextField(blank=True)
     created_date = models.DateField(default=datetime.now, null=True, blank=True)
