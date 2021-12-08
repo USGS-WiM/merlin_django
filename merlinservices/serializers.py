@@ -320,7 +320,7 @@ class BalanceVerificationSerializer(serializers.ModelSerializer, BulkSerializerM
         list_serializer_class = BulkListSerializer
         model = BalanceVerification
         fields = ('id', 'balance', 'balance_string', 'analyst', 'analyst_string', 'verification_date',
-                  'verification_time', 'weight_tested', 'weight_as_found', 'deviation', 'percent_deviation',
+                  'verification_time', 'weight_tested', 'weight_as_found', 'deviation', 'percent_recovery',
                   'final_reading', 'comment')
 
 
