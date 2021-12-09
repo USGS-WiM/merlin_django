@@ -1450,10 +1450,30 @@ def balanceverifications_update(request):
 
 
 def balanceverifications_create(request):
-    data = request.body
-    r = http_post(request, 'bulkbalanceverifications', data)
-    logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
-    return HttpResponse(r, content_type='application/json')
+    data = json.loads(request.body.decode('utf-8'))
+    item1 = {"balance": data["balance"], "analyst": data["analyst"], "verification_date": data["verification_date"],
+             "verification_time": data["verification_time"], "weight_tested": data["weight_tested1"],
+             "weight_as_found": data["weight_as_found1"], "deviation": data["deviation1"],
+             "percent_recovery": data["percent_recovery1"],  "final_reading": data["final_reading1"],
+             "comment": data["comment"]}
+    item2 = {"balance": data["balance"], "analyst": data["analyst"], "verification_date": data["verification_date"],
+             "verification_time": data["verification_time"], "weight_tested": data["weight_tested2"],
+             "weight_as_found": data["weight_as_found2"], "deviation": data["deviation2"],
+             "percent_recovery": data["percent_recovery2"],  "final_reading": data["final_reading2"],
+             "comment": data["comment"]}
+    data = [item1, item2]
+    response_data = []
+    item_number = 0
+    for item in data:
+        item_number += 1
+        item = json.dumps(item)
+        logger.info("Item #" + str(item_number) + ": " + str(item))
+        r = http_post(request, 'balanceverifications', item)
+        logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
+        this_response_data = r.json()
+        response_data.append(this_response_data)
+    response_data = json.dumps(response_data)
+    return HttpResponse(response_data, content_type='application/json')
 
 
 def balanceverifications_delete(request):
