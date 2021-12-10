@@ -605,8 +605,14 @@
                     }
                     else {
                         addClicked = true;
-                        // get the current LOCAL date and time
-                        dateLocal = getDateLocal();
+                        // set the default/expected weights for balances
+                        // NOTE: this only applies to analytical balances,
+                        //  not top-loading balances (which aren't in the DB yet)
+                        // TODO: long-term is might be best to check the balance type rather than assume
+                        form_add.find('input[name=weight_tested1]').val("0.005");
+                        form_add.find('input[name=weight_tested2]').val("2.0");
+                        // set the current LOCAL date and time
+                        var dateLocal = getDateLocal();
                         var timeLocal = dateLocal.getHours() + "" + dateLocal.getMinutes();
                         dateLocal = ("00" + (dateLocal.getMonth() + 1)).slice(-2) + "/" + ("00" + dateLocal.getDate()).slice(-2) + "/" + dateLocal.getFullYear().toString().substr(-2);
                         form_add.find('input[name=verification_date]').val(dateLocal);
