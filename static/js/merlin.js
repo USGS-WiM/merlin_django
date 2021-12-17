@@ -81,6 +81,7 @@ function pad(n, width, z) {
   return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
 }
 var dateRegEx = /^(0[1-9]|1[012]|[1-9])[- /.](0[1-9]|[12][0-9]|3[01]|[1-9])[- /.](\d\d|\d\d\d\d)$/;
+var timeRegEx = /^([01]\d|2[0-3]|\d)?([0-5]\d)$/;
 function makeYear(thisDate) {
     var indexLastSlash = thisDate.lastIndexOf('/');
     var thisYear = thisDate.substring(indexLastSlash+1,thisDate.length);

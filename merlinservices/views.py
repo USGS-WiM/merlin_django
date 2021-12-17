@@ -7,6 +7,7 @@ import datetime as dtmod
 from numbers import Number
 from datetime import datetime as dt
 from django.core.exceptions import MultipleObjectsReturned
+from django.utils import timezone
 from django.db.models import Count
 from django.db.models.base import ObjectDoesNotExist
 from django.http import HttpResponse
@@ -759,6 +760,16 @@ class FullResultViewSet(viewsets.ModelViewSet):
                 ordering = 'CASE %s END' % clauses
                 queryset = queryset.filter(sample_bottle__bottle__bottle_unique_name__in=bottle_list).extra(
                     select={'ordering': ordering}, order_by=('ordering',))
+            # filter by analysis ID, exact list
+            analysis = self.request.query_params.get('analysis', None)
+            if analysis is not None:
+                analysis_list = analysis.split(',')
+                queryset = queryset.filter(analysis__in=analysis_list)
+            # filter by constituent ID, exact list
+            constituent = self.request.query_params.get('constituent', None)
+            if constituent is not None:
+                constituent_list = constituent.split(',')
+                queryset = queryset.filter(constituent__in=constituent_list)
             # if exclude_null_results is a param, then exclude null results, otherwise return all results
             exclude_null_results = self.request.query_params.get('exclude_null_results')
             if exclude_null_results is not None:
@@ -1029,6 +1040,43 @@ class ResultDataFileViewSet(viewsets.ModelViewSet):
     serializer_class = ResultDataFileSerializer
 
 
+class BalanceVerificationBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkUpdateModelMixin, viewsets.ModelViewSet):
+    queryset = BalanceVerification.objects.all()
+    serializer_class = BalanceVerificationSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+
+
+class BalanceVerificationViewSet(viewsets.ModelViewSet):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    queryset = BalanceVerification.objects.all()
+    serializer_class = BalanceVerificationSerializer
+    pagination_class = StandardResultsSetPagination
+
+
+class EquipmentViewSet(viewsets.ModelViewSet):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    serializer_class = EquipmentSerializer
+
+    # override the default queryset to allow filtering by URL arguments
+    def get_queryset(self):
+        queryset = Equipment.objects.all()
+        # filter by type, exact
+        type = self.request.query_params.get('type', None)
+        if type is not None:
+            queryset = queryset.filter(type__exact=type)
+        # filter by serial_number, case-insensitive contain
+        serial_number = self.request.query_params.get('serial_number', None)
+        if serial_number is not None:
+            queryset = queryset.filter(serial_number__icontains=serial_number)
+        return queryset
+
+
+class EquipmentTypeViewSet(viewsets.ModelViewSet):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    queryset = EquipmentType.objects.all()
+    serializer_class = EquipmentTypeSerializer
+
+
 ######
 #
 # Solution
@@ -1143,7 +1191,7 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
 
     def get_queryset(self):
-        queryset = User.objects.all()
+        queryset = User.objects.all().order_by('-last_login')
         # filter by username, exact
         username = self.request.query_params.get('username', None)
         if username is not None:
@@ -1156,6 +1204,10 @@ class AuthView(views.APIView):
     serializer_class = UserSerializer
 
     def post(self, request, *args, **kwargs):
+        user = request.user if request is not None else None
+        if user and user.is_authenticated:
+            user.last_login = timezone.now()
+            user.save(update_fields=['last_login'])
         return Response(self.serializer_class(request.user).data)
 
 

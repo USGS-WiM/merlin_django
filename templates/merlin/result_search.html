@@ -17,10 +17,16 @@
                         <!-- <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#multiBottleSearchModal"> -->
                             <span class="glyphicon glyphicon-search" data-toggle="modal" data-target="#multiBottleSearchModal"></span><br />
                         <!-- </button><br /> -->
-                        <input id="select_bottle" type="hidden" style="width:1200px"/>                       
+                        <input id="select_bottle" type="hidden" style="width:963px"/>
+                    </div>
+                    <div class="form-group">
+                        <label for="select_constituent_bottle">Constituent</label><br />
+                        <input id="select_constituent_bottle" type="hidden" style="width:237px"/>
                     </div>
                 </p>
-                <span>OR</span>
+                <br />
+                <p>OR</p>
+                <br />
                 <p>
                     <div class="form-group">
                         <label for="select_project">Project Name</label><br />
@@ -104,6 +110,10 @@
               <div class="modal-body">
                 <textarea id="bottle_search_list" style="width:100%;height: 200px;"></textarea>
                 <div class="alert alert-warning" role="alert" style="display:none">...</div>
+                <div class="form-group">
+                  <label for="select_constituent_bottle_modal">Constituent</label><br />
+                  <input id="select_constituent_bottle_modal" type="hidden" style="width:237px"/>
+                </div>
               </div>
               <div class="modal-footer">
                   <div class="form-group" class="form-inline">
@@ -222,6 +232,28 @@
                     formatSelection: formatBottle
                 });
 
+                var select_constituent_bottle = $("#select_constituent_bottle").select2({
+                    allowClear: true,
+                    multiple: true,
+                    //maximumSelectionSize: 1,
+                    //dropdownCss:{display:'none'},
+                    minimumInputLength: 1,
+                    data: { results: data_constituents, text: 'constituent'},
+                    formatResult: formatConstituent,
+                    formatSelection: formatConstituent
+                });
+
+                var select_constituent_bottle_modal = $("#select_constituent_bottle_modal").select2({
+                    allowClear: true,
+                    multiple: true,
+                    //maximumSelectionSize: 1,
+                    //dropdownCss:{display:'none'},
+                    minimumInputLength: 1,
+                    data: { results: data_constituents, text: 'constituent'},
+                    formatResult: formatConstituent,
+                    formatSelection: formatConstituent
+                });
+
                 var select_project = $("#select_project").select2({
                     allowClear: true,
                     multiple: true,
@@ -337,7 +369,9 @@
 
                 grid.parent().find('button[name=search]').click(function(){
                     $("#grid_console_error").hide();
-                    searchBottles('button[name=search]',$(select_bottle).val());
+                    $("#bottle_search_list").val("");
+                    $("#select_constituent_bottle_modal").select2('val', '');
+                    searchBottles('button[name=search]',$("#select_bottle").val(),$("#select_constituent_bottle").val());
                 });
 
                 var checkbox_excludeNullResults = $('#excludeNullResults');
@@ -361,7 +395,7 @@
                     }
                 });
 
-                var searchBottles = function(button,bottle){
+                var searchBottles = function(button,bottle,constituent){
                     penultimateSearchWasMultiBottle = (button == '#multi_bottle_search');
                     var button_state = $(button).button('loading');
                     loading_overlay.show();
@@ -374,7 +408,15 @@
                     thisDataObject['date_before_sample'] = date_before_sample.toString('MM/DD/YY');
                     thisDataObject['date_after_entry'] = date_after_entry.toString('MM/DD/YY');
                     thisDataObject['date_before_entry'] = date_before_entry.toString('MM/DD/YY');
-                    thisDataObject['constituent'] = $(select_constituent).val();
+                    if (bottle !== "" && constituent !== "") {
+                        thisDataObject['constituent'] = constituent;
+                    }
+                    else if (bottle === "") {
+                        thisDataObject['constituent'] = $(select_constituent).val();
+                    }
+                    else {
+                        thisDataObject['constituent'] = "";
+                    }
                     thisDataObject['exclude_null_results'] = checkbox_excludeNullResults.is(':checked');
                     thisDataObject['format'] = "";
                     thisDataObject['table'] = "result";
@@ -424,6 +466,7 @@
                                 button_state.button('reset');
                             }
                             $("#bottle_search_list").val("");
+                            $("#select_constituent_bottle_modal").select2('val', '');
                         },
                         error: function (jqXHRequest, textStatus, errorThrown) {
                             grid_console.text(errorThrown + " ... " + textStatus);
@@ -582,11 +625,13 @@
                             bottleIds.push(bottle_list[i]);
                         }                       
                     }
+                    var constituentId = $("#select_constituent_bottle_modal").val();
                     //get bottles                   
                     $('#multiBottleSearchModal').modal('hide');
                     if(bottleIds.length > 0){
-                        select_bottle.val("");
-                        searchBottles('#multi_bottle_search',bottleIds.join(","));
+                        $("#select_bottle").val("");
+                        $("#select_constituent_bottle").select2('val', '');
+                        searchBottles('#multi_bottle_search',bottleIds.join(","),constituentId);
                     }                 
                 });
 
