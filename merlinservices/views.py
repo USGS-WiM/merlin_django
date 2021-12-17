@@ -760,6 +760,16 @@ class FullResultViewSet(viewsets.ModelViewSet):
                 ordering = 'CASE %s END' % clauses
                 queryset = queryset.filter(sample_bottle__bottle__bottle_unique_name__in=bottle_list).extra(
                     select={'ordering': ordering}, order_by=('ordering',))
+            # filter by analysis ID, exact list
+            analysis = self.request.query_params.get('analysis', None)
+            if analysis is not None:
+                analysis_list = analysis.split(',')
+                queryset = queryset.filter(analysis__in=analysis_list)
+            # filter by constituent ID, exact list
+            constituent = self.request.query_params.get('constituent', None)
+            if constituent is not None:
+                constituent_list = constituent.split(',')
+                queryset = queryset.filter(constituent__in=constituent_list)
             # if exclude_null_results is a param, then exclude null results, otherwise return all results
             exclude_null_results = self.request.query_params.get('exclude_null_results')
             if exclude_null_results is not None:
