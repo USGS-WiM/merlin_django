@@ -224,6 +224,9 @@
                         results: function (data, page) {
                             //data_data = data;
                             //grid.data('handsontable').loadData(data.results);
+                            // also clear the multi-bottle modal search so it doesn't interfere with main form search
+                            $("#bottle_search_list").val("");
+                            $("#select_constituent_bottle_modal").select2('val', '');
                             grid_console.text('Filtered data loaded.');
                             return {results: data.results};
                         }
@@ -243,6 +246,12 @@
                     formatSelection: formatConstituent
                 });
 
+                $('#select_constituent_bottle').on("select2-selecting", function(e) {
+                    // clear the multi-bottle modal search so it doesn't interfere with main form search
+                    $("#bottle_search_list").val("");
+                    $("#select_constituent_bottle_modal").select2('val', '');
+                });
+
                 var select_constituent_bottle_modal = $("#select_constituent_bottle_modal").select2({
                     allowClear: true,
                     multiple: true,
@@ -252,6 +261,12 @@
                     data: { results: data_constituents, text: 'constituent'},
                     formatResult: formatConstituent,
                     formatSelection: formatConstituent
+                });
+
+                $('#select_constituent_bottle_modal').on("select2-selecting", function(e) {
+                    // clear the main form search so it doesn't interfere with multi-bottle modal search
+                    $("#select_bottle").val("");
+                    $("#select_constituent_bottle").select2('val', '');
                 });
 
                 var select_project = $("#select_project").select2({
@@ -369,8 +384,6 @@
 
                 grid.parent().find('button[name=search]').click(function(){
                     $("#grid_console_error").hide();
-                    $("#bottle_search_list").val("");
-                    $("#select_constituent_bottle_modal").select2('val', '');
                     searchBottles('button[name=search]',$("#select_bottle").val(),$("#select_constituent_bottle").val());
                 });
 
@@ -465,8 +478,6 @@
                                 loading_overlay.hide();
                                 button_state.button('reset');
                             }
-                            $("#bottle_search_list").val("");
-                            $("#select_constituent_bottle_modal").select2('val', '');
                         },
                         error: function (jqXHRequest, textStatus, errorThrown) {
                             grid_console.text(errorThrown + " ... " + textStatus);
@@ -582,8 +593,15 @@
                     else if (resultPages < 2) {return false;}
                     // otherwise request all the data matching the search query from the server
                     var thisDataObject = {};
-                    if (penultimateSearchWasMultiBottle) {thisDataObject['bottle'] = bottleIds.join(",");}
-                    else if ($(select_bottle).val() != "") {thisDataObject['bottle'] = $(select_bottle).val()}
+                    if (penultimateSearchWasMultiBottle) {
+                        thisDataObject['bottle'] = bottleIds.join(",");
+                        thisDataObject['constituent'] = $("#select_constituent_bottle_modal").val();
+                    }
+                    else if ($(select_bottle).val() != "") {
+                        thisDataObject['bottle'] = $(select_bottle).val();
+                        thisDataObject['constituent'] = $("#select_constituent_bottle").val();
+                    }
+                    else if ($(select_constituent).val() != "") {thisDataObject['constituent'] = $(select_constituent).val()}
                     if ($(select_project).val() != "") {thisDataObject['project'] = $(select_project).val()}
                     if ($(select_site).val() != "") {thisDataObject['site'] = $(select_site).val()}
                     var formattedDate = "";
@@ -591,7 +609,6 @@
                     if (date_before_sample.toString('MM/DD/YY') != "") {formattedDate = formatDate(date_before_sample.toString('MM/DD/YY')); if (isNaN(formattedDate.slice(0,4)) && formattedDate != "") {grid_console.text(formattedDate); button_state.button('reset'); return false;} else {thisDataObject['date_before_sample'] = formattedDate;}} else {formattedDate = ""}
                     if (date_after_entry.toString('MM/DD/YY') != "") {formattedDate = formatDate(date_after_entry.toString('MM/DD/YY')); if (isNaN(formattedDate.slice(0,4)) && formattedDate != "") {grid_console.text(formattedDate); button_state.button('reset'); return false;} else {thisDataObject['date_after_entry'] = formattedDate;}} else {formattedDate = ""}
                     if (date_before_entry.toString('MM/DD/YY') != "") {formattedDate = formatDate(date_before_entry.toString('MM/DD/YY')); if (isNaN(formattedDate.slice(0,4)) && formattedDate != "") {grid_console.text(formattedDate); button_state.button('reset'); return false;} else {thisDataObject['date_before_entry'] = formattedDate;}} else {formattedDate = ""}
-                    if ($(select_constituent).val() != "") {thisDataObject['constituent'] = $(select_constituent).val()}
                     thisDataObject['exclude_null_results'] = $('#excludeNullResults').is(':checked');
                     thisDataObject['format'] = "csv";
                     thisDataObject['table'] = "result";
@@ -629,6 +646,7 @@
                     //get bottles                   
                     $('#multiBottleSearchModal').modal('hide');
                     if(bottleIds.length > 0){
+                        // also clear the main form search so it doesn't interfere with multi-bottle modal search
                         $("#select_bottle").val("");
                         $("#select_constituent_bottle").select2('val', '');
                         searchBottles('#multi_bottle_search',bottleIds.join(","),constituentId);
