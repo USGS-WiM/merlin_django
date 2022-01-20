@@ -595,11 +595,15 @@
                     var thisDataObject = {};
                     if (penultimateSearchWasMultiBottle) {
                         thisDataObject['bottle'] = bottleIds.join(",");
-                        thisDataObject['constituent'] = $("#select_constituent_bottle_modal").val();
+                        if ($("#select_constituent_bottle_modal").val() != '') {
+                            thisDataObject['constituent'] = $("#select_constituent_bottle_modal").val();
+                        }
                     }
                     else if ($(select_bottle).val() != "") {
                         thisDataObject['bottle'] = $(select_bottle).val();
-                        thisDataObject['constituent'] = $("#select_constituent_bottle").val();
+                        if ($("#select_constituent_bottle").val() != '') {
+                            thisDataObject['constituent'] = $("#select_constituent_bottle").val();
+                        }
                     }
                     else if ($(select_constituent).val() != "") {thisDataObject['constituent'] = $(select_constituent).val()}
                     if ($(select_project).val() != "") {thisDataObject['project'] = $(select_project).val()}
