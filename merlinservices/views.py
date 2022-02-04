@@ -1811,11 +1811,9 @@ def validate_result(sample_bottle_id, constituent_id, method_id, row):
         return is_valid, message, result_id
 
     # check if the method requires a bottle tare weight (77 (SPM)) and that the tare weight exists
-    if method_id == 77:
-        tare_weight = Bottle.objects.filter(id=result_details.sample_bottle.bottle_id)[0].tare_weight
-        if tare_weight is None:
-            message = "A bottle tare weight is required for SPM calculations, but was not found for " + str(bottle_name)
-            return is_valid, message, result_id
+    if method_id == 77 and Bottle.objects.filter(id=result_details.sample_bottle.bottle_id)[0].tare_weight is None:
+        message = "A bottle tare weight is required for SPM calculations but was not found"
+        return is_valid, message, result_id
 
     is_valid = True
     result_id = result_details.id
