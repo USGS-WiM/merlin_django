@@ -655,11 +655,17 @@ class ResultViewSet(viewsets.ModelViewSet):
         # filter by constituent ID, exact
         constituent = self.request.query_params.get('constituent', None)
         if constituent is not None:
-            queryset = queryset.filter(constituent__exact=constituent)
+            if constituent.isdigit():
+                queryset = queryset.filter(constituent__exact=constituent)
+            else:
+                queryset = queryset.filter(constituent__constituent__exact=constituent)
         # filter by analysis ID, exact
         analysis = self.request.query_params.get('analysis', None)
         if analysis is not None:
-            queryset = queryset.filter(analysis__exact=analysis)
+            if analysis.isdigit():
+                queryset = queryset.filter(analysis__exact=analysis)
+            else:
+                queryset = queryset.filter(analysis__analysis__exact=analysis)
         # filter by isotope ID, exact
         isotope_flag = self.request.query_params.get('isotope_flag', None)
         if isotope_flag is not None:
