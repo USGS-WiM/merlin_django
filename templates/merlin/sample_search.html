@@ -15,10 +15,16 @@
                         <!-- <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#multiBottleSearchModal"> -->
                             <span class="glyphicon glyphicon-search" data-toggle="modal" data-target="#multiBottleSearchModal"></span><br />
                         <!-- </button><br /> -->
-                        <input id="select_bottle" type="hidden" style="width:1200px"/>
+                        <input id="select_bottle" type="hidden" style="width:963px"/>
+                    </div>
+                    <div class="form-group">
+                        <label for="select_analysis_bottle">Analysis</label><br />
+                        <input id="select_analysis_bottle" type="hidden" style="width:237px"/>
                     </div>
                 </p>
-                <span>OR</span>
+                <br />
+                <p>OR</p>
+                <br />
                 <p>
                     <div class="form-group">
                         <label for="select_project">Project Name</label><br />
@@ -99,6 +105,10 @@
               <div class="modal-body">
                 <textarea id="bottle_search_list" style="width:100%;height: 200px;"></textarea>
                 <div class="alert alert-warning" role="alert" style="display:none">...</div>
+                <div class="form-group">
+                  <label for="select_analysis_bottle_modal">Analysis</label><br />
+                  <input id="select_analysis_bottle_modal" type="hidden" style="width:237px"/>
+                </div>
               </div>
               <div class="modal-footer">
                   <button id="multi_bottle_search" type="button" class="btn btn-info" data-loading-text="Searching...">Search</button>
@@ -452,12 +462,49 @@
                         results: function (data, page) {
                             //data_data = data;
                             //grid.data('handsontable').loadData(data.results);
+                            // also clear the multi-bottle modal search so it doesn't interfere with main form search
+                            $("#bottle_search_list").val("");
+                            $("#select_analysis_bottle_modal").select2('val', '');
                             grid_console.text('Filtered data loaded.');
                             return {results: data.results};
                         }
                     },
                     formatResult: formatBottle,
                     formatSelection: formatBottle
+                });
+
+                var select_analysis_bottle = $("#select_analysis_bottle").select2({
+                    allowClear: true,
+                    multiple: true,
+                    //maximumSelectionSize: 1,
+                    //dropdownCss:{display:'none'},
+                    minimumInputLength: 1,
+                    data: { results: data_analyses, text: 'analysis'},
+                    formatResult: formatAnalysis,
+                    formatSelection: formatAnalysis
+                });
+
+                $('#select_analysis_bottle').on("select2-selecting", function(e) {
+                    // clear the multi-bottle modal search so it doesn't interfere with main form search
+                    $("#bottle_search_list").val("");
+                    $("#select_analysis_bottle_modal").select2('val', '');
+                });
+
+                var select_analysis_bottle_modal = $("#select_analysis_bottle_modal").select2({
+                    allowClear: true,
+                    multiple: true,
+                    //maximumSelectionSize: 1,
+                    //dropdownCss:{display:'none'},
+                    minimumInputLength: 1,
+                    data: { results: data_analyses, text: 'analysis'},
+                    formatResult: formatAnalysis,
+                    formatSelection: formatAnalysis
+                });
+
+                $('#select_analysis_bottle_modal').on("select2-selecting", function(e) {
+                    // clear the main form search so it doesn't interfere with multi-bottle modal search
+                    $("#select_bottle").val("");
+                    $("#select_analysis_bottle").select2('val', '');
                 });
 
                 var select_project = $("#select_project").select2({
@@ -557,10 +604,10 @@
 
                 grid.parent().find('button[name=search]').click(function(){
                     $("#grid_console_error").hide();
-                    searchBottles('button[name=search]',$(select_bottle).val());
+                    searchBottles('button[name=search]',$("#select_bottle").val(),$("#select_analysis_bottle").val());
                 });
 
-                var searchBottles = function(button,bottle){
+                var searchBottles = function(button,bottle,analysis){
                     penultimateSearchWasMultiBottle = (button == '#multi_bottle_search');
                     var button_state = $(button).button('loading');
                     loading_overlay.show();
@@ -573,7 +620,15 @@
                     thisDataObject['site'] = $(select_site).val();//.slice(0, -1);
                     thisDataObject['depth'] = $("#select_depth").val();
                     thisDataObject['replicate'] = $("#select_replicate").val();
-                    thisDataObject['analysis'] = $(select_analysis).val();
+                    if (bottle !== "" && analysis !== "") {
+                        thisDataObject['analysis'] = analysis;
+                    }
+                    else if (bottle === "") {
+                        thisDataObject['analysis'] = $(select_analysis).val();
+                    }
+                    else {
+                        thisDataObject['analysis'] = "";
+                    }
                     thisDataObject['date_after_sample'] = date_after_sample.toString('MM/DD/YY');
                     thisDataObject['date_before_sample'] = date_before_sample.toString('MM/DD/YY');
                     thisDataObject['page_size'] = "";
@@ -612,7 +667,6 @@
                                 loading_overlay.hide();
                                 button_state.button('reset');
                             }
-                            $("#bottle_search_list").val("");
                         },
                         error: function (jqXHRequest, textStatus, errorThrown) {
                             grid_console.text(errorThrown + " ... " + textStatus);
@@ -1093,13 +1147,23 @@
                     else if (resultPages < 2) {return false;}
                     // otherwise request all the data matching the search query from the server
                     var thisDataObject = {};
-                    if (penultimateSearchWasMultiBottle) {thisDataObject['bottle'] = bottleIds.join(",");}
-                    else if ($(select_bottle).val() != "") {thisDataObject['bottle'] = $(select_bottle).val()}
+                    if (penultimateSearchWasMultiBottle) {
+                        thisDataObject['bottle'] = bottleIds.join(",");
+                        if ($("#select_analysis_bottle_modal").val() != '') {
+                            thisDataObject['analysis'] = $("#select_analysis_bottle_modal").val();
+                        }
+                    }
+                    else if ($(select_bottle).val() != "") {
+                        thisDataObject['bottle'] = $(select_bottle).val();
+                        if ($("#select_analysis_bottle").val() != '') {
+                            thisDataObject['analysis'] = $("#select_analysis_bottle").val();
+                        }
+                    }
+                    else if ($(select_analysis).val() != "") {thisDataObject['analysis'] = $(select_analysis).val()}
                     if ($(select_project).val() != "") {thisDataObject['project'] = $(select_project).val()}
                     if ($(select_site).val() != "") {thisDataObject['site'] = $(select_site).val()}
                     if ($("#select_depth").val() != "") {thisDataObject['depth'] = $("#select_depth").val()}
                     if ($("#select_replicate").val() != "") {thisDataObject['replicate'] = $("#select_replicate").val()}
-                    if ($(select_analysis).val() != "") {thisDataObject['analysis'] = $(select_analysis).val()}
                     var formattedDate = "";
                     if (date_after_sample.toString('MM/DD/YY') != "") {formattedDate = formatDate(date_after_sample.toString('MM/DD/YY')); if (isNaN(formattedDate.slice(0,4)) && formattedDate != "") {grid_console.text(formattedDate); loading_overlay.hide(); button_state.button('reset'); return false;} else {thisDataObject['date_after_sample'] = formattedDate;}} else {formattedDate = ""}
                     if (date_before_sample.toString('MM/DD/YY') != "") {formattedDate = formatDate(date_before_sample.toString('MM/DD/YY')); if (isNaN(formattedDate.slice(0,4)) && formattedDate != "") {grid_console.text(formattedDate); loading_overlay.hide(); button_state.button('reset'); return false;} else {thisDataObject['date_before_sample'] = formattedDate;}} else {formattedDate = ""}
@@ -1134,11 +1198,14 @@
                             bottleIds.push(bottle_list[i].trim());
                         }
                     }
+                    var analysisId = $("#select_analysis_bottle_modal").val();
                     //get bottles
                     $('#multiBottleSearchModal').modal('hide');
                     if(bottleIds.length > 0){
-                        select_bottle.val("");
-                        searchBottles('#multi_bottle_search',bottleIds.join(","));
+                        // also clear the main form search so it doesn't interfere with multi-bottle modal search
+                        $("#select_bottle").val("");
+                        $("#select_analysis_bottle").select2('val', '');
+                        searchBottles('#multi_bottle_search',bottleIds.join(","),analysisId);
                     }
                 });
 

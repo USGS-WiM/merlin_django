@@ -764,6 +764,16 @@ class FullResultViewSet(viewsets.ModelViewSet):
                 ordering = 'CASE %s END' % clauses
                 queryset = queryset.filter(sample_bottle__bottle__bottle_unique_name__in=bottle_list).extra(
                     select={'ordering': ordering}, order_by=('ordering',))
+            # filter by analysis ID, exact list
+            analysis = self.request.query_params.get('analysis', None)
+            if analysis is not None:
+                analysis_list = analysis.split(',')
+                queryset = queryset.filter(analysis__in=analysis_list)
+            # filter by constituent ID, exact list
+            constituent = self.request.query_params.get('constituent', None)
+            if constituent is not None:
+                constituent_list = constituent.split(',')
+                queryset = queryset.filter(constituent__in=constituent_list)
             # if exclude_null_results is a param, then exclude null results, otherwise return all results
             exclude_null_results = self.request.query_params.get('exclude_null_results')
             if exclude_null_results is not None:
@@ -1061,7 +1071,7 @@ class ResultDataFileViewSet(viewsets.ModelViewSet):
     serializer_class = ResultDataFileSerializer
 
 
-class BalanceVerificationBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
+class BalanceVerificationBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkUpdateModelMixin, viewsets.ModelViewSet):
     queryset = BalanceVerification.objects.all()
     serializer_class = BalanceVerificationSerializer
     permission_classes = (permissions.IsAuthenticated,)
@@ -1831,6 +1841,11 @@ def validate_result(sample_bottle_id, constituent_id, method_id, row):
     if final_value is not None:
         # print(result_details.id)
         message = "This result row cannot be updated as a final value already exists"
+        return is_valid, message, result_id
+
+    # check if the method requires a bottle tare weight (77 (SPM)) and that the tare weight exists
+    if method_id == 77 and Bottle.objects.filter(id=result_details.sample_bottle.bottle_id)[0].tare_weight is None:
+        message = "A bottle tare weight is required for SPM calculations but was not found"
         return is_valid, message, result_id
 
     is_valid = True

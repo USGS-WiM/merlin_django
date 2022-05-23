@@ -9,7 +9,7 @@
         </p>
         <div id="form_add" class="panel-default" style="display:none;">
             <h3>Create Balance Verification</h3>
-            <form class="form-inline" style="border:1px solid;width:1000px;padding:4px;">
+            <form class="form-inline" style="border:1px solid;width:1100px;padding:4px;">
                 <div class="form-group" style="padding:2px;text-align:center">
                     <label for="balance">Balance Serial Number</label><br />
                     <input class="input-block-level" name="balance" id="balance" type="text" style="width:400px">
@@ -26,29 +26,57 @@
                     <label for="verification_time">Time</label><br />
                     <input class="input-block-level" name="verification_time" id="verification_time">
                 </div>
-                <div class="form-group" style="padding:2px;text-align:center">
-                    <label for="weight_tested">Weight Tested</label><br />
-                    <input class="input-block-level" name="weight_tested" id="weight_tested">
+                <br />
+                <div class="form-group" style="padding:2px;width:120px;text-align:center">
+                    <span><b>First Weight</b></span>
                 </div>
                 <div class="form-group" style="padding:2px;text-align:center">
-                    <label for="weight_as_found">Weight as Found</label><br />
-                    <input class="input-block-level" name="weight_as_found" id="weight_as_found">
+                    <label for="weight_tested1">Weight Tested</label><br />
+                    <input class="input-block-level" name="weight_tested1" id="weight_tested1">
                 </div>
                 <div class="form-group" style="padding:2px;text-align:center">
-                    <label for="deviation">Deviation</label><br />
-                    <input class="input-block-level" name="deviation" id="deviation">
+                    <label for="weight_as_found1">Weight as Found</label><br />
+                    <input class="input-block-level" name="weight_as_found1" id="weight_as_found1">
                 </div>
                 <div class="form-group" style="padding:2px;text-align:center">
-                    <label for="percent_deviation">% Deviation</label><br />
-                    <input class="input-block-level" name="percent_deviation" id="percent_deviation">
+                    <label for="deviation1">Deviation</label><br />
+                    <input class="input-block-level" name="deviation1" id="deviation1">
                 </div>
                 <div class="form-group" style="padding:2px;text-align:center">
-                    <label for="final_reading">Final Reading</label><br />
-                    <input class="input-block-level" name="final_reading" id="final_reading">
+                    <label for="percent_recovery1">% Recovery</label><br />
+                    <input class="input-block-level" name="percent_recovery1" id="percent_recovery1">
+                </div>
+                <div class="form-group" style="padding:2px;text-align:center">
+                    <label for="final_reading1">Final Reading</label><br />
+                    <input class="input-block-level" name="final_reading1" id="final_reading1">
+                </div>
+                <br />
+                <div class="form-group" style="padding:2px;width:120px;text-align:center">
+                    <span><b>Second Weight</b></span>
+                </div>
+                <div class="form-group" style="padding:2px;text-align:center">
+                    <label for="weight_tested2">Weight Tested</label><br />
+                    <input class="input-block-level" name="weight_tested2" id="weight_tested2">
+                </div>
+                <div class="form-group" style="padding:2px;text-align:center">
+                    <label for="weight_as_found2">Weight as Found</label><br />
+                    <input class="input-block-level" name="weight_as_found2" id="weight_as_found2">
+                </div>
+                <div class="form-group" style="padding:2px;text-align:center">
+                    <label for="deviation2">Deviation</label><br />
+                    <input class="input-block-level" name="deviation2" id="deviation2">
+                </div>
+                <div class="form-group" style="padding:2px;text-align:center">
+                    <label for="percent_recovery2">% Recovery</label><br />
+                    <input class="input-block-level" name="percent_recovery2" id="percent_recovery2">
+                </div>
+                <div class="form-group" style="padding:2px;text-align:center">
+                    <label for="final_reading2">Final Reading</label><br />
+                    <input class="input-block-level" name="final_reading2" id="final_reading2">
                 </div>
                 <div class="form-group" style="padding:2px;text-align:center">
                     <label for="comment">Comment</label><br />
-                    <input class="input-block-level" name="comment" type="text" style="width:960px">
+                    <input class="input-block-level" name="comment" type="text" style="width:1060px">
                 </div>
             </form>
             <br />
@@ -125,7 +153,7 @@
                             break;
                     }
                 };
-                var objectFields = ["id", "balance", "balance_string", "analyst", "analyst_string", "verification_date", "verification_time", "weight_tested", "weight_as_found", "deviation", "percent_deviation", "final_reading", "comment"];
+                var objectFields = ["id", "balance", "balance_string", "analyst", "analyst_string", "verification_date", "verification_time", "weight_tested", "weight_as_found", "deviation", "percent_recovery", "final_reading", "comment"];
                 var currentPage = 1;
                 var addClicked = false;
                 var grid = $('#grid');
@@ -135,9 +163,6 @@
                 var changedRowIndices = [];
                 var selectionRowIndices = [];
                 grid_console.text('Loading data.');
-
-
-
 
                 var data_balances = JSON.parse(grid.attr("data-balances"));
                 var balance = $("#balance").select2({
@@ -153,43 +178,72 @@
 
                 var data_analysts = JSON.parse(grid.attr("data-analysts"));
                 var analyst = $("#analyst");
+                analyst.append(new Option("", ""));
                 for (var i in data_analysts) {
                     analyst.append(new Option(data_analysts[i].username, data_analysts[i].id));
                 }
 
                 function calculateDeviation() {
-                    var d = $('#deviation');
-                    var deviation = null;
-                    var weight_tested = $('#weight_tested').val();
-                    var weight_as_found = $('#weight_as_found').val();
-                    if (weight_tested !== null && weight_tested !== "" && !isNaN(weight_tested) && weight_as_found !== null && weight_as_found !== "" && !isNaN(weight_as_found)) {
-                        deviation = (weight_tested - weight_as_found).toFixed(5);
+                    var d1 = $('#deviation1');
+                    var deviation1 = null;
+                    var weight_tested1 = $('#weight_tested1').val();
+                    var weight_as_found1 = $('#weight_as_found1').val();
+                    if (weight_tested1 !== null && weight_tested1 !== "" && !isNaN(weight_tested1) && weight_as_found1 !== null && weight_as_found1 !== "" && !isNaN(weight_as_found1)) {
+                        deviation1 = (weight_tested1 - weight_as_found1).toFixed(5);
                     }
-                    d.val(deviation);
+                    d1.val(deviation1);
+
+                    var d2 = $('#deviation2');
+                    var deviation2 = null;
+                    var weight_tested2 = $('#weight_tested2').val();
+                    var weight_as_found2 = $('#weight_as_found2').val();
+                    if (weight_tested2 !== null && weight_tested2 !== "" && !isNaN(weight_tested2) && weight_as_found2 !== null && weight_as_found2 !== "" && !isNaN(weight_as_found2)) {
+                        deviation2 = (weight_tested2 - weight_as_found2).toFixed(5);
+                    }
+                    d2.val(deviation2);
                 }
 
-                function calculatePercentDeviation() {
-                    var pd = $('#percent_deviation');
-                    var percent_deviation = null;
-                    var weight_tested = $('#weight_tested').val();
-                    var weight_as_found = $('#weight_as_found').val();
-                    if (weight_tested !== null && weight_tested !== "" && !isNaN(weight_tested) && weight_as_found !== null && weight_as_found !== "" && !isNaN(weight_as_found)) {
-                        percent_deviation = Math.ceil((weight_as_found / weight_tested) * 100);
-                        if (percent_deviation >= 105 || percent_deviation <= 95) {
-                            pd.css("background-color", "orange");
+                function calculatePercentRecovery() {
+                    var pd1 = $('#percent_recovery1');
+                    var percent_recovery1 = null;
+                    var weight_tested1 = $('#weight_tested1').val();
+                    var weight_as_found1 = $('#weight_as_found1').val();
+                    if (weight_tested1 !== null && weight_tested1 !== "" && !isNaN(weight_tested1) && weight_as_found1 !== null && weight_as_found1 !== "" && !isNaN(weight_as_found1)) {
+                        percent_recovery1 = Math.ceil((weight_as_found1 / weight_tested1) * 100);
+                        if (percent_recovery1 >= 105 || percent_recovery1 <= 95) {
+                            pd1.css("background-color", "orange");
+                        }
+                        else {
+                            pd1.css("background-color", "white");
                         }
                     }
-                    pd.val(percent_deviation);
+                    pd1.val(percent_recovery1);
+
+                    var pd2 = $('#percent_recovery2');
+                    var percent_recovery2 = null;
+                    var weight_tested2 = $('#weight_tested2').val();
+                    var weight_as_found2 = $('#weight_as_found2').val();
+                    if (weight_tested2 !== null && weight_tested2 !== "" && !isNaN(weight_tested2) && weight_as_found2 !== null && weight_as_found2 !== "" && !isNaN(weight_as_found2)) {
+                        percent_recovery2 = Math.ceil((weight_as_found2 / weight_tested2) * 100);
+                        if (percent_recovery2 >= 105 || percent_recovery2 <= 95) {
+                            pd2.css("background-color", "orange");
+                        }
+                        else {
+                            pd2.css("background-color", "white");
+                        }
+                    }
+                    pd2.val(percent_recovery2);
                 }
 
-                $('#weight_tested, #weight_as_found').change(calculateDeviationValues);
+                $('#weight_tested1, #weight_as_found1').change(calculateDeviationValues);
+                $('#weight_tested2, #weight_as_found2').change(calculateDeviationValues);
 
                 function calculateDeviationValues() {
                     calculateDeviation();
-                    calculatePercentDeviation();
+                    calculatePercentRecovery();
                 }
 
-                var validatePercentDeviation = function(value, callback) {
+                var validatePercentRecovery = function(value, callback) {
                     if (value >= 105 || value <= 95) {callback(false);}
                     else {callback(true);}
                 };
@@ -222,7 +276,7 @@
                         {title: 'Weight Tested', data: "weight_tested", width: 120, type: 'numeric', numericFormat: {pattern: '0.00000', culture: 'en-US'}},
                         {title: 'Weight as Found', data: "weight_as_found", width: 120, type: 'numeric', numericFormat: {pattern: '0.00000', culture: 'en-US'}},
                         {title: 'Deviation', data: "deviation", width: 120, type: 'numeric', numericFormat: {pattern: '0.00000', culture: 'en-US'}},
-                        {title: '% Deviation', data: "percent_deviation", width: 120, type: 'numeric', validator: validatePercentDeviation},
+                        {title: '% Recovery', data: "percent_recovery", width: 120, type: 'numeric', validator: validatePercentRecovery},
                         {title: 'Final Reading', data: "final_reading", width: 120, type: 'numeric', numericFormat: {pattern: '0.00000', culture: 'en-US'}},
                         {title: "Comment", data: "comment", width: 400}
                     ],
@@ -257,9 +311,9 @@
                         if (source == 'edit' || source == 'CopyPaste.paste') {
                             // when weight_tested or weight_as_found is changed
                             if ((changedCol == 'weight_tested' || changedCol == 'weight_as_found')) {
-                                // update deviation and percent_deviation
+                                // update deviation and percent_recovery
                                 var deviation = null;
-                                var percent_deviation = null;
+                                var percent_recovery = null;
                                 if (changedCol == 'weight_tested') {
                                     weight_tested = changedVal;
                                     weight_as_found = grid.handsontable('getDataAtCell', changedRow, 8);
@@ -271,10 +325,10 @@
 
                                 if ((weight_tested !== null && weight_tested !== "" && !isNaN(weight_tested)) && (weight_as_found !== null && weight_as_found !== "" && !isNaN(weight_as_found))) {
                                     deviation = (weight_tested - weight_as_found).toFixed(5);
-                                    percent_deviation = Math.ceil((weight_as_found / weight_tested) * 100);
+                                    percent_recovery = Math.ceil((weight_as_found / weight_tested) * 100);
                                 }
                                 grid.handsontable('setDataAtCell', changedRow, 9, deviation);
-                                grid.handsontable('setDataAtCell', changedRow, 10, percent_deviation);
+                                grid.handsontable('setDataAtCell', changedRow, 10, percent_recovery);
                             }
                         }
                     },
@@ -294,6 +348,8 @@
                 var verification_date = new Pikaday({
                     field: $('#verification_date')[0],
                     format: 'MM/DD/YY',
+                    defaultDate: new Date(),
+                    setDefaultDate : true,
                     maxDate: new Date()
                 });
 
@@ -303,12 +359,21 @@
                     loading_overlay.show();
                     var thisDataObject = {};
                     thisDataObject['balance'] = Number(balance.val());
-                    thisDataObject['analyst'] = Number(analyst.val());
-                    thisDataObject['weight_tested'] = Number(form_add.find('input[name=weight_tested]').val());
-                    thisDataObject['weight_as_found'] = Number(form_add.find('input[name=weight_as_found]').val());
-                    thisDataObject['deviation'] = Number(form_add.find('input[name=deviation]').val());
-                    thisDataObject['percent_deviation'] = Number(form_add.find('input[name=percent_deviation]').val());
-                    thisDataObject['final_reading'] = Number(form_add.find('input[name=final_reading]').val());
+                    var raw_analyst = Number(analyst.val());
+                    if (raw_analyst !== 0) {
+                        thisDataObject['analyst'] = raw_analyst;
+                    }
+                    else {grid_console.text('An analyst must be selected from the list.'); loading_overlay.hide(); button_state.button('reset'); return false;}
+                    thisDataObject['weight_tested1'] = Number(form_add.find('input[name=weight_tested1]').val());
+                    thisDataObject['weight_as_found1'] = Number(form_add.find('input[name=weight_as_found1]').val());
+                    thisDataObject['deviation1'] = Number(form_add.find('input[name=deviation1]').val());
+                    thisDataObject['percent_recovery1'] = Number(form_add.find('input[name=percent_recovery1]').val());
+                    thisDataObject['final_reading1'] = Number(form_add.find('input[name=final_reading1]').val());
+                    thisDataObject['weight_tested2'] = Number(form_add.find('input[name=weight_tested2]').val());
+                    thisDataObject['weight_as_found2'] = Number(form_add.find('input[name=weight_as_found2]').val());
+                    thisDataObject['deviation2'] = Number(form_add.find('input[name=deviation2]').val());
+                    thisDataObject['percent_recovery2'] = Number(form_add.find('input[name=percent_recovery2]').val());
+                    thisDataObject['final_reading2'] = Number(form_add.find('input[name=final_reading2]').val());
                     thisDataObject['comment'] = form_add.find('input[name=comment]').val();
                     if (thisDataObject['comment'] == null) {thisDataObject['comment'] = "";}
                     var baddate = form_add.find('input[name=verification_date]').val();
@@ -366,9 +431,14 @@
                             }
                             // otherwise, it's JSON from the REST Services
                             else if (jqXHRequest.status === 200) {
+                                // reset the add form
                                 $(":input", "#form_add").not(":button").val("");
                                 grid.parent().find('button[name=add]').click();
                                 grid.parent().find('button[name=load]').click();
+                                // need to manually reset the following three because the previous two clicks won't do it automatically for some reason
+                                form_add.find('input[name=balance]').select2('data', null);
+                                $('#percent_recovery1').css("background-color", "white");
+                                $('#percent_recovery2').css("background-color", "white");
                                 grid_console.text(textStatus+': Data saved.');
                                 loading_overlay.hide();
                                 button_state.button('reset');
@@ -526,6 +596,18 @@
                     }
                     else {
                         addClicked = true;
+                        // set the default/expected weights for balances
+                        // NOTE: this only applies to analytical balances,
+                        //  not top-loading balances (which aren't in the DB yet)
+                        // TODO: long-term is might be best to check the balance type rather than assume
+                        form_add.find('input[name=weight_tested1]').val("0.005");
+                        form_add.find('input[name=weight_tested2]').val("2.0");
+                        // set the current LOCAL date and time
+                        var dateLocal = new Date();
+                        var timeLocal = dateLocal.getHours() + "" + dateLocal.getMinutes();
+                        dateLocal = ("00" + (dateLocal.getMonth() + 1)).slice(-2) + "/" + ("00" + dateLocal.getDate()).slice(-2) + "/" + dateLocal.getFullYear().toString().substr(-2);
+                        form_add.find('input[name=verification_date]').val(dateLocal);
+                        form_add.find('input[name=verification_time]').val(timeLocal);
                         $("#form_add").show();
                     }
                 });
@@ -580,7 +662,7 @@
                             if (objectFields[i] == "weight_tested") {thisDataObject[objectFields[i]] = Number(thisDataRow[i]);}
                             if (objectFields[i] == "weight_as_found") {thisDataObject[objectFields[i]] = Number(thisDataRow[i]);}
                             if (objectFields[i] == "deviation") {thisDataObject[objectFields[i]] = Number(thisDataRow[i]);}
-                            if (objectFields[i] == "percent_deviation") {thisDataObject[objectFields[i]] = Number(thisDataRow[i]);}
+                            if (objectFields[i] == "percent_recovery") {thisDataObject[objectFields[i]] = Number(thisDataRow[i]);}
                             if (objectFields[i] == "final_reading") {thisDataObject[objectFields[i]] = Number(thisDataRow[i]);}
                             else if (objectFields[i] == 'verification_date') {
                                 var baddate = thisDataRow[i];
