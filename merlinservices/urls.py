@@ -31,6 +31,7 @@ router.register(r'resultqualityassuranceflags', views.ResultQualityAssuranceFlag
 router.register(r'qualityassuranceflags', views.QualityAssuranceFlagViewSet, 'qualityassuranceflags')
 router.register(r'methodqualityassurances', views.MethodQualityAssuranceViewSet, 'methodqualityassurances')
 router.register(r'qualityassurancetypes', views.QualityAssuranceTypeViewSet, 'qualityassurancetypes')
+router.register(r'standardtypes', views.StandardTypeViewSet, 'standardtypes')
 router.register(r'balanceverifications', views.BalanceVerificationViewSet, 'balanceverifications')
 router.register(r'equipment', views.EquipmentViewSet, 'equipment')
 router.register(r'equipmenttypes', views.EquipmentTypeViewSet, 'equipmenttypes')

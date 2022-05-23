@@ -1045,6 +1045,13 @@ class QualityAssuranceTypeViewSet(viewsets.ModelViewSet):
         return queryset
 
 
+class StandardTypeViewSet(viewsets.ModelViewSet):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    queryset = StandardType.objects.all()
+    serializer_class = StandardTypeSerializer
+    pagination_class = StandardResultsSetPagination
+
+
 class DetectionFlagViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     queryset = DetectionFlag.objects.all()

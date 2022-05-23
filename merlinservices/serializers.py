@@ -307,6 +307,16 @@ class QualityAssuranceTypeSerializer(serializers.ModelSerializer, BulkSerializer
         fields = ('id', 'name', 'description',)
 
 
+class StandardTypeSerializer(serializers.ModelSerializer, BulkSerializerMixin):
+    created_date = serializers.DateField(format='%m/%d/%y', input_formats=['%Y-%m-%d'])
+
+    class Meta:
+        list_serializer_class = BulkListSerializer
+        model = StandardType
+        fields = ('id', 'bottle', 'standard_description', 'analytical_description',
+                  'concentration', 'concentration_unit', 'created_date',)
+
+
 class DetectionFlagSerializer(serializers.ModelSerializer, BulkSerializerMixin):
 
     class Meta:

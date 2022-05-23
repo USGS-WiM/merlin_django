@@ -443,6 +443,25 @@ class QualityAssuranceType(models.Model):
         ordering = ['-id']
 
 
+class StandardType(models.Model):
+    """Standard and Certified Reference Materials, and uncertified lab-specific standards."""
+
+    bottle = models.ForeignKey('Bottle', on_delete=models.CASCADE, related_name='standards', null=True)
+    standard_description = models.TextField(blank=True)
+    analytical_description = models.TextField(blank=True)
+    concentration = models.FloatField(null=True, blank=True)
+    concentration_unit = models.ForeignKey('UnitType', on_delete=models.CASCADE, null=True, related_name='concentration_unit')
+    created_date = models.DateField(default=datetime.now, null=True, blank=True)
+    modified_date = models.DateField(auto_now=True, null=True, blank=True)
+
+    def __str__(self):
+        return str(self.id)
+
+    class Meta:
+        db_table = "mercury_standardtype"
+        ordering = ['-id']
+
+
 class BalanceVerification(models.Model):
     """Verification data for the lab balance equipment."""
 
