@@ -381,7 +381,7 @@ class ResultDataFile(models.Model):
 
 
 class ResultQualityAssuranceFlag(models.Model):
-    """Table to allow one-to-many relationship between Results and QualityAssuranceType."""
+    """Table to allow one-to-many relationship between Results and QualityAssuranceFlag."""
 
     quality_assurance_flag = models.ForeignKey('QualityAssuranceFlag', on_delete=models.CASCADE)
     result = models.ForeignKey('Result', on_delete=models.CASCADE, related_name='quality_assurance_flags')  # usually three QAs per one result
@@ -415,10 +415,21 @@ class MethodQualityAssurance(models.Model):
     """Table to allow one-to-many relationship between Methods and QualityAssuranceType and record observations."""
 
     quality_assurance = models.ForeignKey('QualityAssuranceType', on_delete=models.CASCADE)
+    quality_assurance_flag = models.ForeignKey('QualityAssuranceFlag', on_delete=models.CASCADE)
     method = models.ForeignKey('MethodType', on_delete=models.CASCADE, related_name='quality_assurances')
-    value = models.FloatField(null=True, blank=True)
-    observed_date = models.DateField(null=True, blank=True)
+    analytical_line = models.ForeignKey('Equipment', on_delete=models.CASCADE, related_name='quality_assurances')
+    bottle = models.ForeignKey('StandardType', on_delete=models.CASCADE, related_name='quality_assurances', null=True)
+    # bottle_quality_assurance_code = models.ForeignKey('BottleQualityAssuranceCode', on_delete=models.CASCADE, null=True)
+    analytical_description = models.TextField(blank=True)
+    instance = models.IntegerField(null=True, blank=True)
+    value = models.DecimalField(max_digits=14, decimal_places=4, null=True, blank=True)
+    comment = models.TextField(blank=True)
+    quality_assurance_unit = models.ForeignKey('UnitType', on_delete=models.CASCADE, null=True, related_name='quality_assurance_units')
+    batch_setup_date = models.DateField(null=True, blank=True)
+    analyzed_date = models.DateField(null=True, blank=True)
     entry_date = models.DateField(null=True, blank=True)
+    created_date = models.DateField(default=datetime.now, null=True, blank=True)
+    modified_date = models.DateField(auto_now=True, null=True, blank=True)
 
     def __str__(self):
         return str(self.quality_assurance) + ": " + str(self.value)
@@ -441,6 +452,20 @@ class QualityAssuranceType(models.Model):
     class Meta:
         db_table = "mercury_qualityassurancetype"
         ordering = ['-id']
+
+
+# class BottleQualityAssuranceCode(models.Model):
+#     """Code for a bottle containing Quality Assurance material: S = Spiked, D = Instrument Duplicate."""
+#
+#     code = models.CharField(max_length=1, unique=True)
+#     description = models.TextField(blank=True)
+#
+#     def __str__(self):
+#         return self.code
+#
+#     class Meta:
+#         db_table = "mercury_bottlequalityassurancecode"
+#         ordering = ['-id']
 
 
 class StandardType(models.Model):
