@@ -1,0 +1,694 @@
+{% extends 'merlin/base.html' %}
+{% block body_block %}
+
+    <div id="loading_overlay"></div>
+    <div style="padding:10px">
+        <p>
+            <button type="button" class="btn btn-default" name="standards_add">Add New Standards</button>
+        </p>
+        <div id="grid_standards_add" data-units="{{ units }}" style="display:none" >
+            <br />
+            <button type="button" class="btn btn-primary" data-loading-text="Saving..." name="standardsAddSave">Save</button>
+            <button type="button" class="btn btn-info" data-loading-text="Exporting..." name="exportCSV">Export CSV</button>
+            <button type="button" class="btn btn-default" data-loading-text="Inserting..." name="insertRows">Insert 8 Blank Rows</button>
+            <button type="button" class="btn btn-danger" data-loading-text="Deleting..." name="deleteRows">Delete Rows</button>
+        </div>
+        <br />
+
+        <pre id="grid_console" class="console" style="width:600px"></pre>
+        <div class="row">
+            <div id="tools_standards" class="col-md-6">
+                <p>
+                    <input id="select_field_bottles" type="hidden" placeholder="Filter by bottle name." style="width:580px"/>
+                    <span class="glyphicon glyphicon-search" data-toggle="modal" data-target="#multiBottleSearchModal"></span><br />
+                </p>
+                <p>
+                    <div class="select2-container select2-container-multi" style="width:600px">
+                        <ul class="select2-choices">
+                            <li class="select2-search-field">
+                                <label class="select2-offscreen"></label>
+                                <input id="search_field_standards" type="search" placeholder="Highlight in table." class="select2-input select2-default" style="width:393px;height:30px;font-size:14px;"/>
+                            </li>
+                        </ul>
+                    </div>
+                <!-- <p><input id="search_field" type="search" placeholder="Highlight in table." style="width:600px; border:1px solid darkgray; height:42px"/></p> -->
+                <br /><br />
+                <p>
+                    {% if request.session.is_staff %}
+                    <button type="button" class="btn btn-warning" data-loading-text="Saving..." name="save">Save</button>
+                    <button type="button" class="btn btn-danger" data-loading-text="Deleting..." name="delete">Delete Row</button>
+                    {% endif %}
+                    <button type="button" class="btn btn-default" data-loading-text="Reloading..." name="load">Reload Table</button>
+                    <button type="button" class="btn btn-default" data-loading-text="Getting Previous..." name="prev">Previous Page</button>
+                    <button type="button" class="btn btn-default" data-loading-text="Getting Next..." name="next">Next Page</button>
+                    <span id="page_standards"></span>
+                </p>
+                <h1>Standards</h1>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6" id="grid_standards" data-standards="{{ standards }}"></div>
+        </div>
+
+        <!-- Multi Bottle Search Modal -->
+        <div class="modal fade" id="multiBottleSearchModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">Multi Bottle Search</h4>
+              </div>
+              <div class="modal-body">
+                <textarea id="bottle_search_list" style="width:100%;height: 200px;"></textarea>
+                <div class="alert alert-warning" role="alert" style="display:none">...</div>
+              </div>
+              <div class="modal-footer">
+                  <button id="multi_bottle_search" type="button" class="btn btn-info" data-loading-text="Searching...">Search</button>
+                  <!-- <button type="button" class="btn btn-default" data-dismiss="modal">Close</button> -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+		<script>
+            $(document).ready(function() {
+
+				var loading_overlay = $('#loading_overlay');
+				loading_overlay.hide();
+
+                var csrftoken = $.cookie('csrftoken');
+                function csrfSafeMethod(method) {
+                    // these HTTP methods do not require CSRF protection
+                    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+                }
+                $.ajaxSetup({
+                    beforeSend: function(xhr, settings) {
+                        if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                        }
+                    }
+                });
+
+                var grid_console = $("#grid_console");
+
+                var validTableAdd = false;
+                var standardObjectFieldsAdd = ["bottle", "standard_description", "analytical_description", "concentration", "concentration_unit", "created_date"];
+                var grid_standards_add = $('#grid_standards_add');
+                var data_units = JSON.parse(grid_standards_add.attr("data-units"));
+                var changedRowIndicesStandardsAdd = [];
+                var dateToday = new Date(); //toISOString().split("T")[0];
+                var yearToday = dateToday.getFullYear().toString();
+                var monthToday = (dateToday.getMonth() + 1).toString();
+                var dayToday = dateToday.getDate().toString();
+                var dateTodayString = (monthToday.length < 2 ? ("0" + monthToday) : monthToday) + "/" + (dayToday.length < 2 ? ("0" + dayToday) : dayToday) + "/" + yearToday.substr(2,2);
+                var bottleIds = [];
+                var grid_standards_add_options = {
+                    contextMenu: false,
+                    startRows: 8,
+                    manualColumnResize: true,
+                    manualRowResize: true,
+                    invalidCellClassName: 'customHtInvalid',
+                    search: {searchResultClass: 'customHtSearchResult'},
+                    fillHandle: {
+                        autoInsertRow: false
+                    },
+                    columns: [
+                        {title: "Bottle", type: 'autocomplete', strict: true, source: function (query, process) {getValuesAjax('/merlinservices/bottles/', 'bottle_unique_name', query, process)}, width: 100},
+                        {title: "Standard Description", type: 'text', width: 160},
+                        {title: "Analytical Description", type: 'text', width: 160},
+                        {title: "Concentration", width: 100},
+                        {title: "Concentration Unit", type: 'autocomplete', strict: true, source: getValuesDom(data_units, "unit"), width: 240},
+                        {title: "Created Date", type: 'date', dateFormat: 'MM/DD/YY', datePickerConfig: {maxDate: new Date()}, width: 100},
+                    ],
+                    beforeChange: function(changes, source) {
+                        // get index of changed row
+                        var changedRow = changes[0][0];
+                        // get index of changed column
+                        var changedCol = changes[0][1];
+                        // get value of changed cell
+                        var changedVal = changes[0][3];
+
+                        // remember the indices of all changed rows
+                        if (source != 'loadData') {
+                            // for all changed cells, get the changed rows
+                            for (var i = 0; i < changes.length; i++) {
+                                // get the row of this cell
+                                var thisRow = changes[i][0];
+                                // find index of this row in the changed rows array
+                                var changedRowIndex = changedRowIndicesStandardsAdd.indexOf(thisRow);
+                                // if not in the array (index == -1), add it to the array, otherwise ignore
+                                if (changedRowIndex == -1) {
+                                    changedRowIndicesStandardsAdd.push(thisRow);
+                                }
+                            }
+                        }
+                    }
+                };
+
+                grid_standards_add.handsontable(grid_standards_add_options);
+
+                grid_standards_add.parent().find('button[name=exportCSV]').click(function() {
+                    var button_state = $(this).button('loading');
+                    loading_overlay.show();
+                    var table = grid_standards_add.handsontable('getInstance');
+                    var csv_filename = "bottle_codes_" + yearToday + "-" + (monthToday.length == 1 ? "0" + monthToday : monthToday) + "-" + (dayToday.length == 1 ? "0" + dayToday : dayToday) + ".csv";
+                    handsontable2csv.download(table, csv_filename);
+                    loading_overlay.hide();
+                    button_state.button('reset');
+                });
+
+                grid_standards_add.parent().find('button[name=insertRows]').click(function () {
+                    var button_state = $(this).button('loading');
+                    loading_overlay.show();
+                    grid_standards_add.data('handsontable').alter('insert_row', null, 8);
+                    grid_console.text('Inserted Rows.');
+                    loading_overlay.hide();
+                    button_state.button('reset');
+                });
+
+                grid_standards_add.parent().find('button[name=deleteRows]').click(function () {
+                    var button_state = $(this).button('loading');
+                    loading_overlay.show();
+                    var selectedRows = grid_standards_add.handsontable('getInstance').getSelectedRange();
+                    if (typeof selectedRows == 'undefined') {grid_console.text('There are no selected rows to delete!');  loading_overlay.hide(); button_state.button('reset'); return false;}
+                    var firstSelectedRow = selectedRows['from']['row'];
+                    var lastSelectedRow = selectedRows['to']['row'];
+                    grid_standards_add.data('handsontable').alter('remove_row', firstSelectedRow, (lastSelectedRow != firstSelectedRow ? (lastSelectedRow - firstSelectedRow) + 1 : 1));
+                    // clear list of selected rows
+                    selectedRows.length = 0;
+                    loading_overlay.hide();
+                    button_state.button('reset');
+                });
+
+                grid_standards_add.parent().find('button[name=standardsAddSave]').click(function () {
+                    var button_state = $(this).button('loading');
+                    loading_overlay.show();
+                    var changedDataArrayStandardsAdd = [];
+                    // if there are no changed rows, notify the user and stop the submission
+                    if (typeof changedRowIndicesStandardsAdd == 'undefined' || changedRowIndicesStandardsAdd.length < 1) {grid_console.text('Table is empty!'); validTableAdd = false;  loading_overlay.hide(); button_state.button('reset'); return false;}
+                    // otherwise loop through all rows
+                    var allRows = grid_standards_add.handsontable('getInstance').countRows();
+                    for (var row = 0; row < allRows; row++) {
+                        // grab all the data for this row
+                        var thisDataRow = grid_standards_add.data('handsontable').getDataAtRow(row);
+                        // check if this row still has (non-default) data; it's possible the user cleared the row after entering data, in which case we no longer want it
+                        // here, we're only checking for a value in the first column (Bottle Prefix), which is a required field; if it is empty, it is safe to assume that any...
+                        // ...possible data in the rest of the row doesn't need to be checked, because the row can't be saved without a valid value in the first column
+                        if (thisDataRow[0] !== null && thisDataRow[0] !== "" && thisDataRow[0] !== 0 && typeof thisDataRow[0] !== 'undefined') {
+                            // an object container for the data in this row
+                            var thisDataObject = {};
+                            // TODO: update these columns for standards data!
+                            for (var i = 0; i < thisDataRow.length; i++) {
+                                switch (i) {
+                                    case 0: // prefix
+                                        var thisID = updateValueAjax('/merlinservices/bottleprefixes/', 'bottle_prefix_exact', 'id', thisDataRow[i]);
+                                        if (thisID == "" || thisID === null || typeof thisID === 'undefined') {
+                                            grid_console.text('Bottle Prefix must be a valid choice in row ' + (row + 1) + '!');
+                                            validTableAdd = false;
+                                            button_state.button('reset');
+                                            return false;
+                                        }
+                                        thisDataObject[standardObjectFieldsAdd[i]] = thisID;
+                                        break;
+                                    case 1: // suffix
+                                        break;
+                                    case 2: // bottle unique name
+                                        thisDataObject[standardObjectFieldsAdd[i]] = thisDataRow[i].toUpperCase();
+                                        break;
+                                    case 3: //date
+                                        var baddate = thisDataRow[i];
+                                        //var gooddate = "20" + baddate.substr(6,4) + "-" + baddate.substr(0,2) + "-" + baddate.substr(3,2);
+                                        //thisDataObject[objectFields[i]] = gooddate;
+                                        if (dateRegEx.test(baddate)) {
+                                            if (makeYear(baddate) != null && makeMonth(baddate) != null && makeDay(baddate) != null) {
+                                                var gooddate_string = makeYear(baddate) + "-" + makeMonth(baddate) + "-" + makeDay(baddate);
+                                                var gooddate = new Date(makeYear(baddate), makeMonth(baddate) - 1, makeDay(baddate));
+                                                if (gooddate > dateToday) {grid_console.text('Date cannot be a future date!');  loading_overlay.hide(); button_state.button('reset'); return false;}
+                                                thisDataObject[standardObjectFieldsAdd[i]] = gooddate_string;
+                                            }
+                                            else {grid_console.text('There is a problem with the Date in row ' + (row + 1) + '. Please contact the administrator.');  loading_overlay.hide(); button_state.button('reset'); return false;}
+                                        }
+                                        else {grid_console.text('Date is badly formed in row ' + (row + 1) + '. Expecting a date in mm/dd/yy format but found ' + baddate + '!');  loading_overlay.hide(); button_state.button('reset'); return false;}
+                                        break;
+                                    case 4: // tare weight
+                                        if (thisDataRow[i] == null || thisDataRow[i] == '') {
+                                            thisDataObject[standardObjectFieldsAdd[i]] = null;
+                                        }
+                                        else {
+                                            thisDataObject[standardObjectFieldsAdd[i]] = Number(thisDataRow[i]);
+                                        }
+                                        break;
+                                    case 5: // description
+                                        if (thisDataRow[i] == null) {
+                                            thisDataRow[i] = "";
+                                        }
+                                        thisDataObject[standardObjectFieldsAdd[i]] = thisDataRow[i];
+                                        break;
+                                    default:
+                                        thisDataObject[standardObjectFieldsAdd[i]] = thisDataRow[i];
+                                        break;
+                                }
+                            }
+                            // add the new row object to the array
+                            changedDataArrayStandardsAdd.push(thisDataObject);
+                        }
+                        // if we made it through the various validations above, then the table must be valid
+                        validTableAdd = true;
+                    }
+                    if(validTableAdd) {
+                        var changedDataJSON = JSON.stringify(changedDataArrayStandardsAdd);
+                        $.ajax({
+                            url: "{% url 'merlin:standards_create' %}",
+                            data: changedDataJSON,
+                            dataType: 'json',
+                            contentType: "application/json",
+                            type: 'POST',
+                            success: function (data, textStatus, jqXHRequest) {
+                                var content_type = jqXHRequest.getResponseHeader("content-type");
+                                // if the content-type is plain text, then it's a custom message from our Django view
+                                if (content_type.indexOf('text') > -1) {
+                                    grid_console.text(data);
+                                    loading_overlay.hide();
+                                    button_state.button('reset');
+                                }
+                                // otherwise, it's JSON from the REST Services
+                                else if (jqXHRequest.status === 200) {
+                                    // the data was saved to the database, so empty the table
+                                    //tools_standards.find('button[name=load]').click();
+                                    var rows = grid_standards_add.handsontable('getInstance').countRows();
+                                    grid_standards_add.data('handsontable').alter('remove_row', 0, rows);
+                                    grid_standards_add.data('handsontable').alter('insert_row', null, 8);
+                                    grid_standards_add.parent().find('button[name=standards_add]').click();
+                                    grid_console.text(textStatus + ': Data saved.');
+                                    loading_overlay.hide();
+                                    button_state.button('reset');
+                                }
+                                else {
+                                    grid_console.text(textStatus + ': Save error: ' + jqXHRequest.statusText + ', code: ' + jqXHRequest.status + '.');
+                                    loading_overlay.hide();
+                                    button_state.button('reset');
+                                }
+                            },
+                            error: function (jqXHRequest, textStatus, errorThrown) {
+                                grid_console.text(errorThrown + ": " + textStatus);
+                                loading_overlay.hide();
+                                button_state.button('reset');
+                            }
+                        });
+                    }
+                    clearChangedRowIndicesStandardsAdd();
+                });
+
+                var validTableStandard = false;
+                var standardObjectFields = ["id", "bottle", "standard_description", "analytical_description", "concentration", "concentration_unit", "created_date"];
+                var currentPageStandards = 1;
+                var grid_standards = $('#grid_standards');
+                var data_standards = JSON.parse(grid_standards.attr("data-standards"));
+                var resultPagesStandards = Math.ceil(data_standards['count'] / 100);
+                var changedRowIndicesStandards = [];
+                var selectionRowIndicesStandards = [];
+                grid_console.text('Loading data.');
+                grid_standards.handsontable({
+                    //minSpareRows: 1,
+                    data: data_standards.results,
+                    manualColumnResize: true,
+                    manualRowResize: true,
+                    invalidCellClassName: 'customHtInvalid',
+                    search: {searchResultClass: 'customHtSearchResult'},
+                    fillHandle: {
+                        autoInsertRow: false
+                    },
+                    columns: [
+                        {title: "ID", data: "id", readOnly: true, width: 1},
+                        {title: "Bottle", type: 'autocomplete', strict: true, source: function (query, process) {getValuesAjax('/merlinservices/bottles/', 'bottle_unique_name', query, process)}, width: 100},
+                        {title: "Standard Description", type: 'text', width: 160},
+                        {title: "Analytical Description", type: 'text', width: 160},
+                        {title: "Concentration", width: 100},
+                        {title: "Concentration Unit", type: 'autocomplete', strict: true, source: getValuesDom(data_units, "unit"), width: 240},
+                        {title: "Created Date", type: 'date', dateFormat: 'MM/DD/YY', datePickerConfig: {maxDate: new Date()}, width: 100},
+                    ],
+                    columnSorting: true,
+                    //columnSorting: { column: 0 },
+                    beforeChange: function(changes, source) {
+                        // "changes" is a 2D array containing information about each of the edited cells [ [row, col, oldVal, newVal], [row, col, oldVal, newVal], ... ].
+                        // "source" is one of the following strings: "alter", "empty", "edit", "populateFromArray", "loadData", "Autofill.fill", "CopyPaste.paste".
+
+                        // get index of changed row
+                        var changedRow = changes[0][0];
+
+                        // remember the indices of all changed rows
+                        if (source != 'loadData') {
+                            // for all changed cells, get the changed rows
+                            for (var i = 0; i < changes.length; i++) {
+                                // get the row of this cell
+                                var thisRow = changes[i][0];
+                                // find index of this row in the changed rows array
+                                var changedRowIndex = changedRowIndicesStandards.indexOf(thisRow);
+                                // if not in the array (index == -1), add it to the array, otherwise ignore
+                                if (changedRowIndex == -1) {
+                                    changedRowIndicesStandards.push(thisRow);
+                                }
+                            }
+                        }
+                    },
+                    // get list of selected rows
+                    afterSelectionEnd: function(r, c, r2, c2) {
+                        // clear the array
+                        selectionRowIndicesStandards.length = 0;
+                        // add the beginning and ending indices
+                        selectionRowIndicesStandards[0] = r;
+                        selectionRowIndicesStandards[1] = r2;
+                    }
+                });
+                //grid_standards.data('handsontable').sort(0);
+                $('#page_standards').html("Page " + currentPageStandards + " of " + resultPagesStandards);
+                grid_console.text('Data loaded.');
+
+                $('#search_field_standards').on('keyup', function (event) {
+                    grid_standards.handsontable('getInstance').search.query(this.value);
+                    grid_standards.handsontable('getInstance').render();
+                });
+
+                var select_field_bottles = $("#select_field_bottles").select2({
+                    multiple: true,
+                    maximumSelectionSize: 1,
+                    dropdownCss:{display:'none'},
+                    //minimumResultsForSearch: -1,
+                    //allowClear: true,
+                    minimumInputLength: 1,
+                    ajax: {
+                        url: '/merlinservices/bottles/',
+                        dataType: 'json',
+                        data: function (term, page) {
+                            return {
+                                bottle_unique_name: term
+                            };
+                        },
+                        results: function (data, page) {
+                            data_standards = data;
+                            grid_standards.data('handsontable').loadData(data_standards.results);
+                            grid_console.text('Filtered data loaded.');
+                            return {results: data.results};
+                        }
+                    },
+                    /*sortResults: function(results, container, query) {
+                        return results.sort(function (a, b) {
+                            return a - b;
+                        }); //sort by ID, numerically ascending
+                    },*/
+                    formatResult: formatstandards,
+                    formatSelection: formatstandards
+                });
+
+                function formatstandards(data) {
+                    return data.bottle_unique_name;
+                }
+
+                function clearChangedRowIndicesStandardsAdd() {
+                    changedRowIndicesStandardsAdd.length = 0;
+                }
+
+                function clearChangedRowIndicesStandards() {
+                    changedRowIndicesStandards.length = 0;
+                }
+                
+                ////////////////////
+                // Standards Buttons
+                ////////////////////
+
+                var tools_standards = $('#tools_standards');
+                
+                tools_standards.find('button[name=load]').click(function () {
+                    var button_state = $(this).button('loading');
+                    loading_overlay.show();
+                    $.ajax({
+                        url: '/merlinservices/standards/?page='+currentPageStandards,
+                        dataType: 'json',
+                        success: function (response) {
+                            grid_console.text("success");
+                            data_standards = response;
+                            grid_standards.data('handsontable').loadData(data_standards.results);
+                            $('#page_standards').html("Page " + currentPageStandards + " of " + resultPagesStandards);
+                            grid_console.text('Page '+ currentPageStandards +' data reloaded.');
+                            loading_overlay.hide();
+                            button_state.button('reset');
+                        },
+                        error: function (jqXHRequest, textStatus, errorThrown) {
+                            grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve page to reload.");
+                            loading_overlay.hide();
+                            button_state.button('reset');
+                        }
+                    });
+                    clearChangedRowIndicesStandards();
+                });
+
+                tools_standards.find('button[name=next]').click(function () {
+                    var button_state = $(this).button('loading');
+                    loading_overlay.show();
+                    if (currentPageStandards != resultPagesStandards) {
+                        $.ajax({
+                            url: data_standards.next,
+                            dataType: 'json',
+                            success: function (response) {
+                                grid_console.text("success");
+                                data_standards = response;
+                                grid_standards.data('handsontable').loadData(data_standards.results);
+                                currentPageStandards++;
+                                $('#page_standards').html("Page " + currentPageStandards + " of " + resultPagesStandards);
+                                grid_console.text('Page ' + currentPageStandards + ' of ' + resultPagesStandards + ' loaded.');
+                                loading_overlay.hide();
+                                button_state.button('reset');
+                            },
+                            error: function (jqXHRequest, textStatus, errorThrown) {
+                                grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve next page.");
+                                loading_overlay.hide();
+                                button_state.button('reset');
+                            }
+                        });
+                    }
+                    else {
+                        grid_console.text("End of results, there are no pages after Page " + resultPagesStandards + ".");
+                        loading_overlay.hide();
+                        button_state.button('reset');
+                    }
+                    clearChangedRowIndicesStandards();
+                });
+
+                tools_standards.find('button[name=prev]').click(function () {
+                    var button_state = $(this).button('loading');
+                    loading_overlay.show();
+                    if (currentPageStandards != 1) {
+                        $.ajax({
+                            url: data_standards.previous,
+                            dataType: 'json',
+                            success: function (response) {
+                                grid_console.text("success");
+                                data_standards = response;
+                                grid_standards.data('handsontable').loadData(data_standards.results);
+                                currentPageStandards--;
+                                $('#page_standards').html("Page " + currentPageStandards + " of " + resultPagesStandards);
+                                grid_console.text('Page ' + currentPageStandards + ' of ' + resultPagesStandards + ' loaded.');
+                                loading_overlay.hide();
+                                button_state.button('reset');
+                            },
+                            error: function (jqXHRequest, textStatus, errorThrown) {
+                                grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve previous.");
+                                loading_overlay.hide();
+                                button_state.button('reset');
+                            }
+                        });
+                    }
+                    else {
+                        grid_console.text("There are no pages before Page 1.");
+                        loading_overlay.hide();
+                        button_state.button('reset');
+                    }
+                    clearChangedRowIndicesStandards();
+                });
+
+                tools_standards.find('button[name=delete]').click(function () {
+                    var button_state = $(this).button('loading');
+                    loading_overlay.show();
+                    if (typeof selectionRowIndicesStandards[0] == 'undefined') {grid_console.text('There are no selected rows to delete!'); loading_overlay.hide(); button_state.button('reset'); return false;}
+                    var thisDataRow = grid_standards.data('handsontable').getDataAtRow(selectionRowIndicesStandards[0]);
+                    var thisDataObject = {"id": thisDataRow[0]};
+                    var changedDataJSON = JSON.stringify(thisDataObject);
+                    $.ajax({
+                        url: "{% url 'merlin:standards_delete' %}",
+                        data: changedDataJSON,
+                        type: 'POST',
+                        success: function (data, textStatus, jqXHRequest) {
+                            var content_type = jqXHRequest.getResponseHeader("content-type");
+                            if (jqXHRequest.status === 200) {
+                                tools_standards.find('button[name=load]').click();
+                                grid_console.text('Data deleted.');
+                                loading_overlay.hide();
+                                button_state.button('reset');
+                            }
+                            else {
+                                tools_standards.find('button[name=load]').click();
+                                grid_console.text(textStatus + ': Delete error: ' + jqXHRequest.statusText + ', code: ' + jqXHRequest.status + '.');
+                                loading_overlay.hide();
+                                button_state.button('reset');
+                            }
+                        },
+                        error: function (jqXHRequest, textStatus, errorThrown) {
+                            grid_console.text(errorThrown + ": " + textStatus);
+                            loading_overlay.hide();
+                            button_state.button('reset');
+                        }
+                    });
+                    // clear list of selected rows
+                    selectionRowIndicesStandards.length = 0;
+                });
+
+                tools_standards.find('button[name=save]').click(function () {
+                    var button_state = $(this).button('loading');
+                    loading_overlay.show();
+                    var changedDataArray = [];
+                    // if there are no changed rows, notify the user and stop the submission
+                    if (typeof changedRowIndicesStandards == 'undefined' || changedRowIndicesStandards.length < 1) {grid_console.text('There are no changed rows to save!!'); validTableStandard = false; loading_overlay.hide(); button_state.button('reset'); return false;}
+                    // otherwise loop through all changed rows
+                    $.each(changedRowIndicesStandards, function(index, value) {
+                        var thisDataRow = grid_standards.data('handsontable').getDataAtRow(value);
+                        var thisDataObject = {};
+                        // TODO: update these columns for standards data!
+                        for (var i = 0; i < thisDataRow.length; i++) {
+                            if (standardObjectFields[i] == "bottle_prefix") {
+                                var thisID = updateValueAjax('/merlinservices/bottleprefixes/', 'bottle_prefix_exact', 'id', thisDataRow[i]);
+                                if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Bottle Prefix must be a valid choice in row ' + (index + 1) + '!'); validTableStandard = false; loading_overlay.hide(); button_state.button('reset'); return false;}
+                                thisDataObject[standardObjectFields[i]] = thisID;
+                            }
+                            else if (standardObjectFields[i] == "created_date") {
+                                var baddate = thisDataRow[i];
+                                if (dateRegEx.test(baddate)) {
+                                    if (makeYear(baddate)!= null && makeMonth(baddate)!= null && makeDay(baddate) != null) {
+                                        var gooddate_string = makeYear(baddate) + "-" + makeMonth(baddate) + "-" + makeDay(baddate);
+                                        var gooddate = new Date(makeYear(baddate), makeMonth(baddate)-1, makeDay(baddate));
+                                        if (gooddate > dateToday) {
+                                            {grid_console.text('Bottle Date cannot be a future date!'); validTableStandard = false; button_state.button('reset'); return false;}
+                                        }
+                                        thisDataObject[standardObjectFields[i]] = gooddate_string;
+                                    }
+                                    else {grid_console.text('There is a problem with the Date in row ' + (index + 1) + '. Please contact the administrator.'); validTableStandard = false; loading_overlay.hide(); button_state.button('reset'); return false;}
+                                }
+                                else {grid_console.text('Date is badly formed in row ' + (index + 1) + '. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); validTableStandard = false; loading_overlay.hide(); button_state.button('reset'); return false;}
+                            }
+                            else if (standardObjectFields[i] == "tare_weight") {
+                                if (thisDataRow[i] == null || thisDataRow[i] == '') {
+                                    thisDataObject[standardObjectFields[i]] = null;
+                                }
+                                else {
+                                    thisDataObject[standardObjectFields[i]] = Number(thisDataRow[i]);
+                                }
+                            }
+                            else if (standardObjectFields[i] == "description") {
+                                if (thisDataRow[i] == null) {
+                                    thisDataRow[i] = "";
+                                }
+                                thisDataObject[standardObjectFields[i]] = thisDataRow[i];
+                            }
+                            else {thisDataObject[standardObjectFields[i]] = thisDataRow[i];}
+                        }
+                        changedDataArray.push(thisDataObject);
+                        // if we made it through the various validations above, then the table must be valid
+                        validTableStandard = true;
+                    });
+                    // if table is valid, submit the POST request, otherwise skip it (implying table is invalid)
+                    if(validTableStandard) {
+                        var changedDataJSON = JSON.stringify(changedDataArray);
+                        $.ajax({
+                            url: "{% url 'merlin:standards_update' %}",
+                            data: changedDataJSON,
+                            dataType: 'json',
+                            contentType: "application/json",
+                            type: 'POST',
+                            success: function (data, textStatus, jqXHRequest) {
+                                var content_type = jqXHRequest.getResponseHeader("content-type");
+                                // if the content-type is plain text, then it's a custom message from our Django view
+                                if (content_type.indexOf('text') > -1) {
+                                    grid_console.text(data);
+                                    loading_overlay.hide();
+                                    button_state.button('reset');
+                                }
+                                // otherwise, it's JSON from the REST Services
+                                else if (jqXHRequest.status === 200) {
+                                    grid_console.text(textStatus + ': Data saved.');
+                                    loading_overlay.hide();
+                                    button_state.button('reset');
+                                }
+                                else {
+                                    grid_console.text(textStatus + ': Save error: ' + jqXHRequest.statusText + ', code: ' + jqXHRequest.status + '.');
+                                    loading_overlay.hide();
+                                    button_state.button('reset');
+                                }
+                            },
+                            error: function (jqXHRequest, textStatus, errorThrown) {
+                                grid_console.text(errorThrown + ": " + textStatus);
+                                loading_overlay.hide();
+                                button_state.button('reset');
+                            }
+                        });
+                    }
+                    clearChangedRowIndicesStandards();
+                });
+
+                var searchBottles = function(button,bottle){
+                    var button_state = $(button).button('loading');
+                    loading_overlay.show();
+                    grid_console.text('Attempting to search...');
+                    var thisDataObject = {};
+                    thisDataObject['bottle_unique_name'] = bottle;
+                    // var dataJSON = JSON.stringify(thisDataObject);
+                    $.ajax({
+                        url: '/merlinservices/standards/',
+                        data: thisDataObject,
+                        dataType: 'json',
+                        contentType: "application/json",
+                        type: 'GET',
+                        success: function (response) {
+                            grid_console.text("success");
+                            data_standards = response;
+                            grid_standards.data('handsontable').loadData(data_standards.results);
+                            $('#page_standards').html("Page " + currentPageStandards + " of " + resultPagesStandards);
+                            grid_console.text('Page '+ currentPageStandards +' data loaded.');
+                            loading_overlay.hide();
+                            button_state.button('reset');
+                            $("#bottle_search_list").val("");
+                        },
+                        error: function (jqXHRequest, textStatus, errorThrown) {
+                            grid_console.text(errorThrown + ": " + textStatus + ": Couldn't retrieve page to load.");
+                            loading_overlay.hide();
+                            button_state.button('reset');
+                        }
+                    });
+                    currentPage = 1;
+                };
+
+                $("#multi_bottle_search").click(function(){
+                    $("#multi_bottle_search").button('loading');
+                    $('#s2id_select_bottle .select2-search-choice').remove();
+                    var textValue = $("#bottle_search_list").val();
+                    // split the values with a newline, tab, or comma
+                    var bottle_list = textValue.split(/[\n\t,]+/);
+                    bottleIds.length = 0;
+                    //check for empty strings
+                    for(var i = 0; i < bottle_list.length; i++){
+                        if(bottle_list[i].trim()){
+                            bottleIds.push(bottle_list[i].trim());
+                        }
+                    }
+                    //get standards
+                    $('#multiBottleSearchModal').modal('hide');
+                    if(bottleIds.length > 0){
+                        select_field_bottles.val("");
+                        searchBottles('#multi_bottle_search',bottleIds.join(","));
+                    }
+                });
+
+            });
+        </script>
+
+    </div>
+
+{% endblock %}
