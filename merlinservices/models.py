@@ -419,7 +419,7 @@ class MethodQualityAssurance(models.Model):
     method = models.ForeignKey('MethodType', on_delete=models.CASCADE, related_name='quality_assurances')
     analytical_line = models.ForeignKey('Equipment', on_delete=models.CASCADE, related_name='quality_assurances')
     bottle = models.ForeignKey('StandardType', on_delete=models.CASCADE, related_name='quality_assurances', null=True)
-    # bottle_quality_assurance_code = models.ForeignKey('BottleQualityAssuranceCode', on_delete=models.CASCADE, null=True)
+    bottle_quality_assurance_code = models.ForeignKey('BottleQualityAssuranceCode', on_delete=models.CASCADE, null=True)
     analytical_description = models.TextField(blank=True)
     instance = models.IntegerField(null=True, blank=True)
     value = models.DecimalField(max_digits=14, decimal_places=4, null=True, blank=True)
@@ -454,18 +454,18 @@ class QualityAssuranceType(models.Model):
         ordering = ['-id']
 
 
-# class BottleQualityAssuranceCode(models.Model):
-#     """Code for a bottle containing Quality Assurance material: S = Spiked, D = Instrument Duplicate."""
-#
-#     code = models.CharField(max_length=1, unique=True)
-#     description = models.TextField(blank=True)
-#
-#     def __str__(self):
-#         return self.code
-#
-#     class Meta:
-#         db_table = "mercury_bottlequalityassurancecode"
-#         ordering = ['-id']
+class BottleQualityAssuranceCode(models.Model):
+    """Code for a bottle containing Quality Assurance material: S = Spiked, D = Instrument Duplicate."""
+
+    code = models.CharField(max_length=1, unique=True)
+    description = models.TextField(blank=True)
+
+    def __str__(self):
+        return self.code
+
+    class Meta:
+        db_table = "mercury_bottlequalityassurancecode"
+        ordering = ['-id']
 
 
 class StandardType(models.Model):

@@ -1045,10 +1045,10 @@ class QualityAssuranceTypeViewSet(viewsets.ModelViewSet):
         return queryset
 
 
-# class BottleQualityAssuranceCode(viewsets.ModelViewSet):
-#     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-#     queryset = BottleQualityAssuranceCode.objects.all()
-#     serializer_class = BottleQualityAssuranceCodeSerializer
+class BottleQualityAssuranceCode(viewsets.ModelViewSet):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    queryset = BottleQualityAssuranceCode.objects.all()
+    serializer_class = BottleQualityAssuranceCodeSerializer
 
 
 class StandardTypeViewSet(viewsets.ModelViewSet):

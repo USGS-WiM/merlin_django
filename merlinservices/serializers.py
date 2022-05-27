@@ -292,7 +292,7 @@ class MethodQualityAssuranceSerializer(serializers.ModelSerializer, BulkSerializ
     method_string = serializers.StringRelatedField(source='method')
     bottle_string = serializers.StringRelatedField(source='bottle')
     analytical_line_string = serializers.StringRelatedField(source='analytical_line')
-    # bottle_quality_assurance_code_string = serializers.StringRelatedField(source='bottle_quality_assurance_code')
+    bottle_quality_assurance_code_string = serializers.StringRelatedField(source='bottle_quality_assurance_code')
     quality_assurance_unit_string = serializers.StringRelatedField(source='quality_assurance_unit')
     batch_setup_date = serializers.DateField(format='%m/%d/%y', input_formats=['%Y-%m-%d'])
     analyzed_date = serializers.DateField(format='%m/%d/%y', input_formats=['%Y-%m-%d'])
@@ -305,7 +305,7 @@ class MethodQualityAssuranceSerializer(serializers.ModelSerializer, BulkSerializ
         fields = ('id', 'quality_assurance', 'quality_assurance_string', 'quality_assurance_flag',
                   'quality_assurance_flag_string', 'method', 'method_string', 'analytical_line',
                   'analytical_line_string', 'bottle', 'bottle_string',
-                  # 'bottle_quality_assurance_code', 'bottle_quality_assurance_code_string',
+                  'bottle_quality_assurance_code', 'bottle_quality_assurance_code_string',
                   'analytical_description', 'instance', 'value', 'comment',
                   'quality_assurance_unit', 'quality_assurance_unit_string', 'batch_setup_date', 'analyzed_date',
                   'entry_date', 'created_date',)
@@ -319,12 +319,12 @@ class QualityAssuranceTypeSerializer(serializers.ModelSerializer, BulkSerializer
         fields = ('id', 'name', 'description',)
 
 
-# class BottleQualityAssuranceCodeSerializer(serializers.ModelSerializer, BulkSerializerMixin):
-#
-#     class Meta:
-#         list_serializer_class = BulkListSerializer
-#         model = BottleQualityAssuranceCode
-#         fields = ('id', 'code', 'description',)
+class BottleQualityAssuranceCodeSerializer(serializers.ModelSerializer, BulkSerializerMixin):
+
+    class Meta:
+        list_serializer_class = BulkListSerializer
+        model = BottleQualityAssuranceCode
+        fields = ('id', 'code', 'description',)
 
 
 class StandardTypeSerializer(serializers.ModelSerializer, BulkSerializerMixin):
