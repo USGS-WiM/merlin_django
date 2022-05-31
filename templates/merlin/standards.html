@@ -197,25 +197,49 @@
                         if (thisDataRow[0] !== null && thisDataRow[0] !== "" && thisDataRow[0] !== 0 && typeof thisDataRow[0] !== 'undefined') {
                             // an object container for the data in this row
                             var thisDataObject = {};
-                            // TODO: update these columns for standards data!
                             for (var i = 0; i < thisDataRow.length; i++) {
                                 switch (i) {
-                                    case 0: // prefix
-                                        var thisID = updateValueAjax('/merlinservices/bottleprefixes/', 'bottle_prefix_exact', 'id', thisDataRow[i]);
+                                    case 0: // bottle
+                                        var thisID = updateValueAjax('/merlinservices/bottles/', 'bottle_unique_name', 'id', thisDataRow[i]);
                                         if (thisID == "" || thisID === null || typeof thisID === 'undefined') {
-                                            grid_console.text('Bottle Prefix must be a valid choice in row ' + (row + 1) + '!');
+                                            grid_console.text('Bottle must be a valid choice in row ' + (row + 1) + '!');
                                             validTableAdd = false;
                                             button_state.button('reset');
                                             return false;
                                         }
                                         thisDataObject[standardObjectFieldsAdd[i]] = thisID;
                                         break;
-                                    case 1: // suffix
+                                    case 1: // standard_description
+                                        if (thisDataRow[i] == null) {
+                                            thisDataRow[i] = "";
+                                        }
+                                        thisDataObject[standardObjectFieldsAdd[i]] = thisDataRow[i];
                                         break;
-                                    case 2: // bottle unique name
-                                        thisDataObject[standardObjectFieldsAdd[i]] = thisDataRow[i].toUpperCase();
+                                    case 2: // analytical_description
+                                        if (thisDataRow[i] == null) {
+                                            thisDataRow[i] = "";
+                                        }
+                                        thisDataObject[standardObjectFieldsAdd[i]] = thisDataRow[i];
                                         break;
-                                    case 3: //date
+                                    case 3: //concentration
+                                        if (thisDataRow[i] == null || thisDataRow[i] == '') {
+                                            thisDataObject[standardObjectFieldsAdd[i]] = null;
+                                        }
+                                        else {
+                                            thisDataObject[standardObjectFieldsAdd[i]] = Number(thisDataRow[i]);
+                                        }
+                                        break;
+                                    case 4: // concentration_unit
+                                        var thisID = updateValueDom(data_units, 'unit', 'id', thisDataRow[i]);
+                                        if (thisID == "" || thisID === null || typeof thisID === 'undefined') {
+                                            grid_console.text('Concentration Unit must be a valid choice in row ' + (row + 1) + '!');
+                                            validTableAdd = false;
+                                            button_state.button('reset');
+                                            return false;
+                                        }
+                                        thisDataObject[standardObjectFieldsAdd[i]] = thisID;
+                                        break;
+                                    case 5: // created_date
                                         var baddate = thisDataRow[i];
                                         //var gooddate = "20" + baddate.substr(6,4) + "-" + baddate.substr(0,2) + "-" + baddate.substr(3,2);
                                         //thisDataObject[objectFields[i]] = gooddate;
@@ -229,20 +253,6 @@
                                             else {grid_console.text('There is a problem with the Date in row ' + (row + 1) + '. Please contact the administrator.');  loading_overlay.hide(); button_state.button('reset'); return false;}
                                         }
                                         else {grid_console.text('Date is badly formed in row ' + (row + 1) + '. Expecting a date in mm/dd/yy format but found ' + baddate + '!');  loading_overlay.hide(); button_state.button('reset'); return false;}
-                                        break;
-                                    case 4: // tare weight
-                                        if (thisDataRow[i] == null || thisDataRow[i] == '') {
-                                            thisDataObject[standardObjectFieldsAdd[i]] = null;
-                                        }
-                                        else {
-                                            thisDataObject[standardObjectFieldsAdd[i]] = Number(thisDataRow[i]);
-                                        }
-                                        break;
-                                    case 5: // description
-                                        if (thisDataRow[i] == null) {
-                                            thisDataRow[i] = "";
-                                        }
-                                        thisDataObject[standardObjectFieldsAdd[i]] = thisDataRow[i];
                                         break;
                                     default:
                                         thisDataObject[standardObjectFieldsAdd[i]] = thisDataRow[i];
@@ -320,12 +330,12 @@
                     },
                     columns: [
                         {title: "ID", data: "id", readOnly: true, width: 1},
-                        {title: "Bottle", type: 'autocomplete', strict: true, source: function (query, process) {getValuesAjax('/merlinservices/bottles/', 'bottle_unique_name', query, process)}, width: 100},
-                        {title: "Standard Description", type: 'text', width: 160},
-                        {title: "Analytical Description", type: 'text', width: 160},
-                        {title: "Concentration", width: 100},
-                        {title: "Concentration Unit", type: 'autocomplete', strict: true, source: getValuesDom(data_units, "unit"), width: 240},
-                        {title: "Created Date", type: 'date', dateFormat: 'MM/DD/YY', datePickerConfig: {maxDate: new Date()}, width: 100},
+                        {title: "Bottle", data: "bottle_unique_name", type: 'autocomplete', strict: true, source: function (query, process) {getValuesAjax('/merlinservices/bottles/', 'bottle_unique_name', query, process)}, width: 100},
+                        {title: "Standard Description", data: "standartd_description", type: 'text', width: 160},
+                        {title: "Analytical Description", data: "analytical_description", type: 'text', width: 160},
+                        {title: "Concentration", data: "concentration", width: 100},
+                        {title: "Concentration Unit", data: "concentration_unit_string", type: 'autocomplete', strict: true, source: getValuesDom(data_units, "unit"), width: 240},
+                        {title: "Created Date", data: "created_date", type: 'date', dateFormat: 'MM/DD/YY', datePickerConfig: {maxDate: new Date()}, width: 100},
                     ],
                     columnSorting: true,
                     //columnSorting: { column: 0 },
@@ -552,11 +562,10 @@
                     $.each(changedRowIndicesStandards, function(index, value) {
                         var thisDataRow = grid_standards.data('handsontable').getDataAtRow(value);
                         var thisDataObject = {};
-                        // TODO: update these columns for standards data!
                         for (var i = 0; i < thisDataRow.length; i++) {
-                            if (standardObjectFields[i] == "bottle_prefix") {
-                                var thisID = updateValueAjax('/merlinservices/bottleprefixes/', 'bottle_prefix_exact', 'id', thisDataRow[i]);
-                                if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Bottle Prefix must be a valid choice in row ' + (index + 1) + '!'); validTableStandard = false; loading_overlay.hide(); button_state.button('reset'); return false;}
+                            if (standardObjectFields[i] == "bottle") {
+                                var thisID = updateValueAjax('/merlinservices/bottles/', 'bottle_unique_name', 'id', thisDataRow[i]);
+                                if (thisID == "" || typeof thisID === 'undefined') {grid_console.text('Bottle must be a valid choice in row ' + (index + 1) + '!'); validTableStandard = false; loading_overlay.hide(); button_state.button('reset'); return false;}
                                 thisDataObject[standardObjectFields[i]] = thisID;
                             }
                             else if (standardObjectFields[i] == "created_date") {
@@ -574,7 +583,7 @@
                                 }
                                 else {grid_console.text('Date is badly formed in row ' + (index + 1) + '. Expecting a date in mm/dd/yy format but found ' + baddate + '!'); validTableStandard = false; loading_overlay.hide(); button_state.button('reset'); return false;}
                             }
-                            else if (standardObjectFields[i] == "tare_weight") {
+                            else if (standardObjectFields[i] == "concentration") {
                                 if (thisDataRow[i] == null || thisDataRow[i] == '') {
                                     thisDataObject[standardObjectFields[i]] = null;
                                 }
@@ -582,7 +591,18 @@
                                     thisDataObject[standardObjectFields[i]] = Number(thisDataRow[i]);
                                 }
                             }
-                            else if (standardObjectFields[i] == "description") {
+                            else if (standardObjectFields[i] == "concentration_unit") {
+                                var thisID = updateValueDom(data_units, 'unit', 'id', thisDataRow[i]);
+                                if (thisID == "" || thisID === null || typeof thisID === 'undefined') {grid_console.text('Concentration Unit must be a valid choice in row ' + (row + 1) + '!'); validTableStandard = false; loading_overlay.hide(); button_state.button('reset'); return false;}
+                                thisDataObject[standardObjectFieldsAdd[i]] = thisID;
+                            }
+                            else if (standardObjectFields[i] == "standard_description") {
+                                if (thisDataRow[i] == null) {
+                                    thisDataRow[i] = "";
+                                }
+                                thisDataObject[standardObjectFields[i]] = thisDataRow[i];
+                            }
+                            else if (standardObjectFields[i] == "analytical_description") {
                                 if (thisDataRow[i] == null) {
                                     thisDataRow[i] = "";
                                 }

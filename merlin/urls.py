@@ -28,6 +28,11 @@ urlpatterns = [
     url(r'^methodqualityassurances_create/$', views.methodqualityassurances_create, name='methodqualityassurances_create'),
     url(r'^methodqualityassurances_delete/$', views.methodqualityassurances_delete, name='methodqualityassurances_delete'),
 
+    url(r'^standards/$', views.standards, name='standards'),
+    url(r'^standards_update/$', views.standards_update, name='standards_update'),
+    url(r'^standards_create/$', views.standards_create, name='standards_create'),
+    url(r'^standards_delete/$', views.standards_delete, name='standards_delete'),
+
     url(r'^cooperators/$', views.cooperators, name='cooperators'),
     url(r'^cooperators_update/$', views.cooperators_update, name='cooperators_update'),
     url(r'^cooperators_create/$', views.cooperators_create, name='cooperators_create'),

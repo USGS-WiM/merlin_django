@@ -1467,10 +1467,10 @@ def blankwaters_delete(request):
 def standards(request):
     if not request.session.get('username'):
         return HttpResponseRedirect('/merlin/')
-    r = http_get(request, 'standardtypes')
-    data = json.dumps(r.json(), sort_keys=True)
+    r = http_get(request, 'standards')
+    standards = json.dumps(r.json(), sort_keys=True)
     units = json.dumps(http_get(request, 'units').json())
-    context_dict = {'data': data, 'units': units}
+    context_dict = {'standards': standards, 'units': units, 'units': units}
     return render(request, 'merlin/standards.html', context_dict)
 
 
@@ -1485,7 +1485,7 @@ def standards_update(request):
         this_id = item.pop("id")
         item = json.dumps(item)
         logger.info("Item #" + str(item_number) + ": " + item)
-        r = http_put(request, 'balanceverifications/'+str(this_id), item)
+        r = http_put(request, 'standards/'+str(this_id), item)
         logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
         this_response_data = r.json()
         response_data.append(this_response_data)
@@ -1494,36 +1494,16 @@ def standards_update(request):
 
 
 def standards_create(request):
-    data = json.loads(request.body.decode('utf-8'))
-    item1 = {"balance": data["balance"], "analyst": data["analyst"], "verification_date": data["verification_date"],
-             "verification_time": data["verification_time"], "weight_tested": data["weight_tested1"],
-             "weight_as_found": data["weight_as_found1"], "deviation": data["deviation1"],
-             "percent_recovery": data["percent_recovery1"],  "final_reading": data["final_reading1"],
-             "comment": data["comment"]}
-    item2 = {"balance": data["balance"], "analyst": data["analyst"], "verification_date": data["verification_date"],
-             "verification_time": data["verification_time"], "weight_tested": data["weight_tested2"],
-             "weight_as_found": data["weight_as_found2"], "deviation": data["deviation2"],
-             "percent_recovery": data["percent_recovery2"],  "final_reading": data["final_reading2"],
-             "comment": data["comment"]}
-    data = [item1, item2]
-    response_data = []
-    item_number = 0
-    for item in data:
-        item_number += 1
-        item = json.dumps(item)
-        logger.info("Item #" + str(item_number) + ": " + str(item))
-        r = http_post(request, 'balanceverifications', item)
-        logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
-        this_response_data = r.json()
-        response_data.append(this_response_data)
-    response_data = json.dumps(response_data)
-    return HttpResponse(response_data, content_type='application/json')
+    data = request.body
+    r = http_post(request, 'standards', data)
+    logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
+    return HttpResponse(r, content_type='application/json')
 
 
 def standards_delete(request):
     data = json.loads(request.body.decode('utf-8'))
     this_id = data.pop("id")
-    r = http_delete(request, 'balanceverifications/' + str(this_id))
+    r = http_delete(request, 'standards/' + str(this_id))
     logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
     return HttpResponse(r)
 
