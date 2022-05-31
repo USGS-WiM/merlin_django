@@ -32,7 +32,7 @@ router.register(r'qualityassuranceflags', views.QualityAssuranceFlagViewSet, 'qu
 router.register(r'methodqualityassurances', views.MethodQualityAssuranceViewSet, 'methodqualityassurances')
 router.register(r'qualityassurancetypes', views.QualityAssuranceTypeViewSet, 'qualityassurancetypes')
 router.register(r'bottlequalityassurancecodes', views.BottleQualityAssuranceCode, 'bottlequalityassurancecodes')
-router.register(r'standardtypes', views.StandardTypeViewSet, 'standardtypes')
+router.register(r'standards', views.StandardViewSet, 'standards')
 router.register(r'balanceverifications', views.BalanceVerificationViewSet, 'balanceverifications')
 router.register(r'equipment', views.EquipmentViewSet, 'equipment')
 router.register(r'equipmenttypes', views.EquipmentTypeViewSet, 'equipmenttypes')

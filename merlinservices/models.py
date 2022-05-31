@@ -418,7 +418,7 @@ class MethodQualityAssurance(models.Model):
     quality_assurance_flag = models.ForeignKey('QualityAssuranceFlag', on_delete=models.CASCADE)
     method = models.ForeignKey('MethodType', on_delete=models.CASCADE, related_name='quality_assurances')
     analytical_line = models.ForeignKey('Equipment', on_delete=models.CASCADE, related_name='quality_assurances')
-    bottle = models.ForeignKey('StandardType', on_delete=models.CASCADE, related_name='quality_assurances', null=True)
+    bottle = models.ForeignKey('Standard', on_delete=models.CASCADE, related_name='quality_assurances', null=True)
     bottle_quality_assurance_code = models.ForeignKey('BottleQualityAssuranceCode', on_delete=models.CASCADE, null=True)
     analytical_description = models.TextField(blank=True)
     instance = models.IntegerField(null=True, blank=True)
@@ -468,7 +468,7 @@ class BottleQualityAssuranceCode(models.Model):
         ordering = ['-id']
 
 
-class StandardType(models.Model):
+class Standard(models.Model):
     """Standard and Certified Reference Materials, and uncertified lab-specific standards."""
 
     bottle = models.ForeignKey('Bottle', on_delete=models.CASCADE, related_name='standards', null=True)
@@ -483,7 +483,7 @@ class StandardType(models.Model):
         return str(self.id)
 
     class Meta:
-        db_table = "mercury_standardtype"
+        db_table = "mercury_standard"
         ordering = ['-id']
 
 

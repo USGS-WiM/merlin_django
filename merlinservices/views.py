@@ -1051,10 +1051,10 @@ class BottleQualityAssuranceCode(viewsets.ModelViewSet):
     serializer_class = BottleQualityAssuranceCodeSerializer
 
 
-class StandardTypeViewSet(viewsets.ModelViewSet):
+class StandardViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    queryset = StandardType.objects.all()
-    serializer_class = StandardTypeSerializer
+    queryset = Standard.objects.all()
+    serializer_class = StandardSerializer
     pagination_class = StandardResultsSetPagination
 
 

@@ -327,12 +327,12 @@ class BottleQualityAssuranceCodeSerializer(serializers.ModelSerializer, BulkSeri
         fields = ('id', 'code', 'description',)
 
 
-class StandardTypeSerializer(serializers.ModelSerializer, BulkSerializerMixin):
+class StandardSerializer(serializers.ModelSerializer, BulkSerializerMixin):
     created_date = serializers.DateField(format='%m/%d/%y', input_formats=['%Y-%m-%d'])
 
     class Meta:
         list_serializer_class = BulkListSerializer
-        model = StandardType
+        model = Standard
         fields = ('id', 'bottle', 'standard_description', 'analytical_description',
                   'concentration', 'concentration_unit', 'created_date',)
 

@@ -1219,6 +1219,14 @@ def bottles_create(request):
         return HttpResponse(r, content_type='application/json')
 
 
+def bottles_delete(request):
+    data = json.loads(request.body.decode('utf-8'))
+    this_id = data.pop("id")
+    r = http_delete(request, 'bottles/'+str(this_id))
+    logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
+    return HttpResponse(r)
+
+
 def methodqualityassurances(request):
     if not request.session.get('username'):
         return HttpResponseRedirect('/merlin/')
@@ -1260,14 +1268,6 @@ def methodqualityassurances_delete(request):
     data = json.loads(request.body.decode('utf-8'))
     this_id = data.pop("id")
     r = http_delete(request, 'methodqualityassurances/' + str(this_id))
-    logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
-    return HttpResponse(r)
-
-
-def bottles_delete(request):
-    data = json.loads(request.body.decode('utf-8'))
-    this_id = data.pop("id")
-    r = http_delete(request, 'bottles/'+str(this_id))
     logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
     return HttpResponse(r)
 
@@ -1460,6 +1460,70 @@ def blankwaters_delete(request):
     data = json.loads(request.body.decode('utf-8'))
     this_id = data.pop("id")
     r = http_delete(request, 'blankwaters/' + str(this_id))
+    logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
+    return HttpResponse(r)
+
+
+def standards(request):
+    if not request.session.get('username'):
+        return HttpResponseRedirect('/merlin/')
+    r = http_get(request, 'standardtypes')
+    data = json.dumps(r.json(), sort_keys=True)
+    units = json.dumps(http_get(request, 'units').json())
+    context_dict = {'data': data, 'units': units}
+    return render(request, 'merlin/standards.html', context_dict)
+
+
+def standards_update(request):
+    data = json.loads(request.body.decode('utf-8'))
+    response_data = []
+    # using a loop to send data to the single PUT endpoint instead of just using the bulk PUT endpoint
+    # because the bulk PUT response time has been over 30 seconds, sometimes several minutes
+    item_number = 0
+    for item in data:
+        item_number += 1
+        this_id = item.pop("id")
+        item = json.dumps(item)
+        logger.info("Item #" + str(item_number) + ": " + item)
+        r = http_put(request, 'balanceverifications/'+str(this_id), item)
+        logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
+        this_response_data = r.json()
+        response_data.append(this_response_data)
+    response_data = json.dumps(response_data)
+    return HttpResponse(response_data, content_type='application/json')
+
+
+def standards_create(request):
+    data = json.loads(request.body.decode('utf-8'))
+    item1 = {"balance": data["balance"], "analyst": data["analyst"], "verification_date": data["verification_date"],
+             "verification_time": data["verification_time"], "weight_tested": data["weight_tested1"],
+             "weight_as_found": data["weight_as_found1"], "deviation": data["deviation1"],
+             "percent_recovery": data["percent_recovery1"],  "final_reading": data["final_reading1"],
+             "comment": data["comment"]}
+    item2 = {"balance": data["balance"], "analyst": data["analyst"], "verification_date": data["verification_date"],
+             "verification_time": data["verification_time"], "weight_tested": data["weight_tested2"],
+             "weight_as_found": data["weight_as_found2"], "deviation": data["deviation2"],
+             "percent_recovery": data["percent_recovery2"],  "final_reading": data["final_reading2"],
+             "comment": data["comment"]}
+    data = [item1, item2]
+    response_data = []
+    item_number = 0
+    for item in data:
+        item_number += 1
+        item = json.dumps(item)
+        logger.info("Item #" + str(item_number) + ": " + str(item))
+        r = http_post(request, 'balanceverifications', item)
+        logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
+        this_response_data = r.json()
+        response_data.append(this_response_data)
+    response_data = json.dumps(response_data)
+    return HttpResponse(response_data, content_type='application/json')
+
+
+def standards_delete(request):
+    data = json.loads(request.body.decode('utf-8'))
+    this_id = data.pop("id")
+    r = http_delete(request, 'balanceverifications/' + str(this_id))
     logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
     return HttpResponse(r)
 
