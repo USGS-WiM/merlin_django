@@ -57,6 +57,7 @@ router.register(r'bulkcooperators', views.CooperatorBulkUpdateViewSet, 'bulkcoop
 router.register(r'bulkprojects', views.ProjectBulkUpdateViewSet, 'bulkprojects')
 router.register(r'bulkprojectssites', views.ProjectBulkUpdateViewSet, 'bulkprojectssites')
 router.register(r'bulkmethodqualityassurances', views.MethodQualityAssuranceBulkUpdateViewSet, 'bulkmethodqualityassurances')
+router.register(r'bulkstandards', views.StandardBulkCreateUpdateViewSet, 'bulkstandards')
 router.register(r'bulkbalanceverifications', views.BalanceVerificationBulkCreateUpdateViewSet, 'bulkbalanceverifications')
 router.register(r'bulkresults', views.ResultBulkCreateUpdateViewSet, 'bulkresults')
 router.register(r'bulksamples', views.SampleBulkCreateUpdateViewSet, 'bulksamples')

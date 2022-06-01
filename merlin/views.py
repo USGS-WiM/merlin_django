@@ -1495,7 +1495,7 @@ def standards_update(request):
 
 def standards_create(request):
     data = request.body
-    r = http_post(request, 'standards', data)
+    r = http_post(request, 'bulkstandards', data)
     logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
     return HttpResponse(r, content_type='application/json')
 

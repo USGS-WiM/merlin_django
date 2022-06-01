@@ -89,6 +89,7 @@
                     }
                 });
 
+                var standardsAddClicked = false;
                 var grid_console = $("#grid_console");
 
                 var validTableAdd = false;
@@ -113,11 +114,11 @@
                         autoInsertRow: false
                     },
                     columns: [
-                        {title: "Bottle", type: 'autocomplete', strict: true, source: function (query, process) {getValuesAjax('/merlinservices/bottles/', 'bottle_unique_name', query, process)}, width: 100},
-                        {title: "Standard Description", type: 'text', width: 160},
-                        {title: "Analytical Description", type: 'text', width: 160},
+                        {title: "Bottle", type: 'autocomplete', strict: true, source: function (query, process) {getValuesAjax('/merlinservices/bottles/', 'bottle_unique_name', query, process)}, width: 240},
+                        {title: "Standard Description", type: 'text', width: 300},
+                        {title: "Analytical Description", type: 'text', width: 300},
                         {title: "Concentration", width: 100},
-                        {title: "Concentration Unit", type: 'autocomplete', strict: true, source: getValuesDom(data_units, "unit"), width: 240},
+                        {title: "Concentration Unit", type: 'autocomplete', strict: true, source: getValuesDom(data_units, "unit"), width: 160},
                         {title: "Created Date", type: 'date', dateFormat: 'MM/DD/YY', datePickerConfig: {maxDate: new Date()}, width: 100},
                     ],
                     beforeChange: function(changes, source) {
@@ -330,11 +331,11 @@
                     },
                     columns: [
                         {title: "ID", data: "id", readOnly: true, width: 1},
-                        {title: "Bottle", data: "bottle_unique_name", type: 'autocomplete', strict: true, source: function (query, process) {getValuesAjax('/merlinservices/bottles/', 'bottle_unique_name', query, process)}, width: 100},
-                        {title: "Standard Description", data: "standartd_description", type: 'text', width: 160},
-                        {title: "Analytical Description", data: "analytical_description", type: 'text', width: 160},
+                        {title: "Bottle", data: "bottle_unique_name", type: 'autocomplete', strict: true, source: function (query, process) {getValuesAjax('/merlinservices/bottles/', 'bottle_unique_name', query, process)}, width: 240},
+                        {title: "Standard Description", data: "standard_description", type: 'text', width: 300},
+                        {title: "Analytical Description", data: "analytical_description", type: 'text', width: 300},
                         {title: "Concentration", data: "concentration", width: 100},
-                        {title: "Concentration Unit", data: "concentration_unit_string", type: 'autocomplete', strict: true, source: getValuesDom(data_units, "unit"), width: 240},
+                        {title: "Concentration Unit", data: "concentration_unit_string", type: 'autocomplete', strict: true, source: getValuesDom(data_units, "unit"), width: 160},
                         {title: "Created Date", data: "created_date", type: 'date', dateFormat: 'MM/DD/YY', datePickerConfig: {maxDate: new Date()}, width: 100},
                     ],
                     columnSorting: true,
@@ -421,6 +422,18 @@
                 function clearChangedRowIndicesStandards() {
                     changedRowIndicesStandards.length = 0;
                 }
+
+                grid_standards_add.parent().find('button[name=standards_add]').click(function () {
+                    if (standardsAddClicked) {
+                        standardsAddClicked = false;
+                        $("#grid_standards_add").hide();
+                    }
+                    else {
+                        standardsAddClicked = true;
+                        $("#form_bottle_prefix_range_add").hide();
+                        $("#grid_standards_add").show();
+                    }
+                });
                 
                 ////////////////////
                 // Standards Buttons

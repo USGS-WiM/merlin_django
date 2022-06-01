@@ -329,7 +329,7 @@ class BottleQualityAssuranceCodeSerializer(serializers.ModelSerializer, BulkSeri
 
 class StandardSerializer(serializers.ModelSerializer, BulkSerializerMixin):
     created_date = serializers.DateField(format='%m/%d/%y', input_formats=['%Y-%m-%d'])
-    bottle_unique_name = bottle_unique_name = serializers.StringRelatedField(source='bottle.bottle_unique_name')
+    bottle_unique_name = serializers.StringRelatedField(source='bottle.bottle_unique_name')
     concentration_unit_string = serializers.StringRelatedField(source='concentration_unit')
 
     class Meta:

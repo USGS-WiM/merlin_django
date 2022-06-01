@@ -1051,6 +1051,12 @@ class BottleQualityAssuranceCode(viewsets.ModelViewSet):
     serializer_class = BottleQualityAssuranceCodeSerializer
 
 
+class StandardBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkUpdateModelMixin, viewsets.ModelViewSet):
+    queryset = Standard.objects.all()
+    serializer_class = StandardSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+
+
 class StandardViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     queryset = Standard.objects.all()
