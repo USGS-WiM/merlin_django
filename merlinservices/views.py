@@ -1018,16 +1018,16 @@ class QualityAssuranceFlagViewSet(viewsets.ModelViewSet):
     serializer_class = QualityAssuranceFlagSerializer
 
 
-class MethodQualityAssuranceBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
-    queryset = MethodQualityAssurance.objects.all()
-    serializer_class = MethodQualityAssuranceSerializer
+class QualityAssuranceBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
+    queryset = QualityAssurance.objects.all()
+    serializer_class = QualityAssuranceSerializer
     permission_classes = (permissions.IsAuthenticated,)
 
 
-class MethodQualityAssuranceViewSet(viewsets.ModelViewSet):
+class QualityAssuranceViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    queryset = MethodQualityAssurance.objects.all()
-    serializer_class = MethodQualityAssuranceSerializer
+    queryset = QualityAssurance.objects.all()
+    serializer_class = QualityAssuranceSerializer
     pagination_class = StandardResultsSetPagination
 
 

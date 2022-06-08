@@ -396,7 +396,7 @@ class ResultQualityAssuranceFlag(models.Model):
 
 
 class QualityAssuranceFlag(models.Model):
-    """Activities performed to prevent mistakes or contamination of samples."""
+    """Flags to indicate when results do not meet quality assurance limits."""
 
     quality_assurance_flag = models.CharField(max_length=128, unique=True)
     description = models.TextField(blank=True)
@@ -411,12 +411,12 @@ class QualityAssuranceFlag(models.Model):
         ordering = ['-id']
 
 
-class MethodQualityAssurance(models.Model):
-    """Table to allow one-to-many relationship between Methods and QualityAssuranceType and record observations."""
+# TODO: decide if this is the correct name for this model
+class QualityAssurance(models.Model):
+    """Activities performed to prevent mistakes or contamination of samples."""
 
     quality_assurance = models.ForeignKey('QualityAssuranceType', on_delete=models.CASCADE)
-    quality_assurance_flag = models.ForeignKey('QualityAssuranceFlag', on_delete=models.CASCADE)
-    method = models.ForeignKey('MethodType', on_delete=models.CASCADE, related_name='quality_assurances')
+    quality_assurance_flag = models.ForeignKey('QualityAssuranceFlag', on_delete=models.CASCADE, null=True)
     analytical_line = models.ForeignKey('Equipment', on_delete=models.CASCADE, related_name='quality_assurances')
     bottle = models.ForeignKey('Standard', on_delete=models.CASCADE, related_name='quality_assurances', null=True)
     bottle_quality_assurance_code = models.ForeignKey('BottleQualityAssuranceCode', on_delete=models.CASCADE, null=True)
@@ -435,9 +435,8 @@ class MethodQualityAssurance(models.Model):
         return str(self.quality_assurance) + ": " + str(self.value)
 
     class Meta:
-        db_table = "mercury_methodqualityassurance"
+        db_table = "mercury_qualityassurance"
         ordering = ['-id']
-        unique_together = ("quality_assurance", "method")
 
 
 class QualityAssuranceType(models.Model):
