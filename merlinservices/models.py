@@ -418,7 +418,7 @@ class QualityAssurance(models.Model):
     quality_assurance = models.ForeignKey('QualityAssuranceType', on_delete=models.CASCADE)
     quality_assurance_flag = models.ForeignKey('QualityAssuranceFlag', on_delete=models.CASCADE, null=True)
     analytical_line = models.ForeignKey('Equipment', on_delete=models.CASCADE, related_name='quality_assurances')
-    bottle = models.ForeignKey('Standard', on_delete=models.CASCADE, related_name='quality_assurances', null=True)
+    bottle = models.ForeignKey('Standard', on_delete=models.CASCADE, related_name='quality_assurances', null=True) # TODO: should this be related to Bottle instead??
     bottle_quality_assurance_code = models.ForeignKey('BottleQualityAssuranceCode', on_delete=models.CASCADE, null=True)
     analytical_description = models.TextField(blank=True)
     instance = models.IntegerField(null=True, blank=True)

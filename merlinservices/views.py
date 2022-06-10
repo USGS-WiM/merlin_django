@@ -1018,7 +1018,7 @@ class QualityAssuranceFlagViewSet(viewsets.ModelViewSet):
     serializer_class = QualityAssuranceFlagSerializer
 
 
-class QualityAssuranceBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
+class QualityAssuranceBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkUpdateModelMixin, viewsets.ModelViewSet):
     queryset = QualityAssurance.objects.all()
     serializer_class = QualityAssuranceSerializer
     permission_classes = (permissions.IsAuthenticated,)

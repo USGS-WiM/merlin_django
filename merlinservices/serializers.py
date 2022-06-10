@@ -300,7 +300,7 @@ class QualityAssuranceSerializer(serializers.ModelSerializer, BulkSerializerMixi
     quality_assurance_string = serializers.StringRelatedField(source='quality_assurance')
     quality_assurance_flag_string = serializers.StringRelatedField(source='quality_assurance_flag')
     bottle_string = serializers.StringRelatedField(source='bottle')
-    analytical_line_string = serializers.StringRelatedField(source='analytical_line')
+    analytical_line_string = serializers.StringRelatedField(source='analytical_line.description')
     bottle_quality_assurance_code_string = serializers.StringRelatedField(source='bottle_quality_assurance_code')
     quality_assurance_unit_string = serializers.StringRelatedField(source='quality_assurance_unit')
     batch_setup_date = serializers.DateField(format='%m/%d/%y', input_formats=['%Y-%m-%d'])
