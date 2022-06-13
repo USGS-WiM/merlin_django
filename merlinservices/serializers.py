@@ -632,9 +632,9 @@ class FullResultSerializer(serializers.ModelSerializer, BulkSerializerMixin):
 
 
 class ResultSerializer(serializers.ModelSerializer, BulkSerializerMixin):
-    entry_date = serializers.DateTimeField(format='%m/%d/%y', read_only=True)
-    analyzed_date = serializers.DateTimeField(format='%m/%d/%y', read_only=True)
-    created_date = serializers.DateTimeField(format='%m/%d/%y', read_only=True)
+    entry_date = serializers.DateField(format='%m/%d/%y', read_only=True)
+    analyzed_date = serializers.DateField(format='%m/%d/%y', read_only=True)
+    created_date = serializers.DateField(format='%m/%d/%y', read_only=True)
     sample_bottle_unique_name = serializers.StringRelatedField(source='sample_bottle.bottle.bottle_unique_name')
     analysis_string = serializers.StringRelatedField(source='analysis')
     constituent_string = serializers.StringRelatedField(source='constituent')

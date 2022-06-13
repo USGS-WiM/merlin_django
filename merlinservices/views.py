@@ -659,7 +659,17 @@ class ResultViewSet(viewsets.ModelViewSet):
         # filter by constituent ID, exact
         constituent = self.request.query_params.get('constituent', None)
         if constituent is not None:
-            queryset = queryset.filter(constituent__exact=constituent)
+            if constituent.isdigit():
+                queryset = queryset.filter(constituent__exact=constituent)
+            else:
+                queryset = queryset.filter(constituent__constituent__exact=constituent)
+        # filter by analysis ID, exact
+        analysis = self.request.query_params.get('analysis', None)
+        if analysis is not None:
+            if analysis.isdigit():
+                queryset = queryset.filter(analysis__exact=analysis)
+            else:
+                queryset = queryset.filter(analysis__analysis__exact=analysis)
         # filter by isotope ID, exact
         isotope_flag = self.request.query_params.get('isotope_flag', None)
         if isotope_flag is not None:
@@ -1532,6 +1542,12 @@ class BatchUpload(views.APIView):
                 if not is_valid:
                     status.append({"message": message, "success": "false", "bottle_unique_name": bottle_unique_name})
                     continue
+                # validate analysis type
+                is_valid, message, analysis_id = validate_analysis_type(row)
+                if not is_valid:
+                    status.append(
+                        {"message": message, "success": "false", "bottle_unique_name": bottle_unique_name})
+                    continue
                 # validate analysis method type
                 is_valid, message, analysis_method_id = validate_analysis_method(constituent_id, row)
                 if not is_valid:
@@ -1564,7 +1580,7 @@ class BatchUpload(views.APIView):
                 # get method id
                 method_id = row["method_id"]
                 is_valid, message, result_id = validate_result(
-                    sample, constituent_id, method_id, row
+                    sample, constituent_id, method_id, analysis_id, row
                 )
                 if not is_valid:
                     status.append({"message": message, "success": "false", "bottle_unique_name": bottle_unique_name})
@@ -1708,6 +1724,28 @@ def validate_constituent_type(row):
     return is_valid, message, constituent_id
 
 
+def validate_analysis_type(row):
+    is_valid = False
+    analysis_id = -1
+    message = ""
+    try:
+        analysis_type = row["analysis"]
+    except KeyError:
+        message = "'analysis' is required"
+        return is_valid, message, analysis_id
+
+    # get analysis id
+    try:
+        analysis_type_details = AnalysisType.objects.get(analysis=analysis_type)
+    except ObjectDoesNotExist:
+        message = "The analysis type '"+analysis_type+"' does not exist"
+        return is_valid, message, analysis_id
+
+    analysis_id = analysis_type_details.id
+    is_valid = True
+    return is_valid, message, analysis_id
+
+
 def validate_isotope_flag(row):
     is_valid = False
     message = ""
@@ -1822,12 +1860,13 @@ def validate_analyzed_date(row):
             return is_valid, message
 
 
-def validate_result(sample_bottle_id, constituent_id, method_id, row):
+def validate_result(sample_bottle_id, constituent_id, method_id, analysis_id, row):
     is_valid = False
     result_id = -1
     message = ""
     bottle_name = row["bottle_unique_name"]
     constituent_type = row["constituent"]
+    analysis_type = row["analysis"]
     isotope_flag_id = row["isotope_flag_id"]
 
     # make sure that a result is given
@@ -1841,19 +1880,20 @@ def validate_result(sample_bottle_id, constituent_id, method_id, row):
         message = "'raw_value' is required"
         return is_valid, message, result_id
 
-    # Find the matching record in the Results table, using the unique combination of barcode + constituent { + isotope}
+    # Find the matching record in the Results table, using the unique combination of barcode + constituent + analysis { + isotope}
     try:
         result_details = Result.objects.get(
-            constituent=constituent_id, sample_bottle=sample_bottle_id, isotope_flag=isotope_flag_id)
+            constituent=constituent_id, sample_bottle=sample_bottle_id, analysis=analysis_id,
+            isotope_flag=isotope_flag_id)
     except ObjectDoesNotExist:
         message = "There is no matching record in the result table for bottle '"
-        message += str(bottle_name)+"', constituent type '"+str(constituent_type)+"' and isotope flag '"
-        message += str(isotope_flag_id)
+        message += str(bottle_name)+"', constituent type '"+str(constituent_type)
+        message += "', analysis type '" + str(analysis_type) + "', and isotope flag '" + str(isotope_flag_id)
         return is_valid, message, result_id
     except MultipleObjectsReturned:
         message = "There are more than one matching records in the result table for bottle '"
-        message += str(bottle_name)+"', constituent type '"+str(constituent_type)+"' and isotope flag '"
-        message += str(isotope_flag_id)
+        message += str(bottle_name) + "', constituent type '" + str(constituent_type)
+        message += "', analysis type '" + str(analysis_type) + "', and isotope flag '" + str(isotope_flag_id)
         return is_valid, message, result_id
     # check if final value already exists
     final_value = result_details.final_value
