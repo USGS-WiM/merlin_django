@@ -7,7 +7,7 @@ var __extends = this.__extends || function (d, b) {
     __.prototype = b.prototype;
     d.prototype = new __();
 };
-define(["require", "exports", "../XLSXOps/XLSXReader", "./ServiceAgent", "./RequestInfo", "../../vos/Constituent", "../../vos/IsotopeFlag", "../../vos/QualityAssuranceType", "../../vos/Bottle", "../../vos/Method", "../../vos/Result", "../../vos/UnitType", "../../vos/Sample", "Scripts/events/EventArgs", "Scripts/events/EventHandler", "Scripts/events/Delegate", "../../Messaging/Notification"], function (require, exports, XLSXReader, ServiceAgent, RequestInfo, Constituent, IsotopeFlag, QualityAssurance, Bottle, Method, Result, UnitType, Sample, EventArgs, EventHandler, Delegate, MSG) {
+define(["require", "exports", "../XLSXOps/XLSXReader", "./ServiceAgent", "./RequestInfo", "../../vos/Constituent", "../../vos/Analysis", "../../vos/IsotopeFlag", "../../vos/QualityAssuranceType", "../../vos/Bottle", "../../vos/Method", "../../vos/Result", "../../vos/UnitType", "../../vos/Sample", "Scripts/events/EventArgs", "Scripts/events/EventHandler", "Scripts/events/Delegate", "../../Messaging/Notification"], function (require, exports, XLSXReader, ServiceAgent, RequestInfo, Constituent, Analysis, IsotopeFlag, QualityAssurance, Bottle, Method, Result, UnitType, Sample, EventArgs, EventHandler, Delegate, MSG) {
     // Class
     var MercuryServiceAgent = (function (_super) {
         __extends(MercuryServiceAgent, _super);
@@ -81,12 +81,14 @@ define(["require", "exports", "../XLSXOps/XLSXReader", "./ServiceAgent", "./Requ
         MercuryServiceAgent.prototype.init = function () {
             var _this = this;
             this.ConstituentList = [];
+            this.AnalysisList = []
             this.UnitList = [];
             this.SampleList = [];
             this.QualityAssuranceList = [];
             this.IsotopeList = [];
             this.FileValid = false;
             this.Execute(new RequestInfo("/constituents/", true), function (x) { return _this.HandleOnSerializableComplete(Constituent, x, _this.ConstituentList); }, this.HandleOnError);
+            this.Execute(new RequestInfo("/analyses/", true), function (x) { return _this.HandleOnSerializableComplete(Analysis, x, _this.AnalysisList); }, this.HandleOnError);
             this.Execute(new RequestInfo("/isotopeflags/", true), function (x) { return _this.HandleOnSerializableComplete(IsotopeFlag, x, _this.IsotopeList); }, this.HandleOnError);
             this.Execute(new RequestInfo("/units/", true), function (x) { return _this.HandleOnSerializableComplete(UnitType, x, _this.UnitList); }, this.HandleOnError);
             this.Execute(new RequestInfo("/qualityassurancetypes/", true), function (x) { return _this.HandleOnSerializableComplete(QualityAssurance, x, _this.QualityAssuranceList); }, this.HandleOnError);
@@ -144,6 +146,7 @@ define(["require", "exports", "../XLSXOps/XLSXReader", "./ServiceAgent", "./Requ
         MercuryServiceAgent.prototype.loadResult = function (element) {
             try {
                 var c = element.hasOwnProperty(this.sheetDirectory["Constituent *"]) ? this.getConstituentByName(element[this.sheetDirectory["Constituent *"]]) : null;
+                var a = element.hasOwnProperty(this.sheetDirectory["Analysis *"]) ? this.getAnalysisByName(element[this.sheetDirectory["Analysis *"]]) : null;
                 var cmethods = this.GetConstituentMethodList(c.id);
                 var m = element.hasOwnProperty(this.sheetDirectory["Method Code *"]) ? this.getMethodByCode(cmethods, String(element[this.sheetDirectory["Method Code *"]])) : null;
                 var dt = element.hasOwnProperty(this.sheetDirectory["Date of Analysis *"]) ? this.getExcelDate(Number(element[this.sheetDirectory["Date of Analysis *"]])) : new Date();
@@ -182,6 +185,14 @@ define(["require", "exports", "../XLSXOps/XLSXReader", "./ServiceAgent", "./Requ
                 var selectedConstituent = this.ConstituentList[i];
                 if (selectedConstituent.constituent.trim().toUpperCase() === constituentName.trim().toUpperCase())
                     return selectedConstituent;
+            }
+            return null;
+        };
+        MercuryServiceAgent.prototype.getAnalysisByName = function (analysisName) {
+            for (var i = 0; i < this.AnalysisList.length; i++) {
+                var selectedAnalysis = this.AnalysisList[i];
+                if (selectedAnalysis.analysis.trim().toUpperCase() === analysisName.trim().toUpperCase())
+                    return selectedAnalysis;
             }
             return null;
         };

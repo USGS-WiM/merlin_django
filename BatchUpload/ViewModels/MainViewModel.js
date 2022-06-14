@@ -88,6 +88,7 @@ define(["require", "exports", "Scripts/events/EventHandler", "Models/Utilities/S
             this.SampleList = ko.observableArray([]);
             this.NotificationList = ko.observableArray([]);
             this.ConstituentList = [];
+            this.AnalysisList = [];
             this.UnitList = [];
             this.IsLoading = ko.observable(false);
             this.Authorization = new AuthenticationVM();
@@ -113,6 +114,7 @@ define(["require", "exports", "Scripts/events/EventHandler", "Models/Utilities/S
             try {
                 this.SampleList(agent.SampleList);
                 this.ConstituentList = agent.ConstituentList;
+                this.AnalysisList = agent.AnalysisList;
                 this.UnitList = agent.UnitList;
                 this.IsotopeFlagList = agent.IsotopeList;
                 this.QAViewModel.QualityAssuranceList(agent.QualityAssuranceList);
