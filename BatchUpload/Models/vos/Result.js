@@ -3,10 +3,11 @@ define(["require", "exports"], function (require, exports) {
     // Class
     var Result = (function () {
         // Constructor
-        function Result(c, m, u, vFinal, ddl, pm, mp, dt, comment, i, qa, cmethods) {
+        function Result(c, a, m, u, vFinal, ddl, pm, mp, dt, comment, i, qa, cmethods) {
             var _this = this;
             this.id = -999;
             this.constituent = ko.observable(c).extend({ nullValidation: {} });
+            this.analysis = ko.observable(a).extend({ nullValidation: {} });
             this.method = ko.observable(m).extend({ nullValidation: {} });
             this.reported_value = ko.observable(vFinal).extend({ nullValidation: {} });
             this.isotope_flag = ko.observable(i).extend({ nullValidation: {} });
@@ -27,6 +28,7 @@ define(["require", "exports"], function (require, exports) {
                 read: function () {
                     try {
                         var c = _this.constituent.hasWarning();
+                        var a = _this.analysis.hasWarning();
                         var m = _this.method.hasWarning();
                         var u = _this.unit.hasWarning();
                         var r = _this.reported_value.hasWarning();
@@ -34,7 +36,7 @@ define(["require", "exports"], function (require, exports) {
                         var mp = _this.massProcess.hasWarning();
                         var ad = _this.analyzed_date.hasWarning();
                         var pm = _this.percent_matching.hasWarning();
-                        return c || m || u || r || i || mp || ad || pm;
+                        return c || a || m || u || r || i || mp || ad || pm;
                     }
                     catch (e) {
                         return true;
@@ -51,6 +53,7 @@ define(["require", "exports"], function (require, exports) {
             var result = {
                 "bottle_unique_name": bottleID,
                 "constituent": this.constituent().constituent,
+                "analysis": this.analysis().analysis,
                 "method_id": this.method().id,
                 "raw_value": this.reported_value,
                 "isotope_flag_id": this.isotope_flag().id,
