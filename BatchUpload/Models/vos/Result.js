@@ -7,7 +7,7 @@ define(["require", "exports"], function (require, exports) {
             var _this = this;
             this.id = -999;
             this.constituent = ko.observable(c).extend({ nullValidation: {} });
-            this.analysis = ko.observable(c).extend({ nullValidation: {} });
+            this.analysis = ko.observable(a).extend({ nullValidation: {} });
             this.method = ko.observable(m).extend({ nullValidation: {} });
             this.reported_value = ko.observable(vFinal).extend({ nullValidation: {} });
             this.isotope_flag = ko.observable(i).extend({ nullValidation: {} });
