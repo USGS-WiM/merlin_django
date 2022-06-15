@@ -156,11 +156,24 @@
                            optionsCaption: 'Choose...',
                            event : {change: $root.SetConstituentMethods}"></select>
                     </td>
-
                 </tr>
                 <tr class="danger" style="padding:6px;font-size:10px;" data-bind="visible: constituent.hasWarning()">
                     <td colspan="3">
                         <i class="text-danger glyphicon glyphicon-warning-sign"></i><span class="text-danger" data-bind='text: constituent.validationMessage()'></span>
+                    </td>
+                <!-- Analysis Row -->
+                <tr data-bind="attr:{'class': analysis.hasWarning() ? 'danger' :'' }">
+                    <td>Analysis :</td>
+                    <td>
+                        <select class="form-control" data-bind=" options: $root.AnalysisList,
+                           optionsText: 'analysis',
+                           value: analysis,
+                           optionsCaption: 'Choose...'"></select>
+                    </td>
+                </tr>
+                <tr class="danger" style="padding:6px;font-size:10px;" data-bind="visible: analysis.hasWarning()">
+                    <td colspan="3">
+                        <i class="text-danger glyphicon glyphicon-warning-sign"></i><span class="text-danger" data-bind='text: analysis.validationMessage()'></span>
                     </td>
                 </tr>
                 <!-- Isotope flag Row -->

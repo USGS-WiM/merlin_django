@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date
 from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import User
@@ -116,7 +116,7 @@ class BottlePrefix(models.Model):
     bottle_type = models.ForeignKey('BottleType', on_delete=models.CASCADE)
     # tare_weight = models.DecimalField(max_digits=8, decimal_places=4, null=True)
     description = models.TextField(blank=True)
-    created_date = models.DateField(default=datetime.now, null=True, blank=True, db_index=True)
+    created_date = models.DateField(default=date.today, null=True, blank=True, db_index=True)
     modified_date = models.DateField(auto_now=True, null=True, blank=True)
 
     def __str__(self):
@@ -136,7 +136,7 @@ class Bottle(models.Model):
     bottle_prefix = models.ForeignKey('BottlePrefix', on_delete=models.CASCADE)
     tare_weight = models.DecimalField(max_digits=9, decimal_places=5, null=True)
     description = models.TextField(blank=True)
-    created_date = models.DateField(default=datetime.now, null=True, blank=True, db_index=True)
+    created_date = models.DateField(default=date.today, null=True, blank=True, db_index=True)
     # created_by = CreatingUserField(related_name='created_bottles')
     modified_date = models.DateField(auto_now=True, null=True, blank=True)
     # modified_by = LastUserField()
@@ -170,7 +170,7 @@ class Sample(models.Model):
     replicate = models.IntegerField(null=True, blank=True)
     lab_processing = models.ForeignKey('ProcessingType', on_delete=models.CASCADE, null=True, blank=True)
     medium_type = models.ForeignKey('MediumType', on_delete=models.CASCADE)
-    created_date = models.DateField(default=datetime.now, null=True, blank=True)
+    created_date = models.DateField(default=date.today, null=True, blank=True)
     modified_date = models.DateField(auto_now=True, null=True, blank=True)
 
     def __str__(self):
@@ -194,7 +194,7 @@ class SampleBottle(models.Model):
     preservation_volume = models.FloatField(null=True, blank=True)
     preservation_acid = models.ForeignKey('Acid', on_delete=models.CASCADE, null=True, blank=True)
     preservation_comment = models.TextField(blank=True)
-    created_date = models.DateField(default=datetime.now, null=True, blank=True)
+    created_date = models.DateField(default=date.today, null=True, blank=True)
     modified_date = models.DateField(auto_now=True, null=True, blank=True)
 
     def __str__(self):
@@ -213,7 +213,7 @@ class SampleBottleBromination(models.Model):
     bromination = models.ForeignKey('Bromination', on_delete=models.CASCADE)
     bromination_event = models.IntegerField(null=True, blank=True)
     bromination_volume = models.FloatField(null=True, blank=True)
-    created_date = models.DateField(default=datetime.now, null=True, blank=True, db_index=True)
+    created_date = models.DateField(default=date.today, null=True, blank=True, db_index=True)
     modified_date = models.DateField(auto_now=True, null=True, blank=True)
 
     def __str__(self):
@@ -315,7 +315,7 @@ class Result(models.Model):
     entry_date = models.DateField(null=True, blank=True)
     analyzed_date = models.DateField(null=True, blank=True)
     analysis_comment = models.TextField(null=True, blank=True)
-    created_date = models.DateField(default=datetime.now, null=True, blank=True)
+    created_date = models.DateField(default=date.today, null=True, blank=True)
     modified_date = models.DateField(auto_now=True, null=True, blank=True)
 
     def __str__(self):
@@ -501,7 +501,7 @@ class BalanceVerification(models.Model):
     percent_recovery = models.IntegerField(null=True, blank=True)
     final_reading = models.FloatField(null=True, blank=True)
     comment = models.TextField(blank=True)
-    created_date = models.DateField(default=datetime.now, null=True, blank=True)
+    created_date = models.DateField(default=date.today, null=True, blank=True)
     modified_date = models.DateField(auto_now=True, null=True, blank=True)
 
     def __str__(self):
@@ -519,7 +519,7 @@ class Equipment(models.Model):
     type = models.ForeignKey('EquipmentType', on_delete=models.PROTECT, related_name='equipment')
     description = models.TextField(blank=True)
     location = models.CharField(max_length=128, blank=True)
-    created_date = models.DateField(default=datetime.now, null=True, blank=True)
+    created_date = models.DateField(default=date.today, null=True, blank=True)
     modified_date = models.DateField(auto_now=True, null=True, blank=True)
 
     def __str__(self):
@@ -682,7 +682,7 @@ class Acid(models.Model):
     code = models.CharField(max_length=128, unique=True)
     concentration = models.FloatField(default=-999)
     comment = models.TextField(blank=True)
-    created_date = models.DateField(default=datetime.now, null=True, blank=True, db_index=True)
+    created_date = models.DateField(default=date.today, null=True, blank=True, db_index=True)
     modified_date = models.DateField(auto_now=True, null=True, blank=True)
 
     def __str__(self):
@@ -699,7 +699,7 @@ class BlankWater(models.Model):
     lot_number = models.CharField(max_length=128, unique=True)
     concentration = models.FloatField(default=-999)
     comment = models.TextField(blank=True)
-    created_date = models.DateField(default=datetime.now, null=True, blank=True, db_index=True)
+    created_date = models.DateField(default=date.today, null=True, blank=True, db_index=True)
     modified_date = models.DateField(auto_now=True, null=True, blank=True)
 
     def __str__(self):
@@ -715,7 +715,7 @@ class Bromination(models.Model):
 
     concentration = models.FloatField()
     comment = models.TextField(blank=True)
-    created_date = models.DateField(default=datetime.now, null=True, blank=True, db_index=True)
+    created_date = models.DateField(default=date.today, null=True, blank=True, db_index=True)
     modified_date = models.DateField(auto_now=True, null=True, blank=True)
 
     def __str__(self):
