@@ -157,9 +157,8 @@ define(["require", "exports", "../XLSXOps/XLSXReader", "./ServiceAgent", "./Requ
                 var comment = element.hasOwnProperty(this.sheetDirectory["Analysis Comments"]) ? String(element[this.sheetDirectory["Analysis Comments"]]) : "";
                 var u = element.hasOwnProperty(this.sheetDirectory["Raw Value Units *"]) ? this.getUnitTypeByName(element[this.sheetDirectory["Raw Value Units *"]]) : null;
                 var qa = element.hasOwnProperty(this.sheetDirectory["Quality Assurance"]) ? this.getQualityAssuranceList(element[this.sheetDirectory["Quality Assurance"]]) : [];
-                ;
                 var i = element.hasOwnProperty(this.sheetDirectory["Isotope Flag *"]) ? this.getIsotopeByName(String(element[this.sheetDirectory["Isotope Flag *"]])) : null;
-                var result = new Result(c, m, u, vFinal, ddl, pm, mp, dt, comment, i, qa, cmethods);
+                var result = new Result(c, a, m, u, vFinal, ddl, pm, mp, dt, comment, i, qa, cmethods);
                 return result;
             }
             catch (e) {
