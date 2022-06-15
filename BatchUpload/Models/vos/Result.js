@@ -3,7 +3,7 @@ define(["require", "exports"], function (require, exports) {
     // Class
     var Result = (function () {
         // Constructor
-        function Result(c, m, u, vFinal, ddl, pm, mp, dt, comment, i, qa, cmethods) {
+        function Result(c, a, m, u, vFinal, ddl, pm, mp, dt, comment, i, qa, cmethods) {
             var _this = this;
             this.id = -999;
             this.constituent = ko.observable(c).extend({ nullValidation: {} });
