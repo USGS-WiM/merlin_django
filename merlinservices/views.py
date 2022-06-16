@@ -1055,10 +1055,10 @@ class QualityAssuranceTypeViewSet(viewsets.ModelViewSet):
         return queryset
 
 
-class BottleQualityAssuranceCode(viewsets.ModelViewSet):
+class StandardQualityAssuranceCode(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    queryset = BottleQualityAssuranceCode.objects.all()
-    serializer_class = BottleQualityAssuranceCodeSerializer
+    queryset = StandardQualityAssuranceCode.objects.all()
+    serializer_class = StandardQualityAssuranceCodeSerializer
 
 
 class StandardBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkUpdateModelMixin, viewsets.ModelViewSet):
@@ -1069,9 +1069,17 @@ class StandardBulkCreateUpdateViewSet(BulkCreateModelMixin, BulkUpdateModelMixin
 
 class StandardViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    queryset = Standard.objects.all()
     serializer_class = StandardSerializer
     pagination_class = StandardResultsSetPagination
+
+    # override the default queryset to allow filtering by URL arguments
+    def get_queryset(self):
+        queryset = Standard.objects.all()
+        # filter by bottle name, exact
+        bottle_name = self.request.query_params.get('name', None)
+        if bottle_name is not None:
+            queryset = queryset.filter(bottle__botle_unique_name__exact=bottle_name)
+        return queryset
 
 
 class DetectionFlagViewSet(viewsets.ModelViewSet):

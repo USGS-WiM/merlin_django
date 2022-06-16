@@ -286,24 +286,43 @@ class QualityAssuranceFlagSerializer(serializers.ModelSerializer, BulkSerializer
         fields = ('id', 'quality_assurance_flag', 'description',)
 
 
+class QualityAssuranceQualityAssuranceFlag(serializers.ModelSerializer, BulkSerializerMixin):
+    quality_assurance_flag_string = serializers.StringRelatedField(source='quality_assurance_flag')
+
+    class Meta:
+        list_serializer_class = BulkListSerializer
+        model = QualityAssuranceQualityAssuranceFlag
+        fields = ('id', 'quality_assurance_flag', 'quality_assurance_flag_string', 'quality_assurance',)
+
+
 class QualityAssuranceSerializer(serializers.ModelSerializer, BulkSerializerMixin):
     # TODO: implement POST validation
     def validate(self, data):
-        print(data)
+        # print(data)
+        # TODO: check that QA flags are in a list
         return data
 
     def create(self, validated_data):
-        print(validated_data)
-        mqa = QualityAssurance.objects.create(**validated_data)
-        return mqa
+        # print(validated_data)
+        # TODO: create n:m QA flag records
+        qa_flags = []
+        if 'quality_assurance_flags' in validated_data:
+            qa_flags = validated_data.pop('quality_assurance_flags')
+        qa = QualityAssurance.objects.create(**validated_data)
+
+        for qa_flag in qa_flags:
+            QualityAssuranceQualityAssuranceFlag.objects.create(quality_assurance=qa, quality_assurance_flag=qa_flag)
+        return qa
 
     quality_assurance_string = serializers.StringRelatedField(source='quality_assurance')
-    quality_assurance_flag_string = serializers.StringRelatedField(source='quality_assurance_flag')
-    bottle_string = serializers.StringRelatedField(source='bottle')
+    new_quality_assurance_flags = serializers.ListField(write_only=True, required=False)
+    quality_assurance_flags = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
+    quality_assurance_flags_strings = serializers.StringRelatedField(source='quality_assurance_flags', read_only=True, many=True)
+    standard_string = serializers.StringRelatedField(source='standard.bottle.bottle_unique_name')
     analytical_line_string = serializers.StringRelatedField(source='analytical_line.description')
-    bottle_quality_assurance_code_string = serializers.StringRelatedField(source='bottle_quality_assurance_code')
+    standard_quality_assurance_code_string = serializers.StringRelatedField(source='standard_quality_assurance_code')
     quality_assurance_unit_string = serializers.StringRelatedField(source='quality_assurance_unit')
-    batch_setup_date = serializers.DateField(format='%m/%d/%y', input_formats=['%Y-%m-%d'])
+    batch_setup_date = serializers.DateField(format='%m/%d/%y', input_formats=['%Y-%m-%d'], allow_null=True)
     analyzed_date = serializers.DateField(format='%m/%d/%y', input_formats=['%Y-%m-%d'])
     entry_date = serializers.DateField(format='%m/%d/%y', input_formats=['%Y-%m-%d'])
     created_date = serializers.DateField(format='%m/%d/%y', input_formats=['%Y-%m-%d'])
@@ -311,11 +330,13 @@ class QualityAssuranceSerializer(serializers.ModelSerializer, BulkSerializerMixi
     class Meta:
         list_serializer_class = BulkListSerializer
         model = QualityAssurance
-        fields = ('id', 'quality_assurance', 'quality_assurance_string', 'quality_assurance_flag',
-                  'quality_assurance_flag_string', 'analytical_line', 'analytical_line_string',
-                  'bottle', 'bottle_string', 'bottle_quality_assurance_code', 'bottle_quality_assurance_code_string',
-                  'analytical_description', 'instance', 'value', 'comment', 'quality_assurance_unit',
-                  'quality_assurance_unit_string', 'batch_setup_date', 'analyzed_date', 'entry_date', 'created_date',)
+        fields = ('id', 'quality_assurance', 'quality_assurance_string', 'quality_assurance_flags',
+                  'quality_assurance_flags_strings',
+                  'new_quality_assurance_flags', 'analytical_line', 'analytical_line_string',
+                  'standard', 'standard_string', 'standard_quality_assurance_code',
+                  'standard_quality_assurance_code_string', 'analytical_description', 'instance', 'value', 'comment',
+                  'quality_assurance_unit', 'quality_assurance_unit_string', 'batch_setup_date', 'analyzed_date',
+                  'entry_date', 'created_date',)
 
 
 class QualityAssuranceTypeSerializer(serializers.ModelSerializer, BulkSerializerMixin):
@@ -326,11 +347,11 @@ class QualityAssuranceTypeSerializer(serializers.ModelSerializer, BulkSerializer
         fields = ('id', 'name', 'description',)
 
 
-class BottleQualityAssuranceCodeSerializer(serializers.ModelSerializer, BulkSerializerMixin):
+class StandardQualityAssuranceCodeSerializer(serializers.ModelSerializer, BulkSerializerMixin):
 
     class Meta:
         list_serializer_class = BulkListSerializer
-        model = BottleQualityAssuranceCode
+        model = StandardQualityAssuranceCode
         fields = ('id', 'code', 'description',)
 
 

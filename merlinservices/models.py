@@ -381,7 +381,7 @@ class ResultDataFile(models.Model):
 
 
 class ResultQualityAssuranceFlag(models.Model):
-    """Table to allow one-to-many relationship between Results and QualityAssuranceFlag."""
+    """Table to allow one-to-many relationship between Result and QualityAssuranceFlag."""
 
     quality_assurance_flag = models.ForeignKey('QualityAssuranceFlag', on_delete=models.CASCADE)
     result = models.ForeignKey('Result', on_delete=models.CASCADE, related_name='quality_assurance_flags')  # usually three QAs per one result
@@ -396,7 +396,7 @@ class ResultQualityAssuranceFlag(models.Model):
 
 
 class QualityAssuranceFlag(models.Model):
-    """Flags to indicate when results do not meet quality assurance limits."""
+    """Flags to indicate when data do not meet quality assurance limits."""
 
     quality_assurance_flag = models.CharField(max_length=128, unique=True)
     description = models.TextField(blank=True)
@@ -411,15 +411,31 @@ class QualityAssuranceFlag(models.Model):
         ordering = ['-id']
 
 
+class QualityAssuranceQualityAssuranceFlag(models.Model):
+    """Table to allow one-to-many relationship between QualityAssurance and QualityAssuranceFlag."""
+
+    quality_assurance_flag = models.ForeignKey('QualityAssuranceFlag', on_delete=models.CASCADE)
+    quality_assurance = models.ForeignKey('QualityAssurance', on_delete=models.CASCADE, related_name='quality_assurance_flags')
+
+    def __str__(self):
+        return str(self.quality_assurance_flag)
+
+    class Meta:
+        db_table = "mercury_qualityassurancequalityassuranceflag"
+        ordering = ['-id']
+        unique_together = ("quality_assurance_flag", "quality_assurance")
+
+
 # TODO: decide if this is the correct name for this model
 class QualityAssurance(models.Model):
     """Activities performed to prevent mistakes or contamination of samples."""
 
+    # TODO: add method field, not sure how yet
     quality_assurance = models.ForeignKey('QualityAssuranceType', on_delete=models.CASCADE)
-    quality_assurance_flag = models.ForeignKey('QualityAssuranceFlag', on_delete=models.CASCADE, null=True)
+    # quality_assurance_flag = models.ForeignKey('QualityAssuranceFlag', on_delete=models.CASCADE, null=True)
     analytical_line = models.ForeignKey('Equipment', on_delete=models.CASCADE, related_name='quality_assurances')
-    bottle = models.ForeignKey('Standard', on_delete=models.CASCADE, related_name='quality_assurances', null=True) # TODO: should this be related to Bottle instead??
-    bottle_quality_assurance_code = models.ForeignKey('BottleQualityAssuranceCode', on_delete=models.CASCADE, null=True)
+    standard = models.ForeignKey('Standard', on_delete=models.CASCADE, related_name='quality_assurances', null=True)
+    standard_quality_assurance_code = models.ForeignKey('StandardQualityAssuranceCode', on_delete=models.CASCADE, null=True)
     analytical_description = models.TextField(blank=True)
     instance = models.IntegerField(null=True, blank=True)
     value = models.DecimalField(max_digits=14, decimal_places=4, null=True, blank=True)
@@ -428,7 +444,7 @@ class QualityAssurance(models.Model):
     batch_setup_date = models.DateField(null=True, blank=True)
     analyzed_date = models.DateField(null=True, blank=True)
     entry_date = models.DateField(null=True, blank=True)
-    created_date = models.DateField(default=datetime.now, null=True, blank=True)
+    created_date = models.DateField(default=date.today, null=True, blank=True)
     modified_date = models.DateField(auto_now=True, null=True, blank=True)
 
     def __str__(self):
@@ -453,8 +469,8 @@ class QualityAssuranceType(models.Model):
         ordering = ['-id']
 
 
-class BottleQualityAssuranceCode(models.Model):
-    """Code for a bottle containing Quality Assurance material: S = Spiked, D = Instrument Duplicate."""
+class StandardQualityAssuranceCode(models.Model):
+    """Code for a standard bottle containing Quality Assurance material: S = Spiked, D = Instrument Duplicate."""
 
     code = models.CharField(max_length=1, unique=True)
     description = models.TextField(blank=True)
@@ -475,7 +491,7 @@ class Standard(models.Model):
     analytical_description = models.TextField(blank=True)
     concentration = models.FloatField(null=True, blank=True)
     concentration_unit = models.ForeignKey('UnitType', on_delete=models.CASCADE, null=True, related_name='concentration_unit')
-    created_date = models.DateField(default=datetime.now, null=True, blank=True)
+    created_date = models.DateField(default=date.today, null=True, blank=True)
     modified_date = models.DateField(auto_now=True, null=True, blank=True)
 
     def __str__(self):
