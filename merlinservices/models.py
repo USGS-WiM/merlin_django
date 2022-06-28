@@ -430,8 +430,8 @@ class QualityAssuranceQualityAssuranceFlag(models.Model):
 class QualityAssurance(models.Model):
     """Activities performed to prevent mistakes or contamination of samples."""
 
-    # TODO: add method field, not sure how yet
     quality_assurance = models.ForeignKey('QualityAssuranceType', on_delete=models.CASCADE)
+    method = models.ForeignKey('MethodType', on_delete=models.CASCADE)
     # quality_assurance_flag = models.ForeignKey('QualityAssuranceFlag', on_delete=models.CASCADE, null=True)
     analytical_line = models.ForeignKey('Equipment', on_delete=models.CASCADE, related_name='quality_assurances')
     standard = models.ForeignKey('Standard', on_delete=models.CASCADE, related_name='quality_assurances', null=True)

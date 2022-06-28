@@ -315,6 +315,7 @@ class QualityAssuranceSerializer(serializers.ModelSerializer, BulkSerializerMixi
         return qa
 
     quality_assurance_string = serializers.StringRelatedField(source='quality_assurance')
+    method_string = serializers.StringRelatedField(source='method')
     new_quality_assurance_flags = serializers.ListField(write_only=True, required=False)
     quality_assurance_flags = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
     quality_assurance_flags_strings = serializers.StringRelatedField(source='quality_assurance_flags', read_only=True, many=True)
@@ -330,8 +331,8 @@ class QualityAssuranceSerializer(serializers.ModelSerializer, BulkSerializerMixi
     class Meta:
         list_serializer_class = BulkListSerializer
         model = QualityAssurance
-        fields = ('id', 'quality_assurance', 'quality_assurance_string', 'quality_assurance_flags',
-                  'quality_assurance_flags_strings',
+        fields = ('id', 'quality_assurance', 'quality_assurance_string', 'method', 'method_string',
+                  'quality_assurance_flags', 'quality_assurance_flags_strings',
                   'new_quality_assurance_flags', 'analytical_line', 'analytical_line_string',
                   'standard', 'standard_string', 'standard_quality_assurance_code',
                   'standard_quality_assurance_code_string', 'analytical_description', 'instance', 'value', 'comment',
