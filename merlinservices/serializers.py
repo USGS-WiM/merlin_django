@@ -310,16 +310,16 @@ class ResultDataFileSerializer(serializers.ModelSerializer, BulkSerializerMixin)
         fields = ('id', 'name', 'file',)
 
 
-class BalanceVerificationSerializer(serializers.ModelSerializer, BulkSerializerMixin):
-    balance_string = serializers.StringRelatedField(source='balance')
+class EquipmentVerificationSerializer(serializers.ModelSerializer, BulkSerializerMixin):
+    equipment_string = serializers.StringRelatedField(source='equipment')
     analyst_string = serializers.StringRelatedField(source='analyst.username')
     verification_date = serializers.DateField(format='%m/%d/%y', input_formats=['%Y-%m-%d'])
     verification_time = serializers.TimeField(format='%H%M')
 
     class Meta:
         list_serializer_class = BulkListSerializer
-        model = BalanceVerification
-        fields = ('id', 'balance', 'balance_string', 'analyst', 'analyst_string', 'verification_date',
+        model = EquipmentVerification
+        fields = ('id', 'equipment', 'equipment_string', 'analyst', 'analyst_string', 'verification_date',
                   'verification_time', 'weight_tested', 'weight_as_found', 'deviation', 'percent_recovery',
                   'final_reading', 'comment')
 
