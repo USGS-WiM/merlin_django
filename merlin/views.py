@@ -493,6 +493,8 @@ def samples_search(request):
         if params['date_before_sample']:
             params_dict["date_before_sample"] = datetime.strptime(
                 str(params['date_before_sample']).strip('[]'), '%m/%d/%y').strftime('%Y-%m-%d')
+        if params['date_search_type']:
+            params_dict["date_search_type"] = str(params['date_search_type']).strip('[]')
         if params['page_size']:
             params_dict["page_size"] = str(params['page_size']).strip('[]')
         if params['format']:
