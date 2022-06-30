@@ -823,6 +823,8 @@ def results_search(request):
         if params['date_before_entry']:
             params_dict["date_before_entry"] = datetime.strptime(
                 str(params['date_before_entry']).strip('[]'), '%m/%d/%y').strftime('%Y-%m-%d')
+        if params['date_search_type']:
+            params_dict["date_search_type"] = str(params['date_search_type']).strip('[]')
         if params['exclude_null_results']:
             params_dict["exclude_null_results"] = str(params['exclude_null_results']).strip('[]')
         if params['page_size']:

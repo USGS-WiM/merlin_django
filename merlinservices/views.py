@@ -834,6 +834,7 @@ class FullResultViewSet(viewsets.ModelViewSet):
                 queryset = queryset.filter(sample_bottle__sample__replicate__exact=replicate)
             # filter by sample date (after only, before only, or between both, depending on which URL params appear)
             # remember that sample date is actually a date time object, so convert it to date before doing date math
+            date_search_type = self.request.query_params.get('date_search_type', None)
             date_after_sample = self.request.query_params.get('date_after_sample', None)
             date_before_sample = self.request.query_params.get('date_before_sample', None)
             # filtering datetime fields using only date is problematic
@@ -842,32 +843,50 @@ class FullResultViewSet(viewsets.ModelViewSet):
             # set date_after to 23:59 of the current date and date_before to 00:00 of the same day
             if date_after_sample is not None:
                 date_after_sample_plus = dt.combine(dt.strptime(date_after_sample, '%Y-%m-%d').date(), dtmod.time.max)
+                date_after_sample_minus = dt.combine(dt.strptime(date_after_sample, '%Y-%m-%d').date(), dtmod.time.min)
             if date_before_sample is not None:
                 date_before_sample_minus = dt.combine(
                         dt.strptime(date_before_sample, '%Y-%m-%d').date(), dtmod.time.min)
-            if date_after_sample is not None and date_before_sample is not None:
-                # the filter below using __range is date-inclusive
-                # queryset = queryset.filter(sample_bottle__sample__sample_date_time__range=(
-                #    date_after_sample_plus, date_before_sample_minus))
-                # the filter below is date-exclusive
-                queryset = queryset.filter(sample_bottle__sample__sample_date_time__gt=date_after_sample_plus,
-                                           sample_bottle__sample__sample_date_time__lt=date_before_sample_minus)
-            elif date_after_sample is not None:
-                queryset = queryset.filter(sample_bottle__sample__sample_date_time__gt=date_after_sample_plus)
-            elif date_before_sample is not None:
-                queryset = queryset.filter(sample_bottle__sample__sample_date_time__lt=date_before_sample_minus)
-            # filter by entry date (after only, before only, or between both, depending on which URL params appear)
-            date_after_entry = self.request.query_params.get('date_after_entry', None)
-            date_before_entry = self.request.query_params.get('date_before_entry', None)
-            if date_after_entry is not None and date_before_entry is not None:
-                # the filter below using __range is date-inclusive
-                # queryset = queryset.filter(entry_date__range=(date_after_entry, date_before_entry))
-                # the filter below is date-exclusive
-                queryset = queryset.filter(entry_date__gt=date_after_entry, entry_date__lt=date_before_entry)
-            elif date_after_entry is not None:
-                queryset = queryset.filter(entry_date__gt=date_after_entry)
-            elif date_before_entry is not None:
-                queryset = queryset.filter(entry_date__lt=date_before_entry)
+                date_before_sample_plus = dt.combine(
+                    dt.strptime(date_before_sample, '%Y-%m-%d').date(), dtmod.time.max)
+            if date_search_type == "exclusive":
+                if date_after_sample is not None and date_before_sample is not None:
+                    # the filter below is date-exclusive
+                    queryset = queryset.filter(sample_bottle__sample__sample_date_time__gt=date_after_sample_plus,
+                                               sample_bottle__sample__sample_date_time__lt=date_before_sample_minus)
+                elif date_after_sample is not None:
+                    queryset = queryset.filter(sample_bottle__sample__sample_date_time__gt=date_after_sample_plus)
+                elif date_before_sample is not None:
+                    queryset = queryset.filter(sample_bottle__sample__sample_date_time__lt=date_before_sample_minus)
+                # filter by entry date (after only, before only, or between both, depending on which URL params appear)
+                date_after_entry = self.request.query_params.get('date_after_entry', None)
+                date_before_entry = self.request.query_params.get('date_before_entry', None)
+                if date_after_entry is not None and date_before_entry is not None:
+                    # the filter below is date-exclusive
+                    queryset = queryset.filter(entry_date__gt=date_after_entry, entry_date__lt=date_before_entry)
+                elif date_after_entry is not None:
+                    queryset = queryset.filter(entry_date__gt=date_after_entry)
+                elif date_before_entry is not None:
+                    queryset = queryset.filter(entry_date__lt=date_before_entry)
+            else:
+                if date_after_sample is not None and date_before_sample is not None:
+                    # __range is date-inclusive
+                    queryset = queryset.filter(sample_bottle__sample__sample_date_time__gte=date_after_sample_minus,
+                                               sample_bottle__sample__sample_date_time__lte=date_before_sample_plus)
+                elif date_after_sample is not None:
+                    queryset = queryset.filter(sample_bottle__sample__sample_date_time__gte=date_after_sample_minus)
+                elif date_before_sample is not None:
+                    queryset = queryset.filter(sample_bottle__sample__sample_date_time__lte=date_before_sample_plus)
+                # filter by entry date (after only, before only, or between both, depending on which URL params appear)
+                date_after_entry = self.request.query_params.get('date_after_entry', None)
+                date_before_entry = self.request.query_params.get('date_before_entry', None)
+                if date_after_entry is not None and date_before_entry is not None:
+                    # __range is date-inclusive
+                    queryset = queryset.filter(entry_date__gte=date_after_entry, entry_date__lte=date_before_entry)
+                elif date_after_entry is not None:
+                    queryset = queryset.filter(entry_date__gte=date_after_entry)
+                elif date_before_entry is not None:
+                    queryset = queryset.filter(entry_date__lte=date_before_entry)
             return queryset
 
 

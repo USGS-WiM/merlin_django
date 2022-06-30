@@ -61,6 +61,15 @@
                 </p>
                 <p>
                     <div class="form-group">
+                        <label for="dateSearchType">Date Search Type</label>
+                        <div id="dateSearchType" class="form-group">
+                            <input type="radio" name="dateSearchType" id="dateSearchTypeInclusive" value="inclusive"/>Inclusive<br />
+                            <input type="radio" name="dateSearchType" id="dateSearchTypeExclusive" value="exclusive" checked />Exclusive
+                        </div>
+                    </div>
+                </p>
+                <p>
+                    <div class="form-group">
                         <input type="checkbox" name="excludeNullResults" id="excludeNullResults" checked />
                         <label for="excludeNullResults">Exclude Null Results</label>
                     </div>
@@ -429,6 +438,13 @@
                     }
                     else {
                         thisDataObject['constituent'] = "";
+                    }
+                    // set date search type (exclusive vs inclusive)
+                    if ($("input[type=radio][name=dateSearchType]:checked").val() == "exclusive") {
+                        thisDataObject['date_search_type'] = "exclusive";
+                    }
+                    else {
+                        thisDataObject['date_search_type'] = "inclusive";
                     }
                     thisDataObject['exclude_null_results'] = checkbox_excludeNullResults.is(':checked');
                     thisDataObject['format'] = "";
