@@ -20,7 +20,7 @@
 - Fix datetime-date coercion error in models by using date.today instead of datetime.now
 - Include analysis field in BatchUpload mercury service agent loadResult function
 
-## [v1.5.0](https://github.com/USGS-WiM/merlin_django/releases/tag/v1.5.0) - 2022-06-15
+## [v1.5.0](https://github.com/USGS-WiM/merlin_django/releases/tag/v1.5.0) - 2022-06-13
 
 ### Added
 
@@ -89,7 +89,7 @@
 
 - Change handsontable formatting of depth to four decimal places
 
-## [v1.2.2](https://github.com/USGS-WiM/merlin_django/releases/tag/v1.2.2) - 2021-08-11
+## [v1.2.2](https://github.com/USGS-WiM/merlin_django/releases/tag/v1.2.2) - 2019-10-29
 
 ### Fixed
 
@@ -114,7 +114,7 @@
 - Move tare_weight from bottleprefix to bottle
 - Update 3rd party libraries
 
-## [v1.1.0](https://github.com/USGS-WiM/merlin_django/releases/tag/v1.1) - 2019-08-20
+## [v1.1.0](https://github.com/USGS-WiM/merlin_django/releases/tag/v1.1) - 2018-01-29
 
 ### Added
 
