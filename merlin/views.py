@@ -868,6 +868,8 @@ def results_count_nawqa(request):
         if params['date_before_entry']:
             params_dict["date_before_entry"] = datetime.strptime(
                 str(params['date_before_entry']).strip('[]'), '%m/%d/%y').strftime('%Y-%m-%d')
+        if params['date_search_type']:
+            params_dict["date_search_type"] = str(params['date_search_type']).strip('[]')
         if params['page_size']:
             params_dict["page_size"] = str(params['page_size']).strip('[]')
 
@@ -896,6 +898,8 @@ def results_count_projects(request):
         if params['date_before_entry']:
             params_dict["date_before_entry"] = datetime.strptime(
                 str(params['date_before_entry']).strip('[]'), '%m/%d/%y').strftime('%Y-%m-%d')
+        if params['date_search_type']:
+            params_dict["date_search_type"] = str(params['date_search_type']).strip('[]')
         if params['page_size']:
             params_dict["page_size"] = str(params['page_size']).strip('[]')
 
@@ -928,6 +932,8 @@ def samples_nwis_report(request):
         if params['date_before_entry']:
             params_dict["date_before_entry"] = datetime.strptime(
                 str(params['date_before_entry']).strip('[]'), '%m/%d/%y').strftime('%Y-%m-%d')
+        if params['date_search_type']:
+            params_dict["date_search_type"] = str(params['date_search_type']).strip('[]')
         if params['page_size']:
             params_dict["page_size"] = str(params['page_size']).strip('[]')
 
@@ -961,6 +967,8 @@ def results_nwis_report(request):
         if params['date_before_entry']:
             params_dict["date_before_entry"] = datetime.strptime(
                 str(params['date_before_entry']).strip('[]'), '%m/%d/%y').strftime('%Y-%m-%d')
+        if params['date_search_type']:
+            params_dict["date_search_type"] = str(params['date_search_type']).strip('[]')
         if params['page_size']:
             params_dict["page_size"] = str(params['page_size']).strip('[]')
         if params['exclude_ld']:
@@ -997,6 +1005,8 @@ def results_cooperator_report(request):
         if params['date_before_entry']:
             params_dict["date_before_entry"] = datetime.strptime(
                 str(params['date_before_entry']).strip('[]'), '%m/%d/%y').strftime('%Y-%m-%d')
+        if params['date_search_type']:
+            params_dict["date_search_type"] = str(params['date_search_type']).strip('[]')
         if params['page_size']:
             params_dict["page_size"] = str(params['page_size']).strip('[]')
 

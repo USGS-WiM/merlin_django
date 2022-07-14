@@ -1296,17 +1296,25 @@ class ReportResultsCountNawqa(generics.ListAPIView):
     def get_queryset(self):
         queryset = ResultCountNawqa.objects.all()
         # filter by entry date (after only, before only, or between both, depending on which URL params appear)
+        date_search_type = self.request.query_params.get('date_search_type', None)
         date_after_entry = self.request.query_params.get('date_after_entry', None)
         date_before_entry = self.request.query_params.get('date_before_entry', None)
-        if date_after_entry is not None and date_before_entry is not None:
-            # the filter below using __range is date-inclusive
-            # queryset = queryset.filter(entry_date__range=(date_after_entry, date_before_entry))
-            # the filter below is date-exclusive
-            queryset = queryset.filter(entry_date__gt=date_after_entry, entry_date__lt=date_before_entry)
-        elif date_after_entry is not None:
-            queryset = queryset.filter(entry_date__gt=date_after_entry)
-        elif date_before_entry is not None:
-            queryset = queryset.filter(entry_date__lt=date_before_entry)
+        if date_search_type == "exclusive":
+            if date_after_entry is not None and date_before_entry is not None:
+                # the filter below is date-exclusive
+                queryset = queryset.filter(entry_date__gt=date_after_entry, entry_date__lt=date_before_entry)
+            elif date_after_entry is not None:
+                queryset = queryset.filter(entry_date__gt=date_after_entry)
+            elif date_before_entry is not None:
+                queryset = queryset.filter(entry_date__lt=date_before_entry)
+        else:
+            if date_after_entry is not None and date_before_entry is not None:
+                # __range is date-inclusive
+                queryset = queryset.filter(entry_date__gte=date_after_entry, entry_date__lte=date_before_entry)
+            elif date_after_entry is not None:
+                queryset = queryset.filter(entry_date__gte=date_after_entry)
+            elif date_before_entry is not None:
+                queryset = queryset.filter(entry_date__lte=date_before_entry)
         # create a new column for counts that doesn't appear in the database view, using the Django annotate() method,
         # which will count the number of records after the date filter has been applied, rather than before,
         # (which is what would happen if we had a count column in the database view)
@@ -1330,17 +1338,25 @@ class ReportResultsCountProjects(generics.ListAPIView):
     def get_queryset(self):
         queryset = ResultCountProjects.objects.all()
         # filter by entry date (after only, before only, or between both, depending on which URL params appear)
+        date_search_type = self.request.query_params.get('date_search_type', None)
         date_after_entry = self.request.query_params.get('date_after_entry', None)
         date_before_entry = self.request.query_params.get('date_before_entry', None)
-        if date_after_entry is not None and date_before_entry is not None:
-            # the filter below using __range is date-inclusive
-            # queryset = queryset.filter(entry_date__range=(date_after_entry, date_before_entry))
-            # the filter below is date-exclusive
-            queryset = queryset.filter(entry_date__gt=date_after_entry, entry_date__lt=date_before_entry)
-        elif date_after_entry is not None:
-            queryset = queryset.filter(entry_date__gt=date_after_entry)
-        elif date_before_entry is not None:
-            queryset = queryset.filter(entry_date__lt=date_before_entry)
+        if date_search_type == "exclusive":
+            if date_after_entry is not None and date_before_entry is not None:
+                # the filter below is date-exclusive
+                queryset = queryset.filter(entry_date__gt=date_after_entry, entry_date__lt=date_before_entry)
+            elif date_after_entry is not None:
+                queryset = queryset.filter(entry_date__gt=date_after_entry)
+            elif date_before_entry is not None:
+                queryset = queryset.filter(entry_date__lt=date_before_entry)
+        else:
+            if date_after_entry is not None and date_before_entry is not None:
+                # the filter below is date-exclusive
+                queryset = queryset.filter(entry_date__gte=date_after_entry, entry_date__lte=date_before_entry)
+            elif date_after_entry is not None:
+                queryset = queryset.filter(entry_date__gte=date_after_entry)
+            elif date_before_entry is not None:
+                queryset = queryset.filter(entry_date__lte=date_before_entry)
         # create a new column for counts that doesn't appear in the database view, using the Django annotate() method,
         # which will count the number of records after the date filter has been applied, rather than before,
         # (which is what would happen if we had a count column in the database view)
@@ -1372,17 +1388,25 @@ class ReportSamplesNwis(generics.ListAPIView):
         if project_not is not None:
             project_not_list = project_not.split(',')
             queryset = queryset.exclude(project_name__in=project_not_list)
+        date_search_type = self.request.query_params.get('date_search_type', None)
         date_after_entry = self.request.query_params.get('date_after_entry', None)
         date_before_entry = self.request.query_params.get('date_before_entry', None)
-        if date_after_entry is not None and date_before_entry is not None:
-            # the filter below using __range is date-inclusive
-            # queryset = queryset.filter(entry_date__range=(date_after_entry, date_before_entry))
-            # the filter below is date-exclusive
-            queryset = queryset.filter(entry_date__gt=date_after_entry, entry_date__lt=date_before_entry)
-        elif date_after_entry is not None:
-            queryset = queryset.filter(entry_date__gt=date_after_entry)
-        elif date_before_entry is not None:
-            queryset = queryset.filter(entry_date__lt=date_before_entry)
+        if date_search_type == "exclusive":
+            if date_after_entry is not None and date_before_entry is not None:
+                # the filter below is date-exclusive
+                queryset = queryset.filter(entry_date__gt=date_after_entry, entry_date__lt=date_before_entry)
+            elif date_after_entry is not None:
+                queryset = queryset.filter(entry_date__gt=date_after_entry)
+            elif date_before_entry is not None:
+                queryset = queryset.filter(entry_date__lt=date_before_entry)
+        else:
+            if date_after_entry is not None and date_before_entry is not None:
+                # __range is date-inclusive
+                queryset = queryset.filter(entry_date__gte=date_after_entry, entry_date__lte=date_before_entry)
+            elif date_after_entry is not None:
+                queryset = queryset.filter(entry_date__gte=date_after_entry)
+            elif date_before_entry is not None:
+                queryset = queryset.filter(entry_date__lte=date_before_entry)
         # Because of the design of the underlying database view (originally written in Oracle for Starlims, and migrated
         # to PostgreSQL for Merlin), which uses entry_dates from the results table and not the sample table, there
         # can be many records from the database view whose values are identical except for the entry_date column.
@@ -1425,17 +1449,25 @@ class ReportResultsNwis(generics.ListAPIView):
         if project_not is not None:
             project_not_list = project_not.split(',')
             queryset = queryset.exclude(project_name__in=project_not_list)
+        date_search_type = self.request.query_params.get('date_search_type', None)
         date_after_entry = self.request.query_params.get('date_after_entry', None)
         date_before_entry = self.request.query_params.get('date_before_entry', None)
-        if date_after_entry is not None and date_before_entry is not None:
-            # the filter below using __range is date-inclusive
-            # queryset = queryset.filter(entry_date__range=(date_after_entry, date_before_entry))
-            # the filter below is date-exclusive
-            queryset = queryset.filter(entry_date__gt=date_after_entry, entry_date__lt=date_before_entry)
-        elif date_after_entry is not None:
-            queryset = queryset.filter(entry_date__gt=date_after_entry)
-        elif date_before_entry is not None:
-            queryset = queryset.filter(entry_date__lt=date_before_entry)
+        if date_search_type == "exclusive":
+            if date_after_entry is not None and date_before_entry is not None:
+                # the filter below is date-exclusive
+                queryset = queryset.filter(entry_date__gt=date_after_entry, entry_date__lt=date_before_entry)
+            elif date_after_entry is not None:
+                queryset = queryset.filter(entry_date__gt=date_after_entry)
+            elif date_before_entry is not None:
+                queryset = queryset.filter(entry_date__lt=date_before_entry)
+        else:
+            if date_after_entry is not None and date_before_entry is not None:
+                # __range is date-inclusive
+                queryset = queryset.filter(entry_date__gte=date_after_entry, entry_date__lte=date_before_entry)
+            elif date_after_entry is not None:
+                queryset = queryset.filter(entry_date__gte=date_after_entry)
+            elif date_before_entry is not None:
+                queryset = queryset.filter(entry_date__lte=date_before_entry)
         return queryset
 
 
@@ -1466,17 +1498,25 @@ class ReportResultsCooperator(generics.ListAPIView):
         if project_not is not None:
             project_not_list = project_not.split(',')
             queryset = queryset.exclude(project_name__in=project_not_list)
+        date_search_type = self.request.query_params.get('date_search_type', None)
         date_after_entry = self.request.query_params.get('date_after_entry', None)
         date_before_entry = self.request.query_params.get('date_before_entry', None)
-        if date_after_entry is not None and date_before_entry is not None:
-            # the filter below using __range is date-inclusive
-            # queryset = queryset.filter(entry_date__range=(date_after_entry, date_before_entry))
-            # the filter below is date-exclusive
-            queryset = queryset.filter(entry_date__gt=date_after_entry, entry_date__lt=date_before_entry)
-        elif date_after_entry is not None:
-            queryset = queryset.filter(entry_date__gt=date_after_entry)
-        elif date_before_entry is not None:
-            queryset = queryset.filter(entry_date__lt=date_before_entry)
+        if date_search_type == "exclusive":
+            if date_after_entry is not None and date_before_entry is not None:
+                # the filter below is date-exclusive
+                queryset = queryset.filter(entry_date__gt=date_after_entry, entry_date__lt=date_before_entry)
+            elif date_after_entry is not None:
+                queryset = queryset.filter(entry_date__gt=date_after_entry)
+            elif date_before_entry is not None:
+                queryset = queryset.filter(entry_date__lt=date_before_entry)
+        else:
+            if date_after_entry is not None and date_before_entry is not None:
+                # __range is date-inclusive
+                queryset = queryset.filter(entry_date__gte=date_after_entry, entry_date__lte=date_before_entry)
+            elif date_after_entry is not None:
+                queryset = queryset.filter(entry_date__gte=date_after_entry)
+            elif date_before_entry is not None:
+                queryset = queryset.filter(entry_date__lte=date_before_entry)
         return queryset
 
 
