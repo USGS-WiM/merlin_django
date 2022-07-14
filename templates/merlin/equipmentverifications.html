@@ -5,14 +5,14 @@
     <div style="padding:10px">
 
         <p>
-            <button type="button" class="btn btn-default" name="add">Add New Balance Verification</button>
+            <button type="button" class="btn btn-default" name="add">Add New Equipment Verification</button>
         </p>
         <div id="form_add" class="panel-default" style="display:none;">
-            <h3>Create Balance Verification</h3>
+            <h3>Create Equipment Verification</h3>
             <form class="form-inline" style="border:1px solid;width:1100px;padding:4px;">
                 <div class="form-group" style="padding:2px;text-align:center">
-                    <label for="balance">Balance Serial Number</label><br />
-                    <input class="input-block-level" name="balance" id="balance" type="text" style="width:400px">
+                    <label for="equipment">Equipment Serial Number</label><br />
+                    <input class="input-block-level" name="equipment" id="equipment" type="text" style="width:400px">
                 </div>
                 <div class="form-group" style="padding:2px;text-align:center">
                     <label for="analyst">Analyst</label><br />
@@ -106,7 +106,7 @@
             <button type="button" class="btn btn-default" data-loading-text="Getting Next..." name="next">Next Page</button>
             <span id="page"></span>
         </p>
-        <div id="grid" data-data="{{ data }}" data-balances="{{ balances }}" data-analysts="{{ analysts }}" ></div>
+        <div id="grid" data-data="{{ data }}" data-equipment="{{ equipment }}" data-analysts="{{ analysts }}" ></div>
 
 		<script>
             $(document).ready(function() {
@@ -153,7 +153,7 @@
                             break;
                     }
                 };
-                var objectFields = ["id", "balance", "balance_string", "analyst", "analyst_string", "verification_date", "verification_time", "weight_tested", "weight_as_found", "deviation", "percent_recovery", "final_reading", "comment"];
+                var objectFields = ["id", "equipment", "equipment_string", "analyst", "analyst_string", "verification_date", "verification_time", "weight_tested", "weight_as_found", "deviation", "percent_recovery", "final_reading", "comment"];
                 var currentPage = 1;
                 var addClicked = false;
                 var grid = $('#grid');
@@ -164,14 +164,14 @@
                 var selectionRowIndices = [];
                 grid_console.text('Loading data.');
 
-                var data_balances = JSON.parse(grid.attr("data-balances"));
-                var balance = $("#balance").select2({
+                var data_equipment = JSON.parse(grid.attr("data-equipment"));
+                var equipment = $("#equipment").select2({
                     allowClear: true,
                     multiple: true,
                     //maximumSelectionSize: 1,
                     //dropdownCss:{display:'none'},
                     minimumInputLength: 1,
-                    data: { results: data_balances, text: 'serial_number'},
+                    data: { results: data_equipment, text: 'serial_number'},
                     formatResult: formatName,
                     formatSelection: formatName
                 });//.on("change", function(e) {});
@@ -264,8 +264,8 @@
                     },
                     columns: [
                         {title: "ID", data: "id", readOnly: true, width: 1},
-                        {title: "Balance Serial Number ID", data: "balance", width: 1},
-                        {title: "Balance Serial Number", data: "balance_string", width: 160, type: 'autocomplete',
+                        {title: "Equipment Serial Number ID", data: "equipment", width: 1},
+                        {title: "Equipment Serial Number", data: "equipment_string", width: 170, type: 'autocomplete',
                             strict: true, source: function (
                                 query, process) {getValuesAjax('/merlinservices/equipment/', 'serial_number',
                                 query, process, ('user=' + grid.handsontable('getInstance').getDataAtCell(selectionRowIndices[0], 1)))}},
@@ -358,7 +358,7 @@
                     var button_state = $(this).button('loading');
                     loading_overlay.show();
                     var thisDataObject = {};
-                    thisDataObject['balance'] = Number(balance.val());
+                    thisDataObject['equipment'] = Number(equipment.val());
                     var raw_analyst = Number(analyst.val());
                     if (raw_analyst !== 0) {
                         thisDataObject['analyst'] = raw_analyst;
@@ -416,7 +416,7 @@
                     else {grid_console.text('Time is badly formed. Expecting a time in HHMM format but found ' + verification_time + '!'); loading_overlay.hide(); button_state.button('reset'); return false;}
                     var dataJSON = JSON.stringify(thisDataObject);
                     $.ajax({
-                        url: "{% url 'merlin:balanceverifications_create' %}",
+                        url: "{% url 'merlin:equipmentverifications_create' %}",
                         data: dataJSON,
                         dataType: 'json',
                         contentType: "application/json",
@@ -436,7 +436,7 @@
                                 grid.parent().find('button[name=add]').click();
                                 grid.parent().find('button[name=load]').click();
                                 // need to manually reset the following three because the previous two clicks won't do it automatically for some reason
-                                form_add.find('input[name=balance]').select2('data', null);
+                                form_add.find('input[name=equipment]').select2('data', null);
                                 $('#percent_recovery1').css("background-color", "white");
                                 $('#percent_recovery2').css("background-color", "white");
                                 grid_console.text(textStatus+': Data saved.');
@@ -470,7 +470,7 @@
                     //allowClear: true,
                     minimumInputLength: 1,
                     ajax: {
-                        url: '/merlinservices/balanceverifications/',
+                        url: '/merlinservices/equipmentverifications/',
                         dataType: 'json',
                         data: function (term, page) {
                             return {
@@ -505,7 +505,7 @@
                     var button_state = $(this).button('loading');
                     loading_overlay.show();
                     $.ajax({
-                        url: '/merlinservices/balanceverifications/?page='+currentPage,
+                        url: '/merlinservices/equipmentverifications/?page='+currentPage,
                         dataType: 'json',
                         success: function (response) {
                             grid_console.text("success");
@@ -596,10 +596,10 @@
                     }
                     else {
                         addClicked = true;
-                        // set the default/expected weights for balances
-                        // NOTE: this only applies to analytical balances,
-                        //  not top-loading balances (which aren't in the DB yet)
-                        // TODO: long-term is might be best to check the balance type rather than assume
+                        // set the default/expected weights for equipment
+                        // NOTE: this only applies to analytical equipment,
+                        //  not top-loading equipment (which aren't in the DB yet)
+                        // TODO: long-term is might be best to check the equipment type rather than assume
                         form_add.find('input[name=weight_tested1]').val("0.005");
                         form_add.find('input[name=weight_tested2]').val("2.0");
                         // set the current LOCAL date and time
@@ -620,7 +620,7 @@
                     var thisDataObject = {"id": thisDataRow[0]};
                     var changedDataJSON = JSON.stringify(thisDataObject);
                     $.ajax({
-                        url: "{% url 'merlin:balanceverifications_delete' %}",
+                        url: "{% url 'merlin:equipmentverifications_delete' %}",
                         data: changedDataJSON,
                         type: 'POST',
                         success: function (data, textStatus, jqXHRequest) {
@@ -722,7 +722,7 @@
                     if(validTable) {
                         var changedDataJSON = JSON.stringify(changedDataArray);
                         $.ajax({
-                            url: "{% url 'merlin:balanceverifications_update' %}",
+                            url: "{% url 'merlin:equipmentverifications_update' %}",
                             data: changedDataJSON,
                             dataType: 'json',
                             contentType: "application/json",

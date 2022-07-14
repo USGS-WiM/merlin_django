@@ -550,7 +550,7 @@ CREATE VIEW "public"."report_cooperator_results" AS  SELECT site.name AS site_na
     res.analysis_comment,
     sample.comment AS sample_comment,
     qa_flags.qa_flags AS qaflags,
-    (res.entry_date)::text AS entry_date,
+    res.entry_date,
     project.name AS project_name,
     coop.name AS cooperator_name,
     row_number() OVER () AS row_num
