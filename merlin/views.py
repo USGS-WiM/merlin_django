@@ -1470,19 +1470,18 @@ def equipmentverifications_create(request):
              "weight_as_found": data["weight_as_found1"], "deviation": data["deviation1"],
              "percent_recovery": data["percent_recovery1"],  "final_reading": data["final_reading1"],
              "comment": data["comment"]}
-    data = [item1]
+    items = [item1]
     # only include a second item if the user entered one (we do not want empty records)
     if "final_reading2" in data and (data["final_reading2"] is not None or data["final_reading2"] != ""):
         item2 = {"equipment": data["equipment"], "analyst": data["analyst"],
-                 "verification_date": data["verification_date"],
-                 "verification_time": data["verification_time"], "weight_tested": data["weight_tested2"],
-                 "weight_as_found": data["weight_as_found2"], "deviation": data["deviation2"],
-                 "percent_recovery": data["percent_recovery2"], "final_reading": data["final_reading2"],
-                 "comment": data["comment"]}
-        data.append(item2)
+                 "verification_date": data["verification_date"], "verification_time": data["verification_time"],
+                 "weight_tested": data["weight_tested2"], "weight_as_found": data["weight_as_found2"],
+                 "deviation": data["deviation2"], "percent_recovery": data["percent_recovery2"],
+                 "final_reading": data["final_reading2"], "comment": data["comment"]}
+        items.append(item2)
     response_data = []
     item_number = 0
-    for item in data:
+    for item in items:
         item_number += 1
         item = json.dumps(item)
         logger.info("Item #" + str(item_number) + ": " + str(item))
