@@ -1,5 +1,11 @@
 # Changelog
 
+## [v1.5.3](https://github.com/USGS-WiM/merlin_django/releases/tag/v1.5.3) - 2022-07-27
+
+### Changed
+
+- Fix bug in equipment verification where second entry was ignored
+
 ## [v1.5.2](https://github.com/USGS-WiM/merlin_django/releases/tag/v1.5.2) - 2022-07-14
 
 ### Added
