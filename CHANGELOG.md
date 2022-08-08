@@ -1,5 +1,11 @@
 # Changelog
 
+## [v1.5.4](https://github.com/USGS-WiM/merlin_django/releases/tag/v1.5.4) - 2022-08-08
+
+### Changed
+
+- Fix bug in report file exports caused by lack of date search type param
+
 ## [v1.5.3](https://github.com/USGS-WiM/merlin_django/releases/tag/v1.5.3) - 2022-07-27
 
 ### Changed
