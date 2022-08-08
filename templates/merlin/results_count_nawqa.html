@@ -264,6 +264,13 @@
                     var thisDataObject = {};
                     thisDataObject['date_after_entry'] = $(date_after_entry).val();
                     thisDataObject['date_before_entry'] = $(date_before_entry).val();
+                    // set date search type (exclusive vs inclusive)
+                    if ($("input[type=radio][name=dateSearchType]:checked").val() == "exclusive") {
+                        thisDataObject['date_search_type'] = "exclusive";
+                    }
+                    else {
+                        thisDataObject['date_search_type'] = "inclusive";
+                    }
                     // page_size is the parameter that will override our self-defined default 100-record pagination
                     // setting it to the nearest hundred above the record count will ensure we get all matching records
                     thisDataObject['page_size'] = (resultPages * 100);
