@@ -56,7 +56,7 @@ class CooperatorBulkUpdateViewSet(BulkUpdateModelMixin, viewsets.ModelViewSet):
 
 
 class CooperatorViewSet(viewsets.ModelViewSet):
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    permission_classes = (permissions.IsAuthenticated,)
     serializer_class = CooperatorSerializer
 
     # override the default queryset to allow filtering by URL arguments
