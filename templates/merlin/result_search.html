@@ -61,6 +61,15 @@
                 </p>
                 <p>
                     <div class="form-group">
+                        <label for="dateSearchType">Date Search Type</label>
+                        <div id="dateSearchType" class="form-group">
+                            <input type="radio" name="dateSearchType" id="dateSearchTypeInclusive" value="inclusive"/>Inclusive<br />
+                            <input type="radio" name="dateSearchType" id="dateSearchTypeExclusive" value="exclusive" checked />Exclusive
+                        </div>
+                    </div>
+                </p>
+                <p>
+                    <div class="form-group">
                         <input type="checkbox" name="excludeNullResults" id="excludeNullResults" checked />
                         <label for="excludeNullResults">Exclude Null Results</label>
                     </div>
@@ -430,6 +439,13 @@
                     else {
                         thisDataObject['constituent'] = "";
                     }
+                    // set date search type (exclusive vs inclusive)
+                    if ($("input[type=radio][name=dateSearchType]:checked").val() == "exclusive") {
+                        thisDataObject['date_search_type'] = "exclusive";
+                    }
+                    else {
+                        thisDataObject['date_search_type'] = "inclusive";
+                    }
                     thisDataObject['exclude_null_results'] = checkbox_excludeNullResults.is(':checked');
                     thisDataObject['format'] = "";
                     thisDataObject['table'] = "result";
@@ -613,6 +629,13 @@
                     if (date_before_sample.toString('MM/DD/YY') != "") {formattedDate = formatDate(date_before_sample.toString('MM/DD/YY')); if (isNaN(formattedDate.slice(0,4)) && formattedDate != "") {grid_console.text(formattedDate); button_state.button('reset'); return false;} else {thisDataObject['date_before_sample'] = formattedDate;}} else {formattedDate = ""}
                     if (date_after_entry.toString('MM/DD/YY') != "") {formattedDate = formatDate(date_after_entry.toString('MM/DD/YY')); if (isNaN(formattedDate.slice(0,4)) && formattedDate != "") {grid_console.text(formattedDate); button_state.button('reset'); return false;} else {thisDataObject['date_after_entry'] = formattedDate;}} else {formattedDate = ""}
                     if (date_before_entry.toString('MM/DD/YY') != "") {formattedDate = formatDate(date_before_entry.toString('MM/DD/YY')); if (isNaN(formattedDate.slice(0,4)) && formattedDate != "") {grid_console.text(formattedDate); button_state.button('reset'); return false;} else {thisDataObject['date_before_entry'] = formattedDate;}} else {formattedDate = ""}
+                    // set date search type (exclusive vs inclusive)
+                    if ($("input[type=radio][name=dateSearchType]:checked").val() == "exclusive") {
+                        thisDataObject['date_search_type'] = "exclusive";
+                    }
+                    else {
+                        thisDataObject['date_search_type'] = "inclusive";
+                    }
                     thisDataObject['exclude_null_results'] = $('#excludeNullResults').is(':checked');
                     thisDataObject['format'] = "csv";
                     thisDataObject['table'] = "result";

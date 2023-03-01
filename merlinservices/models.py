@@ -502,13 +502,12 @@ class Standard(models.Model):
         ordering = ['-id']
 
 
-class BalanceVerification(models.Model):
-    """Verification data for the lab balance equipment."""
+class EquipmentVerification(models.Model):
+    """Verification data for the lab equipment."""
 
-    balance = models.ForeignKey('Equipment', on_delete=models.CASCADE, limit_choices_to={'type': 1},
-                                related_name='balance_verifications')
+    equipment = models.ForeignKey('Equipment', on_delete=models.CASCADE, related_name='equipment_verifications')
     analyst = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT,
-                                related_name='balance_verifications')
+                                related_name='equipment_verifications')
     verification_date = models.DateField(null=True, blank=True)
     verification_time = models.TimeField(null=True, blank=True)
     weight_tested = models.FloatField(null=True, blank=True)
@@ -521,15 +520,15 @@ class BalanceVerification(models.Model):
     modified_date = models.DateField(auto_now=True, null=True, blank=True)
 
     def __str__(self):
-        return str(self.balance)
+        return str(self.equipment)
 
     class Meta:
-        db_table = "mercury_balanceverification"
+        db_table = "mercury_equipmentverification"
         ordering = ['-id']
 
 
 class Equipment(models.Model):
-    """Lab equipment like balances."""
+    """Lab equipment like balances and pipettes, etc."""
 
     serial_number = models.CharField(max_length=128)
     type = models.ForeignKey('EquipmentType', on_delete=models.PROTECT, related_name='equipment')

@@ -97,7 +97,7 @@ def sample_login(request):
     context_dict = {'projects': projects, 'processings': processings, 'mediums': mediums,
                     'analyses': analyses, 'filters': filters, 'preservations': preservations,
                     'isotope_flags': isotope_flags}
-    return render(request,'merlin/sample_login.html', context_dict)
+    return render(request, 'merlin/sample_login.html', context_dict)
 
 
 def samples_create(request):
@@ -493,6 +493,8 @@ def samples_search(request):
         if params['date_before_sample']:
             params_dict["date_before_sample"] = datetime.strptime(
                 str(params['date_before_sample']).strip('[]'), '%m/%d/%y').strftime('%Y-%m-%d')
+        if params['date_search_type']:
+            params_dict["date_search_type"] = str(params['date_search_type']).strip('[]')
         if params['page_size']:
             params_dict["page_size"] = str(params['page_size']).strip('[]')
         if params['format']:
@@ -524,7 +526,7 @@ def samples_search(request):
         context_dict = {'projects': projects, 'processings': processings,
                         'analyses': analyses, 'constituents': constituents, 'mediums': mediums, 'filters': filters,
                         'preservations': preservations, 'isotope_flags': isotope_flags}
-        return render(request,'merlin/sample_search.html', context_dict)
+        return render(request, 'merlin/sample_search.html', context_dict)
 
 
 def samples_update(request):
@@ -823,6 +825,8 @@ def results_search(request):
         if params['date_before_entry']:
             params_dict["date_before_entry"] = datetime.strptime(
                 str(params['date_before_entry']).strip('[]'), '%m/%d/%y').strftime('%Y-%m-%d')
+        if params['date_search_type']:
+            params_dict["date_search_type"] = str(params['date_search_type']).strip('[]')
         if params['exclude_null_results']:
             params_dict["exclude_null_results"] = str(params['exclude_null_results']).strip('[]')
         if params['page_size']:
@@ -848,7 +852,7 @@ def results_search(request):
         projects = json.dumps(http_get(request, 'projects').json(), sort_keys=True)
         constituents = json.dumps(http_get(request, 'constituents').json(), sort_keys=True)
         context_dict = {'projects': projects, 'constituents': constituents}
-        return render(request,'merlin/result_search.html', context_dict)
+        return render(request, 'merlin/result_search.html', context_dict)
 
 
 def results_count_nawqa(request):
@@ -864,6 +868,8 @@ def results_count_nawqa(request):
         if params['date_before_entry']:
             params_dict["date_before_entry"] = datetime.strptime(
                 str(params['date_before_entry']).strip('[]'), '%m/%d/%y').strftime('%Y-%m-%d')
+        if params['date_search_type']:
+            params_dict["date_search_type"] = str(params['date_search_type']).strip('[]')
         if params['page_size']:
             params_dict["page_size"] = str(params['page_size']).strip('[]')
 
@@ -876,7 +882,7 @@ def results_count_nawqa(request):
     else:  # request.method == 'GET'
         data = json.dumps(http_get(request, 'resultcountnawqa').json(), sort_keys=True)
         context_dict = {'data': data}
-        return render(request,'merlin/results_count_nawqa.html', context_dict)
+        return render(request, 'merlin/results_count_nawqa.html', context_dict)
 
 
 def results_count_projects(request):
@@ -892,6 +898,8 @@ def results_count_projects(request):
         if params['date_before_entry']:
             params_dict["date_before_entry"] = datetime.strptime(
                 str(params['date_before_entry']).strip('[]'), '%m/%d/%y').strftime('%Y-%m-%d')
+        if params['date_search_type']:
+            params_dict["date_search_type"] = str(params['date_search_type']).strip('[]')
         if params['page_size']:
             params_dict["page_size"] = str(params['page_size']).strip('[]')
 
@@ -904,7 +912,7 @@ def results_count_projects(request):
     else:  # request.method == 'GET'
         data = json.dumps(http_get(request, 'resultcountprojects').json(), sort_keys=True)
         context_dict = {'data': data}
-        return render(request,'merlin/results_count_projects.html', context_dict)
+        return render(request, 'merlin/results_count_projects.html', context_dict)
 
 
 def samples_nwis_report(request):
@@ -924,6 +932,8 @@ def samples_nwis_report(request):
         if params['date_before_entry']:
             params_dict["date_before_entry"] = datetime.strptime(
                 str(params['date_before_entry']).strip('[]'), '%m/%d/%y').strftime('%Y-%m-%d')
+        if params['date_search_type']:
+            params_dict["date_search_type"] = str(params['date_search_type']).strip('[]')
         if params['page_size']:
             params_dict["page_size"] = str(params['page_size']).strip('[]')
 
@@ -937,7 +947,7 @@ def samples_nwis_report(request):
         projects = json.dumps(http_get(request, 'projects').json(), sort_keys=True)
         context_dict = {'projects': projects}
 
-        return render(request,'merlin/samples_nwis.html', context_dict)
+        return render(request, 'merlin/samples_nwis.html', context_dict)
 
 
 def results_nwis_report(request):
@@ -957,6 +967,8 @@ def results_nwis_report(request):
         if params['date_before_entry']:
             params_dict["date_before_entry"] = datetime.strptime(
                 str(params['date_before_entry']).strip('[]'), '%m/%d/%y').strftime('%Y-%m-%d')
+        if params['date_search_type']:
+            params_dict["date_search_type"] = str(params['date_search_type']).strip('[]')
         if params['page_size']:
             params_dict["page_size"] = str(params['page_size']).strip('[]')
         if params['exclude_ld']:
@@ -971,7 +983,7 @@ def results_nwis_report(request):
     else:  # request.method == 'GET'
         projects = json.dumps(http_get(request, 'projects').json(), sort_keys=True)
         context_dict = {'projects': projects}
-        return render(request,'merlin/results_nwis.html', context_dict)
+        return render(request, 'merlin/results_nwis.html', context_dict)
 
 
 def results_cooperator_report(request):
@@ -993,6 +1005,8 @@ def results_cooperator_report(request):
         if params['date_before_entry']:
             params_dict["date_before_entry"] = datetime.strptime(
                 str(params['date_before_entry']).strip('[]'), '%m/%d/%y').strftime('%Y-%m-%d')
+        if params['date_search_type']:
+            params_dict["date_search_type"] = str(params['date_search_type']).strip('[]')
         if params['page_size']:
             params_dict["page_size"] = str(params['page_size']).strip('[]')
 
@@ -1006,7 +1020,7 @@ def results_cooperator_report(request):
         projects = json.dumps(http_get(request, 'projects').json(), sort_keys=True)
         cooperators = json.dumps(http_get(request, 'cooperators').json(), sort_keys=True)
         context_dict = {'projects': projects, 'cooperators': cooperators}
-        return render(request,'merlin/results_cooperator.html', context_dict)
+        return render(request, 'merlin/results_cooperator.html', context_dict)
 
 
 def bottles(request):
@@ -1016,7 +1030,7 @@ def bottles(request):
     prefixes = json.dumps(http_get(request, 'bottleprefixes').json(), sort_keys=True)
     bottletypes = json.dumps(http_get(request, 'bottletypes').json(), sort_keys=True)
     context_dict = {'bottles': bottles, 'prefixes': prefixes, 'bottletypes': bottletypes}
-    return render(request,'merlin/bottles.html', context_dict)
+    return render(request, 'merlin/bottles.html', context_dict)
 
 
 def bottles_update(request):
@@ -1278,7 +1292,7 @@ def brominations(request):
     data = json.dumps(http_get(request, 'brominations').json(), sort_keys=True)
     samples = json.dumps(http_get(request, 'samplebottlebrominations').json(), sort_keys=True)
     context_dict = {'data': data, 'samples': samples}
-    return render(request,'merlin/brominations.html', context_dict)
+    return render(request, 'merlin/brominations.html', context_dict)
 
 
 def brominations_update(request):
@@ -1427,7 +1441,7 @@ def blankwaters(request):
     r = http_get(request, 'blankwaters')
     data = json.dumps(r.json(), sort_keys=True)
     context_dict = {'data': data}
-    return render(request,'merlin/blankwaters.html', context_dict)
+    return render(request, 'merlin/blankwaters.html', context_dict)
 
 
 def blankwaters_update(request):
@@ -1508,18 +1522,18 @@ def standards_delete(request):
     return HttpResponse(r)
 
 
-def balanceverifications(request):
+def equipmentverifications(request):
     if not request.session.get('username'):
         return HttpResponseRedirect('/merlin/')
-    r = http_get(request, 'balanceverifications')
+    r = http_get(request, 'equipmentverifications')
     data = json.dumps(r.json(), sort_keys=True)
-    balances = json.dumps(http_get(request, 'equipment', {'type': 1}).json(), sort_keys=True)
+    equipment = json.dumps(http_get(request, 'equipment').json(), sort_keys=True)
     analysts = json.dumps(http_get(request, 'users').json())
-    context_dict = {'data': data, 'balances': balances, 'analysts': analysts}
-    return render(request, 'merlin/balanceverifications.html', context_dict)
+    context_dict = {'data': data, 'equipment': equipment, 'analysts': analysts}
+    return render(request, 'merlin/equipmentverifications.html', context_dict)
 
 
-def balanceverifications_update(request):
+def equipmentverifications_update(request):
     data = json.loads(request.body.decode('utf-8'))
     response_data = []
     # using a loop to send data to the single PUT endpoint instead of just using the bulk PUT endpoint
@@ -1530,7 +1544,7 @@ def balanceverifications_update(request):
         this_id = item.pop("id")
         item = json.dumps(item)
         logger.info("Item #" + str(item_number) + ": " + item)
-        r = http_put(request, 'balanceverifications/'+str(this_id), item)
+        r = http_put(request, 'equipmentverifications/'+str(this_id), item)
         logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
         this_response_data = r.json()
         response_data.append(this_response_data)
@@ -1538,26 +1552,29 @@ def balanceverifications_update(request):
     return HttpResponse(response_data, content_type='application/json')
 
 
-def balanceverifications_create(request):
+def equipmentverifications_create(request):
     data = json.loads(request.body.decode('utf-8'))
-    item1 = {"balance": data["balance"], "analyst": data["analyst"], "verification_date": data["verification_date"],
+    item1 = {"equipment": data["equipment"], "analyst": data["analyst"], "verification_date": data["verification_date"],
              "verification_time": data["verification_time"], "weight_tested": data["weight_tested1"],
              "weight_as_found": data["weight_as_found1"], "deviation": data["deviation1"],
              "percent_recovery": data["percent_recovery1"],  "final_reading": data["final_reading1"],
              "comment": data["comment"]}
-    item2 = {"balance": data["balance"], "analyst": data["analyst"], "verification_date": data["verification_date"],
-             "verification_time": data["verification_time"], "weight_tested": data["weight_tested2"],
-             "weight_as_found": data["weight_as_found2"], "deviation": data["deviation2"],
-             "percent_recovery": data["percent_recovery2"],  "final_reading": data["final_reading2"],
-             "comment": data["comment"]}
-    data = [item1, item2]
+    items = [item1]
+    # only include a second item if the user entered one (we do not want empty records)
+    if "final_reading2" in data and (data["final_reading2"] is not None or data["final_reading2"] != ""):
+        item2 = {"equipment": data["equipment"], "analyst": data["analyst"],
+                 "verification_date": data["verification_date"], "verification_time": data["verification_time"],
+                 "weight_tested": data["weight_tested2"], "weight_as_found": data["weight_as_found2"],
+                 "deviation": data["deviation2"], "percent_recovery": data["percent_recovery2"],
+                 "final_reading": data["final_reading2"], "comment": data["comment"]}
+        items.append(item2)
     response_data = []
     item_number = 0
-    for item in data:
+    for item in items:
         item_number += 1
         item = json.dumps(item)
         logger.info("Item #" + str(item_number) + ": " + str(item))
-        r = http_post(request, 'balanceverifications', item)
+        r = http_post(request, 'equipmentverifications', item)
         logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
         this_response_data = r.json()
         response_data.append(this_response_data)
@@ -1565,10 +1582,10 @@ def balanceverifications_create(request):
     return HttpResponse(response_data, content_type='application/json')
 
 
-def balanceverifications_delete(request):
+def equipmentverifications_delete(request):
     data = json.loads(request.body.decode('utf-8'))
     this_id = data.pop("id")
-    r = http_delete(request, 'balanceverifications/' + str(this_id))
+    r = http_delete(request, 'equipmentverifications/' + str(this_id))
     logger.info(r.request.method + " " + r.request.url + "  " + r.reason + " " + str(r.status_code))
     return HttpResponse(r)
 
@@ -1578,7 +1595,7 @@ def acids(request):
         return HttpResponseRedirect('/merlin/')
     data = json.dumps(http_get(request, 'acids').json(), sort_keys=True)
     context_dict = {'data': data}
-    return render(request,'merlin/acids.html', context_dict)
+    return render(request, 'merlin/acids.html', context_dict)
 
 
 def acids_update(request):
@@ -1621,7 +1638,7 @@ def sites(request):
     data = json.dumps(http_get(request, 'sites').json(), sort_keys=True)
     projects = json.dumps(http_get(request, 'projects').json(), sort_keys=True)
     context_dict = {'data': data, 'projects': projects}
-    return render(request,'merlin/sites.html', context_dict)
+    return render(request, 'merlin/sites.html', context_dict)
 
 
 def sites_update(request):
@@ -1664,7 +1681,7 @@ def projects(request):
     data = json.dumps(http_get(request, 'projects').json(), sort_keys=True)
     cooperators = json.dumps(http_get(request, 'cooperators').json(), sort_keys=True)
     context_dict = {'data': data, 'cooperators': cooperators}
-    return render(request,'merlin/projects.html', context_dict)
+    return render(request, 'merlin/projects.html', context_dict)
 
 
 def projects_update(request):
@@ -1708,7 +1725,7 @@ def projectssites(request):
     projects = json.dumps(http_get(request, 'projects').json(), sort_keys=True)
     sites = json.dumps(http_get(request, 'sites').json(), sort_keys=True)
     context_dict = {'data': data, 'projects': projects, 'sites': sites}
-    return render(request,'merlin/projects_sites.html', context_dict)
+    return render(request, 'merlin/projects_sites.html', context_dict)
 
 
 def projectssites_create(request):
@@ -1746,7 +1763,7 @@ def cooperators(request):
         return HttpResponseRedirect('/merlin/')
     data = json.dumps(http_get(request, 'cooperators').json(), sort_keys=True)
     context_dict = {'data': data}
-    return render(request,'merlin/cooperators.html', context_dict)
+    return render(request, 'merlin/cooperators.html', context_dict)
 
 
 def cooperators_update(request):
@@ -1793,12 +1810,12 @@ def user_login(request):
         if not username:
             r = {"bad_details": True}
             logger.error("Error: Username not submitted.")
-            return render(request,'merlin/login.html', r)
+            return render(request, 'merlin/login.html', r)
 
         if not password:
             r = {"bad_details": True}
             logger.error("Error: Password not submitted.")
-            return render(request,'merlin/login.html', r)
+            return render(request, 'merlin/login.html', r)
 
         r = requests.request(method='POST', url=REST_SERVICES_URL + 'auth/', auth=(username, password))
         logger.info(r.request.method + " " + r.request.url + " " + r.reason + " " + str(r.status_code))
@@ -1822,7 +1839,7 @@ def user_login(request):
                     return HttpResponseRedirect('/merlin/')
                 else:
                     r = {"disabled_account": True}
-                    return render(request,'merlin/login.html', r)
+                    return render(request, 'merlin/login.html', r)
             else:
                 logger.error("Error: Could not retrieve details of " + username + " from Merlin Services")
                 resp = "<h1>" + str(r.status_code) + ": " + r.reason + "</h1>"
@@ -1833,17 +1850,17 @@ def user_login(request):
         elif (response_data["detail"] == "Invalid username/password."):
             r = {"bad_details": True}
             logger.error("Error: " + response_data["detail"] + " Username: " + username + ".")
-            return render(request,'merlin/login.html', r)
+            return render(request, 'merlin/login.html', r)
 
         elif (response_data["non_field_errors"]):
             if (response_data["non_field_errors"][0] == "Unable to login with provided credentials."):
                 r = {"bad_details": True}
                 logger.error("Error: " + response_data["non_field_errors"][0] + " Username: " + username + ".")
-                return render(request,'merlin/login.html', r)
+                return render(request, 'merlin/login.html', r)
             else:
                 r = {"bad_details": True}
                 logger.error("Error: " + response_data["non_field_errors"][0] + " Username: " + username + ".")
-                return render(request,'merlin/login.html', r)
+                return render(request, 'merlin/login.html', r)
 
         else:
             logger.error("Error: Could not log in " + username + " with Merlin Services.")
@@ -1852,7 +1869,7 @@ def user_login(request):
             return HttpResponse(resp)
 
     else:
-        return render(request,'merlin/login.html', {})
+        return render(request, 'merlin/login.html', {})
 
 
 # logout using Basic Authentication
@@ -1899,7 +1916,7 @@ def user_logout(request):
 
 
 def about(request):
-    return render(request,'merlin/about.html', {})
+    return render(request, 'merlin/about.html', {})
 
 
 def index(request):

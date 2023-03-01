@@ -31,6 +31,15 @@
                 </p>
                 <p>
                     <div class="form-group">
+                        <label for="dateSearchType">Date Search Type</label>
+                        <div id="dateSearchType" class="form-group">
+                            <input type="radio" name="dateSearchType" id="dateSearchTypeInclusive" value="inclusive"/>Inclusive<br />
+                            <input type="radio" name="dateSearchType" id="dateSearchTypeExclusive" value="exclusive" checked />Exclusive
+                        </div>
+                    </div>
+                </p>
+                <p>
+                    <div class="form-group">
                         <button type="button" class="btn btn-info" data-loading-text="Searching..." name="search">Search</button>
                         <button type="button" class="btn btn-default" name="exportTAB">Export TAB</button>
                         <button type="button" class="btn btn-default" data-loading-text="Getting Previous..." name="prev">Previous Page</button>
@@ -195,6 +204,13 @@
                     thisDataObject['project_not'] = $(select_project_not).val();
                     thisDataObject['date_after_entry'] = date_after_entry.toString('MM/DD/YY');
                     thisDataObject['date_before_entry'] = date_before_entry.toString('MM/DD/YY');
+                    // set date search type (exclusive vs inclusive)
+                    if ($("input[type=radio][name=dateSearchType]:checked").val() == "exclusive") {
+                        thisDataObject['date_search_type'] = "exclusive";
+                    }
+                    else {
+                        thisDataObject['date_search_type'] = "inclusive";
+                    }
                     thisDataObject['page_size'] = "";
                     var dataJSON = JSON.stringify(thisDataObject);
                     $.ajax({
@@ -331,6 +347,13 @@
                     thisDataObject['project_not'] = $(select_project_not).val();
                     thisDataObject['date_after_entry'] = date_after_entry.toString('MM/DD/YY');
                     thisDataObject['date_before_entry'] = date_before_entry.toString('MM/DD/YY');
+                    // set date search type (exclusive vs inclusive)
+                    if ($("input[type=radio][name=dateSearchType]:checked").val() == "exclusive") {
+                        thisDataObject['date_search_type'] = "exclusive";
+                    }
+                    else {
+                        thisDataObject['date_search_type'] = "inclusive";
+                    }
                     // page_size is the parameter that will override our self-defined default 100-record pagination
                     // setting it to the nearest hundred above the record count will ensure we get all matching records
                     thisDataObject['page_size'] = (resultPages * 100);
