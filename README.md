@@ -1,3 +1,6 @@
+# THIS REPO IS ARCHIVED
+## Please visit https://code.usgs.gov/WiM/merlin for the active repo of this project.
+
 Merlin: Mercury Research Laboratory Information Management System
 ==========
 
